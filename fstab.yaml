@@ -1,5 +1,5 @@
 mountpoints:
   /:
-    url: "https://author-p176854-e1867254.adobeaemcloud.com/bin/franklin.delivery/adobe-cm/cm-p176854-s20614-fenix-home/main"
+    url: "https://author-p176854-e1867254.adobeaemcloud.com/bin/franklin.delivery/aviancavsts/fenix/main"
     type: "markup"
     suffix: ".html"
