@@ -1,19 +1,19 @@
 {
   "mappings": [
-    "/content/avianca/:/",
-    "/content/avianca/configuration:/.helix/config.json",
-    "/content/avianca/briefofertas:/briefofertas.json",
-    "/content/avianca/iata:/iata.json",
-    "/content/avianca/countrieslist:/countrieslist.json",
-    "/content/avianca/languageslist:/languageslist.json",
-    "/content/avianca/i18/en:/en.json",
-    "/content/avianca/i18/es:/es.json",
-    "/content/avianca/i18/pt:/pt.json",
-    "/content/avianca/i18/fr:/fr.json",
-    "/content/avianca/metadata:/metadata.json",
-    "/content/avianca/environment:/environment.json"
+    "/content/Avianca-home-site/:/",
+    "/content/Avianca-home-site/configuration:/.helix/config.json",
+    "/content/Avianca-home-site/briefofertas:/briefofertas.json",
+    "/content/Avianca-home-site/iata:/iata.json",
+    "/content/Avianca-home-site/countireslist:/countireslist.json",
+    "/content/Avianca-home-site/languageslist:/languageslist.json",
+    "/content/Avianca-home-site/i18/en:/en.json",
+    "/content/Avianca-home-site/i18/es:/es.json",
+    "/content/Avianca-home-site/i18/pt:/pt.json",
+    "/content/Avianca-home-site/i18/fr:/fr.json",
+    "/content/Avianca-home-site/metadata:/metadata.json",
+    "/content/Avianca-home-site/environment:/environment.json"
   ],
   "includes": [
-    "/content/avianca/"
+    "/content/Avianca-home-site/"
   ]
 }

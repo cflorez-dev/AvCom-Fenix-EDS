@@ -1,0 +1,120 @@
+/* Footer partner logos wrapper */
+.footer-partner-logos-wrapper {
+  width: 100%;
+  padding: 24px 0;
+}
+
+/* Production mode - footer partners logos container */
+.footer-partners-logos-container {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 32px;
+  align-items: flex-start;
+  align-content: flex-start;
+  justify-content: flex-start;
+  width: 100%;
+}
+
+.footer-partners-logos-container > a,
+.footer-partners-logos-container > picture {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+}
+
+.footer-partners-logos-container picture img {
+  max-width: 100%;
+  height: auto;
+  display: block;
+}
+
+/* Responsive: en pantallas medianas, los logos hacen wrap automáticamente */
+@media (max-width: 768px) {
+  .footer-partners-logos-container {
+    gap: 32px;
+  }
+
+  .footer-partners-logos-container > a,
+  .footer-partners-logos-container > picture {
+    max-width: 180px;
+  }
+}
+
+/* Responsive: en pantallas muy pequeñas, columna centrada a la izquierda */
+@media (max-width: 400px) {
+  .footer-partners-logos-container {
+    flex-direction: column;
+    align-items: flex-start; /* Alineación a la izquierda */
+    gap: 16px;
+  }
+
+  .footer-partners-logos-container > a,
+  .footer-partners-logos-container > picture {
+    width: auto;
+    max-width: 200px;
+  }
+}
+
+/* Production mode - transformed footer partners logos list */
+.footer-partners-logos-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(257px, 1fr));
+  gap: 24px;
+}
+
+.footer-partners-logos-list > li {
+  border: 1px solid #dadada;
+  background-color: var(--background-color);
+}
+
+/* Legacy selector for backwards compatibility */
+.footer-partners-logos > ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(257px, 1fr));
+  gap: 24px;
+}
+
+.footer-partners-logos > ul > li {
+  border: 1px solid #dadada;
+  background-color: var(--background-color);
+}
+
+.footer-partners-logos .footer-partners-logos-card-body,
+.footer-partners-logos-list .footer-partners-logos-card-body {
+  margin: 16px;
+}
+
+.footer-partners-logos .footer-partners-logos-card-image,
+.footer-partners-logos-list .footer-partners-logos-card-image {
+  line-height: 0;
+}
+
+.footer-partners-logos > ul > li img,
+.footer-partners-logos-list > li img {
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+}
+
+/* Author mode - preserve editable structure */
+.footer-partners-logos-author-mode {
+  border: 2px dashed #0066cc;
+  padding: 16px;
+  background-color: #f9f9f9;
+}
+
+.footer-partners-logos-author-mode > div {
+  margin-bottom: 12px;
+  padding: 12px;
+  background: white;
+  border: 1px solid #e0e0e0;
+  border-radius: 4px;
+}

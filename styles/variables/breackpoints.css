@@ -1,0 +1,23 @@
+/* Breakpoints System - Responsive Design (Based on Figma Design) */
+
+:root {
+  /* Screen Breakpoints - Matching Figma Specification */
+  --screen-xs: 390px;     /* Mobile small (iPhone 14 Pro, etc.) */
+  --screen-sm: 480px;     /* Mobile large / phablets */
+  --screen-md: 768px;     /* Tablets */
+  --screen-mdlg: 992px;   /* Tablets large / Desktop extra small */
+  --screen-lg: 1024px;    /* Desktop small */
+  --screen-xl: 1248px;    /* Desktop large (Figma max-width) */
+  
+  /* Container Max Widths */
+  --container-xs: 390px;
+  --container-sm: 480px;
+  --container-md: 768px;
+  --container-mdlg: 992px;
+  --container-lg: 1024px;
+  --container-xl: 1248px;
+  
+  /* Legacy Tailwind compatibility (optional) */
+  --screen-2xl: 1536px;   /* For Tailwind default compatibility */
+  --container-2xl: 1536px;
+}

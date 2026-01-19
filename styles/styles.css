@@ -1,5 +1,6 @@
+@import './components/component.css';
 /*
- * Copyright 2020 Adobe. All rights reserved.
+ * Copyright 2020 Adobe. All rights reserred.
  * This file is licensed to you under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License. You may obtain a copy
  * of the License at http://www.apache.org/licenses/LICENSE-2.0
@@ -10,6 +11,8 @@
  * governing permissions and limitations under the License.
  */
 
+@import url('../../styles/utilities.css');
+
 :root {
   /* colors */
   --background-color: white;
@@ -18,10 +21,12 @@
   --text-color: #131313;
   --link-color: #3b63fb;
   --link-hover-color: #1d3ecf;
+  --link-color-secondary: #0190a0;
+  --link-hover-color-secondary: #0190a0;
 
   /* fonts */
-  --body-font-family: roboto, roboto-fallback, sans-serif;
-  --heading-font-family: roboto-condensed, roboto-condensed-fallback, sans-serif;
+  --body-font-family: 'Red Hat Display', red-hat-display-fallback, sans-serif;
+  --heading-font-family: 'Red Hat Display', red-hat-display-fallback, sans-serif;
 
   /* body sizes */
   --body-font-size-m: 22px;
@@ -42,14 +47,8 @@
 
 /* fallback fonts */
 @font-face {
-  font-family: roboto-condensed-fallback;
-  size-adjust: 88.82%;
-  src: local('Arial');
-}
-
-@font-face {
-  font-family: roboto-fallback;
-  size-adjust: 99.529%;
+  font-family: red-hat-display-fallback;
+  size-adjust: 100%;
   src: local('Arial');
 }
 
@@ -86,6 +85,8 @@ body.appear {
 
 header {
   height: var(--nav-height);
+  position: relative;
+  z-index: 100;
 }
 
 header .header,
@@ -119,6 +120,18 @@ h4 { font-size: var(--heading-font-size-m); }
 h5 { font-size: var(--heading-font-size-s); }
 h6 { font-size: var(--heading-font-size-xs); }
 
+/* H2 - Figma Design System Override (heading/H600) */
+h2 {
+  margin-top: 0;
+  margin-bottom: 0;
+  font-family: var(--family-red-hat-display, 'Red Hat Display');
+  font-size: var(--size-x-large, 24px);
+  font-style: normal;
+  font-weight: 700;
+  line-height: normal;
+  letter-spacing: var(--letter-spacing-normal, 0);
+}
+
 p,
 dl,
 ol,
@@ -142,10 +155,6 @@ pre {
   white-space: pre;
 }
 
-main > div {
-  margin: 40px 16px;
-}
-
 input,
 textarea,
 select,
@@ -155,97 +164,19 @@ button {
 
 /* links */
 a:any-link {
-  color: var(--link-color);
+  /* color: var(--link-color);
   text-decoration: none;
-  overflow-wrap: break-word;
+  overflow-wrap: break-word; */
 }
 
-a:hover {
-  color: var(--link-hover-color);
-  text-decoration: underline;
-}
-
-/* buttons */
-a.button:any-link,
-button {
-  box-sizing: border-box;
-  display: inline-block;
-  max-width: 100%;
-  margin: 12px 0;
-  border: 2px solid transparent;
-  border-radius: 2.4em;
-  padding: 0.5em 1.2em;
-  font-family: var(--body-font-family);
-  font-style: normal;
-  font-weight: 500;
-  line-height: 1.25;
-  text-align: center;
-  text-decoration: none;
-  background-color: var(--link-color);
-  color: var(--background-color);
-  cursor: pointer;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-a.button:hover,
-a.button:focus,
-button:hover,
-button:focus {
-  background-color: var(--link-hover-color);
-  cursor: pointer;
-}
-
-button:disabled,
-button:disabled:hover {
-  background-color: var(--light-color);
-  cursor: unset;
-}
-
-a.button.secondary,
-button.secondary {
-  background-color: unset;
-  border: 2px solid currentcolor;
-  color: var(--text-color);
-}
-
-main img {
-  max-width: 100%;
-  width: auto;
-  height: auto;
-}
-
-.icon {
-  display: inline-block;
-  height: 24px;
-  width: 24px;
-}
-
-.icon img {
-  height: 100%;
-  width: 100%;
-}
-
-/* sections */
 main > .section {
-  margin: 40px 0;
-}
-
-main > .section > div {
-  max-width: 1200px;
+  max-width: 1248px;
   margin: auto;
-  padding: 0 24px;
+  padding: 32px var(--main-section-div-padding, 16px);
 }
 
 main > .section:first-of-type {
   margin-top: 0;
-}
-
-@media (width >= 900px) {
-  main > .section > div {
-    padding: 0 32px;
-  }
 }
 
 /* section metadata */
@@ -254,4 +185,82 @@ main .section.highlight {
   background-color: var(--light-color);
   margin: 0;
   padding: 40px 0;
+}
+
+main .section.center-content {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+main .section.center-content > div {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+}
+
+/* TODO: remove style, is only for client meet 17-12 - START */
+.section.center-content:has(.default-content-wrapper) {
+    padding: 0;
+}
+/* TODO: remove style, is only for client meet 17-12 - END */
+
+.section.layout-1-2-992 > div {
+  display: flex;
+  flex-direction: column;
+}
+
+/* Desktop >= 992px */
+@media (min-width: 992px) {
+  .section.layout-1-2-992 {
+    display: grid;
+    grid-template-columns: minmax(280px, 1fr) minmax(320px, 1fr);
+    grid-auto-rows: auto;
+    gap: 24px;
+    align-items: start;
+  }
+
+  /* first direct child div -> left column, span 2 rows */
+  .section.layout-1-2-992 > div:first-child {
+    grid-column: 1;
+    grid-row: 1 / 3;
+  }
+
+  /* all other direct child divs -> right column, starting from row 1 */
+  .section.layout-1-2-992 > div:nth-child(2) {
+    grid-column: 2;
+    grid-row: 1;
+  }
+
+  .section.layout-1-2-992 > div:nth-child(3) {
+    grid-column: 2;
+    grid-row: 2;
+  }
+
+  .section.layout-1-2-992 > div:nth-child(4) {
+    grid-column: 2;
+    grid-row: 3;
+  }
+
+  .section.layout-1-2-992 > div:nth-child(n+5) {
+    grid-column: 2;
+  }
+}
+
+/* Tablet and desktop media queries */
+@media (width >= 480px) and (width <= 1247px) {
+    :root {
+        --main-section-div-padding: 32px;
+    }
+
+    main > .section > div {
+        box-sizing: content-box;
+    }
+}
+
+@media (width >= 1248px) {
+    :root {
+        --main-section-div-padding: 0;
+    }
 }

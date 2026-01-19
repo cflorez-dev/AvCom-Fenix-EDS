@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Origin Dropdown Selector - Test</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 800px;
+      margin: 40px auto;
+      padding: 20px;
+      background: #f5f5f5;
+    }
+    .test-section {
+      background: white;
+      padding: 20px;
+      margin-bottom: 20px;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    h2 {
+      margin-top: 0;
+      color: #333;
+    }
+    pre {
+      background: #f0f0f0;
+      padding: 15px;
+      border-radius: 4px;
+      overflow-x: auto;
+    }
+    code {
+      font-family: 'Courier New', monospace;
+      font-size: 14px;
+    }
+    .note {
+      background: #e3f2fd;
+      padding: 10px;
+      border-left: 4px solid #2196f3;
+      margin: 10px 0;
+    }
+  </style>
+</head>
+<body>
+  <h1>🧪 Origin Dropdown Selector - Testing Guide</h1>
+  
+  <div class="test-section">
+    <h2>📋 Estructura HTML que genera AEM</h2>
+    <p>Esta es la estructura que Universal Editor crea en el DOM cuando guardas la configuración:</p>
+    <pre><code>&lt;div class="origin-dropdown-selector block"&gt;
+  &lt;!-- Campo simple: label --&gt;
+  &lt;div&gt;
+    &lt;div&gt;Label&lt;/div&gt;
+    &lt;div&gt;&lt;p&gt;Origen&lt;/p&gt;&lt;/div&gt;
+  &lt;/div&gt;
+  
+  &lt;!-- Campo simple: defaultValue --&gt;
+  &lt;div&gt;
+    &lt;div&gt;DefaultValue&lt;/div&gt;
+    &lt;div&gt;&lt;p&gt;BOG&lt;/p&gt;&lt;/div&gt;
+  &lt;/div&gt;
+  
+  &lt;!-- ⭐ Campo CONTAINER: cities --&gt;
+  &lt;div&gt;
+    &lt;div&gt;Cities&lt;/div&gt;
+    &lt;div&gt;
+      &lt;!-- Cada item es un JSON string en un &lt;p&gt; --&gt;
+      &lt;p&gt;{"label":"Bogotá (BOG)","value":"BOG"}&lt;/p&gt;
+      &lt;p&gt;{"label":"Medellín (MDE)","value":"MDE"}&lt;/p&gt;
+      &lt;p&gt;{"label":"Cali (CLO)","value":"CLO"}&lt;/p&gt;
+    &lt;/div&gt;
+  &lt;/div&gt;
+&lt;/div&gt;</code></pre>
+    
+    <div class="note">
+      <strong>🔑 Punto Clave:</strong> Los items del container NO son objetos JavaScript, 
+      son <strong>strings JSON</strong> dentro de elementos <code>&lt;p&gt;</code>
+    </div>
+  </div>
+
+  <div class="test-section">
+    <h2>🔄 Flujo de Procesamiento</h2>
+    <ol>
+      <li>
+        <strong>readBlockConfig()</strong> extrae los valores del DOM:
+        <pre><code>config = {
+  label: "Origen",
+  defaultvalue: "BOG",
+  cities: [
+    '{"label":"Bogotá (BOG)","value":"BOG"}',  // ⚠️ STRING
+    '{"label":"Medellín (MDE)","value":"MDE"}',
+    '{"label":"Cali (CLO)","value":"CLO"}'
+  ]
+}</code></pre>
+      </li>
+      
+      <li>
+        <strong>JSON.parse()</strong> convierte cada string a objeto:
+        <pre><code>cities = [
+  { label: "Bogotá (BOG)", value: "BOG" },  // ✅ OBJETO
+  { label: "Medellín (MDE)", value: "MDE" },
+  { label: "Cali (CLO)", value: "CLO" }
+]</code></pre>
+      </li>
+      
+      <li>
+        <strong>Validación</strong> y filtrado de items inválidos
+      </li>
+      
+      <li>
+        <strong>Búsqueda de ciudad por defecto</strong> usando el código (value)
+      </li>
+      
+      <li>
+        <strong>Render del componente Preact</strong> con los datos procesados
+      </li>
+    </ol>
+  </div>
+
+  <div class="test-section">
+    <h2>🧪 Casos de Prueba</h2>
+    
+    <h3>✅ Caso 1: Configuración Completa</h3>
+    <pre><code>Config en Universal Editor:
+- Label: "Origen de viaje"
+- DefaultValue: "MDE"
+- Cities:
+  • Label: "Bogotá (BOG)", Value: "BOG"
+  • Label: "Medellín (MDE)", Value: "MDE"
+  • Label: "Cali (CLO)", Value: "CLO"
+
+Resultado esperado:
+✅ Dropdown muestra "Medellín (MDE)" por defecto
+✅ 3 opciones disponibles en el dropdown</code></pre>
+
+    <h3>⚠️ Caso 2: DefaultValue No Existe</h3>
+    <pre><code>Config en Universal Editor:
+- DefaultValue: "XYZ" (no existe en la lista)
+- Cities: ... (BOG, MDE, CLO)
+
+Resultado esperado:
+⚠️ Warning en consola: "Default city code 'XYZ' not found"
+✅ Usa primera ciudad (BOG) como fallback</code></pre>
+
+    <h3>🔧 Caso 3: Sin Ciudades Configuradas</h3>
+    <pre><code>Config en Universal Editor:
+- Label: "Origen"
+- DefaultValue: "" (vacío)
+- Cities: [] (sin items)
+
+Resultado esperado:
+⚠️ Warning: "No cities configured. Using defaults."
+✅ Usa 5 ciudades colombianas hardcoded</code></pre>
+
+    <h3>❌ Caso 4: Item con Datos Incompletos</h3>
+    <pre><code>Config en Universal Editor:
+- Cities:
+  • Label: "Bogotá (BOG)", Value: "" (vacío) ❌
+  • Label: "", Value: "MDE" (vacío) ❌
+  • Label: "Cali (CLO)", Value: "CLO" ✅
+
+Resultado esperado:
+⚠️ 2 warnings: "City item X is missing required fields"
+✅ Solo "Cali (CLO)" aparece en el dropdown</code></pre>
+  </div>
+
+  <div class="test-section">
+    <h2>🔍 Debugging en Consola</h2>
+    <p>El código incluye logs detallados. Abre DevTools (F12) y verás:</p>
+    <pre><code>✅ Successfully parsed 3 cities from config
+✅ Default city set to: Medellín (MDE) (MDE)
+✅ Origin Dropdown Selector initialized: {
+  label: "Origen",
+  defaultCity: { label: "Medellín (MDE)", value: "MDE" },
+  totalCities: 3,
+  cities: [
+    "Bogotá (BOG) (BOG)",
+    "Medellín (MDE) (MDE)",
+    "Cali (CLO) (CLO)"
+  ]
+}</code></pre>
+  </div>
+
+  <div class="test-section">
+    <h2>📡 Event Listener (para integración)</h2>
+    <p>Otros scripts pueden escuchar cambios del selector:</p>
+    <pre><code>// Escuchar cambios de ciudad
+document.addEventListener('origin-selected', (event) => {
+  const { label, value, city } = event.detail;
+  
+  console.log('Nueva ciudad seleccionada:');
+  console.log('- Label:', label);      // "Medellín (MDE)"
+  console.log('- Value:', value);      // "MDE"
+  console.log('- City Object:', city); // { label: "...", value: "..." }
+});
+
+// Leer valor actual desde data attributes
+const container = document.querySelector('.origin-dropdown-selector-container');
+console.log(container.dataset.currentValue);  // "MDE"
+console.log(container.dataset.currentLabel);  // "Medellín (MDE)"
+
+// Obtener lista completa de ciudades
+const cities = JSON.parse(container.dataset.cities);
+console.log(cities); // [{ label: "...", value: "..." }, ...]</code></pre>
+  </div>
+
+  <div class="test-section">
+    <h2>📚 Referencias</h2>
+    <ul>
+      <li>
+        <strong>Documentación completa:</strong> 
+        <code>blocks/origin-dropdown-selector/UNIVERSAL_EDITOR_GUIDE.md</code>
+      </li>
+      <li>
+        <strong>Código fuente:</strong>
+        <code>blocks/origin-dropdown-selector/origin-dropdown-selector.js</code>
+      </li>
+      <li>
+        <strong>Modelo JSON:</strong>
+        <code>models/_component-models.json</code> (buscar "origin-dropdown-selector")
+      </li>
+    </ul>
+  </div>
+</body>
+</html>
