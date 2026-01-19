@@ -11,13 +11,15 @@
  */
 
 /* eslint-env browser */
+import { showLoader } from './services/loader/loader.service.js';
+
 function sampleRUM(checkpoint, data) {
   // eslint-disable-next-line max-len
   const timeShift = () => (window.performance ? window.performance.now() : Date.now() - window.hlx.rum.firstReadTime);
   try {
     window.hlx = window.hlx || {};
     if (!window.hlx.rum || !window.hlx.rum.collector) {
-      sampleRUM.enhance = () => {};
+      sampleRUM.enhance = () => { };
       const params = new URLSearchParams(window.location.search);
       const { currentScript } = document;
       const rate = params.get('rum')
@@ -160,12 +162,7 @@ function setup() {
   const scriptEl = document.querySelector('script[src$="/scripts/scripts.js"]');
   if (scriptEl) {
     try {
-      const scriptURL = new URL(scriptEl.src, window.location);
-      if (scriptURL.host === window.location.host) {
-        [window.hlx.codeBasePath] = scriptURL.pathname.split('/scripts/scripts.js');
-      } else {
-        [window.hlx.codeBasePath] = scriptURL.href.split('/scripts/scripts.js');
-      }
+      [window.hlx.codeBasePath] = new URL(scriptEl.src).pathname.split('/scripts/scripts.js');
     } catch (error) {
       // eslint-disable-next-line no-console
       console.log(error);
@@ -236,12 +233,30 @@ function readBlockConfig(block) {
           } else {
             value = imgs.map((img) => img.src);
           }
-        } else if (col.querySelector('p')) {
+        } else if (col.querySelector('p, h1, h2, h3, h4, h5, h6, ul, ol')) {
+          // Detectar si contiene elementos de rich text (headings, listas, párrafos con formato)
+          const hasHeadings = col.querySelector('h1, h2, h3, h4, h5, h6');
+          const hasLists = col.querySelector('ul, ol');
           const ps = [...col.querySelectorAll('p')];
-          if (ps.length === 1) {
+
+          // Verificar si hay contenido rich text en los párrafos
+          const hasRichTextInParagraphs = ps.some((p) => {
+            const html = p.innerHTML.trim();
+            const text = p.textContent.trim();
+            // Detectar etiquetas inline de formato
+            const hasInlineTags = /<(strong|em|b|i|u|br|span|mark|code|sub|sup|a)\b[^>]*>/i.test(html);
+            return html !== text || hasInlineTags;
+          });
+
+          // Si tiene headings, listas o rich text, retornar innerHTML completo de la celda
+          if (hasHeadings || hasLists || hasRichTextInParagraphs) {
+            value = col.innerHTML.trim();
+          } else if (ps.length === 1) {
             value = ps[0].textContent;
-          } else {
+          } else if (ps.length > 1) {
             value = ps.map((p) => p.textContent);
+          } else {
+            value = col.textContent.trim();
           }
         } else value = row.children[1].textContent;
         config[name] = value;
@@ -293,6 +308,29 @@ async function loadScript(src, attrs) {
       resolve();
     }
   });
+}
+
+/**
+ * Detecta el locale (país/idioma) desde la URL actual
+ * @returns {Object|null} Objeto con country, language y prefix, o null si no se detecta
+ * @example
+ * // URL: /co/es/page -> {country: 'co', language: 'es', prefix: '/co/es'}
+ * // URL: /page -> null
+ */
+function detectLocale() {
+  const { pathname } = window.location;
+  // Patrón para detectar /country/language/ al inicio de la URL
+  const match = pathname.match(/^\/([a-z]{2})\/([a-z]{2})(?:\/|$)/);
+
+  if (match) {
+    return {
+      country: match[1],
+      language: match[2],
+      prefix: `/${match[1]}/${match[2]}`,
+    };
+  }
+
+  return null;
 }
 
 /**
@@ -389,22 +427,11 @@ function wrapTextNodes(block) {
     'H4',
     'H5',
     'H6',
-    'HR',
   ];
 
   const wrap = (el) => {
     const wrapper = document.createElement('p');
     wrapper.append(...el.childNodes);
-    [...el.attributes]
-      // move the instrumentation from the cell to the new paragraph, also keep the class
-      // in case the content is a buttton and the cell the button-container
-      .filter(({ nodeName }) => nodeName === 'class'
-        || nodeName.startsWith('data-aue')
-        || nodeName.startsWith('data-richtext'))
-      .forEach(({ nodeName, nodeValue }) => {
-        wrapper.setAttribute(nodeName, nodeValue);
-        el.removeAttribute(nodeName);
-      });
     el.append(wrapper);
   };
 
@@ -499,14 +526,14 @@ function decorateIcons(element, prefix = '') {
  * @param {Element} main The container element
  */
 function decorateSections(main) {
-  main.querySelectorAll(':scope > div:not([data-section-status])').forEach((section) => {
+  main.querySelectorAll(':scope > div').forEach((section) => {
     const wrappers = [];
     let defaultContent = false;
     [...section.children].forEach((e) => {
-      if ((e.tagName === 'DIV' && e.className) || !defaultContent) {
+      if (e.tagName === 'DIV' || !defaultContent) {
         const wrapper = document.createElement('div');
         wrappers.push(wrapper);
-        defaultContent = e.tagName !== 'DIV' || !e.className;
+        defaultContent = e.tagName !== 'DIV';
         if (defaultContent) wrapper.classList.add('default-content-wrapper');
       }
       wrappers[wrappers.length - 1].append(e);
@@ -527,6 +554,9 @@ function decorateSections(main) {
             .filter((style) => style)
             .map((style) => toClassName(style.trim()));
           styles.forEach((style) => section.classList.add(style));
+        } else if (key === 'id') {
+          // Set HTML id attribute for the section
+          section.id = meta[key];
         } else {
           section.dataset[toCamelCase(key)] = meta[key];
         }
@@ -610,7 +640,7 @@ async function loadBlock(block) {
  */
 function decorateBlock(block) {
   const shortBlockName = block.classList[0];
-  if (shortBlockName && !block.dataset.blockStatus) {
+  if (shortBlockName) {
     block.classList.add('block');
     block.dataset.blockName = shortBlockName;
     block.dataset.blockStatus = 'initialized';
@@ -619,8 +649,6 @@ function decorateBlock(block) {
     blockWrapper.classList.add(`${shortBlockName}-wrapper`);
     const section = block.closest('.section');
     if (section) section.classList.add(`${shortBlockName}-container`);
-    // eslint-disable-next-line no-use-before-define
-    decorateButtons(block);
   }
 }
 
@@ -674,6 +702,12 @@ async function waitForFirstImage(section) {
 }
 
 /**
+ * NOTE: fetchAEMData has been moved to scripts/utils/aem-data.js
+ * This is a custom utility function that was removed from aem.js to avoid
+ * conflicts with Adobe's updates. Import it from scripts/utils/aem-data.js instead.
+ */
+
+/**
  * Loads all blocks in a section.
  * @param {Element} section The section element
  */
@@ -696,9 +730,13 @@ async function loadSection(section, loadCallback) {
 /**
  * Loads all sections.
  * @param {Element} element The parent element of sections to load
+ * @param {boolean} autoHideLoader Whether to automatically hide the loader when sections finish loading. Default: false
  */
 
-async function loadSections(element) {
+async function loadSections(element, autoHideLoader = false) {
+  // Show loader when starting to load sections
+  showLoader(true);
+
   const sections = [...element.querySelectorAll('div.section')];
   for (let i = 0; i < sections.length; i += 1) {
     // eslint-disable-next-line no-await-in-loop
@@ -706,6 +744,12 @@ async function loadSections(element) {
     if (i === 0 && sampleRUM.enhance) {
       sampleRUM.enhance();
     }
+  }
+
+  // Only hide loader automatically if explicitly requested
+  // This allows the caller to wait for header/footer before hiding
+  if (autoHideLoader) {
+    // showLoader(false);
   }
 }
 
@@ -720,6 +764,7 @@ export {
   decorateIcons,
   decorateSections,
   decorateTemplateAndTheme,
+  detectLocale,
   getMetadata,
   loadBlock,
   loadCSS,
