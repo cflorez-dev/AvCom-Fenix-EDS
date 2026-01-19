@@ -1,0 +1,23 @@
+/* Reset styles for rich text content in title and subtitle */
+.promotional-countdown-card-title *,
+.promotional-countdown-card-subtitle * {
+  all: unset;
+  display: inline;
+}
+
+/* Preserve line breaks */
+.promotional-countdown-card-title br,
+.promotional-countdown-card-subtitle br {
+  display: block;
+}
+
+/* Inherit parent styles */
+.promotional-countdown-card-title *,
+.promotional-countdown-card-subtitle * {
+  color: inherit;
+  font-family: inherit;
+  font-size: inherit;
+  font-weight: inherit;
+  line-height: inherit;
+  text-align: inherit;
+}

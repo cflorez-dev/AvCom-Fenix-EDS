@@ -1,0 +1,69 @@
+/* cms-button block styles */
+
+/* Container principal */
+.cms-button-container {
+  display: block;
+  width: 100%;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: var(--spacing-2, 0.5rem);
+}
+
+.cms-button-container:last-child {
+  margin-bottom: 0;
+}
+
+/* Tooltip support (opcional - puede usar biblioteca externa) */
+.cms-button-container [data-tooltip] {
+  position: relative;
+}
+
+.cms-button-container [data-tooltip]:hover::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  bottom: calc(100% + 8px);
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 8px 12px;
+  background-color: var(--background-brand-secondary-default, #1b1b1b);
+  color: var(--text-brand-primary, #fff);
+  font-size: 14px;
+  white-space: nowrap;
+  border-radius: 4px;
+  z-index: 9999;
+  pointer-events: none;
+}
+
+.cms-button-container [data-tooltip]:hover::before {
+  content: '';
+  position: absolute;
+  bottom: calc(100% + 2px);
+  left: 50%;
+  transform: translateX(-50%);
+  border: 6px solid transparent;
+  border-top-color: var(--background-brand-secondary-default, #1b1b1b);
+  z-index: 9999;
+  pointer-events: none;
+}
+
+/* Author mode indicator */
+.cms-button-author-mode {
+  /* Styles for author mode if needed */
+  display: block;
+}
+
+/* Ensure button elements take full width */
+.cms-button-element {
+  width: 100%;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .cms-button-container {
+    width: 100%;
+  }
+  
+  .cms-button-element {
+    width: 100%;
+  }
+}

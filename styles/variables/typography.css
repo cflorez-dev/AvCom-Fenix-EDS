@@ -1,0 +1,138 @@
+/* Typography System - Avianca (From Figma Design System) */
+
+:root {
+  /* Font Families */
+  --font-family-primary: 'Red Hat Display', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+  --font-red-hat-display: 'Red Hat Display';
+  --family-red-hat-display: 'Red Hat Display'; /* Figma naming convention */
+  
+  /* Font Weights */
+  --font-weight-regular: 400;
+  --font-weight-bold: 700;
+  
+  /* Font Sizes */
+  --font-size-tiny: 12px;      /* 12px */
+  --font-size-small: 14px;     /* 14px */
+  --font-size-normal: 16px;    /* 16px */
+  --font-size-medium: 18px;    /* 18px */
+  --font-size-large: 20px;       /* 20px */
+  --font-size-x-large: 24px;   /* 24px */
+  --size-x-large: 24px;        /* 24px - Figma naming convention */
+  --font-size-huge: 32px;      /* 32px */
+  --font-size-x-huge: 36px;    /* 36px */
+  
+  /* Letter Spacing */
+  --letter-spacing-normal: 0;
+  
+  /* Line Heights */
+  --line-height-100: 1;          /* 100% */
+  --line-height-150: 1.5;        /* 150% */
+  --line-height-normal: normal;        /* normal */
+  
+  /* Heading Styles */
+  --heading-h300-family: var(--font-red-hat-display);
+  --heading-h300-weight: var(--font-weight-bold);
+  --heading-h300-size: var(--font-size-normal);
+  --heading-h300-line-height: var(--line-height-100);
+  --heading-h300-letter-spacing: var(--letter-spacing-normal);
+  
+  --heading-h400-family: var(--font-red-hat-display);
+  --heading-h400-weight: var(--font-weight-bold);
+  --heading-h400-size: var(--font-size-medium);
+  --heading-h400-line-height: var(--line-height-100);
+  --heading-h400-letter-spacing: var(--letter-spacing-normal);
+  
+  --heading-h500-family: var(--font-red-hat-display);
+  --heading-h500-weight: var(--font-weight-bold);
+  --heading-h500-size: var(--font-size-large);
+  --heading-h500-line-height: var(--line-height-100);
+  --heading-h500-letter-spacing: var(--letter-spacing-normal);
+  
+  --heading-h600-family: var(--font-red-hat-display);
+  --heading-h600-weight: var(--font-weight-bold);
+  --heading-h600-size: var(--font-size-x-large);
+  --heading-h600-line-height: var(--line-height-normal);
+  --heading-h600-letter-spacing: var(--letter-spacing-normal);
+  
+  --heading-h800-family: var(--font-red-hat-display);
+  --heading-h800-weight: var(--font-weight-bold);
+  --heading-h800-size: var(--font-size-huge);
+  --heading-h800-line-height: var(--line-height-100);
+  --heading-h800-letter-spacing: var(--letter-spacing-normal);
+  
+  --heading-h900-family: var(--font-red-hat-display);
+  --heading-h900-weight: var(--font-weight-bold);
+  --heading-h900-size: var(--font-size-x-huge);
+  --heading-h900-line-height: var(--line-height-100);
+  --heading-h900-letter-spacing: var(--letter-spacing-normal);
+  
+  /* Paragraph Styles */
+  --paragraph-p100-family: var(--font-red-hat-display);
+  --paragraph-p100-weight: var(--font-weight-regular);
+  --paragraph-p100-size: var(--font-size-tiny);
+  --paragraph-p100-line-height: var(--line-height-150);
+  --paragraph-p100-letter-spacing: var(--letter-spacing-normal);
+  
+  --paragraph-p200-family: var(--font-red-hat-display);
+  --paragraph-p200-weight: var(--font-weight-regular);
+  --paragraph-p200-size: var(--font-size-small);
+  --paragraph-p200-line-height: var(--line-height-150);
+  --paragraph-p200-letter-spacing: var(--letter-spacing-normal);
+  
+  --paragraph-p300-family: var(--font-red-hat-display);
+  --paragraph-p300-weight: var(--font-weight-regular);
+  --paragraph-p300-size: var(--font-size-normal);
+  --paragraph-p300-line-height: var(--line-height-150);
+  --paragraph-p300-letter-spacing: var(--letter-spacing-normal);
+  
+  --paragraph-p400-family: var(--font-red-hat-display);
+  --paragraph-p400-weight: var(--font-weight-regular);
+  --paragraph-p400-size: var(--font-size-medium);
+  --paragraph-p400-line-height: var(--line-height-150);
+  --paragraph-p400-letter-spacing: var(--letter-spacing-normal);
+  
+  /* Button Styles */
+  --button-b100-family: var(--font-red-hat-display);
+  --button-b100-weight: var(--font-weight-bold);
+  --button-b100-size: var(--font-size-small);
+  --button-b100-line-height: var(--line-height-100);
+  --button-b100-letter-spacing: var(--letter-spacing-normal);
+  
+  --button-b200-family: var(--font-red-hat-display);
+  --button-b200-weight: var(--font-weight-bold);
+  --button-b200-size: var(--font-size-large);
+  --button-b200-line-height: var(--line-height-100);
+  --button-b200-letter-spacing: var(--letter-spacing-normal);
+  
+  /* Link Styles */
+  --link-l150-family: var(--font-red-hat-display);
+  --link-l150-weight: var(--font-weight-regular);
+  --link-l150-size: var(--font-size-normal);
+  --link-l150-line-height: var(--line-height-100);
+  --link-l150-letter-spacing: var(--letter-spacing-normal);
+  
+  --link-l200-family: var(--font-red-hat-display);
+  --link-l200-weight: var(--font-weight-regular);
+  --link-l200-size: var(--font-size-large);
+  --link-l200-line-height: var(--line-height-100);
+  --link-l200-letter-spacing: var(--letter-spacing-normal);
+  
+  /* Brand Body Styles */
+  --brand-body3-bold-family: var(--font-red-hat-display);
+  --brand-body3-bold-weight: var(--font-weight-bold);
+  --brand-body3-bold-size: var(--font-size-normal);
+  --brand-body3-bold-line-height: var(--line-height-100);
+  --brand-body3-bold-letter-spacing: var(--letter-spacing-normal);
+  
+  --brand-body4-family: var(--font-red-hat-display);
+  --brand-body4-weight: var(--font-weight-regular);
+  --brand-body4-size: var(--font-size-small);
+  --brand-body4-line-height: var(--line-height-100);
+  --brand-body4-letter-spacing: var(--letter-spacing-normal);
+  
+  --brand-body5-family: var(--font-red-hat-display);
+  --brand-body5-weight: var(--font-weight-regular);
+  --brand-body5-size: var(--font-size-tiny);
+  --brand-body5-line-height: var(--line-height-100);
+  --brand-body5-letter-spacing: var(--letter-spacing-normal);
+}

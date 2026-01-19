@@ -1,4 +1,5 @@
 import { getMetadata } from '../../scripts/aem.js';
+import { getLocalizedPaths } from '../../scripts/utils/locale.js';
 import { loadFragment } from '../fragment/fragment.js';
 
 /**
@@ -6,15 +7,43 @@ import { loadFragment } from '../fragment/fragment.js';
  * @param {Element} block The footer block element
  */
 export default async function decorate(block) {
-  // load footer as fragment
+  // Load footer as fragment with localized paths and fallback
   const footerMeta = getMetadata('footer');
-  const footerPath = footerMeta ? new URL(footerMeta, window.location).pathname : '/footer';
-  const fragment = await loadFragment(footerPath);
+  const customPath = footerMeta ? new URL(footerMeta, window.location).pathname : null;
+  const footerPaths = getLocalizedPaths('footer', customPath);
+  
+  // Attempt to load in priority order
+  let fragment = null;
+  for (const footerPath of footerPaths) {
+    // Pass 'footer' as resourceType for path caching
+    // eslint-disable-next-line no-await-in-loop
+    fragment = await loadFragment(footerPath, 'footer');
+    if (fragment) {
+      // eslint-disable-next-line no-console
+      console.log(`✅ Footer loaded from: ${footerPath}`);
+      break;
+    }
+  }
+  
+  if (!fragment) {
+    // eslint-disable-next-line no-console
+    console.error('❌ No footer fragment found in any path:', footerPaths);
+    return;
+  }
 
-  // decorate footer DOM
-  block.textContent = '';
-  const footer = document.createElement('div');
-  while (fragment.firstElementChild) footer.append(fragment.firstElementChild);
+  const footerContainer = document.createElement('div');
+  footerContainer.className = 'footer-container flex flex-col';
+  footerContainer.innerHTML = `
+      <div class="footer-columns-wrapper flex justify-center"></div>
+      <div class="footer-partner-logos-wrapper flex justify-center"></div>
+      <div class="footer-bottom-wrapper"></div>
+  `;
 
-  block.append(footer);
+  block.style.display = 'none';
+
+  if (block.parentNode) {
+    block.parentNode.insertBefore(footerContainer, block.nextSibling);
+  } else {
+    block.after(footerContainer);
+  }
 }

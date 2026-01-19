@@ -1,0 +1,48 @@
+.design-system-block {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: var(--spacing-8) var(--spacing-4);
+  
+  /* Aislar estilos de Tailwind dentro del design system */
+  /* Reset solo dentro del design-system-block */
+  all: initial;
+  display: block;
+  box-sizing: border-box;
+}
+
+.design-system-block * {
+  box-sizing: border-box;
+}
+
+.design-system-block .design-system-demo {
+  /* Restaurar font-family para el design system */
+  font-family: var(--font-sans, system-ui, sans-serif);
+}
+
+.design-system-showcase {
+  width: 100%;
+}
+
+.design-system-block section {
+  margin-bottom: var(--spacing-12);
+}
+
+.design-system-block h2 {
+  color: var(--color-blue-500);
+  margin-bottom: var(--spacing-8);
+}
+
+.design-system-block h3 {
+  color: var(--color-gray-900);
+  margin-bottom: var(--spacing-6);
+  border-bottom: 2px solid var(--color-gray-200);
+  padding-bottom: var(--spacing-4);
+}
+
+/* Grid responsive */
+@media (max-width: 768px) {
+  .design-system-block {
+    padding: var(--spacing-4) var(--spacing-2);
+  }
+}
+
