@@ -7,34 +7,7 @@
  * @see /home/olsalas/.claude/plans/velvety-bubbling-popcorn.md for architecture details
  */
 
-// ============================================
-// URL Locale Detection
-// ============================================
-
-/**
- * Detect locale from URL pathname
- * Supports formats: /{country}/{language}/ or /{language}/
- * @returns {Object|null} { country, language } or null if not detected
- */
-function detectLocale() {
-  const { pathname } = window.location;
-  // Pattern: /country/language/ or /language/
-  const match = pathname.match(/^\/([a-z]{2,3})(?:\/([a-z]{2}))?/i);
-  
-  if (!match) return null;
-  
-  // If we have two segments, assume /{country}/{language}/
-  if (match[2]) {
-    return {
-      country: match[1].toLowerCase(),
-      language: match[2].toLowerCase(),
-    };
-  }
-  
-  // Single segment could be language-only (special case for avianca.omni.pro)
-  // For now, return null if we only have one segment
-  return null;
-}
+import { detectLocale } from '../aem.js';
 
 // ============================================
 // Cookie Normalization
