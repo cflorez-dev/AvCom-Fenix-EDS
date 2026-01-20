@@ -749,7 +749,7 @@ async function loadSections(element, autoHideLoader = false) {
   // Only hide loader automatically if explicitly requested
   // This allows the caller to wait for header/footer before hiding
   if (autoHideLoader) {
-    showLoader(false);
+    // showLoader(false);
   }
 }
 
