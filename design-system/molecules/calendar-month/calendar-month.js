@@ -89,10 +89,10 @@ export const CalendarMonth = ({
 
   // ========== STYLING ==========
 
-  const containerClasses = `
-    flex flex-col
-    ${customClassName}
-  `.trim();
+  const containerClasses = useMemo(
+    () => `flex flex-col ${customClassName}`.trim(),
+    [customClassName],
+  );
 
   // ========== RENDER ==========
   return html`

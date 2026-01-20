@@ -149,8 +149,11 @@ export const CitySelector = ({
   isLoading = false,
   ...rest
 }) => {
-  // Determinar título del step
-  const actualStepTitle = stepTitle || label || (i18n['bookingBox.labels.whereTo'] || '¿Dónde?');
+  // Determine step title
+  const actualStepTitle = useMemo(
+    () => stepTitle || label || (i18n['bookingBox.labels.whereTo'] || '¿Dónde?'),
+    [stepTitle, label, i18n],
+  );
 
   // Estado controlado/no controlado para isOpen
   const [internalIsOpen, setInternalIsOpen] = useState(false);
@@ -287,8 +290,22 @@ export const CitySelector = ({
   const handleKeyDown = useCallback((e) => {
     if (e.key === 'Tab') {
       tabKeyPressedRef.current = true;
+      return;
     }
-  }, []);
+
+    // Open dropdown on Enter, Space, or any printable character
+    if (!disabled) {
+      // Check if it's a printable character (length 1) or Enter/Space
+      const isPrintableChar = e.key.length === 1 && !e.ctrlKey && !e.metaKey && !e.altKey;
+      const isActionKey = e.key === 'Enter' || e.key === ' ';
+
+      if (isPrintableChar || isActionKey) {
+        if (!isOpen) {
+          setIsOpenState(true);
+        }
+      }
+    }
+  }, [disabled, isOpen, setIsOpenState]);
 
   const handleFocus = useCallback(() => {
     if (isOpenProp === undefined && !isOpen) {
@@ -334,10 +351,15 @@ export const CitySelector = ({
   const handleSearchChange = useCallback((e) => {
     setSearchQuery(e.target.value);
     setFocusedIndex(-1); // Reset focus on new search
-  }, []);
+    
+    // Ensure dropdown is open when typing
+    if (!isOpen && isOpenProp === undefined) {
+      setIsOpenState(true);
+    }
+  }, [isOpen, isOpenProp, setIsOpenState]);
 
-  // Keyboard navigation (solo cuando dropdown está abierto)
-  const handleDropdownKeyDown = (e) => {
+  // Keyboard navigation (only when dropdown is open)
+  const handleDropdownKeyDown = useCallback((e) => {
     if (!isOpen) return;
 
     switch (e.key) {
@@ -368,7 +390,7 @@ export const CitySelector = ({
       default:
         break;
     }
-  };
+  }, [isOpen, handleClose, filteredCities, focusedIndex, handleCitySelect]);
 
   // Highlight matching text (memoized)
   const highlightMatch = useCallback((text, searchTerm) => {
@@ -394,29 +416,32 @@ export const CitySelector = ({
         id=${`city-option-${index}`}
         key=${city.id || city.iataCityCode}
         type="button"
-        class=${`
-          w-full p-4 text-left cursor-pointer transition-[background-color] duration-[var(--transition-normal)]
+        class="
+          w-full p-4 text-left cursor-pointer transition-[background-color]
           ${isItemFocused ? 'bg-background-card-lighter' : 'bg-background-brand-secondary-default'}
           ${isSelected ? 'bg-background-brand-primary-lighter' : ''}
-          hover:bg-background-card-lighter
+          hover:bg-[var(--bg-hover-light)] group
+          focus-visible:border-[var(--color-border-stroke-focus)] focus-visible:outline-none focus-visible:border-2
+          active:bg-[var(--state-hover-darken)] active:text-[var(--text-brand-light)]
           border-b border-border-stroke-default last:border-b-0
-        `}
+        "
         onClick=${() => handleCitySelect(city)}
+        onKeyDown=${handleKeyDown}
         role="option"
         aria-selected=${isSelected}
       >
         <div class="flex flex-col gap-[4px]">
           <!-- Primera fila: Ciudad, País y Código IATA -->
           <div class="flex justify-between items-center">
-            <div class="flex-1 text-base leading-6 text-text-normal-primary">
+            <div class="flex-1 text-base leading-6 text-text-normal-primary group-active:text-text-normal-lighter">
               ${searchQuery ? highlightMatch(`${city.name}, ${city.country}`, searchQuery) : `${city.name}, ${city.country}`}
             </div>
-            <div class="text-sm leading-5 text-text-normal-primary">
+            <div class="text-sm leading-5 text-text-normal-primary group-active:text-text-normal-lighter">
               ${searchQuery ? highlightMatch(city.iataCityCode, searchQuery) : city.iataCityCode}
             </div>
           </div>
           <!-- Segunda fila: Terminal -->
-          <div class="text-sm leading-5 text-text-normal-secondary min-h-[21px]">
+          <div class="text-sm leading-5 text-text-normal-secondary min-h-[21px] group-active:text-text-normal-lighter">
             ${city.terminal}
           </div>
         </div>
@@ -425,16 +450,27 @@ export const CitySelector = ({
   }, [value, focusedIndex, handleCitySelect, searchQuery, highlightMatch]);
 
   // Display value
-  const displayValue = value
-    ? `${value.name} (${value.iataCityCode})`
-    : '';
+  const displayValue = useMemo(
+    () => (value ? `${value.name} (${value.iataCityCode})` : ''),
+    [value],
+  );
 
   // Determine if label should float
-  const shouldFloat = value || isOpen || searchQuery;
+  const shouldFloat = useMemo(
+    () => value || isOpen || searchQuery,
+    [value, isOpen, searchQuery],
+  );
 
-  // Determine actual state (similar a Input component)
-  const actualState = disabled ? 'disabled' : 'normal';
-  const isInteractive = !disabled;
+  // Determine actual state (similar to Input component)
+  const actualState = useMemo(
+    () => (disabled ? 'disabled' : 'normal'),
+    [disabled],
+  );
+
+  const isInteractive = useMemo(
+    () => !disabled,
+    [disabled],
+  );
 
   // State-based styling classes (similar a Input component)
   const stateClasses = {

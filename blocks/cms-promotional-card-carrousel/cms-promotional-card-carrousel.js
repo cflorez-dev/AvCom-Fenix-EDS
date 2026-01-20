@@ -11,12 +11,12 @@ const DESKTOP_BREAKPOINT = 1248;
 
 /**
  * Strip HTML tags and return plain text
- * @param {string} html - HTML string
+ * @param {string} htmlString - HTML string
  * @returns {string} Plain text
  */
-function stripHtmlTags(html) {
+function stripHtmlTags(htmlString) {
   const div = document.createElement('div');
-  div.innerHTML = html;
+  div.innerHTML = htmlString;
   return div.textContent || div.innerText || '';
 }
 
@@ -59,10 +59,9 @@ function renderThreeCardsCarousel(cards, loadingMode) {
   const isDesktop = window.innerWidth >= DESKTOP_BREAKPOINT;
 
   const cardClassName = isDesktop
-  ? 'w-[400px] min-w-[400px] max-w-[400px]' 
-    //? 'w-[calc((100%-31.5px)/3)] min-w-[calc((100%-31.5px)/3)] max-w-[calc((100%-31.5px)/3)]' 
+    ? 'w-[400px] min-w-[400px] max-w-[400px]'
     : 'w-[360px] min-w-[360px] max-w-[360px]';
-  
+
   const cardElements = cards.map((cardData) => html`
     <${PromotionalCardCarrousel}
       variant=${cardData.variant}
@@ -77,7 +76,7 @@ function renderThreeCardsCarousel(cards, loadingMode) {
       loading=${loadingMode}
     />
   `);
-    
+
   return html`
     <${Carousel}
       itemsPerView=${1}
@@ -86,7 +85,7 @@ function renderThreeCardsCarousel(cards, loadingMode) {
       navigationBreakpoint=${1025}
       showPagination=${true}
       autoPlay=${false}
-      loop=${false}
+      loop=${true}
       infiniteMobile=${true}
     >
       ${cardElements}
@@ -104,14 +103,13 @@ function renderThreeCardsCarousel(cards, loadingMode) {
  */
 function renderMultiCardsCarousel(cards, loadingMode) {
   const isDesktop = window.innerWidth >= DESKTOP_BREAKPOINT;
-  
+
   // Desktop: calc((100% - gap*2) / 3) to show exactly 3 cards
   // Mobile: fixed width w-96
   const cardClassName = isDesktop
-  ? 'w-[400px] min-w-[400px] max-w-[400px]' 
-    //? 'w-[calc((100%-31.5px)/3)] min-w-[calc((100%-31.5px)/3)] max-w-[calc((100%-31.5px)/3)]' 
+    ? 'w-[400px] min-w-[400px] max-w-[400px]'
     : 'w-[360px] min-w-[360px] max-w-[360px]';
-  
+
   return html`
     <${Carousel}
       itemsPerView=${1}
@@ -165,11 +163,9 @@ export default function decorate(block) {
 
   /**
    * Render logic based on cards count and viewport width
-   * 
    * Rules:
    * 1. ALWAYS use carousel EXCEPT:
    *    - Exactly 3 cards AND Desktop (≥1248px) → Grid 100% width
-   * 
    * 2. All other cases use carousel:
    *    - 3 cards + Mobile (<1248px) → Carousel
    *    - 4+ cards (any viewport) → Carousel
@@ -178,21 +174,19 @@ export default function decorate(block) {
   const renderContent = () => {
     const viewportWidth = window.innerWidth;
     const isDesktop = viewportWidth >= DESKTOP_BREAKPOINT;
-    
+
     // ONLY exception to carousel: 3 cards + Desktop
     if (totalCards === 3 && isDesktop) {
       render(renderThreeCardsGrid(cards, loadingMode), container);
+    } else if (totalCards === 3) {
+      // 3 cards on mobile
+      render(renderThreeCardsCarousel(cards, loadingMode), container);
+    } else if (totalCards >= 4) {
+      // 4+ cards
+      render(renderMultiCardsCarousel(cards, loadingMode), container);
     } else {
-      if (totalCards === 3) {
-        // 3 cards on mobile
-        render(renderThreeCardsCarousel(cards, loadingMode), container);
-      } else if (totalCards >= 4) {
-        // 4+ cards
-        render(renderMultiCardsCarousel(cards, loadingMode), container);
-      } else {
-        // 1-2 cards (fallback carousel)
-        render(renderThreeCardsCarousel(cards, loadingMode), container);
-      }
+      // 1-2 cards (fallback carousel)
+      render(renderThreeCardsCarousel(cards, loadingMode), container);
     }
   };
 

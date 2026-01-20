@@ -378,7 +378,7 @@ export const NavbarMobile = ({
         contentClassName="!rounded-[0]"
       >
         <div>
-          <header class="flex items-center justify-between p-4 !h-[76px] mb-6">
+          <header class="flex items-center justify-between p-4 lg:px-8 !h-[76px] mb-6">
             <div class="w-auto !h-[24px]">
                <${Logo} variant="primary" mode="mobile" size="small" customImageClassName="!w-auto !h-[24px]" />
             </div>
@@ -391,7 +391,7 @@ export const NavbarMobile = ({
               ${closeIconSVG}
             </button>
           </header>
-          <div class="px-[16px]">
+          <div class="px-[16px] lg:px-8">
             ${renderModalContent()}
           </div>
         </div>

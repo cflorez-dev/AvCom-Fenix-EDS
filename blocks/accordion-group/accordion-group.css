@@ -1,6 +1,11 @@
 /* stylelint-disable color-hex-length */
 /* stylelint-disable selector-class-pattern */
 
+/* Accordion Group Section Styles */
+.section.accordion-item {
+    padding: 16px var(--main-section-div-padding, 16px);
+}
+
  /* Accordion Group Styles */
 .section.accordion-item .cms-informative-cards-rail-wrapper .font-bold {
     line-height: normal;
@@ -46,11 +51,15 @@
     margin-bottom: 10px;
 }
 
-/* ul styles inside accordion */
+/* ul line-height inside accordion */
 .section.accordion-item .accordion-group-content ul {
+    line-height: var(--line-height-auto);
+}
+
+/* ul styles inside accordion */
+.section.accordion-item .accordion-group-content ul:not(.list-none) {
     padding-left: 28px;
     margin: 0;
-    line-height: var(--line-height-auto);
     list-style: disc;
 }
 

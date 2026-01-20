@@ -4,6 +4,16 @@ import htm from 'htm';
 
 const html = htm.bind(h);
 
+// Base button classes for all day cells
+const BASE_BUTTON_CLASSES = `
+  w-[30px] h-[30px]
+  rounded-full
+  flex items-center justify-center
+  !text-[length:var(--font-size-small)]
+  font-[var(--font-weight-regular)]
+  transition-all duration-[var(--transition-fast)]
+`.trim();
+
 /**
  * DayCell - Calendar day cell with 12 visual states + pricing indicator
  *
@@ -178,7 +188,14 @@ export const DayCell = ({
     return html`<div class="w-full md:w-[42px]" data-name="dayCellEmpty" />`;
   }
 
-  const dayNumber = date.getDate();
+  // Memoize day number extraction
+  const dayNumber = useMemo(() => date.getDate(), [date]);
+
+  // Memoize aria-label
+  const ariaLabel = useMemo(
+    () => `${dayNumber} ${isToday ? '(Hoy)' : ''}`,
+    [dayNumber, isToday],
+  );
 
   // Wrapper classes (100% width of parent, auto height) - handles range background
   const wrapperClasses = useMemo(() => {
@@ -205,14 +222,7 @@ export const DayCell = ({
 
   // Button classes (30x30) - handles visual states
   const buttonClasses = useMemo(() => {
-    const base = `
-      w-[30px] h-[30px]
-      rounded-full
-      flex items-center justify-center
-      !text-[length:var(--font-size-small)]
-      font-[var(--font-weight-regular)]
-      transition-all duration-[var(--transition-fast)]
-    `.trim();
+    const base = BASE_BUTTON_CLASSES;
 
     // Disabled state
     if (isDisabled) {
@@ -277,7 +287,7 @@ export const DayCell = ({
           onMouseLeave=${handleMouseLeave}
           onKeyDown=${handleKeyDown}
           disabled=${isDisabled}
-          aria-label=${`${dayNumber} ${isToday ? '(Hoy)' : ''}`}
+          aria-label=${ariaLabel}
           aria-selected=${isSelected || isRangeStart || isRangeEnd}
           aria-disabled=${isDisabled}
           tabIndex=${isDisabled ? -1 : 0}

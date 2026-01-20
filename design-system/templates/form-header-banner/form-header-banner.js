@@ -10,7 +10,8 @@ const html = htm.bind(h);
  * @param {Object} props - Component properties
  * @param {Object} [props.imageData] - Image data { src: string, alt: string }
  * @param {string} [props.imageAlt=''] - Alternative text for the image
- * @param {'lazy'|'eager'} [props.loadingMode='eager'] - Image loading strategy
+ * @param {'lazy'|'eager'} [props.loadingMode='eager'] - Image loading strategy.
+ *   When 'eager', automatically sets fetchpriority="high" for LCP optimization
  * @param {string} [props.titleText=''] - Main title text
  * @param {'h1'|'h2'|'h3'|'h4'|'h5'|'h6'} [props.titleLevel='h1'] - Semantic level of the title
  * @param {string} [props.subtitleText=''] - Subtitle text
@@ -51,27 +52,40 @@ export const FormHeaderBanner = ({
 
   const alertVariant = getAlertVariant(alertType);
 
+  // Determine fetchpriority based on loading mode
+  // Only set fetchpriority="high" if eager (likely LCP/above the fold)
+  // For lazy loading, don't set fetchpriority (or use "low")
+  const fetchPriority = loadingMode === 'eager' ? 'high' : null;
+
+  // Build img attributes object
+  const imgAttributes = {
+    src: imageData?.src,
+    alt: imageData?.alt || imageAlt || '',
+    loading: loadingMode,
+    class: 'w-full h-full object-cover',
+  };
+
+  // Add fetchpriority only if eager (LCP optimization)
+  if (fetchPriority) {
+    imgAttributes.fetchpriority = fetchPriority;
+  }
+
   return html`
   <div class=${containerClasses} data-alignment=${contentAlignment} ...${rest}>
     <div class="w-full py-8 relative inline-flex flex-col justify-center items-center gap-14">
-      <div class="self-stretch px-4 flex flex-col justify-start items-center gap-9">
+      <div class="self-stretch xl:px-8 flex flex-col justify-start items-center gap-9">
           <div data-alert="true" data-device="mob" data-form="true" class="w-full max-w-[1248px] rounded-[24px] shadow-[0px_2px_20px_2px_rgba(73,73,73,0.25)] flex flex-col min-[1024px]:flex-row justify-center items-start overflow-hidden">
-              <div class="self-stretch h-44 min-[1024px]:h-auto">
+              <div class="self-stretch h-[180px] min-[1024px]:h-auto">
                 ${imageData?.src ? html`
                   <picture class="w-full h-full">
-                    <img 
-                      src=${imageData.src} 
-                      alt=${imageData.alt || imageAlt || ''} 
-                      loading=${loadingMode}
-                      class="w-full h-full object-cover"
-                    />
+                    <img ...${imgAttributes} />
                   </picture>
                 ` : null}
               </div>
-              <div class="self-stretch p-4 min-[1024px]:p-8 bg-background-card-lighter flex flex-col justify-start items-start gap-6 w-[100%] min-[1024px]:min-w-[690px] min-[1248px]:min-w-[848px]">
+              <div class="self-stretch p-4 min-[1024px]:p-8 bg-background-card-lighter flex flex-col justify-start items-start gap-6 w-[100%] min-[1024px]:min-w-[690px] min-[1248px]:max-w-[848px]">
                   <div class="self-stretch flex flex-col justify-start items-start gap-[4px]">
                       <${titleLevel} class="!m-0 self-stretch justify-start text-text-normal-primary !text-[24px] min-[1024px]:!text-[32px] font-bold">${titleText}</${titleLevel}>
-                      <${subtitleLevel} class="!m-0 self-stretch justify-start text-text-normal-primary !font-normal !text-[16px] min-[1024px]:!text-[20px] leading-6">${subtitleText}</${subtitleLevel}>
+                      <${subtitleLevel} class="!m-0 self-stretch justify-start text-text-normal-primary !font-normal !text-[16px] min-[1024px]:!text-[20px] leading-[30px]">${subtitleText}</${subtitleLevel}>
                   </div>
                   <div class="self-stretch flex flex-col justify-center items-start w-full h-[64px] gap-4 border border-red-600">
                       <!-- form -->

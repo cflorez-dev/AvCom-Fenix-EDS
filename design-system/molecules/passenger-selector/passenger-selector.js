@@ -1,5 +1,11 @@
-import { h, render } from '@dropins/tools/preact.js';
-import { useState, useEffect, useRef } from '@dropins/tools/preact-hooks.js';
+import { h } from '@dropins/tools/preact.js';
+import {
+  useState,
+  useEffect,
+  useRef,
+  useCallback,
+  useMemo,
+} from '@dropins/tools/preact-hooks.js';
 import htm from 'htm';
 import { Incrementer } from '../../atoms/incrementer/incrementer.js';
 import { Icon } from '../../atoms/icon/icon.js';
@@ -14,37 +20,37 @@ const MAX_YOUTH_CHILDREN = 8;
 const MAX_TOTAL_PASSENGERS = 9;
 
 /**
- * PassengerSelector - Selector de pasajeros con popup/modal según dispositivo
+ * PassengerSelector - Passenger selector with popup/modal based on device
  *
  * ## Props
- * - `value`: `object` – Objeto con conteo de pasajeros:
+ * - `value`: `object` – Object with passenger count:
  *    { adults, youth, children, infants, cabinClass }.
- * - `onChange`: `function` – Callback al cambiar pasajeros (passengerData) => void.
- * - `onError`: `function` – Callback cuando hay error de validación (errorMessage) => void.
- * - `showCabinClass`: `boolean` – Mostrar selector de clase cabin (default: true).
- * - `isStandalone`: `boolean` – Si es true, muestra header completo en mobile.
- *        Si false, BookingBox controla el header (default: true).
- * - `onBack`: `function` – Callback para botón back (cuando lo controla BookingBox).
- *        Si no se pasa, cierra el modal.
- * - `onClose`: `function` – Callback para botón close/X (cuando lo controla BookingBox).
- *        Si no se pasa, cierra el modal.
- * - `stepTitle`: `string` – Título del step (default: '¿Quiénes vuelan?').
- * - `showHeader`: `boolean` – Mostrar header en mobile (default: true cuando isStandalone=true).
- * - `customClassName`: `string` – Clases CSS adicionales.
- * - `...rest`: Otras propiedades.
+ * - `onChange`: `function` – Callback when passengers change (passengerData) => void.
+ * - `onError`: `function` – Callback when validation error occurs (errorMessage) => void.
+ * - `showCabinClass`: `boolean` – Show cabin class selector (default: true).
+ * - `isStandalone`: `boolean` – If true, shows complete header on mobile.
+ *        If false, BookingBox controls the header (default: true).
+ * - `onBack`: `function` – Callback for back button (when controlled by BookingBox).
+ *        If not provided, closes the modal.
+ * - `onClose`: `function` – Callback for close/X button (when controlled by BookingBox).
+ *        If not provided, closes the modal.
+ * - `stepTitle`: `string` – Step title (default: 'Who is flying?').
+ * - `showHeader`: `boolean` – Show header on mobile (default: true when isStandalone=true).
+ * - `customClassName`: `string` – Additional CSS classes.
+ * - `...rest`: Other properties.
  *
- * ## Diseño (Figma)
- * - Trigger: node-id 2742-5013 - Input con icono y conteo
- * - Popup Desktop: node-id 2742-5015 - Dropdown con lista y radio buttons
- * - Modal Mobile: node-id 2742-5044 - Full screen con header
+ * ## Design (Figma)
+ * - Trigger: node-id 2742-5013 - Input with icon and count
+ * - Desktop Popup: node-id 2742-5015 - Dropdown with list and radio buttons
+ * - Mobile Modal: node-id 2742-5044 - Full screen with header
  *
- * ## Reglas de Validación
- * 1. **Adultos**: 1-9 (mínimo 1, máximo 9 considerando otros pasajeros)
- * 2. **Jóvenes + Niños**: Máximo 8 en total
- * 3. **Infantes**: Máximo 1 por adulto
- * 4. **Total pasajeros**: Máximo 9 (adultos + jóvenes + niños, sin contar infantes)
+ * ## Validation Rules
+ * 1. **Adults**: 1-9 (minimum 1, maximum 9 considering other passengers)
+ * 2. **Youth + Children**: Maximum 8 total
+ * 3. **Infants**: Maximum 1 per adult
+ * 4. **Total passengers**: Maximum 9 (adults + youth + children, not counting infants)
  *
- * ## Estructura de Datos
+ * ## Data Structure
  * ```javascript
  * {
  *   adults: 1,      // 12+ años (1-9)
@@ -55,9 +61,9 @@ const MAX_TOTAL_PASSENGERS = 9;
  * }
  * ```
  *
- * ## Ejemplo de uso
+ * ## Usage Example
  *
- * ### Modo Standalone (uso independiente)
+ * ### Standalone Mode (independent use)
  * ```javascript
  * <${PassengerSelector}
  *   value=${passengers}
@@ -68,7 +74,7 @@ const MAX_TOTAL_PASSENGERS = 9;
  * />
  * ```
  *
- * ### Modo Step (dentro de BookingBox)
+ * ### Step Mode (inside BookingBox)
  * ```javascript
  * <${PassengerSelector}
  *   value=${passengers}
@@ -118,20 +124,21 @@ export const PassengerSelector = ({
   const dropdownRef = useRef(null);
   const triggerRef = useRef(null);
 
-  // Detectar viewport mobile
+  // Detect mobile viewport
   useEffect(() => {
     const checkMobile = () => {
       setIsMobile(window.innerWidth < 768);
     };
 
     checkMobile();
-    window.addEventListener('resize', checkMobile);
+    window.addEventListener('resize', checkMobile, { passive: true });
 
     return () => {
       window.removeEventListener('resize', checkMobile);
     };
   }, []);
 
+  // Click outside and escape key handlers
   useEffect(() => {
     if (!isOpen) return undefined;
 
@@ -181,7 +188,7 @@ export const PassengerSelector = ({
     };
   }, [isOpen, isMobile, isOpenProp, onOpenChange]);
 
-  // Sincronizar value externo con state interno
+  // Sync external value with internal state
   useEffect(() => {
     setPassengers({
       adults: 1,
@@ -193,8 +200,8 @@ export const PassengerSelector = ({
     });
   }, [value]);
 
-  // Validar pasajeros
-  const validatePassengers = (newPassengers) => {
+  // Validate passengers
+  const validatePassengers = useCallback((newPassengers) => {
     const {
       adults, youth, children, infants,
     } = newPassengers;
@@ -225,10 +232,10 @@ export const PassengerSelector = ({
     }
 
     return null;
-  };
+  }, [i18n]);
 
-  // Handler para cambios (ahora solo actualiza estado temporal)
-  const handlePassengerChange = (type, newValue) => {
+  // Handler for changes (now only updates temporary state)
+  const handlePassengerChange = useCallback((type, newValue) => {
     const newPassengers = {
       ...passengers,
       [type]: Number(newValue),
@@ -249,13 +256,13 @@ export const PassengerSelector = ({
       onError(error);
     }
 
-    // En desktop: actualizar inmediatamente sin confirmar
+    // On desktop: update immediately without confirming
     if (!isMobile && !error && onChange) {
       onChange(newPassengers);
     }
-  };
+  }, [passengers, validatePassengers, onError, isMobile, onChange]);
 
-  const handleCabinClassChange = (selectedClass) => {
+  const handleCabinClassChange = useCallback((selectedClass) => {
     const newPassengers = {
       ...passengers,
       cabinClass: selectedClass,
@@ -263,14 +270,14 @@ export const PassengerSelector = ({
 
     setPassengers(newPassengers);
 
-    // En desktop: actualizar inmediatamente sin confirmar
+    // On desktop: update immediately without confirming
     if (!isMobile && onChange) {
       onChange(newPassengers);
     }
-  };
+  }, [passengers, isMobile, onChange]);
 
-  const handleConfirm = () => {
-    // Validar antes de confirmar
+  const handleConfirm = useCallback(() => {
+    // Validate before confirming
     const error = validatePassengers(passengers);
     if (!error && onChange) {
       onChange(passengers);
@@ -281,9 +288,9 @@ export const PassengerSelector = ({
         onOpenChange(false);
       }
     }
-  };
+  }, [validatePassengers, passengers, onChange, isOpenProp, onOpenChange]);
 
-  const handleTriggerClick = () => {
+  const handleTriggerClick = useCallback(() => {
     const newIsOpen = !isOpen;
     if (isOpenProp === undefined) {
       setInternalIsOpen(newIsOpen);
@@ -291,9 +298,9 @@ export const PassengerSelector = ({
     if (onOpenChange) {
       onOpenChange(newIsOpen);
     }
-  };
+  }, [isOpen, isOpenProp, onOpenChange]);
 
-  const handleBack = () => {
+  const handleBack = useCallback(() => {
     if (onBack) {
       onBack();
     } else {
@@ -304,9 +311,9 @@ export const PassengerSelector = ({
         onOpenChange(false);
       }
     }
-  };
+  }, [onBack, isOpenProp, onOpenChange]);
 
-  const handleClose = () => {
+  const handleClose = useCallback(() => {
     if (onClose) {
       onClose();
     } else {
@@ -317,10 +324,10 @@ export const PassengerSelector = ({
         onOpenChange(false);
       }
     }
-  };
+  }, [onClose, isOpenProp, onOpenChange]);
 
-  // Calcular texto del trigger
-  const getDisplayText = () => {
+  // Calculate trigger text (memoized)
+  const getDisplayText = useMemo(() => {
     const total = passengers.adults + passengers.youth + passengers.children + passengers.infants;
 
     // Desktop: Solo mostrar el número total
@@ -338,24 +345,39 @@ export const PassengerSelector = ({
     if (passengers.children > 0) parts.push(`${passengers.children} ${passengers.children === 1 ? (i18n['bookingBox.labels.child'] || 'Niño') : (i18n['bookingBox.labels.children'] || 'Niños')}`);
     if (passengers.infants > 0) parts.push(`${passengers.infants} ${passengers.infants === 1 ? (i18n['bookingBox.labels.infant'] || 'Bebé') : (i18n['bookingBox.labels.infants'] || 'Bebés')}`);
     return parts.join(', ');
-  };
+  }, [passengers, isMobile, i18n]);
 
-  // Calcular totales (infantes NO cuentan para límite de 9)
-  const totalPassengers = passengers.adults + passengers.youth + passengers.children;
+  // Calculate totals (infants DO NOT count towards limit of 9)
+  const totalPassengers = useMemo(
+    () => passengers.adults + passengers.youth + passengers.children,
+    [passengers.adults, passengers.youth, passengers.children],
+  );
 
   // Performance: Radio Button Component optimizado
   const RadioButton = ({ label, checked, onClick }) => {
-    // Performance: Pre-calcular clases
-    const buttonClasses = 'flex items-center gap-2 cursor-pointer transition-opacity duration-200 hover:opacity-80';
-    const outerCircleClasses = 'bg-[var(--bg-brand-secondary-default)] rounded-[32px] inline-flex justify-center items-center';
-    const middleCircleClasses = `w-5 h-5 p-1 rounded-[32px] outline outline-1 outline-offset-[-1px] flex justify-center items-center gap-2.5 transition-[background-color,outline-color] duration-200 ${
-      checked
-        ? 'bg-[var(--icon-accent-positive)] outline-[var(--icon-accent-positive)]'
-        : 'bg-[var(--bg-brand-secondary-default)] outline-[var(--color-text-normal-primary)]'
-    }`;
-    const labelClasses = `text-base text-[var(--text-normal-primary)] leading-6 transition-[font-weight] duration-200 ${
-      checked ? 'font-bold' : 'font-normal'
-    }`;
+    // Performance: Pre-calculate classes
+    const buttonClasses = useMemo(
+      () => 'flex items-center gap-2 cursor-pointer transition-opacity duration-200 hover:opacity-80',
+      [],
+    );
+    const outerCircleClasses = useMemo(
+      () => 'bg-[var(--bg-brand-secondary-default)] rounded-[32px] inline-flex justify-center items-center',
+      [],
+    );
+    const middleCircleClasses = useMemo(
+      () => `w-5 h-5 p-1 rounded-[32px] outline outline-1 outline-offset-[-1px] flex justify-center items-center gap-2.5 transition-[background-color,outline-color] duration-200 ${
+        checked
+          ? 'bg-[var(--icon-accent-positive)] outline-[var(--icon-accent-positive)]'
+          : 'bg-[var(--bg-brand-secondary-default)] outline-[var(--color-text-normal-primary)]'
+      }`,
+      [checked],
+    );
+    const labelClasses = useMemo(
+      () => `text-base text-[var(--text-normal-primary)] leading-6 transition-[font-weight] duration-200 ${
+        checked ? 'font-bold' : 'font-normal'
+      }`,
+      [checked],
+    );
 
     return html`
       <button
@@ -377,16 +399,21 @@ export const PassengerSelector = ({
 
   return html`
     <div
-      class=${`${containerRelative ? 'relative' : ''} ${customClassName}`}
+      class="${`${containerRelative ? 'relative' : ''} ${customClassName}`} group"
       data-name="passengerSelector"
       ...${rest}
     >
       <!-- Trigger Input -->
-      <div class="h-12 w-full rounded-lg outline outline-1 outline-offset-[-1px] outline-[var(--color-border-default)] inline-flex justify-start items-start">
+      <div class="h-12 w-full rounded-lg outline-1 outline-[var(--color-border-default)] inline-flex justify-start items-start">
         <button
           ref=${triggerRef}
           type="button"
-          class="flex-1 h-12 px-4 flex justify-start items-center gap-2 cursor-pointer transition-all duration-200 bg-white max-w-full"
+          class="flex-1 h-12 px-4 flex justify-start items-center gap-2 cursor-pointer transition-all duration-200 outline-0 bg-white max-w-full border-b-[3px] border-b-transparent rounded-lg
+            focus-within:border-border-input-positive
+            hover:border-border-input-positive
+            active:border-border-input-positive
+            ${isOpen ? '!border-border-input-positive' : ''}
+            "
           onClick=${handleTriggerClick}
           aria-expanded=${isOpen}
           aria-haspopup="true"
@@ -395,7 +422,7 @@ export const PassengerSelector = ({
           <${Icon} icon="action/addpeople" size="m"/>
           <div class="flex-1 inline-flex flex-col justify-center items-start text-left min-w-0">
             <div class="self-stretch justify-start text-[var(--text-normal-secondary)] text-xs font-normal">${i18n['bookingBox.labels.passengers'] || 'Pasajeros'}</div>
-            <div class="self-stretch h-5 justify-start text-[var(--text-normal-primary)] text-base font-bold truncate">${getDisplayText()}</div>
+            <div class="self-stretch h-5 justify-start text-[var(--text-normal-primary)] text-base font-bold truncate">${getDisplayText}</div>
           </div>
           <div class="${isOpen ? 'rotate-180' : ''} transition-transform duration-200">
             <${Icon} icon="navigation/expand-more" size="sm" />
@@ -434,14 +461,14 @@ export const PassengerSelector = ({
           <div class="flex-1 overflow-y-auto px-[32px] pt-[16px] pb-0 flex flex-col gap-[16px]">
             <!-- Selected Passengers Display (Input Style) -->
             <div class="self-stretch inline-flex flex-col justify-start items-start gap-1">
-              <div class="self-stretch h-12 rounded-lg outline outline-1 outline-offset-[-1px] outline-[var(--color-border-default)] inline-flex justify-start items-start overflow-hidden">
+              <div class="self-stretch h-12 rounded-lg outline-1 outline-offset-[-1px] outline-[var(--color-border-default)] inline-flex justify-start items-start overflow-hidden">
                 <div class="flex-1 h-12 px-4 bg-[var(--bg-input-default)] border-b-[3px] border-[var(--color-border-input-positive)] flex justify-start items-center gap-2 max-w-full">
                   <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <path fill-rule="evenodd" clip-rule="evenodd" d="M10 9.99967C11.8417 9.99967 13.3334 8.50801 13.3334 6.66634C13.3334 4.82467 11.8417 3.33301 10 3.33301C8.15837 3.33301 6.66671 4.82467 6.66671 6.66634C6.66671 8.50801 8.15837 9.99967 10 9.99967ZM10 11.6663C7.77504 11.6663 3.33337 12.783 3.33337 14.9997V16.6663H16.6667V14.9997C16.6667 12.783 12.225 11.6663 10 11.6663Z" fill="#1B1B1B"/>
                   </svg>
                   <div class="flex-1 inline-flex flex-col justify-center items-start max-w-[85%]">
                     <div class="self-stretch text-[var(--text-normal-secondary)] text-xs font-normal leading-none">${i18n['bookingBox.labels.passengers'] || 'Pasajeros'}</div>
-                    <div class="self-stretch h-5 text-[var(--text-normal-primary)] text-base font-bold truncate">${getDisplayText()}</div>
+                    <div class="self-stretch h-5 text-[var(--text-normal-primary)] text-base font-bold truncate">${getDisplayText}</div>
                   </div>
                 </div>
               </div>
