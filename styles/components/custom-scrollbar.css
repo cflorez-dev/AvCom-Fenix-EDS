@@ -1,0 +1,56 @@
+/* NATIVE SCROLLBAR – CHROME / EDGE / SAFARI */
+/* Apply to all scrollbars globally with !important to override inline Tailwind classes */
+*::-webkit-scrollbar,
+[data-scrollbar="true"]::-webkit-scrollbar {
+  width: 0.75rem !important; 
+  height: 0.3125rem !important; /* 5px - For horizontal scroll */
+  background-color: transparent !important;
+}
+
+*::-webkit-scrollbar-track,
+[data-scrollbar="true"]::-webkit-scrollbar-track {
+  background: transparent !important;
+}
+
+*::-webkit-scrollbar-thumb,
+[data-scrollbar="true"]::-webkit-scrollbar-thumb {
+  background-color: var(--color-border-stroke-default) !important; /* Default gray border stroke color from the design system */
+  border-radius: 100vh !important; /* Fully rounded */
+  min-height: var(--spacing-10) !important; /* 40px - Minimum thumb height */
+  border: 0.25rem solid transparent !important; /* 4px padding on each side */
+  background-clip: padding-box !important; /* Color only applies to content, not border */
+}
+
+*::-webkit-scrollbar-thumb:hover,
+[data-scrollbar="true"]::-webkit-scrollbar-thumb:hover {
+  background-color: var(--color-gray-400) !important; /* Darker gray color on hover */
+  background-clip: padding-box !important;
+}
+
+/* Hide scrollbar buttons - CRITICAL: This removes up/down arrows */
+*::-webkit-scrollbar-button,
+[data-scrollbar="true"]::-webkit-scrollbar-button {
+  width: 0 !important;
+  height: 0 !important;
+  display: none !important;
+}
+
+/* Transparent scrollbar corner */
+*::-webkit-scrollbar-corner,
+[data-scrollbar="true"]::-webkit-scrollbar-corner {
+  background-color: transparent !important;
+}
+
+.origin-dropdown-selector-container {
+  padding: 0 !important;
+}
+
+.origin-dropdown-selector-wrapper {
+  padding: 0;
+}
+
+/* Add clean visual hover for dropdown items */
+.avi-dropdown-selector__list .dropdown-item-padding:hover {
+  background: var(--dropdown-item-hover-bg);
+}
+

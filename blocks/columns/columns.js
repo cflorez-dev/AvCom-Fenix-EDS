@@ -13,6 +13,12 @@ export default function decorate(block) {
           picWrapper.classList.add('columns-img-col');
         }
       }
+      
+      // check for text content
+      const hasText = col.querySelector('p, h1, h2, h3, h4, h5, h6, ul, ol, li, a');
+      if (hasText) {
+        col.classList.add('columns-text-col');
+      }
     });
   });
 }

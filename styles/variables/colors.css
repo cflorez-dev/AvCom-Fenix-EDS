@@ -1,0 +1,169 @@
+/* Color System - Avianca Brand Colors (From Figma Design System) */
+
+:root {
+  /* Brand Colors */
+  --brand-primary: #1b1b1b;
+  --brand-secondary: #ff0000;
+  
+  /* Red/Danger Scale */
+  --red-50: #fff5f5;
+  --red-100: #ffe0e0;
+  --red-200: #ffc2c2;
+  --red-300: #ff9999;
+  --red-400: #ff6666;
+  --red-500: #ff0000;
+  --red-600: #cc0000;
+  --red-700: #990000;
+  --red-800: #660000;
+  --red-900: #330000;
+  
+  /* State Colors - Interactive elements */
+  --state-hover-darken: #6c6c6c;
+  --state-active-darken: #1b1b1b;
+  --state-disabled: #d9d9d9;
+  --state-disabled-gray: #e0e0e0;
+  
+  /* Green/Success Colors */
+  --green-primary: #1EA93C;
+  
+  /* Focus Colors - For focus outlines */
+  --focus-primary: #1D9BF0;
+  --focus-danger: #ff0000;
+  
+  /* Disabled States - Button specific */
+  --button-disabled-bg-primary: #d9d9d9;
+  --button-disabled-text-primary: #d9d9d9;
+  --button-disabled-bg-secondary: #ffffff;
+  --button-disabled-border-secondary: #d9d9d9;
+  --button-disabled-text-secondary: #d9d9d9;
+  --button-disabled-bg-danger: #ffcccc;
+  --button-disabled-text-danger: #d9d9d9;
+  
+  /* Logo Colors */
+  --logo-avianca-primary: #1b1b1b;
+  --logo-avianca-secondary: #1b1b1b;
+  --logo-avianca-light: #ffffff;
+  
+  /* Background Colors */
+  --bg-brand-primary-default: #1b1b1b;
+  --bg-brand-primary-lighter: #ffffff;
+  --bg-brand-secondary-default: #ffffff;
+  --bg-card-lighter: #ffffff;
+  --bg-card-lighter-alpha: #ffffff66;
+  --bg-input-default: #ffffff;
+  --bg-page-lighter: #ffffff;
+  --bg-page-light: #fafafa;
+  --bg-hover-light: #E9E9E9;
+  
+  /* Text Colors */
+  --text-normal-primary: #1b1b1b;
+  --text-normal-secondary: #5a5a5a;
+  --text-normal-lighter: #ffffff;
+  --text-normal-light: #d9d9d9;
+  --text-normal-error: #ff1c46;
+  --text-brand-primary: #ffffff;
+  --text-brand-secondary: #1b1b1b;
+  --text-brand-light: #ffffff;
+  --text-brand-disable: #5a5a5a;
+  --text-link-default: #177f8c;
+  --text-link-active: #0e4c54;
+  --text-secondary: #5a5a5a;
+  --text-principal: #1B1B1B;
+  
+  /* Border Colors */
+  --border-brand-primary-default: #1b1b1b;
+  --border-brand-primary-light: #ffffff;
+  --border-brand-primary-disable: #d9d9d9;
+  --border-brand-primary-active: #6c6c6c;
+  --border-brand-secondary-default: #1b1b1b;
+  --border-stroke-default: #d9d9d9;
+  --border-stroke-focus: #1d9bf0;
+  
+  /* Icon Colors */
+  --icon-normal-primary: #1b1b1b;
+  --icon-normal-light: #ffffff;
+  --icon-accent-positive: #1ea93c;
+  --icon-link-default: #177f8c;
+  --icon-link-active: #0e4c54;
+  --icon-brand-disable: #5a5a5a;
+  
+  /* Header Colors */
+  --header-offers: #ff0000;
+  --header-bg-light: #ffffff;
+  
+  /* Pagination Colors */
+  --pagination-bg-dark: #1b1b1b;
+  --pagination-border-dark: #1b1b1b;
+  --pagination-bg-darker: #1b1b1bb2;
+  
+  /* Illustration Colors */
+  --illustrations-gray-light: #d9d9d9;
+  --illustrations-gray-dark: #1b1b1b;
+  --illustrations-red-primary: #d90000;
+  --illustrations-red-darker: #9c2028;
+  --illustrations-orange-primary: #f6cb91;
+  --illustrations-orange-lighter: #fff3e0;
+  --illustrations-mint-primary: #dfe8e3;
+  --illustrations-blue-primary: #87bec5;
+  --illustrations-blue-darker: #5f858a;
+  
+  /* Effect Colors */
+  --effect-shadow-light: #5a5a5a33;
+  
+  /* Link Button Colors */
+  --link-button-default: #177f8c;
+  --link-button-hover: #0f5d68;
+  --link-button-active: #0a4a52;
+  --link-button-focus: #0f5d68;
+  --link-button-disabled: #d9d9d9;
+  --link-button-disabled-bg: transparent;
+  
+  /* Dropdown Colors */
+  --dropdown-item-hover-bg: #f5f5f5;
+  --dropdown-link-hover: #0e4c54;
+  
+  /* Modal Colors */
+  --modal-overlay-bg: rgba(0, 0, 0, 0.5);
+  
+  /* Alert / Marquesina Colors */
+  --alert-informative-bg: #daf1f4;
+  --alert-informative-text: #0e4c54;
+  --alert-informative-border: #bee5eb;
+  
+  --alert-promotional-bg: #F3F0FA;
+  --alert-promotional-text: #4B1BBF;
+  --alert-promotional-border: #F3F0FA;
+  
+  --alert-caution-bg: #fff3cd;
+  --alert-caution-text: #856404;
+  --alert-caution-border: #ffeaa7;
+  
+  --alert-success-bg: #FFFFFF;
+  --alert-success-text: #1B1B1B;
+  --alert-success-border: #1EA93C;
+  --alert-success-icon-bg: #1EA93C;
+  --alert-success-icon-fg: #FFFFFF;
+  
+  --alert-error-bg: #FFFFFF;
+  --alert-error-text: #1B1B1B;
+  --alert-error-border: #FF1C46;
+  --alert-error-icon-bg: #C20000;
+  --alert-error-icon-fg: #FFFFFF;
+  
+  --alert-neutral-bg: #E9E9E9;
+  --alert-neutral-text: #1B1B1B;
+  --alert-neutral-border: #E9E9E9;
+  
+  --alert-icon-color: currentColor;
+  --alert-link-color: inherit;
+  --alert-link-underline: currentColor;
+  
+  --alert-dismiss-bg-hover: rgba(0, 0, 0, 0.05);
+  --alert-dismiss-bg-active: rgba(0, 0, 0, 0.1);
+  --alert-dismiss-icon: currentColor;
+  
+  /* Price Indicator Colors (DateRangePicker) */
+  --price-indicator-low: #b8e6d4;
+  --price-indicator-medium: #ffecb7;
+  --price-indicator-high: #ffc3b6;
+}

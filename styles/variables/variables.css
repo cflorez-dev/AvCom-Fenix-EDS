@@ -1,0 +1,8 @@
+/* Import all CSS variables */
+
+@import './colors.css';
+@import './typography.css';
+@import './breackpoints.css';
+@import './spacing.css';
+@import './shadows.css';
+@import './transitions.css';

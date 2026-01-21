@@ -33,9 +33,44 @@ npm i
 npm run lint
 ```
 
+## Build Process
+
+The project uses automated build steps to ensure all assets are properly compiled before deployment:
+
+### Manual Build
+```sh
+npm run build
+```
+
+This command runs in parallel:
+- **Component Models** (`build:json`) - Merges component JSON configurations
+- **Dropins** (`build:dropins`) - Copies vendorized dependencies to `scripts/__dropins__/`
+- **Tailwind CSS** (`tw:build`) - Compiles CSS with all classes (including arbitrary values)
+
+### Automatic Pre-commit Hooks
+
+The project uses Husky to automatically:
+1. **Compile Tailwind CSS** when you modify:
+   - Files in `blocks/` or `design-system/` folders
+   - CSS variables in `styles/variables/`
+   - Tailwind configuration files
+2. **Rebuild component models** when you modify JSON partials
+
+**Important**: Always ensure `styles/tw.css` is committed after modifying components that use new Tailwind classes (especially arbitrary values like `grid-rows-[repeat(3,minmax(0,1fr))]`).
+
 ## Local development
 
-1. Create a new repository based on the `aem-boilerplate` template
+### Development Mode (with hot-reload)
+```sh
+npm run dev
+```
+
+This starts:
+- AEM local server at `http://localhost:3000`
+- Tailwind CSS watch mode (auto-compiles on file changes)
+
+### Standard Mode
+1. Create a new repository based on the `aem-boilerplate` template and add a mountpoint in the `fstab.yaml`
 1. Add the [AEM Code Sync GitHub App](https://github.com/apps/aem-code-sync) to the repository
 1. Install the [AEM CLI](https://github.com/adobe/helix-cli): `npm install -g @adobe/aem-cli`
 1. Start AEM Proxy: `aem up` (opens your browser at `http://localhost:3000`)

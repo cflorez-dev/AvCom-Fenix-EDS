@@ -1,0 +1,29 @@
+/* CMS Alert Block Styles */
+
+/* Container */
+.cms-alert-container {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-medium, 16px);
+  width: 100%;
+}
+
+/* Individual alert item */
+.cms-alert-item {
+  width: 100%;
+}
+
+/* Author mode indicator */
+.cms-alert-author-mode {
+  border: 2px dashed var(--brand-primary, #0066cc);
+  padding: var(--padding-small, 12px);
+  background-color: var(--bg-page-lighter, #f9f9f9);
+}
+
+/* Ensure full-width behavior */
+.cms-alert {
+  width: 100%;
+}
+
+/* Alert component inherits its own styles from design-system/molecules/alert/alert.js */
+/* No additional styling needed as Alert component handles all visual presentation */

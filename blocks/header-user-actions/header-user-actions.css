@@ -1,0 +1,28 @@
+/* Header User Actions Block - Placeholder Styles */
+
+.header-user-actions-container {
+  padding: var(--spacing-medium);
+  background-color: var(--bg-page-light);
+  border: 1px dashed var(--brand-primary);
+  border-radius: var(--border-radius-large);
+}
+
+.header-user-actions-placeholder {
+  margin: 0;
+  padding: var(--spacing-small);
+  color: var(--text-normal-primary);
+  font-size: var(--heading-h400-size);
+  font-weight: var(--paragraph-p200-weight);
+  text-align: center;
+}
+
+/* Debug mode: show data attributes */
+.header-user-actions-container::after {
+  content: 'Config loaded (see data-* attributes in DevTools)';
+  display: block;
+  margin-top: var(--spacing-small);
+  font-size: 0.75rem;
+  color: var(--text-normal-secondary);
+  text-align: center;
+  font-style: italic;
+}

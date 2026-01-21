@@ -6,9 +6,125 @@
     ]
   },
   {
-    "...": "./_section.json#/filters"
+    "id": "section",
+    "components": [
+      "text",
+      "image",
+      "button",
+      "title",
+      "hero",
+      "cards",
+      "columns",
+      "fragment",
+      "design-system-block",
+      "cms-alert",
+      "cms-rich-text",
+      "cms-hero-banner",
+      "cms-secondary-banner",
+      "cms-promotional-cards-rail",
+      "cms-promotional-card-carrousel",
+      "cms-informative-cards-rail",
+      "cms-informative-cards-carousel",
+      "cms-mosaic-cards",
+      "cms-background-image",
+      "form-header-banner",
+      "back-to-top-button",
+      "breadcrumb",
+      "marquesina",
+      "origin-dropdown-selector",
+      "header-logo",
+      "header-language-selector",
+      "header-user-actions",
+      "header-navbar",
+      "footer-partners-logos",
+      "footer-bottom",
+      "footer-columns",
+      "cms-button",
+      "cms-sticky-countdown-banner",
+      "cms-loader",
+      "booking-box",
+      "accordion-group"
+    ]
   },
   {
-    "...": "../blocks/*/_*.json#/filters"
+    "id": "cards",
+    "components": [
+      "card"
+    ]
+  },
+  {
+    "id": "cms-promotional-cards-rail",
+    "components": [
+      "cms-promotional-card"
+    ]
+  },
+  {
+    "id": "cms-promotional-card-carrousel",
+    "components": [
+      "cms-promotional-card-carrousel-item"
+    ]
+  },
+  {
+    "id": "cms-informative-cards-carousel",
+    "components": [
+      "cms-informative-cards-carousel-item"
+    ]
+  },
+  {
+    "id": "footer-partners-logos",
+    "components": [
+      "footer-partners-logos-item"
+    ]
+  },
+  {
+    "id": "columns",
+    "components": [
+      "column"
+    ]
+  },
+  {
+    "id": "header-navbar",
+    "components": [
+      "header-menu-item"
+    ]
+  },
+  {
+    "id": "column",
+    "components": [
+      "text",
+      "image",
+      "button",
+      "title"
+    ]
+  },
+  {
+    "id": "footer-columns",
+    "components": [
+      "footer-column-item"
+    ]
+  },
+  {
+    "id": "footer-partner-logos",
+    "components": [
+      "footer-partner-logo-item"
+    ]
+  },
+  {
+    "id": "cms-informative-cards-rail",
+    "components": [
+      "cms-informative-card"
+    ]
+  },
+  {
+    "id": "cms-mosaic-cards",
+    "components": [
+      "link-card"
+    ]
+  },
+  {
+    "id": "booking-box",
+    "components": [
+      "booking-box-button"
+    ]
   }
 ]

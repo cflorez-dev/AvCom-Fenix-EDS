@@ -1,0 +1,9 @@
+@import './variables/variables.css';
+
+@theme {
+  --breakpoint-sm: 480px;   /* Mobile large / phablets */
+  --breakpoint-md: 768px;   /* Tablets */
+  --breakpoint-lg: 1024px;  /* Desktop small */
+  --breakpoint-xl: 1248px;  /* Desktop large (Figma max-width) */
+  --breakpoint-2xl: 1536px; /* Extra large (Tailwind default compatibility) */
+}
