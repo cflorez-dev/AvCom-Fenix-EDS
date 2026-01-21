@@ -9,6 +9,17 @@ import { Icon } from '../icon/icon.js';
 
 const html = htm.bind(h);
 
+// Constants for state-based styling (defined outside component for performance)
+const STATE_CLASSES = {
+  normal: 'outline outline-1 outline-offset-[-1px] outline-neutral-400',
+  disabled: 'outline outline-1 outline-offset-[-1px] outline-border-input-disabled',
+};
+
+const LABEL_STATE_CLASSES = {
+  normal: 'text-text-normal-secondary',
+  disabled: 'text-text-input-disabled-label',
+};
+
 /**
  * DateInput - Read-only input for selecting dates with pointer cursor
  *
@@ -126,24 +137,13 @@ export const DateInput = ({
   // Should the label float?
   const shouldFloat = value || active;
 
-  // Determine actual state
-  const actualState = disabled ? 'disabled' : 'normal';
+  // Determine actual state (memoized to avoid recalculation)
+  const actualState = useMemo(() => (disabled ? 'disabled' : 'normal'), [disabled]);
   const isInteractive = !disabled;
 
   // ========== STYLING ==========
 
-  // State-based classes
-  const stateClasses = {
-    normal: 'outline outline-1 outline-offset-[-1px] outline-neutral-400',
-    disabled: 'outline outline-1 outline-offset-[-1px] outline-border-input-disabled',
-  };
-
-  const labelStateClasses = {
-    normal: 'text-text-normal-secondary',
-    disabled: 'text-text-input-disabled-label',
-  };
-
-  // Container classes
+  // Container classes (memoized for performance)
   const containerClasses = useMemo(() => {
     // Border radius based on variant
     let borderRadiusClass = 'rounded-lg';
@@ -154,7 +154,7 @@ export const DateInput = ({
     }
 
     // Outline only for standalone
-    const outlineClass = variant === 'standalone' ? stateClasses[actualState] : '';
+    const outlineClass = variant === 'standalone' ? STATE_CLASSES[actualState] : '';
 
     return `
       flex items-center gap-2 w-full h-[52px]
@@ -168,7 +168,25 @@ export const DateInput = ({
       ${active && !hasError ? '!border-border-input-positive' : ''}
       ${hasError ? '!border-[var(--alert-error-border)]' : ''}
     `.trim();
-  }, [actualState, isInteractive, stateClasses, variant, hasError, active]);
+  }, [actualState, isInteractive, variant, hasError, active]);
+
+  // Label classes (memoized to avoid recalculation)
+  const labelClasses = useMemo(() => `
+    pointer-events-none
+    transition-all duration-200 ease-in-out
+    font-[var(--font-weight-regular)] tracking-[var(--letter-spacing-normal)]
+    ${LABEL_STATE_CLASSES[actualState]}
+    ${shouldFloat ? 'absolute top-[7px] text-xs leading-[16px] left-0' : 'text-sm leading-5'}
+    ${hasError ? '!text-[var(--alert-error-icon-bg)]' : ''}
+  `.trim(), [actualState, shouldFloat, hasError]);
+
+  // Input classes (memoized to avoid recalculation)
+  const inputClasses = useMemo(() => `
+    w-full bg-transparent !border-0 !outline-none p-0 cursor-pointer
+    !text-base leading-5
+    ${shouldFloat ? 'relative top-[10px] !font-[var(--font-weight-bold)] h-[20px]' : 'absolute inset-0 opacity-0 cursor-pointer'}
+    ${actualState === 'disabled' ? 'text-text-input-disabled cursor-not-allowed' : 'text-text-normal-primary'}
+  `.trim(), [shouldFloat, actualState]);
 
   // ========== RENDER ==========
   return html`
@@ -218,14 +236,7 @@ export const DateInput = ({
           ${label && html`
             <label
               for=${`${label}-date-input`}
-              class=${`
-                pointer-events-none
-                transition-all duration-200 ease-in-out
-                font-[var(--font-weight-regular)] tracking-[var(--letter-spacing-normal)]
-                ${labelStateClasses[actualState]}
-                ${shouldFloat ? 'absolute top-[7px] text-xs leading-[16px] left-0' : 'text-sm leading-5'}
-                ${hasError ? '!text-[var(--alert-error-icon-bg)]' : ''}
-              `}
+              class=${labelClasses}
             >
               ${label}
             </label>
@@ -242,12 +253,7 @@ export const DateInput = ({
               disabled=${disabled}
               readOnly
               tabIndex=${disabled ? -1 : 0}
-              class=${`
-                w-full bg-transparent !border-0 !outline-none p-0 cursor-pointer
-                !text-base leading-5
-                ${shouldFloat ? 'relative top-[10px] !font-[var(--font-weight-bold)] h-[20px]' : 'absolute inset-0 opacity-0 cursor-pointer'}
-                ${actualState === 'disabled' ? 'text-text-input-disabled cursor-not-allowed' : 'text-text-normal-primary'}
-              `}
+              class=${inputClasses}
               role="button"
               aria-label=${label || ''}
               aria-readonly="true"

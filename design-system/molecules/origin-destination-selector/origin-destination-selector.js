@@ -12,38 +12,39 @@ const html = htm.bind(h);
 
 // Constants
 const MOBILE_BREAKPOINT = 768;
+const CITY_CONTAINER_CLASSES = 'flex-1';
 
 /**
- * OriginDestinationSelector - Componente integrado de origen y destino con swap
+ * OriginDestinationSelector - Integrated origin and destination component with swap
  *
  * ## Props
- * - `origin`: `CityOption | null` – Ciudad de origen seleccionada.
- * - `destination`: `CityOption | null` – Ciudad de destino seleccionada.
- * - `onRouteChange`: `(route: { origin, destination }) => void` – Callback cuando cambia la ruta.
- * - `onRouteComplete`: `(route: { origin, destination }) => void` – Callback cuando ambos campos están completos (para auto-open fechas).
- * - `activeStep`: `"origin" | "destination" | null` – Step activo controlado desde padre (opcional).
- * - `onStepChange`: `(step: "origin" | "destination" | null) => void` – Callback cuando cambia step activo.
- * - `autoOpenNext`: `boolean` – Auto-abrir destination después de seleccionar origin (default: true).
- * - `disableSwap`: `boolean` – Deshabilitar swap button (default: false).
- * - `showHeader`: `boolean` – Mostrar header en mobile step modal (default: true).
- * - `onBack`: `() => void` – Callback para botón back (step modal).
- * - `onClose`: `() => void` – Callback para cerrar step.
- * - `customClassName`: `string` – Clases CSS adicionales.
- * - `disabled`: `boolean` – Si está deshabilitado (default: false).
- * - `...rest`: Otras propiedades.
+ * - `origin`: `CityOption | null` – Selected origin city.
+ * - `destination`: `CityOption | null` – Selected destination city.
+ * - `onRouteChange`: `(route: { origin, destination }) => void` – Callback when route changes.
+ * - `onRouteComplete`: `(route: { origin, destination }) => void` – Callback when both fields are complete (for auto-opening dates).
+ * - `activeStep`: `"origin" | "destination" | null` – Active step controlled from parent (optional).
+ * - `onStepChange`: `(step: "origin" | "destination" | null) => void` – Callback when active step changes.
+ * - `autoOpenNext`: `boolean` – Auto-open destination after selecting origin (default: true).
+ * - `disableSwap`: `boolean` – Disable swap button (default: false).
+ * - `showHeader`: `boolean` – Show header in mobile step modal (default: true).
+ * - `onBack`: `() => void` – Callback for back button (step modal).
+ * - `onClose`: `() => void` – Callback to close step.
+ * - `customClassName`: `string` – Additional CSS classes.
+ * - `disabled`: `boolean` – If disabled (default: false).
+ * - `...rest`: Other properties.
  *
- * ## Diseño (Figma)
- * - Desktop Horizontal: Origen + Swap (centro) + Destino
- * - Mobile Vertical: Origen arriba, Destino abajo, Swap a la derecha
+ * ## Design (Figma)
+ * - Desktop Horizontal: Origin + Swap (center) + Destination
+ * - Mobile Vertical: Origin on top, Destination below, Swap on right
  *
- * ## Comportamiento
- * - **Auto-open destination**: Después de seleccionar origen (si autoOpenNext=true)
- * - **Exclude cities**: Origen no puede ser destino y viceversa (filtrado automático)
- * - **Swap inteligente**: Si uno vacío después de swap, auto-abrir ese campo
- * - **Step control**: Puede ser controlado (activeStep) o no controlado (useState interno)
- * - **Fetch cities**: Consulta ciudades automáticamente al cargar (con cache en sessionStorage)
+ * ## Behavior
+ * - **Auto-open destination**: After selecting origin (if autoOpenNext=true)
+ * - **Exclude cities**: Origin cannot be destination and vice versa (automatic filtering)
+ * - **Smart swap**: If one is empty after swap, auto-open that field
+ * - **Step control**: Can be controlled (activeStep) or uncontrolled (internal useState)
+ * - **Fetch cities**: Automatically fetches cities on load (with sessionStorage cache)
  *
- * ## Ejemplo de uso
+ * ## Usage Example
  *
  * ```javascript
  * <${OriginDestinationSelector}
@@ -61,10 +62,10 @@ const MOBILE_BREAKPOINT = 768;
  * />
  * ```
  *
- * ## Optimizaciones
- * - ⚡ Performance: useCallback para handlers, useMemo para exclude lists
+ * ## Optimizations
+ * - ⚡ Performance: useCallback for handlers, useMemo for exclude lists
  * - ♿ Accessibility: ARIA labels, keyboard navigation via CitySelector
- * - 🏆 Best practices: Estado controlado/no controlado, cleanup effects, cache inteligente
+ * - 🏆 Best practices: Controlled/uncontrolled state, cleanup effects, smart caching
  */
 export const OriginDestinationSelector = ({
   origin = null,
@@ -87,22 +88,22 @@ export const OriginDestinationSelector = ({
   i18n = {},
   ...rest
 }) => {
-  // Estado interno para step si no es controlado
+  // Internal step state if not controlled
   const [internalActiveStep, setInternalActiveStep] = useState(null);
   const currentActiveStep = activeStep !== undefined ? activeStep : internalActiveStep;
 
-  // Estado para ciudades obtenidas del servicio
+  // State for cities fetched from service
   const [fetchedCities, setFetchedCities] = useState([]);
   const [filteredDestinations, setFilteredDestinations] = useState([]);
   const [isLoadingCities, setIsLoadingCities] = useState(false);
   const [citiesError, setCitiesError] = useState(null);
 
-  // Auto-detect viewport mobile
+  // Auto-detect mobile viewport
   const [isMobile, setIsMobile] = useState(
     typeof window !== 'undefined' ? window.innerWidth < MOBILE_BREAKPOINT : false,
   );
 
-  // Listener de resize para detectar cambios de viewport
+  // Resize listener to detect viewport changes
   useEffect(() => {
     const handleResize = () => {
       const newIsMobile = window.innerWidth < MOBILE_BREAKPOINT;
@@ -118,7 +119,7 @@ export const OriginDestinationSelector = ({
     };
   }, [isMobile]);
 
-  // Fetch cities desde API al cargar el componente
+  // Fetch cities from API on component mount
   useEffect(() => {
     const loadCities = async () => {
       setIsLoadingCities(true);
@@ -143,16 +144,16 @@ export const OriginDestinationSelector = ({
         }
       } catch (error) {
         console.error('Error loading cities:', error);
-        setCitiesError(error.message || 'Error cargando ciudades');
+        setCitiesError(error.message || 'Error loading cities');
       } finally {
         setIsLoadingCities(false);
       }
     };
 
     loadCities();
-  }, []); // Solo cargar una vez al montar
+  }, []); // Load only once on mount
 
-  // Cargar destinaciones cuando cambia el origen
+  // Load destinations when origin changes
   useEffect(() => {
     setFilteredDestinations([]);
     const loadDestinations = async () => {
@@ -178,7 +179,7 @@ export const OriginDestinationSelector = ({
     }
   }, [origin]);
 
-  // Handler para cambio de step (estable con useCallback)
+  // Handler for step change (stable with useCallback)
   const handleStepChange = useCallback((step) => {
     setInternalActiveStep(step);
     if (onStepChange) {
@@ -186,46 +187,46 @@ export const OriginDestinationSelector = ({
     }
   }, [onStepChange]);
 
-  // Handler para selección de origen
+  // Handler for origin selection
   const handleOriginSelect = useCallback((city) => {
     if (onRouteChange) {
       onRouteChange({ origin: city, destination });
     }
 
-    // Si ruta queda completa → notificar completitud
+    // If route becomes complete → notify completion
     if (city && destination && onRouteComplete) {
       onRouteComplete({ origin: city, destination });
     }
 
-    // Auto-abrir destination (si autoOpenNext)
+    // Auto-open destination (if autoOpenNext)
     if (autoOpenNext && city) {
       handleStepChange('destination');
     }
-    // NO cerrar si no hay auto-open - dejar que BookingBox controle el flujo
+    // DO NOT close if no auto-open - let BookingBox control the flow
   }, [onRouteChange, onRouteComplete, destination, autoOpenNext, handleStepChange]);
 
-  // Handler para selección de destino
+  // Handler for destination selection
   const handleDestinationSelect = useCallback((city) => {
     if (onRouteChange) {
       onRouteChange({ origin, destination: city });
     }
 
-    // 2. Si ruta queda completa → notificar completitud
+    // If route becomes complete → notify completion
     if (origin && city) {
       if (onRouteComplete) {
         onRouteComplete({ origin, destination: city });
       }
     }
 
-    // NO cerrar automáticamente - dejar que BookingBox controle el flujo
-    // BookingBox abrirá 'dates' si la ruta está completa
+    // DO NOT close automatically - let BookingBox control the flow
+    // BookingBox will open 'dates' if route is complete
   }, [onRouteChange, onRouteComplete, origin]);
 
-  // Handler para swap
+  // Handler for swap
   const handleSwap = useCallback(() => {
     if (disabled) return;
 
-    // 1. Intercambiar valores (origin ↔ destination)
+    // 1. Swap values (origin ↔ destination)
     const newOrigin = destination;
     const newDestination = origin;
 
@@ -236,28 +237,23 @@ export const OriginDestinationSelector = ({
       });
     }
 
-    // 2. Si ambos completos después del swap → notificar y cerrar
-    if (newOrigin && newDestination) {
-      if (onRouteComplete) {
-        onRouteComplete({ origin: newOrigin, destination: newDestination });
-      }
-    } else if (!newOrigin) {
-      // Origin vacío → abrirlo
+    if (!newOrigin) {
+      // Origin empty → open it
       handleStepChange('origin');
     } else if (!newDestination) {
-      // Destination vacío → abrirlo
+      // Destination empty → open it
       handleStepChange('destination');
     }
   }, [disabled, onRouteChange, onRouteComplete, origin, destination, handleStepChange]);
 
-  // Calcular si swap está deshabilitado (memoized)
-  // IMPORTANTE: Swap debe funcionar siempre, incluso con ambos campos vacíos
+  // Calculate if swap is disabled (memoized)
+  // IMPORTANT: Swap should always work, even with both fields empty
   const isSwapDisabled = useMemo(
     () => disableSwap || disabled,
     [disableSwap, disabled],
   );
 
-  // Handlers para CitySelector (abrir/cerrar)
+  // Handlers for CitySelector (open/close)
   const handleOriginOpenChange = useCallback((isOpen) => {
     handleStepChange(isOpen ? 'origin' : null);
   }, [handleStepChange]);
@@ -266,25 +262,25 @@ export const OriginDestinationSelector = ({
     handleStepChange(isOpen ? 'destination' : null);
   }, [handleStepChange]);
 
-  // Handler para back navigation (destination → origin, origin → cerrar)
+  // Handler for back navigation (destination → origin, origin → close)
   const handleBackNavigation = useCallback(() => {
     if (currentActiveStep === 'destination') {
-      // Desde destination → retroceder a origin
+      // From destination → go back to origin
       handleStepChange('origin');
     } else if (currentActiveStep === 'origin') {
-      // Desde origin → cerrar completamente
+      // From origin → close completely
       handleStepChange(null);
-      // Si hay callback del padre, llamarlo
+      // If parent callback exists, call it
       if (onBack) {
         onBack();
       }
-      // Fallback: llamar onBack del padre
+      // Fallback: call parent's onBack
     } else if (onBack) {
       onBack();
     }
   }, [currentActiveStep, handleStepChange, onBack]);
 
-  // Handler para close (siempre cierra completamente)
+  // Handler for close (always closes completely)
   const handleCloseNavigation = useCallback(() => {
     handleStepChange(null);
     if (onClose) {
@@ -297,31 +293,16 @@ export const OriginDestinationSelector = ({
     ${customClassName}
   `.trim(), [customClassName]);
 
-  // Contenedor agrupado (outline compartido)
-  const groupedContainerClasses = `
-    flex flex-col md:flex-row
-    outline outline-1 outline-offset-[-1px] outline-neutral-400
-    rounded-lg
-    bg-background-input-default
-  `;
-
-  // Contenedores de ciudad (sin outline individual)
-  const cityContainerClasses = 'flex-1';
-
-  // Swap button positioning
-  const swapContainerMobileClasses = 'absolute right-4 top-1/2 -translate-y-1/2 z-10 md:hidden';
-  const swapContainerDesktopClasses = 'hidden md:flex items-center justify-center absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-10';
-
   return html`
     <div
       class=${`relative ${originHasError || destinationHasError ? 'mb-[25px]' : ''} ${containerClasses}`}
       data-name="originDestinationSelector"
       ...${rest}
     >
-      <!-- Contenedor agrupado con bordes compartidos -->
-      <div class=${groupedContainerClasses}>
+      <!-- Grouped container with shared borders -->
+      <div class="flex flex-col md:flex-row outline outline-1 outline-offset-[-1px] outline-neutral-400 rounded-lg bg-background-input-default">
         <!-- Origin -->
-        <div class=${cityContainerClasses}>
+        <div class=${CITY_CONTAINER_CLASSES}>
           <${CitySelector}
             label=${i18n['bookingBox.labels.origin'] || 'Origen'}
             value=${origin}
@@ -344,11 +325,29 @@ export const OriginDestinationSelector = ({
           />
         </div>
 
-        <!-- Separador -->
+        <!-- Swap Button - Mobile (bottom right of Origin) -->
+        <div class="absolute right-4 top-1/2 -translate-y-1/2 z-10 md:hidden">
+          <${SwapButton}
+            onClick=${handleSwap}
+            disabled=${isSwapDisabled}
+            i18n=${i18n}
+          />
+        </div>
+
+        <!-- Swap Button - Desktop (center between Origin and Destination) -->
+        <div class="hidden md:flex items-center justify-center absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-10">
+          <${SwapButton}
+            onClick=${handleSwap}
+            disabled=${isSwapDisabled}
+            i18n=${i18n}
+          />
+        </div>
+
+        <!-- Separator -->
         <div class="h-[1px] mx-4 md:mx-0 md:h-auto md:w-[1px] md:my-2 bg-[var(--color-border-input-default)] flex-shrink-0" aria-hidden="true"></div>
 
         <!-- Destination -->
-        <div class=${cityContainerClasses}>
+        <div class=${CITY_CONTAINER_CLASSES}>
           <${CitySelector}
             label=${i18n['bookingBox.labels.destination'] || 'Destino'}
             value=${destination}
@@ -370,24 +369,6 @@ export const OriginDestinationSelector = ({
             stepTitle=${i18n['bookingBox.stepTitles.selectDestination'] || '¿A dónde vas a volar?'}
           />
         </div>
-      </div>
-
-      <!-- Swap Button - Mobile (bottom right del Origin) -->
-      <div class=${swapContainerMobileClasses}>
-        <${SwapButton}
-          onClick=${handleSwap}
-          disabled=${isSwapDisabled}
-          i18n=${i18n}
-        />
-      </div>
-
-      <!-- Swap Button - Desktop (centro entre Origin y Destination) -->
-      <div class=${swapContainerDesktopClasses}>
-        <${SwapButton}
-          onClick=${handleSwap}
-          disabled=${isSwapDisabled}
-          i18n=${i18n}
-        />
       </div>
     </div>
   `;

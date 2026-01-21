@@ -1,6 +1,6 @@
 import { h } from '@dropins/tools/preact.js';
 import {
-  useState, useRef, useEffect, useCallback,
+  useState, useRef, useEffect, useCallback, useMemo,
 } from '@dropins/tools/preact-hooks.js';
 import htm from 'htm';
 import { DateInput } from '../../atoms/date-input/date-input.js';
@@ -466,44 +466,79 @@ export const DateSelector = ({
     setHasScrolled(scrollTop > 0);
   }, []);
 
-  const displayValue = value ? formatDate(value) : '';
-  const actualStepTitle = stepTitle || label || (i18n['bookingBox.labels.whenToFly'] || '¿Cuándo quieres volar?');
+  // ========== COMPUTED VALUES ==========
 
-  const today = getToday();
-  const maxDate = getMaxBookingDate();
+  const displayValue = useMemo(
+    () => (value ? formatDate(value) : ''),
+    [value],
+  );
+
+  const actualStepTitle = useMemo(
+    () => stepTitle || label || (i18n['bookingBox.labels.whenToFly'] || '¿Cuándo quieres volar?'),
+    [stepTitle, label, i18n],
+  );
+
+  const today = useMemo(() => getToday(), []);
+
+  const maxDate = useMemo(() => getMaxBookingDate(), []);
 
   // Validate if prev/next are disabled
-  // Si restrictPrevNavigation=true, usar startMonth/startYear como límite
-  // Si restrictPrevNavigation=false, usar mes actual (today)
-  const limitYear = restrictPrevNavigation && startYear !== null ? startYear : today.getFullYear();
-  const limitMonth = restrictPrevNavigation && startMonth !== null ? startMonth : today.getMonth();
+  // If restrictPrevNavigation=true, use startMonth/startYear as limit
+  // If restrictPrevNavigation=false, use current month (today)
+  const limitYear = useMemo(
+    () => (restrictPrevNavigation && startYear !== null ? startYear : today.getFullYear()),
+    [restrictPrevNavigation, startYear, today],
+  );
 
-  const isCurrentMonth = currentYear === limitYear && currentMonth === limitMonth;
+  const limitMonth = useMemo(
+    () => (restrictPrevNavigation && startMonth !== null ? startMonth : today.getMonth()),
+    [restrictPrevNavigation, startMonth, today],
+  );
 
-  const isMaxMonth = currentYear === maxDate.getFullYear()
-    && currentMonth === maxDate.getMonth();
+  const isCurrentMonth = useMemo(
+    () => currentYear === limitYear && currentMonth === limitMonth,
+    [currentYear, limitYear, currentMonth, limitMonth],
+  );
+
+  const isMaxMonth = useMemo(
+    () => currentYear === maxDate.getFullYear() && currentMonth === maxDate.getMonth(),
+    [currentYear, maxDate, currentMonth],
+  );
 
   // MinDate for return mode
-  const minDate = mode === 'return' && departureDate ? departureDate : null;
+  const minDate = useMemo(
+    () => (mode === 'return' && departureDate ? departureDate : null),
+    [mode, departureDate],
+  );
 
   // Months for mobile scroll
-  let monthsToRender = getMonthsToRender();
+  const monthsToRender = useMemo(() => {
+    let months = getMonthsToRender();
 
-  // Si RESTRICT_RETURN_START_MONTH=true y estamos en modo return con startMonth/startYear,
-  // filtrar meses para empezar desde startMonth
-  if (RESTRICT_RETURN_START_MONTH && mode === 'return' && startMonth !== null && startYear !== null) {
-    monthsToRender = monthsToRender.filter(({ year, month }) => {
-      if (year < startYear) return false;
-      if (year === startYear && month < startMonth) return false;
-      return true;
-    });
-  }
+    // If RESTRICT_RETURN_START_MONTH=true and in return mode with startMonth/startYear,
+    // filter months to start from startMonth
+    if (RESTRICT_RETURN_START_MONTH && mode === 'return' && startMonth !== null && startYear !== null) {
+      months = months.filter(({ year, month }) => {
+        if (year < startYear) return false;
+        if (year === startYear && month < startMonth) return false;
+        return true;
+      });
+    }
+
+    return months;
+  }, [mode, startMonth, startYear]);
 
   // Check if there's pricing data available
-  const hasPricingData = Object.keys(pricingData).length > 0;
+  const hasPricingData = useMemo(
+    () => Object.keys(pricingData).length > 0,
+    [pricingData],
+  );
 
   // Determine if input has error based on mode
-  const hasInputError = mode === 'return' ? returnHasError : departureHasError;
+  const hasInputError = useMemo(
+    () => (mode === 'return' ? returnHasError : departureHasError),
+    [mode, returnHasError, departureHasError],
+  );
 
   // ========== RENDER ==========
   return html`

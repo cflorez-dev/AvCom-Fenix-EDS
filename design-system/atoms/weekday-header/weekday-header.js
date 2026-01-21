@@ -64,11 +64,10 @@ export const WeekdayHeader = ({
 
   // ========== STYLING ==========
 
-  const containerClasses = `
-    flex items-center justify-between
-    border-b border-[var(--border-stroke-default)]
-    ${customClassName}
-  `.trim();
+  const containerClasses = useMemo(
+    () => `flex items-center justify-between border-b border-[var(--border-stroke-default)] ${customClassName}`.trim(),
+    [customClassName],
+  );
 
   const dayClasses = `
     flex items-center justify-center

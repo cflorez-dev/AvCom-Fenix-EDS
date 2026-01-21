@@ -354,7 +354,7 @@ export const Carousel = ({
       onMouseLeave=${autoPlay ? handleMouseLeave : null}
       ...${rest}
     >
-      <div class="self-stretch ${containerPadding} relative bg-white inline-flex justify-start items-center">
+      <div class="self-stretch ${containerPadding} relative bg-transparent inline-flex justify-start items-center">
         <div
           ref=${scrollContainerRef}
           class="flex-1 flex justify-start items-center overflow-x-auto scroll-smooth gap-3 scrollbar-hide ${scrollPadding}"

@@ -1,5 +1,11 @@
 import { h } from '@dropins/tools/preact.js';
-import { useState, useEffect, useRef } from '@dropins/tools/preact-hooks.js';
+import {
+  useState,
+  useEffect,
+  useRef,
+  useCallback,
+  useMemo,
+} from '@dropins/tools/preact-hooks.js';
 import htm from 'htm';
 
 // Design System Components
@@ -22,21 +28,22 @@ const getEndpointUrl = async () => {
 };
 
 /**
- * BookingBox - Componente maestro de búsqueda de vuelos con step-based flow
+ * BookingBox - Master flight search component with step-based flow
  *
  * ## Props
- * - `actionButtons`: `Array<ActionButtonConfig>` – Action buttons para top section (max 5).
- * - `defaultTripType`: `"round-trip" | "one-way"` – Tipo de viaje inicial (por defecto: `"round-trip"`).
- * - `defaultOrigin`: `CityOption | null` – Ciudad de origen inicial.
- * - `defaultDestination`: `CityOption | null` – Ciudad de destino inicial.
- * - `defaultDepartureDate`: `Date | null` – Fecha de salida inicial.
- * - `defaultReturnDate`: `Date | null` – Fecha de regreso inicial.
- * - `defaultPassengers`: `PassengerCounts` – Conteo de pasajeros inicial.
- * - `defaultCabinClass`: `"economy" | "business"` – Clase de cabina inicial.
- * - `disabledDatesByRoute`: `Record<string, string[]>` – Fechas deshabilitadas por ruta (ej: {'BOG-MAD': ['2026-01-15']}).
- * - `onChange`: `(field: string, value: any) => void` – Callback cuando cambia algún valor (tracking).
- * - `onStepOpen`: `(step: StepType) => void` – Callback cuando se abre un step (tracking).
- * - `customClassName`: `string` – Clases CSS adicionales.
+ * - `actionButtons`: `Array<ActionButtonConfig>` – Action buttons for top section (max 5).
+ * - `defaultTripType`: `"round-trip" | "one-way"` – Initial trip type (default: `"round-trip"`).
+ * - `defaultOrigin`: `CityOption | null` – Initial origin city.
+ * - `defaultDestination`: `CityOption | null` – Initial destination city.
+ * - `defaultDepartureDate`: `Date | null` – Initial departure date.
+ * - `defaultReturnDate`: `Date | null` – Initial return date.
+ * - `defaultPassengers`: `PassengerCounts` – Initial passenger count.
+ * - `defaultCabinClass`: `"economy" | "business"` – Initial cabin class.
+ * - `disabledDatesByRoute`: `Record<string, string[]>` – Disabled dates by route
+ *   (e.g., {'BOG-MAD': ['2026-01-15']}).
+ * - `onChange`: `(field: string, value: any) => void` – Callback when any value changes (tracking).
+ * - `onStepOpen`: `(step: StepType) => void` – Callback when a step opens (tracking).
+ * - `customClassName`: `string` – Additional CSS classes.
  *
  * @example
  * ```javascript
@@ -101,15 +108,15 @@ export const BookingBox = ({
   // ========== STEP ORDER ==========
   const STEP_ORDER = ['route', 'dates', 'passengers'];
 
-  const getStepIndex = (step) => STEP_ORDER.indexOf(step);
+  const getStepIndex = useCallback((step) => STEP_ORDER.indexOf(step), []);
 
-  const getPreviousStep = (currentStep) => {
+  const getPreviousStep = useCallback((currentStep) => {
     const currentIndex = getStepIndex(currentStep);
     return currentIndex > 0 ? STEP_ORDER[currentIndex - 1] : null;
-  };
+  }, [getStepIndex]);
 
   // ========== VALIDATION HELPERS ==========
-  const isStepComplete = (step) => {
+  const isStepComplete = useCallback((step) => {
     switch (step) {
       case 'route':
         return origin !== null && destination !== null;
@@ -123,11 +130,14 @@ export const BookingBox = ({
       default:
         return false;
     }
-  };
+  }, [origin, destination, tripType, departureDate, returnDate, passengers.adults]);
 
-  const getFirstIncompleteStep = () => STEP_ORDER.find((step) => !isStepComplete(step)) || null;
+  const getFirstIncompleteStep = useCallback(
+    () => STEP_ORDER.find((step) => !isStepComplete(step)) || null,
+    [isStepComplete],
+  );
 
-  const validateAllFields = () => {
+  const validateAllFields = useCallback(() => {
     const errors = {};
 
     if (!origin) {
@@ -148,23 +158,23 @@ export const BookingBox = ({
 
     setValidationErrors(errors);
     return Object.keys(errors).length === 0;
-  };
+  }, [origin, destination, departureDate, tripType, returnDate]);
 
   // ========== STEP FLOW HANDLERS ==========
-  const openStep = (step) => {
+  const openStep = useCallback((step) => {
     setActiveStep(step);
     setShowConfirmModal(false);
     if (onStepOpen) {
       onStepOpen(step);
     }
-  };
+  }, [onStepOpen]);
 
-  const closeStep = () => {
+  const closeStep = useCallback(() => {
     setActiveStep(null);
-  };
+  }, []);
 
   // ========== FIELD HANDLERS ==========
-  const handleTripTypeChange = (newTripType) => {
+  const handleTripTypeChange = useCallback((newTripType) => {
     setTripType(newTripType);
 
     if (onChange) {
@@ -178,9 +188,9 @@ export const BookingBox = ({
         onChange('returnDate', null);
       }
     }
-  };
+  }, [onChange]);
 
-  const handleRouteChange = ({ origin: newOrigin, destination: newDestination }) => {
+  const handleRouteChange = useCallback(({ origin: newOrigin, destination: newDestination }) => {
     setOrigin(newOrigin);
 
     if (newDestination?.id && newOrigin?.id === newDestination.id) {
@@ -201,9 +211,9 @@ export const BookingBox = ({
       delete updated.destination;
       return updated;
     });
-  };
+  }, [onChange]);
 
-  const handleDateChange = ({ departure, return: returnD }) => {
+  const handleDateChange = useCallback(({ departure, return: returnD }) => {
     setDepartureDate(departure);
     setReturnDate(returnD);
 
@@ -228,9 +238,9 @@ export const BookingBox = ({
     if (datesComplete) {
       openStep('passengers');
     }
-  };
+  }, [onChange, tripType, openStep]);
 
-  const handlePassengerChange = (value) => {
+  const handlePassengerChange = useCallback((value) => {
     const { cabinClass: newCabinClass, ...newPassengers } = value;
     setPassengers(newPassengers);
     setCabinClass(newCabinClass);
@@ -252,28 +262,28 @@ export const BookingBox = ({
         closeStep();
       }
     }
-  };
+  }, [onChange, isMobile, origin, destination, departureDate, tripType, returnDate, closeStep]);
 
-  const handleBack = () => {
+  const handleBack = useCallback(() => {
     const prevStep = getPreviousStep(activeStep);
     if (prevStep) {
       openStep(prevStep);
     } else {
       closeStep();
     }
-  };
+  }, [activeStep, getPreviousStep, openStep, closeStep]);
 
-  const handleConfirmModalBack = () => {
+  const handleConfirmModalBack = useCallback(() => {
     setShowConfirmModal(false);
     openStep('passengers');
-  };
+  }, [openStep]);
 
-  const handleConfirmModalClose = () => {
+  const handleConfirmModalClose = useCallback(() => {
     setShowConfirmModal(false);
     closeStep();
-  };
+  }, [closeStep]);
 
-  function formatDateToDdMMM(dateInput) {
+  const formatDateToDdMMM = useCallback((dateInput) => {
     const date = new Date(dateInput);
 
     const months = [
@@ -285,10 +295,10 @@ export const BookingBox = ({
     const month = months[date.getMonth()];
 
     return `${day}${month}`;
-  }
+  }, []);
 
   // ========== SEARCH SUBMIT ==========
-  const handleSearch = async () => {
+  const handleSearch = useCallback(async () => {
     if (!validateAllFields()) {
       const firstIncomplete = getFirstIncompleteStep();
       if (firstIncomplete) {
@@ -329,7 +339,18 @@ export const BookingBox = ({
     const CONTROLLER_URL = await getEndpointUrl();
     const query = new URLSearchParams(payload).toString();
     window.location.href = `${CONTROLLER_URL}?${query}`;
-  };
+  }, [
+    validateAllFields,
+    getFirstIncompleteStep,
+    openStep,
+    origin,
+    destination,
+    departureDate,
+    tripType,
+    returnDate,
+    passengers,
+    formatDateToDdMMM,
+  ]);
 
   // ========== DESKTOP STICKY INTEGRATION ==========
   useEffect(() => {
@@ -343,13 +364,13 @@ export const BookingBox = ({
     let observer = null;
 
     const setupObserver = () => {
-      // Limpiar observer anterior si existe
+      // Clear previous observer if it exists
       if (observer) {
         observer.disconnect();
         observer = null;
       }
 
-      // Solo crear observer en desktop (>= 768px)
+      // Only create observer on desktop (>= 768px)
       if (!isDesktop()) {
         setIsSticky(false);
         return;
@@ -372,10 +393,10 @@ export const BookingBox = ({
       observerRef.current = observer;
     };
 
-    // Setup inicial
+    // Initial setup
     setupObserver();
 
-    // Re-setup en resize
+    // Re-setup on resize
     const handleResize = () => {
       setupObserver();
     };
@@ -393,7 +414,7 @@ export const BookingBox = ({
     };
   }, []);
 
-  // Detectar cambios de viewport (mobile/desktop)
+  // Detect viewport changes (mobile/desktop)
   useEffect(() => {
     if (typeof window === 'undefined') return undefined;
 
@@ -411,7 +432,7 @@ export const BookingBox = ({
     };
   }, [isMobile]);
 
-  // Bloquear scroll del body cuando modal de confirmación está abierto
+  // Block body scroll when confirmation modal is open
   useEffect(() => {
     if (showConfirmModal && isMobile) {
       document.body.style.overflow = 'hidden';
@@ -425,21 +446,21 @@ export const BookingBox = ({
   }, [showConfirmModal, isMobile]);
 
   // ========== OVERLAY BEHAVIOR ==========
-  const shouldShowOverlay = () => {
+  const shouldShowOverlay = useCallback(() => {
     if (typeof window === 'undefined') return false;
     return activeStep !== null && window.innerWidth >= 768;
-  };
+  }, [activeStep]);
 
-  const handleOverlayClick = () => {
+  const handleOverlayClick = useCallback(() => {
     closeStep();
-  };
+  }, [closeStep]);
 
   // ========== RESPONSIVE HELPERS ==========
-  const shouldShowField = (field) => {
-    // En desktop siempre mostrar todos los campos
+  const shouldShowField = useCallback((field) => {
+    // On desktop always show all fields
     if (!isMobile) return true;
 
-    // En mobile, mostrar progresivamente según steps completados
+    // On mobile, show progressively based on completed steps
     switch (field) {
       case 'dates':
         return isStepComplete('route');
@@ -448,21 +469,40 @@ export const BookingBox = ({
       default:
         return false;
     }
-  };
+  }, [isMobile, isStepComplete]);
 
   // ========== TAILWIND CLASSES ==========
-  const stickyClasses = isSticky
-    ? 'md:fixed md:top-[calc(var(--marquee-height,0px)+50px)] md:left-0 md:right-0 md:shadow-lg md:rounded-none shadow-[0px_2px_20px_2px_rgba(73,73,73,0.25)] py-5 px-8'
-    : 'py-4 px-4 lg2:px-6 lg2:pt-5 lg2:pb-6 md:relative';
+  const stickyClasses = useMemo(
+    () => (isSticky
+      ? 'md:fixed md:top-[calc(var(--marquee-height,0px)+50px)] md:left-0 md:right-0 md:shadow-lg md:rounded-none shadow-[0px_2px_20px_2px_rgba(73,73,73,0.25)] py-5 px-8'
+      : 'py-4 px-4 lg2:px-6 lg2:pt-5 lg2:pb-6 md:relative'),
+    [isSticky],
+  );
 
-  const stickyGrid = isSticky
-    ? 'md:grid-rows-[auto_auto] lg2:grid-rows-[auto] lg2:gap-y-0 max-w-[1248px] mx-auto md:relative'
-    : 'md:grid-rows-[auto_auto_auto_auto] lg2:grid-rows-[auto_auto] lg2:gap-y-8';
+  const stickyGrid = useMemo(
+    () => (isSticky
+      ? 'md:grid-rows-[auto_auto] lg2:grid-rows-[auto] lg2:gap-y-0 max-w-[1248px] mx-auto md:relative'
+      : 'md:grid-rows-[auto_auto_auto_auto] lg2:grid-rows-[auto_auto] lg2:gap-y-8'),
+    [isSticky],
+  );
 
-  const layout = showConfirmModal && isMobile ? '' : 'shadow-[0px_0px_6px_0px_rgba(90,90,90,0.20)]';
+  const layout = useMemo(
+    () => (showConfirmModal && isMobile ? '' : 'shadow-[0px_0px_6px_0px_rgba(90,90,90,0.20)]'),
+    [showConfirmModal, isMobile],
+  );
 
-  const finalClasses = `${stickyClasses} ${layout} ${customClassName}`.trim();
+  const finalClasses = useMemo(
+    () => `${stickyClasses} ${layout} ${customClassName}`.trim(),
+    [stickyClasses, layout, customClassName],
+  );
 
+  const someInputHasError = useMemo(
+    () => !!(validationErrors?.origin
+      || validationErrors?.destination
+      || validationErrors?.departureDate
+      || validationErrors?.returnDate),
+    [validationErrors],
+  );
   // ========== RENDER ==========
   return html`
     <div
@@ -470,7 +510,7 @@ export const BookingBox = ({
       data-name="bookingBox"
       ...${rest}
     >
-      <!-- Sentinel para IntersectionObserver -->
+      <!-- Sentinel for IntersectionObserver -->
       <div ref=${sentinelRef} class="h-px w-full" aria-hidden="true"></div>
       
       <!-- Overlay -->
@@ -541,8 +581,8 @@ export const BookingBox = ({
   }}
                 onClose=${closeStep}
                 onBack=${handleBack}
-                originDropdownPositionStyles="md:top-full lg2:top-[calc(100%+28px)] ${!isSticky ? 'lg2:left-[-20px]' : ''}"
-                destinationDropdownPositionStyles="md:top-full lg2:top-[calc(100%+28px)]"
+                originDropdownPositionStyles="md:top-full lg2:top-[calc(100%+28px)] ${!isSticky ? 'lg2:left-[-20px]' : ''} ${someInputHasError ? 'lg2:top-[calc(100%+53px)]' : ''}"
+                destinationDropdownPositionStyles="md:top-full lg2:top-[calc(100%+28px)] ${someInputHasError ? 'lg2:top-[calc(100%+53px)]' : ''}"
                 originHasError=${validationErrors.origin}
                 destinationHasError=${validationErrors.destination}
                 i18n=${i18n}

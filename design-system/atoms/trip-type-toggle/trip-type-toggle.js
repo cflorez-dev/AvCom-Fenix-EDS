@@ -1,25 +1,28 @@
 import { h } from '@dropins/tools/preact.js';
+import {
+  useState, useEffect, useMemo, useCallback,
+} from '@dropins/tools/preact-hooks.js';
 import htm from 'htm';
 
 const html = htm.bind(h);
 
 /**
- * TripTypeToggle - Segmented Control para seleccionar tipo de viaje
+ * TripTypeToggle - Segmented Control for selecting trip type
  *
  * ## Props
- * - `options`: `Array<{ value: string, label: string }>` – Opciones del toggle.
- * - `value`: `string` – Valor seleccionado actual.
- * - `onChange`: `function` – Callback cuando cambia la selección.
- * - `customClassName`: `string` – Clases CSS adicionales.
- * - `...rest`: Otras propiedades válidas.
+ * - `options`: `Array<{ value: string, label: string }>` – Toggle options.
+ * - `value`: `string` – Currently selected value.
+ * - `onChange`: `function` – Callback when selection changes.
+ * - `customClassName`: `string` – Additional CSS classes.
+ * - `...rest`: Other valid properties.
  *
- * ## Diseño (Figma node-id: 2742-6596)
+ * ## Design (Figma node-id: 2742-6596)
  * - Container: Background #efefef, padding 2px, rounded 32px
- * - Selected: Background white, shadow medium, font bold, z-index 2
- * - Unselected: Background #efefef, font normal, z-index 1
- * - Height: 48px, Min-width: 130px por opción
+ * - Selected: Background white, medium shadow, bold font, z-index 2
+ * - Unselected: Background #efefef, normal font, z-index 1
+ * - Height: 48px, Min-width: 130px per option
  *
- * ## Estados (6 total según node-id: 2739-32864) en orden:
+ * ## States (6 total according to node-id: 2739-32864) in order:
  * 1. **Default-Selected**:
  *    - Background: bg-background-card-lighter
  *    - Shadow: 0px 2px 20px 2px rgba(73,73,73,0.25)
@@ -56,12 +59,12 @@ const html = htm.bind(h);
  *    - Font: normal, leading-6
  *    - Outline: outline-2 outline-border-stroke-focus
  *
- * ## Ejemplo de uso
+ * ## Usage Example
  * ```javascript
  * <${TripTypeToggle}
  *   options=${[
- *     { value: 'round-trip', label: 'Ida y vuelta' },
- *     { value: 'one-way', label: 'Solo ida' }
+ *     { value: 'round-trip', label: 'Round trip' },
+ *     { value: 'one-way', label: 'One way' }
  *   ]}
  *   value=${tripType}
  *   onChange=${setTripType}
@@ -76,21 +79,42 @@ export const TripTypeToggle = ({
   i18n = {},
   ...rest
 }) => {
-  // Default options con traducciones
-  const defaultOptions = [
-    { value: 'round-trip', label: i18n['bookingBox.labels.roundTrip'] || 'Ida y vuelta' },
-    { value: 'one-way', label: i18n['bookingBox.labels.oneWay'] || 'Solo ida' },
-  ];
-  const finalOptions = options || defaultOptions;
-  // Performance: Handler estable
-  const handleSelect = (optionValue) => {
+  // Default options with translations
+  const defaultOptions = useMemo(
+    () => [
+      { value: 'round-trip', label: i18n['bookingBox.labels.roundTrip'] || 'Round trip' },
+      { value: 'one-way', label: i18n['bookingBox.labels.oneWay'] || 'One way' },
+    ],
+    [i18n],
+  );
+
+  const finalOptions = useMemo(
+    () => options || defaultOptions,
+    [options, defaultOptions],
+  );
+
+  // Animation state for sliding background
+  const [selectedIndex, setSelectedIndex] = useState(
+    finalOptions.findIndex((opt) => opt.value === value),
+  );
+
+  // Sync animation when value changes externally
+  useEffect(() => {
+    const newIndex = finalOptions.findIndex((opt) => opt.value === value);
+    if (newIndex !== -1 && newIndex !== selectedIndex) {
+      setSelectedIndex(newIndex);
+    }
+  }, [value, finalOptions, selectedIndex]);
+
+  // Performance: Stable handler
+  const handleSelect = useCallback((optionValue) => {
     if (onChange && optionValue !== value) {
       onChange(optionValue);
     }
-  };
+  }, [onChange, value]);
 
-  // Accessibility: Keyboard navigation con arrow keys (estándar radiogroup)
-  const handleKeyDown = (e) => {
+  // Accessibility: Keyboard navigation with arrow keys (radiogroup standard)
+  const handleKeyDown = useCallback((e) => {
     const currentIndex = finalOptions.findIndex((opt) => opt.value === value);
     let newIndex = currentIndex;
 
@@ -120,30 +144,46 @@ export const TripTypeToggle = ({
     if (newIndex !== currentIndex) {
       handleSelect(finalOptions[newIndex].value);
     }
-  };
+  }, [finalOptions, value, handleSelect]);
 
-  // Performance: Optimizar classes con template strings y transiciones específicas
-  const getButtonClasses = (optionValue) => {
+  const ariaLabel = useMemo(
+    () => i18n['bookingBox.aria.selectTripType'] || 'Select trip type',
+    [i18n],
+  );
+
+  // Animation: Background transform
+  const backgroundTransform = useMemo(
+    () => `translateX(${selectedIndex * 100}%)`,
+    [selectedIndex],
+  );
+
+  // Performance: Optimize classes with template strings and specific transitions
+  const getButtonClasses = useCallback((optionValue) => {
     const isSelected = value === optionValue;
 
     if (isSelected) {
-      // Estados 1-2: Selected (default + focus)
-      return 'z-10 bg-background-card-lighter shadow-[0px_2px_20px_2px_rgba(73,73,73,0.25)] !font-bold';
+      // States 1-2: Selected (default + focus)
+      return 'z-10 !font-bold';
     }
 
-    // Estados 3-6: Unselected (default, hover, pressed, focus)
-    return 'z-0 bg-[#efefef] font-normal leading-6 hover:bg-background-brand-secondary-hover active:bg-zinc-300';
-  };
+    // States 3-6: Unselected (default, hover, pressed, focus)
+    return 'z-0 bg-transparent font-normal leading-6 hover:opacity-80';
+  }, [value]);
 
   return html`
     <div
       role="radiogroup"
-      aria-label=${i18n['bookingBox.aria.selectTripType'] || 'Selecciona tipo de viaje'}
-      class="bg-[#efefef] flex isolate items-center p-[2px] rounded-[32px] max-w-max ${customClassName}"
+      aria-label=${ariaLabel}
+      class="bg-[#efefef] flex isolate items-center p-[2px] rounded-[32px] max-w-max relative ${customClassName}"
       onKeyDown=${handleKeyDown}
       data-name="tripTypeToggle"
       ...${rest}
     >
+      <!-- Animated background -->
+      <div
+        class="absolute top-[2px] left-[2px] min-w-[130px] min-h-[40px] md:min-h-[48px] rounded-[32px] bg-background-card-lighter shadow-[0px_2px_20px_2px_rgba(73,73,73,0.25)] pointer-events-none transition-transform duration-300 ease-in-out"
+        style=${{ transform: backgroundTransform }}
+      />
   ${finalOptions.map((option) => {
     const isSelected = value === option.value;
     return html`
@@ -152,11 +192,8 @@ export const TripTypeToggle = ({
         type="button"
         role="radio"
         aria-checked=${isSelected}
-        class="inline-flex justify-center items-center min-w-[130px] min-h-[40px] md:min-h-[48px] px-3 py-2 rounded-[32px] shrink-0 relative cursor-pointer text-center focus-within:outline focus-within:outline-2 focus-within:outline-border-stroke-focus
-              transition-[background-color,box-shadow,font-weight]
-              ${getButtonClasses(option.value)}"
+        class="inline-flex justify-center items-center min-w-[130px] min-h-[40px] md:min-h-[48px] px-3 py-2 rounded-[32px] shrink-0 relative cursor-pointer text-center focus-visible:outline-2 focus-visible:outline-border-stroke-focus transition-opacity ${getButtonClasses(option.value)}"
         onClick=${() => handleSelect(option.value)}
-        tabindex=${isSelected ? 0 : -1}
       >
         <div class="flex-1 flex items-center text-center justify-center text-[var(--text-normal-primary)] text-base min-h-[21px] ${isSelected ? 'leading-none' : 'leading-6'}">
           ${option.label}

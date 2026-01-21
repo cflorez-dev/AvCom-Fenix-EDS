@@ -1,5 +1,5 @@
 import { h } from '@dropins/tools/preact.js';
-import { useState, useCallback, useEffect } from '@dropins/tools/preact-hooks.js';
+import { useState, useCallback, useEffect, useMemo } from '@dropins/tools/preact-hooks.js';
 import htm from 'htm';
 import { DateSelector } from '../date-selector/date-selector.js';
 
@@ -247,22 +247,39 @@ export const DateRangePicker = ({
 
   // ========== COMPUTED ==========
 
-  const isRange = mode === 'range';
+  const isRange = useMemo(() => mode === 'range', [mode]);
 
-  // Calcular mes/año inicial para return: usar mes de departureDate si existe
-  const returnStartMonth = departureDate ? departureDate.getMonth() : null;
-  const returnStartYear = departureDate ? departureDate.getFullYear() : null;
+  // Calculate initial month/year for return: use departureDate month if exists
+  const returnStartMonth = useMemo(
+    () => (departureDate ? departureDate.getMonth() : null),
+    [departureDate],
+  );
 
-  // Calcular mes/año inicial para departure cuando reabre: usar mes de departureDate si existe
-  const departureStartMonth = departureDate ? departureDate.getMonth() : null;
-  const departureStartYear = departureDate ? departureDate.getFullYear() : null;
+  const returnStartYear = useMemo(
+    () => (departureDate ? departureDate.getFullYear() : null),
+    [departureDate],
+  );
+
+  // Calculate initial month/year for departure when reopened: use departureDate month if exists
+  const departureStartMonth = useMemo(
+    () => (departureDate ? departureDate.getMonth() : null),
+    [departureDate],
+  );
+
+  const departureStartYear = useMemo(
+    () => (departureDate ? departureDate.getFullYear() : null),
+    [departureDate],
+  );
 
   // ========== STYLING ==========
 
-  // Contenedor con Tailwind classes (como en date-selector.sample.js)
-  const containerClasses = isRange
-    ? `flex items-center outline outline-1 outline-neutral-400 rounded-lg bg-background-input-default ${customClassName}`.trim()
-    : customClassName;
+  // Container with Tailwind classes
+  const containerClasses = useMemo(
+    () => (isRange
+      ? `flex items-center outline outline-1 outline-neutral-400 rounded-lg bg-background-input-default ${customClassName}`.trim()
+      : customClassName),
+    [isRange, customClassName],
+  );
 
   // ========== RENDER ==========
   return html`

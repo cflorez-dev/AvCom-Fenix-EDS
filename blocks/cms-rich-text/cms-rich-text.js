@@ -107,6 +107,7 @@ async function processExternalLinkIcons(container) {
 
 /**
  * Adds list styles to <ul> and <ol> elements to show bullets/numbers
+ * Only adds styles if the element doesn't already have 'list-style-none'
  *
  * @param {Element} container - The container element containing lists
  * @returns {void}
@@ -116,18 +117,26 @@ function processListElements(container) {
 
   container.querySelectorAll('ul').forEach((ulElement) => {
     const existingClasses = (ulElement.className || '').split(/\s+/).filter(Boolean);
-    const mergedClasses = [...new Set([...existingClasses, 'list-disc', 'pl-5'])]
-      .filter(Boolean)
-      .join(' ');
-    ulElement.setAttribute('class', mergedClasses);
+    
+    // Only add list-disc and pl-5 if list-style-none is NOT present
+    if (!existingClasses.includes('list-none')) {
+      const mergedClasses = [...new Set([...existingClasses, 'list-disc', 'pl-5'])]
+        .filter(Boolean)
+        .join(' ');
+      ulElement.setAttribute('class', mergedClasses);
+    }
   });
 
   container.querySelectorAll('ol').forEach((olElement) => {
     const existingClasses = (olElement.className || '').split(/\s+/).filter(Boolean);
-    const mergedClasses = [...new Set([...existingClasses, 'list-decimal', 'pl-5'])]
-      .filter(Boolean)
-      .join(' ');
-    olElement.setAttribute('class', mergedClasses);
+    
+    // Only add list-decimal and pl-5 if list-style-none is NOT present
+    if (!existingClasses.includes('list-none')) {
+      const mergedClasses = [...new Set([...existingClasses, 'list-decimal', 'pl-5'])]
+        .filter(Boolean)
+        .join(' ');
+      olElement.setAttribute('class', mergedClasses);
+    }
   });
 }
 

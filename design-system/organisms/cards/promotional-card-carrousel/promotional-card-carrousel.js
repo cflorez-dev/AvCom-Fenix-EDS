@@ -19,7 +19,7 @@ const html = htm.bind(h);
  * @param {string} [props.buttonText=''] - Button text
  * @param {string} [props.buttonURL=''] - Button URL
  * @param {Function} [props.onClick] - Callback for button click
- * @param {string} [props.backgroundColor=''] - Custom background color (optional, overrides variant)
+ * @param {string} [props.backgroundColor=''] - Custom background color (optional)
  * @param {string} [props.customClassName=''] - Additional CSS classes
  * @param {'lazy'|'eager'} [props.loading='lazy'] - Image loading strategy
  * @returns {import('preact').VNode} PromotionalCardCarrousel component
@@ -66,17 +66,17 @@ export const PromotionalCardCarrousel = ({
     if (!isCardClickable) {
       return;
     }
-    
+
     // If the click comes from the button, do nothing (the button handles its own click)
     if (e.target.closest('[data-name="button"]')) {
       return;
     }
-    
+
     // Navigate to the URL
     if (buttonURL) {
       window.location.href = buttonURL;
     }
-    
+
     // Execute onClick if it exists
     if (onClick) {
       onClick(e);
@@ -88,13 +88,13 @@ export const PromotionalCardCarrousel = ({
   const flexClass = hasCustomFlex ? '' : 'flex-1';
 
   // Responsive classes for mobile
-  const cardClasses = isMobile 
-    ? 'w-96 max-w-96 min-w-96 shadow-[0px_2px_20px_2px_rgba(73,73,73,0.25)]' 
+  const cardClasses = isMobile
+    ? 'w-96 max-w-96 min-w-96 shadow-[0px_2px_20px_2px_rgba(73,73,73,0.25)]'
     : flexClass;
-  
-  const imageClasses = isMobile 
-    ? 'w-28 h-44 object-cover' 
-    : 'flex-1 h-44 max-w-44 object-cover';
+
+  const imageClasses = isMobile
+    ? 'w-[7.5rem] h-[10.875rem] object-cover'
+    : 'w-[11.25rem] h-[10.875rem] object-cover';
 
   return html`
     <div 
@@ -105,22 +105,22 @@ export const PromotionalCardCarrousel = ({
       tabIndex=${isCardClickable ? '0' : null}
       role=${isCardClickable ? 'button' : null}
       onKeyDown=${isCardClickable ? (e) => {
-        if (e.key === 'Enter' || e.key === ' ') {
-          e.preventDefault();
-          handleCardClick(e);
-        }
-      } : null}
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      handleCardClick(e);
+    }
+  } : null}
     >
       <img class="${imageClasses}" src="${image}" alt="${imageAlt}" loading="${loading}" />
       <div 
-        class="flex-1 h-44 px-3 py-4 ${backgroundColor ? '' : bgColorClass} inline-flex flex-col justify-between items-end"
+        class="flex-1 h-[10.875rem] px-3 py-4 ${backgroundColor ? '' : bgColorClass} inline-flex flex-col justify-between items-end"
         style=${backgroundColor ? `background-color: ${backgroundColor}` : ''}
       >
         <div class="self-stretch flex flex-col justify-start items-start gap-2">
-          <div class="self-stretch justify-start ${textColorClass} text-xl font-bold">
+          <div class="self-stretch justify-start ${textColorClass} text-xl font-bold leading-[1.625rem]">
             ${title}
           </div>
-          <div class="self-stretch justify-start ${textColorClass} text-sm font-normal leading-5">
+          <div class="self-stretch justify-start ${textColorClass} text-sm font-normal leading-[1.5]">
             ${description}
           </div>
         </div>
@@ -129,14 +129,14 @@ export const PromotionalCardCarrousel = ({
             variant="${buttonVariant}"
             size="xs"
             onClick=${(e) => {
-              e.stopPropagation();
-              if (buttonURL) {
-                window.location.href = buttonURL;
-              }
-              if (onClick) {
-                onClick(e);
-              }
-            }}
+    e.stopPropagation();
+    if (buttonURL) {
+      window.location.href = buttonURL;
+    }
+    if (onClick) {
+      onClick(e);
+    }
+  }}
           >
             ${buttonText}
           </${Button}>

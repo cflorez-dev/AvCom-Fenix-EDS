@@ -1,5 +1,5 @@
 import { h } from '@dropins/tools/preact.js';
-import { useMemo } from '@dropins/tools/preact-hooks.js';
+import { useMemo, useCallback } from '@dropins/tools/preact-hooks.js';
 import htm from 'htm';
 import { DayCell } from '../../atoms/day-cell/day-cell.js';
 import {
@@ -144,16 +144,22 @@ export const MonthGrid = ({
 
   // ========== HANDLERS ==========
 
-  const handleDayClick = (date) => {
+  const handleDayClick = useCallback((date) => {
     if (onDayClick) {
       onDayClick(date);
     }
-  };
+  }, [onDayClick]);
+
+  // Grid classes
+  const gridClasses = useMemo(
+    () => `grid grid-cols-7 ${customClassName}`,
+    [customClassName],
+  );
 
   // ========== RENDER ==========
   return html`
     <div 
-      class="grid grid-cols-7 ${customClassName}"
+      class=${gridClasses}
       data-name="monthGrid"
       role="grid"
       ...${rest}

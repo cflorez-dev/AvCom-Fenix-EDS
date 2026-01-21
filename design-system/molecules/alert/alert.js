@@ -234,6 +234,7 @@ export const Alert = ({
   const containerClasses = `
     flex
     w-full
+    box-border
     ${isRounded ? 'rounded-xl' : 'rounded-none'}
     items-center
     justify-center
@@ -341,7 +342,7 @@ export const Alert = ({
       data-name="alert"
       ...${fullWidth ? {} : rest}
     >
-    <div class="max-w-[var(--max-width-content,1248px)] flex flex-row w-full mx-auto gap-[12px] px-0 md:px-0 !m-0 ${marqueeMode ? 'items-center' : 'items-start'}">
+    <div class="max-w-[var(--max-width-content,1248px)] flex flex-row w-full mx-auto ${marqueeMode ? 'gap-[12px]' : 'gap-2'} px-0 md:px-0 !m-0 ${marqueeMode ? 'items-center' : 'items-start'}">
         ${showIcon && iconData.icon && iconData.icon !== 'none' && html`
           <div class="${iconContainerClasses}${currentVariantClasses.iconBg ? ' rounded-full w-5 h-5 flex items-center justify-items-start' : ''}" aria-hidden="true">
             <${Icon} icon=${customIcon || iconData.icon} size="m" color=${customIconColor || iconData.color} />
@@ -363,7 +364,7 @@ export const Alert = ({
             variant="transparent" 
             size="xxs" 
             iconOnly=${true}
-            customClassName="hover:!bg-alert-dismiss-hover active:!bg-alert-dismiss-active"
+            customClassName="hover:!bg-alert-dismiss-hover active:!bg-alert-dismiss-active h-[20px] w-[20px]"
           >
             <${Icon} icon="navigation/close" size="xs" />
           </${Button}>
