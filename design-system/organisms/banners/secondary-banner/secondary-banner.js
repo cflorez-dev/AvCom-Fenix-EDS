@@ -305,7 +305,7 @@ export const SecondaryBanner = ({
           <!-- Background condor pattern -->
           <div class="w-full h-full relative z-20 flex flex-row">
               <div class="flex-1 min-w-0 h-[216px] min-[1024px]:h-[243px] flex flex-col justify-between z-10 p-[16px] min-[1024px]:p-[24px]">
-                <div class="z-10 self-stretch flex flex-col justify-center items-start gap-1">
+                <div class="z-10 self-stretch flex flex-col justify-center items-start gap-[4px]">
                   <h2 class="line-clamp-2 self-stretch justify-start ${textColorClasses} !text-[20px] min-[1024px]:!text-[32px] font-bold font-['Red_Hat_Display']">
                     ${title}
                   </h2>
@@ -329,7 +329,7 @@ export const SecondaryBanner = ({
                   </div>
                 ` : ''}
               </div>
-              <div class="spacer w-[181px] min-[1024px]:w-[271px] shrink-0"></div>
+              <div class="spacer w-[181px] lg:w-[277px] shrink-0"></div>
           </div>
       </div>
 

@@ -7,6 +7,7 @@
  * @see /home/olsalas/.claude/plans/velvety-bubbling-popcorn.md for architecture details
  */
 
+
 import { detectLocale } from '../aem.js';
 
 // ============================================
@@ -62,8 +63,8 @@ export function resolveLocale() {
     const urlCountryNorm = urlLocale.country.toLowerCase();
     const urlLangNorm = urlLocale.language.toLowerCase();
 
-    const cookieMismatch = cookieCountry && cookieLang
-      && (cookieCountry !== urlCountryNorm || cookieLang !== urlLangNorm);
+    const cookieMismatch = !cookieCountry || !cookieLang
+      || (cookieCountry !== urlCountryNorm || cookieLang !== urlLangNorm);
 
     if (cookieMismatch) {
       // eslint-disable-next-line no-console
@@ -141,7 +142,7 @@ async function syncCookiesToUrl(locale) {
  * IDEMPOTENT: Safe to call multiple times
  * Also syncs cookies to match URL when there's a mismatch
  */
-export function initLocaleGlobals() {
+export async function initLocaleGlobals() {
   const locale = resolveLocale();
   const targetLang = locale.language;
   const targetMarket = locale.country.toUpperCase();
@@ -155,7 +156,7 @@ export function initLocaleGlobals() {
 
   // Sync cookies to URL if there's a mismatch
   if (locale.cookieMismatch) {
-    syncCookiesToUrl(locale);
+    await syncCookiesToUrl(locale);
   }
 
   if (!window.localeInitialized) {

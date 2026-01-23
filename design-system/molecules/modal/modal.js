@@ -6,8 +6,7 @@ import { Icon } from '../../atoms/icon/icon.js';
 
 const html = htm.bind(h);
 
-const ACTION_FX =
-  `
+const ACTION_FX = `
   transition-all duration-150 ease-out
   hover:scale-[1.02] active:scale-[0.98] active:translate-y-px
   focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black/20 focus-visible:ring-offset-2
@@ -39,6 +38,8 @@ export const Modal = ({
   escapeToClose = true,
   customClassName = '',
   contentClassName = '',
+  closeButtonClassName = '',
+  role = 'dialog',
   children,
   ...rest
 }) => {
@@ -184,10 +185,8 @@ export const Modal = ({
       lg: 'w-[360px] sm:w-[640px] max-w-[95vw]',
       full: 'w-full',
     };
-    const radius =
-      variant === 'left'
-        ? 'rounded-r-xl sm:rounded-r-[var(--border-radius-large)]'
-        : 'rounded-l-xl sm:rounded-l-[var(--border-radius-large)]';
+    const radius = variant === 'left' ? 'rounded-r-xl sm:rounded-r-[var(--border-radius-large)]'
+      : 'rounded-l-xl sm:rounded-l-[var(--border-radius-large)]';
 
     return `${base} ${sideSizeClasses[size]} h-full max-h-full ${radius} ${entered ? enterState : exitState} ${contentClassName}`;
   };
@@ -195,10 +194,11 @@ export const Modal = ({
   const closeButtonContainer = `
     absolute top-[0] right-[0]
     px-[var(--spacing-medium)] py-[var(--spacing-medium)]
+    ${closeButtonClassName}
   `;
   const childrenContainerClasses = size === 'full'
     ? 'flex-1 overflow-auto'
-    : 'flex-1 overflow-auto p-[var(--spacing-x-large)]';
+    : 'flex-1 overflow-auto';
 
   return html`
     <div
@@ -206,7 +206,7 @@ export const Modal = ({
       class=${overlayClasses}
       data-name="modal"
       onClick=${handleOverlayClick}
-      role="dialog"
+      role=${role}
       aria-modal="true"
       aria-labelledby="modal-title"
       ...${rest}

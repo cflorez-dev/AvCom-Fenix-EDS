@@ -32,7 +32,7 @@ const BreadcrumbItem = ({
   const baseClasses = 'justify-start text-base';
   const stateClasses = isActive
     ? 'text-zinc-900 font-bold'
-    : 'text-neutral-400 font-normal hover:underline hover:text-zinc-900 active:text-zinc-900 active:underline focus:outline focus:outline-1 focus:outline-offset-[-1px] focus:outline-sky-500 focus:p-0.5 transition-colors duration-200';
+    : 'text-neutral-400 font-normal hover:underline hover:text-zinc-900 active:text-zinc-900 active:underline focus:outline focus:outline-1 focus:outline-offset-[-1px] focus:outline-sky-500 transition-colors duration-200';
 
   const itemClasses = 'whitespace-nowrap flex-shrink-0';
 
@@ -40,7 +40,7 @@ const BreadcrumbItem = ({
     return html`
       <a
         href=${url}
-        class="flex justify-start items-center gap-1.5 text-neutral-400 hover:text-zinc-900 active:text-zinc-900 focus:outline focus:outline-1 focus:outline-offset-[-1px] focus:outline-sky-500 focus:p-0.5 transition-colors duration-200 ${isActive ? 'pointer-events-none' : ''}"
+        class="flex justify-start items-center gap-[6px] text-neutral-400 hover:text-zinc-900 active:text-zinc-900 focus:outline focus:outline-1 focus:outline-offset-[-1px] focus:outline-sky-500 transition-colors duration-200 ${isActive ? 'pointer-events-none' : ''}"
         onClick=${handleClick}
         aria-current=${isActive ? 'page' : undefined}
         aria-label=${homeLabel || 'Inicio'}
@@ -154,7 +154,7 @@ const Breadcrumb = ({
       </nav>
       
       <nav 
-        class="hidden md:flex justify-start items-center gap-2 overflow-x-auto ${customClassName}"
+        class="hidden md:flex justify-start items-center gap-3 overflow-x-auto ${customClassName}"
         aria-label="Breadcrumb"
         data-name="breadcrumb"
       >

@@ -19,12 +19,18 @@ import { PassengerSelector } from '../../molecules/passenger-selector/passenger-
 import { Icon } from '../../atoms/icon/icon.js';
 import { getStoredLanguage, getStoredCountry } from '../../../scripts/services/header/language-country-selector.js';
 import { fetchAEMData } from '../../../scripts/utils/aem-data.js';
+import gtmMartech from '../../../scripts/gtm-martech.js';
 
 const html = htm.bind(h);
 
 const getEndpointUrl = async () => {
   const config = await fetchAEMData('environment');
   return config.data.find((item) => item.Key === 'AV_BOOKINGBOX_CONTROLLER')?.Text ?? '';
+};
+
+const getFlightType = (origin, destination) => {
+  if (!origin || !destination) return 'NA';
+  return origin.countryId === destination.countryId ? 'Domestic' : 'International';
 };
 
 /**
@@ -297,6 +303,26 @@ export const BookingBox = ({
     return `${day}${month}`;
   }, []);
 
+  const formatDateToYYYYMMDD = useCallback((dateInput) => {
+    if (!dateInput) return 'NA';
+    const date = new Date(dateInput);
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}${month}${day}`;
+  }, []);
+
+  const calculateDaysInAdvance = useCallback((futureDate) => {
+    if (!futureDate) return 0;
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const departure = new Date(futureDate);
+    departure.setHours(0, 0, 0, 0);
+    const diffTime = departure.getTime() - today.getTime();
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    return diffDays >= 0 ? diffDays : 0;
+  }, []);
+
   // ========== SEARCH SUBMIT ==========
   const handleSearch = useCallback(async () => {
     if (!validateAllFields()) {
@@ -338,7 +364,41 @@ export const BookingBox = ({
 
     const CONTROLLER_URL = await getEndpointUrl();
     const query = new URLSearchParams(payload).toString();
-    window.location.href = `${CONTROLLER_URL}?${query}`;
+    const searchUrl = `${CONTROLLER_URL}?${query}`;
+
+    // Track booking search event with callback to ensure it's sent before redirect
+    gtmMartech.pushToDataLayer({
+      event: 'search_flight',
+      ecommerce: {
+        search_term: `${origin.iataCityCode}-${destination.iataCityCode}`,
+        page_location: window.location.href,
+        page_referrer: document.referrer || 'NA',
+        page_title: document.title,
+        language: navigator.language.split('-')[0],
+        screen_resolution: `${window.screen.width}x${window.screen.height}`,
+        coupon: 'NA',
+        event_category: 'AEM',
+        adult_num: passengers.adults,
+        child_num: passengers.children,
+        infant_num: passengers.infants,
+        trip_type: tripType === 'round-trip' ? 'RT' : 'OW',
+        flight_type: getFlightType(origin, destination),
+        flight_from: origin.iataTerminal || 'NA',
+        flight_to: destination?.iataTerminal || 'NA',
+        days_in_advance: calculateDaysInAdvance(departureDate),
+        date_departure: formatDateToYYYYMMDD(departureDate),
+        date_return: formatDateToYYYYMMDD(returnDate),
+      },
+      eventCallback: () => {
+        window.location.href = searchUrl;
+      },
+      eventTimeout: 2000,
+    });
+
+    // Fallback redirect in case eventCallback doesn't fire
+    setTimeout(() => {
+      window.location.href = searchUrl;
+    }, 2500);
   }, [
     validateAllFields,
     getFirstIncompleteStep,
@@ -350,6 +410,8 @@ export const BookingBox = ({
     returnDate,
     passengers,
     formatDateToDdMMM,
+    formatDateToYYYYMMDD,
+    calculateDaysInAdvance,
   ]);
 
   // ========== DESKTOP STICKY INTEGRATION ==========

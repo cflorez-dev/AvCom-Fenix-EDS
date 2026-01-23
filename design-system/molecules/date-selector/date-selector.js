@@ -454,7 +454,7 @@ export const DateSelector = ({
 
   const handleDayHover = useCallback((date) => {
     // Only track hover in return mode with departure date selected
-    if (mode === 'return' && departureDate && date && date > departureDate) {
+    if (departureDate && date && date > departureDate) {
       setHoveredDate(date);
     } else {
       setHoveredDate(null);
@@ -483,17 +483,22 @@ export const DateSelector = ({
   const maxDate = useMemo(() => getMaxBookingDate(), []);
 
   // Validate if prev/next are disabled
-  // If restrictPrevNavigation=true, use startMonth/startYear as limit
-  // If restrictPrevNavigation=false, use current month (today)
-  const limitYear = useMemo(
-    () => (restrictPrevNavigation && startYear !== null ? startYear : today.getFullYear()),
-    [restrictPrevNavigation, startYear, today],
-  );
+  // restrictPrevNavigation=true: use startMonth/startYear as limit (for return selector)
+  // restrictPrevNavigation=false: ALWAYS use current month as limit (for departure selector)
+  // This ensures departure can't navigate to past months even when opened in future month
+  const limitYear = useMemo(() => {
+    if (restrictPrevNavigation && startYear !== null) {
+      return startYear;
+    }
+    return today.getFullYear();
+  }, [restrictPrevNavigation, startYear, today]);
 
-  const limitMonth = useMemo(
-    () => (restrictPrevNavigation && startMonth !== null ? startMonth : today.getMonth()),
-    [restrictPrevNavigation, startMonth, today],
-  );
+  const limitMonth = useMemo(() => {
+    if (restrictPrevNavigation && startMonth !== null) {
+      return startMonth;
+    }
+    return today.getMonth();
+  }, [restrictPrevNavigation, startMonth, today]);
 
   const isCurrentMonth = useMemo(
     () => currentYear === limitYear && currentMonth === limitMonth,
@@ -599,7 +604,7 @@ export const DateSelector = ({
               year=${currentYear}
               month=${currentMonth}
               departureDate=${mode === 'departure' || mode === 'return' ? departureDate : value}
-              returnDate=${mode === 'return' ? value : null}
+              returnDate=${mode === 'return' ? value : returnDate}
               hoveredDate=${hoveredDate}
               onDayClick=${handleDayClick}
               onDayHover=${handleDayHover}
@@ -615,7 +620,7 @@ export const DateSelector = ({
               year=${currentMonth === 11 ? currentYear + 1 : currentYear}
               month=${currentMonth === 11 ? 0 : currentMonth + 1}
               departureDate=${mode === 'departure' || mode === 'return' ? departureDate : value}
-              returnDate=${mode === 'return' ? value : null}
+              returnDate=${mode === 'return' ? value : returnDate}
               hoveredDate=${hoveredDate}
               onDayClick=${handleDayClick}
               onDayHover=${handleDayHover}
@@ -687,7 +692,7 @@ export const DateSelector = ({
           `}
 
           <!-- Date Inputs -->
-          <div class="flex my-6 px-[var(--spacing-x-x-large)]">
+          <div class="flex my-6 px-[var(--spacing-x-x-large)] pointer-events-none">
             ${(mode === 'departure' || mode === 'return') && html`
               <div class="flex flex-1 items-center outline outline-1 outline-offset-[-1px] outline-neutral-400 rounded-lg bg-background-input-default overflow-hidden">
                 <${DateInput}
@@ -758,7 +763,7 @@ export const DateSelector = ({
                   year=${y}
                   month=${m}
                   departureDate=${mode === 'departure' || mode === 'return' ? departureDate : value}
-                  returnDate=${mode === 'return' ? value : null}
+                  returnDate=${mode === 'return' ? value : returnDate}
                   onDayClick=${handleDayClick}
                   onDayHover=${handleDayHover}
                   pricingData=${pricingData}

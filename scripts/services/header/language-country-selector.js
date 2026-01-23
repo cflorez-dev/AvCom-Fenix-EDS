@@ -581,11 +581,14 @@ export function setStoredCurrency(currencyCode) {
 /**
  * Set country in cookie
  * Also sets currency cookie based on country
+ * Also sets WL-cookieSelectedPointOfSale cookie with the same country value
  * @param {string} countryCode - Country code
  */
 export function setStoredCountry(countryCode) {
   if (countryCode) {
     setCookie(COUNTRY_COOKIE, countryCode);
+    // Also set WL-cookieSelectedPointOfSale cookie with the same value
+    setCookie('WL-cookieSelectedPointOfSale', countryCode);
 
     // Also set currency cookie based on country
     const countryData = COUNTRY_DATA[countryCode];

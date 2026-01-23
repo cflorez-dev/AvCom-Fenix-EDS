@@ -221,7 +221,7 @@ export const Alert = ({
   const currentVariantClasses = variantClasses[normalizedVariant] || variantClasses.informative;
 
   const outerContainerClasses = fullWidth
-    ? `w-full ${currentVariantClasses.bg} ${currentVariantClasses.text} ${currentVariantClasses.border}`
+    ? `w-full ${currentVariantClasses.bg} ${currentVariantClasses.text} ${currentVariantClasses.border} ${isRounded ? 'rounded-xl' : 'rounded-none'}`
     : '';
 
   // Inner container classes
@@ -235,7 +235,6 @@ export const Alert = ({
     flex
     w-full
     box-border
-    ${isRounded ? 'rounded-xl' : 'rounded-none'}
     items-center
     justify-center
     gap-[12px]
@@ -324,7 +323,7 @@ export const Alert = ({
   // Process HTML to add text-sm class to <p> elements and font-bold to <strong> elements
   // Also process links to add appropriate rel attributes for SEO
   const processedContentHTML = processContentHTML(contentHTML, normalizedVariant, {
-    pClassName: 'text-sm',
+    pClassName: 'text-sm leading-[21px]',
     strongClassName: 'font-bold',
     processRelAttributes: true,
     linkButtonOptions: {

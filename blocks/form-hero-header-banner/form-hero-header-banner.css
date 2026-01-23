@@ -1,0 +1,17 @@
+.section.form-hero-header-banner-container {
+    padding: var(--main-section-div-padding-form-hero-banner, 16px);
+}
+
+/* Tablet and desktop media queries */
+@media (width >= 480px) and (width <= 1247px) {
+    :root {
+        --main-section-div-padding-form-hero-banner: 24px;
+    }
+}
+
+
+@media (width >= 1248px) {
+    :root {
+        --main-section-div-padding-form-hero-banner: 32px 0;
+    }
+}

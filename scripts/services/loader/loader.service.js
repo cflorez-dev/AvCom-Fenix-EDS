@@ -11,6 +11,7 @@
  */
 let loaderSection = null;
 
+
 /**
  * Finds and caches the cms-loader section in the DOM
  * @returns {HTMLElement|null} The loader section element or null if not found
