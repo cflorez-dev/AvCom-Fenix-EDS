@@ -1,0 +1,5 @@
+@media (width <= 1023px) {
+    .section.tips-cards-container {
+        padding-inline: 16px;
+    }
+}

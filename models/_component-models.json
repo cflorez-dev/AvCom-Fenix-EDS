@@ -1701,6 +1701,104 @@
     ]
   },
   {
+    "id": "cms-modal",
+    "fields": [
+      {
+        "component": "text",
+        "valueType": "string",
+        "name": "title",
+        "label": "Title",
+        "value": "",
+        "description": "Main title of the modal"
+      },
+      {
+        "component": "richtext",
+        "name": "description",
+        "label": "Description",
+        "valueType": "string",
+        "value": "",
+        "description": "Modal body text. Supports HTML, line breaks, and dynamic variables (e.g., reservation code, price, passenger name). Scrollable if more than 3 lines."
+      },
+      {
+        "component": "text",
+        "valueType": "string",
+        "name": "primaryCtaLabel",
+        "label": "Primary CTA Label",
+        "value": "",
+        "description": "Text for the primary button (optional)"
+      },
+      {
+        "component": "text",
+        "valueType": "string",
+        "name": "primaryCtaUrl",
+        "label": "Primary CTA URL",
+        "value": "",
+        "description": "Link URL for primary button (optional)"
+      },
+      {
+        "component": "boolean",
+        "name": "primaryCtaOpenInNewTab",
+        "label": "Primary CTA - Open in New Tab",
+        "value": false,
+        "description": "Open primary CTA link in a new browser tab"
+      },
+      {
+        "component": "text",
+        "valueType": "string",
+        "name": "secondaryCtaLabel",
+        "label": "Secondary CTA Label",
+        "value": "",
+        "description": "Text for the secondary button (optional). If no URL provided, acts as close button."
+      },
+      {
+        "component": "text",
+        "valueType": "string",
+        "name": "secondaryCtaUrl",
+        "label": "Secondary CTA URL",
+        "value": "",
+        "description": "Link URL for secondary button (optional). If empty, button acts as close."
+      },
+      {
+        "component": "boolean",
+        "name": "secondaryCtaOpenInNewTab",
+        "label": "Secondary CTA - Open in New Tab",
+        "value": false,
+        "description": "Open secondary CTA link in a new browser tab"
+      },
+      {
+        "component": "boolean",
+        "name": "showDismissButton",
+        "label": "Show Dismiss Button (X)",
+        "value": true,
+        "description": "Display the X close button in top-right corner"
+      },
+      {
+        "component": "text",
+        "valueType": "string",
+        "name": "icon",
+        "label": "Icon",
+        "value": "",
+        "description": "Icon name from system (e.g., 'alert/success', 'navigation/arrow-right'). Optional."
+      },
+      {
+        "component": "reference",
+        "valueType": "string",
+        "name": "iconImage",
+        "label": "Icon Image",
+        "multi": false,
+        "description": "Custom icon/illustration image (jpg, png, webp, gif). Overrides system icon if provided."
+      },
+      {
+        "component": "reference",
+        "valueType": "string",
+        "name": "coverImage",
+        "label": "Cover Image",
+        "multi": false,
+        "description": "Header cover image for the modal (jpg, png, webp, gif). Optional."
+      }
+    ]
+  },
+  {
     "id": "back-to-top-button",
     "fields": [
       {
@@ -1942,6 +2040,119 @@
   },
   {
     "id": "form-header-banner",
+    "fields": [
+      {
+        "component": "reference",
+        "valueType": "string",
+        "name": "image",
+        "label": "Banner Image",
+        "multi": false,
+        "description": "Main banner image"
+      },
+      {
+        "component": "text",
+        "valueType": "string",
+        "name": "imageAlt",
+        "label": "Image Alt Text",
+        "value": "",
+        "description": "Alternative text for the image (accessibility)"
+      },
+      {
+        "component": "select",
+        "name": "loading",
+        "label": "Image Loading Mode",
+        "options": [
+          { "name": "Lazy", "value": "lazy" },
+          { "name": "Eager", "value": "eager" }
+        ],
+        "value": "eager",
+        "description": "Image loading strategy (eager for above-the-fold content)"
+      },
+      {
+        "component": "text",
+        "valueType": "string",
+        "name": "titleText",
+        "label": "Title Text",
+        "value": "",
+        "description": "Main title text"
+      },
+      {
+        "component": "select",
+        "name": "titleLevel",
+        "label": "Title Level",
+        "options": [
+          { "name": "H1", "value": "h1" },
+          { "name": "H2", "value": "h2" },
+          { "name": "H3", "value": "h3" },
+          { "name": "H4", "value": "h4" },
+          { "name": "H5", "value": "h5" },
+          { "name": "H6", "value": "h6" }
+        ],
+        "value": "h1",
+        "description": "Semantic heading level for the title"
+      },
+      {
+        "component": "text",
+        "valueType": "string",
+        "name": "subtitleText",
+        "label": "Subtitle Text",
+        "value": "",
+        "description": "Secondary text or subtitle"
+      },
+      {
+        "component": "select",
+        "name": "subtitleLevel",
+        "label": "Subtitle Level",
+        "options": [
+          { "name": "H2", "value": "h2" },
+          { "name": "H3", "value": "h3" },
+          { "name": "H4", "value": "h4" },
+          { "name": "H5", "value": "h5" },
+          { "name": "H6", "value": "h6" },
+          { "name": "Paragraph", "value": "p" }
+        ],
+        "value": "p",
+        "description": "Semantic level for the subtitle"
+      },
+      {
+        "component": "boolean",
+        "name": "showAlert",
+        "label": "Show Alert",
+        "value": false,
+        "description": "Display alert message after the form"
+      },
+      {
+        "component": "select",
+        "name": "alertType",
+        "label": "Alert Type",
+        "options": [
+          { "name": "Info", "value": "info" },
+          { "name": "Success", "value": "success" },
+          { "name": "Warning", "value": "warning" },
+          { "name": "Error", "value": "error" }
+        ],
+        "value": "info",
+        "description": "Visual style of the alert"
+      },
+      {
+        "component": "boolean",
+        "name": "alertDismissible",
+        "label": "Alert Dismissible",
+        "value": true,
+        "description": "Allow users to close the alert"
+      },
+      {
+        "component": "richtext",
+        "name": "alertContent",
+        "label": "Alert Content",
+        "valueType": "string",
+        "value": "",
+        "description": "Rich text content for the alert message"
+      }
+    ]
+  },
+  {
+    "id": "form-hero-header-banner",
     "fields": [
       {
         "component": "reference",
@@ -2649,6 +2860,62 @@
         "label": "Custom Last Item Text",
         "value": "",
         "description": "Optional custom text for the last breadcrumb item. If empty, uses the page title from URL path."
+      }
+    ]
+  },
+  {
+    "id": "tips-cards",
+    "fields": [
+      {
+        "component": "select",
+        "name": "loading",
+        "label": "Loading Mode",
+        "options": [
+          {
+            "name": "Lazy",
+            "value": "lazy"
+          },
+          {
+            "name": "Eager",
+            "value": "eager"
+          }
+        ],
+        "value": "lazy",
+        "description": "Image loading strategy for icons."
+      }
+    ]
+  },
+  {
+    "id": "tips-card-item",
+    "fields": [
+      {
+        "component": "reference",
+        "valueType": "string",
+        "name": "icon",
+        "label": "Icon",
+        "multi": false
+      },
+      {
+        "component": "text",
+        "valueType": "string",
+        "name": "iconAlt",
+        "label": "Icon Alt Text",
+        "value": "",
+        "description": "Alternative text for the icon (accessibility)"
+      },
+      {
+        "component": "text",
+        "valueType": "string",
+        "name": "title",
+        "label": "Title",
+        "value": ""
+      },
+      {
+        "component": "text",
+        "valueType": "string",
+        "name": "description",
+        "label": "Description",
+        "value": ""
       }
     ]
   }

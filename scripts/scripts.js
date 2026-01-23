@@ -14,20 +14,48 @@ import {
 } from './aem.js';
 import { initLocaleGlobals, resolveLocale } from './utils/locale.js';
 import { showLoader } from './services/loader/loader.service.js';
+import gtmMartech from './gtm-martech.js';
+import {
+  getEnvironment,
+  isTrackingDisabled,
+  ADOBE_LAUNCH_URLS,
+  ONETRUST_CONFIG,
+} from './martech-config.js';
 
 /**
- * Builds hero block and prepends to main in a new section.
- * @param {Element} main The container element
+ * Load OneTrust consent banner
+ * Must load early to capture consent before other scripts
  */
-function buildHeroBlock(main) {
-  const h1 = main.querySelector('h1');
-  const picture = main.querySelector('picture');
-  // eslint-disable-next-line no-bitwise
-  if (h1 && picture && (h1.compareDocumentPosition(picture) & Node.DOCUMENT_POSITION_PRECEDING)) {
-    const section = document.createElement('div');
-    section.append(buildBlock('hero', { elems: [picture, h1] }));
-    main.prepend(section);
-  }
+function loadOneTrust() {
+  if (isTrackingDisabled()) return;
+
+  // Load OneTrust SDK
+  const script = document.createElement('script');
+  script.src = ONETRUST_CONFIG.scriptUrl;
+  script.type = 'text/javascript';
+  script.charset = 'UTF-8';
+  script.setAttribute('data-document-language', 'true');
+  script.setAttribute('data-domain-script', ONETRUST_CONFIG.domainScript);
+  document.head.appendChild(script);
+
+  // Define OptanonWrapper (required by OneTrust)
+  window.OptanonWrapper = function OptanonWrapper() {
+    // Dispatch event when consent changes
+    window.dispatchEvent(new CustomEvent('consent-updated'));
+  };
+}
+
+/**
+ * Load Adobe Launch script based on environment
+ */
+function loadAdobeLaunch() {
+  if (isTrackingDisabled()) return;
+
+  const env = getEnvironment();
+  const script = document.createElement('script');
+  script.src = ADOBE_LAUNCH_URLS[env];
+  script.async = true;
+  document.head.appendChild(script);
 }
 
 /**
@@ -65,8 +93,6 @@ function buildAutoBlocks(main) {
         });
       });
     }
-
-    buildHeroBlock(main);
   } catch (error) {
     // eslint-disable-next-line no-console
     console.error('Auto Blocking failed', error);
@@ -109,6 +135,53 @@ function isMainEmpty(main) {
   
   console.log('[DEBUG isMainEmpty] hasContent:', hasContent, 'returning:', !hasContent);
   return !hasContent;
+}
+
+/**
+ * Get current time in HH:MM format
+ * @returns {string} Current time formatted as HH:MM
+ */
+function getCurrentTimeFormatted() {
+  const now = new Date();
+  const hours = String(now.getHours()).padStart(2, '0');
+  const minutes = String(now.getMinutes()).padStart(2, '0');
+  return `${hours}:${minutes}`;
+}
+
+/**
+ * Get timezone offset in GMT format (e.g., GMT-05:00)
+ * @returns {string} Timezone offset formatted as GMT±HH:MM
+ */
+function getTimezoneGMTOffset() {
+  const now = new Date();
+  const timeZoneOffset = now.getTimezoneOffset();
+  const sign = timeZoneOffset > 0 ? '-' : '+';
+  const absOffset = Math.abs(timeZoneOffset);
+  const hours = Math.floor(absOffset / 60).toString().padStart(2, '0');
+  const minutes = (absOffset % 60).toString().padStart(2, '0');
+  return `GMT${sign}${hours}:${minutes}`;
+}
+
+/**
+ * Get page view event data for analytics
+ * @returns {Object} Page view event data with location, user, and device information
+ */
+function pageViewEventData() {
+  const locale = resolveLocale();
+
+  return {
+    page_location: window.location.href,
+    page_referrer: document.referrer || 'direct',
+    page_title: document.title,
+    language: navigator.language,
+    screen_resolution: `${screen.width}x${screen.height}`,
+    country_pos: locale.country,
+    language_nav: document.documentElement.lang || locale.language,
+    time_zone: getTimezoneGMTOffset(),
+    user_hour: getCurrentTimeFormatted(),
+    user_type: 'Guest',
+    user_id: 'NA',
+  };
 }
 
 /**
@@ -214,7 +287,10 @@ async function loadGlobalFallbackContent(main) {
  * @param {Element} doc The container element
  */
 async function loadEager(doc) {
-  initLocaleGlobals();
+  // Load OneTrust first to capture consent before other tracking scripts
+  loadOneTrust();
+
+  await initLocaleGlobals();
   decorateTemplateAndTheme();
   const main = doc.querySelector('main');
   if (main) {
@@ -235,6 +311,9 @@ async function loadEager(doc) {
     document.body.classList.add('appear');
     await loadSection(main.querySelector('.section'), waitForFirstImage);
   }
+
+  // Initialize GTM Martech eager phase
+  await gtmMartech.eager();
 
   try {
     /* if desktop (proxy for fast connection) or fonts already loaded, load fonts.css */
@@ -304,6 +383,18 @@ async function loadLazy(doc) {
 
   // Now hide the loader after everything is loaded (sections + header + footer + header children)
   showLoader(false);
+
+  // Initialize GTM Martech lazy phase - loads GTM containers
+  await gtmMartech.lazy();
+
+  // Push page_view event to dataLayer after GTM initialization
+  gtmMartech.pushToDataLayer({
+    event: 'page_view',
+    ...pageViewEventData(),
+  });
+
+  // Load Adobe Launch based on environment (avianca.com = PROD, else DEV)
+  loadAdobeLaunch();
 
   loadCSS(`${window.hlx.codeBasePath}/styles/lazy-styles.css`);
   loadFonts();

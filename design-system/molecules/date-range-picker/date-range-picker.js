@@ -260,7 +260,8 @@ export const DateRangePicker = ({
     [departureDate],
   );
 
-  // Calculate initial month/year for departure when reopened: use departureDate month if exists
+  // Calculate initial month/year for departure: use departureDate month if exists
+  // Calendar will open at selected date but navigation is always blocked before current month
   const departureStartMonth = useMemo(
     () => (departureDate ? departureDate.getMonth() : null),
     [departureDate],
@@ -309,7 +310,6 @@ export const DateRangePicker = ({
         onClose=${handleCloseDeparture}
         onTripTypeChange=${onTripTypeChange}
         currentTripType=${currentTripType}
-        disabledDates=${disabledDates}
         required=${required}
         showHeader=${showHeader}
         customClassName="flex-1"
@@ -339,7 +339,6 @@ export const DateRangePicker = ({
           tripType=${tripType}
           calendarTitle=${i18n['bookingBox.labels.whenToFly'] || '¿Cuándo quieres volar?'}
           stepTitle=${i18n['bookingBox.stepTitles.whenToReturn'] || '¿Cuando vas a volar?'}
-          disabledDates=${disabledDates}
           isOpen=${activeStep === 'return'}
           onOpenChange=${handleReturnOpenChange}
           onBack=${handleBackReturn}
