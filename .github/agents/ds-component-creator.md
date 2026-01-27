@@ -950,7 +950,7 @@ Después de crear el componente, registrarlo en el archivo correspondiente:
 ```javascript
 import { h } from '@dropins/tools/preact.js';
 import htm from 'htm';
-import { ButtonSample } from '../../../design-system/atoms/button/buton.sample.js';
+import { ButtonSample } from '../../../design-system/atoms/button/button.sample.js';
 import { ChipSample } from '../../../design-system/atoms/chip/chip.sample.js';
 // ✅ AGREGAR AQUÍ:
 import { ComponentNameSample } from '../../../design-system/atoms/component-name/component-name.sample.js';

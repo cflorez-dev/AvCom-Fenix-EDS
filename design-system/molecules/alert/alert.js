@@ -350,7 +350,7 @@ export const Alert = ({
         <div ref=${contentRef} class="${contentClasses}">
           ${marqueeMode && shouldMarquee ? html`
             <div class="${marqueeAnimationClass}">
-              <div class="inline-block" dangerouslySetInnerHTML=${{ __html: processedContentHTML }} />
+              <div class="inline-block ml-[var(--spacing-x-large)]" dangerouslySetInnerHTML=${{ __html: processedContentHTML }} />
               <div class="inline-block ml-[var(--spacing-x-large)]" dangerouslySetInnerHTML=${{ __html: processedContentHTML }} />
             </div>
           ` : html`

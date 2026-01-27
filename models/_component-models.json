@@ -195,6 +195,10 @@
           {
             "name": "Accordion Item",
             "value": "accordion-item"
+          },
+          {
+            "name": "MultiTab Item",
+            "value": "multitab-item"
           }
         ]
       },
@@ -235,6 +239,52 @@
         "name": "accordion-default-open",
         "label": "Accordion Default Open",
         "description": "Whether this accordion item should be expanded by default when the page loads."
+      },
+      {
+        "component": "text",
+        "name": "multitab-group",
+        "label": "MultiTab Group ID",
+        "description": "Links this section to a MultiTab block. Must match the Group ID of the MultiTab controller."
+      },
+      {
+        "component": "text",
+        "name": "multitab-label",
+        "label": "Tab Label (Primary)",
+        "description": "The primary text shown in the tab button for this content."
+      },
+      {
+        "component": "text",
+        "name": "multitab-secondary-label",
+        "label": "Tab Label (Secondary)",
+        "description": "Optional secondary text shown below the primary label in the tab button."
+      },
+      {
+        "component": "text",
+        "name": "multitab-icon",
+        "label": "Tab Icon",
+        "description": "Optional icon path for the tab (e.g., 'action/check', 'alert/info'). Leave empty for no icon."
+      },
+      {
+        "component": "select",
+        "name": "multitab-icon-position",
+        "label": "Tab Icon Position",
+        "description": "Position of the icon relative to the tab label",
+        "options": [
+          {
+            "name": "Before",
+            "value": "before"
+          },
+          {
+            "name": "After",
+            "value": "after"
+          }
+        ]
+      },
+      {
+        "component": "boolean",
+        "name": "multitab-default-open",
+        "label": "Default Tab",
+        "description": "Whether this tab should be active by default when the page loads."
       }
     ]
   },
@@ -2860,6 +2910,94 @@
         "label": "Custom Last Item Text",
         "value": "",
         "description": "Optional custom text for the last breadcrumb item. If empty, uses the page title from URL path."
+      }
+    ]
+  },
+  {
+    "id": "multitab",
+    "fields": [
+      {
+        "component": "text",
+        "valueType": "string",
+        "name": "group-id",
+        "label": "Group ID",
+        "value": "",
+        "description": "Unique identifier for this tab group. Tab sections must have matching multitab-group metadata."
+      },
+      {
+        "component": "text",
+        "valueType": "string",
+        "name": "default-tab",
+        "label": "Default Tab ID",
+        "value": "",
+        "description": "Optional: ID of the tab to open by default (e.g., 'tab-group-0'). If empty, first tab opens."
+      },
+      {
+        "component": "text",
+        "valueType": "string",
+        "name": "enable-from",
+        "label": "Enable From Date",
+        "value": "",
+        "description": "Optional: Start date in ISO format (YYYY-MM-DD). Block hidden before this date."
+      },
+      {
+        "component": "text",
+        "valueType": "string",
+        "name": "enable-to",
+        "label": "Enable To Date",
+        "value": "",
+        "description": "Optional: End date in ISO format (YYYY-MM-DD). Block hidden after this date."
+      },
+      {
+        "component": "text",
+        "valueType": "string",
+        "name": "target-languages",
+        "label": "Target Languages",
+        "value": "",
+        "description": "Optional: Comma-separated language codes (e.g., 'en,es,pt'). Block visible only for these languages."
+      },
+      {
+        "component": "select",
+        "name": "size",
+        "label": "Tab Size",
+        "value": "large",
+        "description": "Size variant for the tabs: large (80px height) or small (64px height)",
+        "valueType": "string",
+        "options": [
+          {
+            "name": "Large (80px)",
+            "value": "large"
+          },
+          {
+            "name": "Small (64px)",
+            "value": "small"
+          }
+        ]
+      },
+      {
+        "component": "boolean",
+        "name": "show-chevrons",
+        "label": "Show Navigation Chevrons",
+        "value": false,
+        "description": "Display left/right chevron buttons for navigating tabs when scrolling is needed"
+      },
+      {
+        "component": "select",
+        "name": "show",
+        "label": "Show Block",
+        "value": "true",
+        "description": "Enable or disable the entire block",
+        "valueType": "string",
+        "options": [
+          {
+            "name": "true",
+            "value": "true"
+          },
+          {
+            "name": "false",
+            "value": "false"
+          }
+        ]
       }
     ]
   },
