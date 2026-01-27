@@ -21,6 +21,7 @@ const html = htm.bind(h);
  * @param {'auto'|'always'|'never'} [props.marqueeMode='auto']
  *   Marquee scroll behavior
  * @param {number} [props.marqueeSpeed=50] - Marquee speed in pixels/second
+ * @param {'self'|'blank'} [props.linkTarget='self'] - Target for links (same tab or new tab)
  * @param {Function} [props.onDismiss] - Callback when dismissed
  * @param {string} [props.customClassName=''] - Additional CSS classes
  * @returns {import('preact').VNode} Marquesina component
@@ -36,6 +37,7 @@ const Marquesina = (props) => {
     isSticky = true,
     marqueeMode = 'auto',
     marqueeSpeed = 50,
+    linkTarget = 'self',
     onDismiss,
     customClassName = '',
   } = props;
@@ -144,6 +146,7 @@ const Marquesina = (props) => {
         contentHTML=${contentHTML}
         shouldMarquee=${shouldMarquee}
         marqueeSpeed=${marqueeSpeed}
+        linkTarget=${linkTarget}
         contentRef=${contentRef}
         fullWidth=${true}
         marqueeMode=${true}

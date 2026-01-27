@@ -27,6 +27,7 @@ const html = htm.bind(h);
  *   (optional, overrides internal calculation)
  * @param {Object} [props.contentRef] - External ref for content container (optional)
  * @param {boolean} [props.fullWidth=false] - Enable full-width container with inner max-width
+ * @param {'self'|'blank'} [props.linkTarget='self'] - Target for links (same tab or new tab)
  * @param {Object} [props.rest] - Additional props spread to container
  * @returns {import('preact').VNode} Alert component
  */
@@ -48,6 +49,7 @@ export const Alert = ({
   shouldMarquee: externalShouldMarquee,
   contentRef: externalContentRef,
   fullWidth = false,
+  linkTarget = 'self',
   ...rest
 }) => {
   const [isVisible, setIsVisible] = useState(true);
@@ -329,6 +331,7 @@ export const Alert = ({
     linkButtonOptions: {
       size: fullWidth ? 'compact' : 'default',
       customClassName: normalizedVariant === 'informative' ? '!text-text-link-informative-active' : '',
+      linkTarget,
     },
   });
 

@@ -210,4 +210,10 @@ export default function decorate(block) {
   // Hide the block element (only used for configuration)
   block.style.display = 'none';
   block.setAttribute('aria-hidden', 'true');
+
+  // Remove spacing from controller section container
+  const controllerSection = block.closest('.section');
+  if (controllerSection) {
+    controllerSection.classList.add('!p-0', '!m-0', '!h-0', '!overflow-hidden');
+  }
 }

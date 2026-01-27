@@ -1,18 +1,27 @@
+/* eslint-disable max-len */
+/* eslint-disable no-shadow */
+/* eslint-disable no-underscore-dangle */
 import { h, render } from '@dropins/tools/preact.js';
 import htm from 'htm';
 import { loadBlock } from '../../scripts/aem.js';
 import { Icon } from '../../design-system/atoms/icon/icon.js';
+import { getStoredCountry, getStoredLanguage } from '../../scripts/services/header/language-country-selector.js';
 
 const html = htm.bind(h);
 
 /**
  * Reads block configuration by position (Universal Editor saves values without labels)
- * Row order: group-id, default-tab, enable-from, enable-to, target-languages, show
+ * Supports both old (6 rows) and new (9 rows) structure for backward compatibility
+ *
+ * Old structure (6 rows): group-id, default-tab, enable-from, enable-to, target-languages, size/show
+ * New structure (9 rows): group-id, default-tab, enable-from, enable-to, target-countries, target-languages, size, show-chevrons, show
+ *
  * @param {HTMLElement} block - The block element
  * @returns {Object} Configuration object
  */
 function readMultitabConfig(block) {
   const rows = [...block.children];
+  const rowCount = rows.length;
   const getValue = (rowIndex) => {
     const row = rows[rowIndex];
     if (!row) return '';
@@ -20,15 +29,37 @@ function readMultitabConfig(block) {
     return cell?.textContent?.trim() || '';
   };
 
+  // Detect old structure (6 rows or less) vs new structure (9 rows)
+  const isOldStructure = rowCount <= 6;
+
+  if (isOldStructure) {
+    // Old structure: no target-countries field
+    const row5Value = getValue(5);
+    return {
+      'group-id': getValue(0),
+      'default-tab': getValue(1),
+      'enable-from': getValue(2),
+      'enable-to': getValue(3),
+      'target-countries': '', // Not present in old blocks
+      'target-languages': getValue(4),
+      // Row 5 could be either size or show (if "true"/"false")
+      size: (row5Value === 'true' || row5Value === 'false') ? 'large' : (row5Value || 'large'),
+      'show-chevrons': false, // Not present in old blocks
+      show: (row5Value === 'true' || row5Value === 'false') ? row5Value : 'true',
+    };
+  }
+
+  // New structure: all fields present
   return {
     'group-id': getValue(0),
     'default-tab': getValue(1),
     'enable-from': getValue(2),
     'enable-to': getValue(3),
-    'target-languages': getValue(4),
-    size: getValue(5) || 'large',
-    'show-chevrons': getValue(6) === 'true',
-    show: getValue(7) || 'true',
+    'target-countries': getValue(4),
+    'target-languages': getValue(5),
+    size: getValue(6) || 'large',
+    'show-chevrons': getValue(7) === 'true',
+    show: getValue(8) || 'true',
   };
 }
 
@@ -67,13 +98,46 @@ export default async function decorate(block) {
   // Feature flags
   const enableFrom = config['enable-from'] ? new Date(config['enable-from']) : null;
   const enableTo = config['enable-to'] ? new Date(config['enable-to']) : null;
+  const targetCountries = config['target-countries']
+    ? config['target-countries'].split(',').map((country) => country.trim().toLowerCase())
+    : [];
   const targetLanguages = config['target-languages']
     ? config['target-languages'].split(',').map((lang) => lang.trim().toLowerCase())
     : [];
   const show = config.show !== 'false';
 
   const now = new Date();
-  const currentLang = document.documentElement.lang?.toLowerCase() || 'en';
+  const currentCountry = getStoredCountry()?.toLowerCase() || '';
+  const currentLang = getStoredLanguage()?.toLowerCase() || document.documentElement.lang?.toLowerCase() || 'en';
+
+  // Detect author environment (Universal Editor)
+  const isAuthorEnv = window.location.hostname.includes('author-')
+    && window.location.pathname.startsWith('/content/');
+
+  // In author mode: show configuration preview without transforming sections
+  // This preserves the DOM structure so Universal Editor can keep editing references
+  if (isAuthorEnv) {
+    block.classList.add('multitab--author-mode');
+    const preview = document.createElement('div');
+    preview.className = 'multitab-author-preview bg-[var(--bg-informative-light)] border-l-[3px] border-[var(--border-accent-informative)] rounded-[var(--border-radius-small)]';
+    preview.style.cssText = 'padding: 12px 16px;';
+    preview.innerHTML = `
+      <div class="font-semibold mb-2 text-[var(--text-link-informative-default)]">MultiTab Controller</div>
+      <div class="text-xs leading-relaxed text-[var(--text-normal-secondary)]">
+        <strong>Group ID:</strong> ${groupId}<br>
+        <strong>Size:</strong> ${size}<br>
+        <strong>Chevrons:</strong> ${showChevrons ? 'Yes' : 'No'}<br>
+        <strong>Default Tab:</strong> ${defaultTab || 'First tab'}<br>
+      </div>
+      <div class="mt-2 pt-2 border-t border-[var(--border-stroke-default)] text-[11px] text-[var(--text-normal-tertiary)]">
+        💡 Add Section blocks below with <strong>multitab-group="${groupId}"</strong> metadata.<br>
+        Each section becomes a tab and can contain any CMS blocks.
+      </div>
+    `;
+    block.innerHTML = '';
+    block.appendChild(preview);
+    return;
+  }
 
   // Check feature flags
   if (!show) {
@@ -91,7 +155,14 @@ export default async function decorate(block) {
     return;
   }
 
-  if (targetLanguages.length > 0 && !targetLanguages.includes(currentLang)) {
+  // Target countries validation: only validate if both config AND cookie exist
+  if (targetCountries.length > 0 && currentCountry && !targetCountries.includes(currentCountry)) {
+    block.style.display = 'none';
+    return;
+  }
+
+  // Target languages validation: only validate if config exists
+  if (targetLanguages.length > 0 && currentLang && !targetLanguages.includes(currentLang)) {
     block.style.display = 'none';
     return;
   }
@@ -171,6 +242,14 @@ export default async function decorate(block) {
   multitabContainer.setAttribute('data-group-id', groupId);
   multitabContainer.setAttribute('data-section-status', 'loaded');
 
+  // Create aria-live region for screen reader announcements
+  const liveRegion = document.createElement('div');
+  liveRegion.className = 'sr-only';
+  liveRegion.setAttribute('aria-live', 'polite');
+  liveRegion.setAttribute('aria-atomic', 'true');
+  liveRegion.setAttribute('role', 'status');
+  multitabContainer.appendChild(liveRegion);
+
   // Create tab navigation wrapper
   const tabNavWrapper = document.createElement('div');
   tabNavWrapper.className = 'relative flex items-center';
@@ -179,21 +258,28 @@ export default async function decorate(block) {
   let chevronBefore = null;
   if (showChevrons) {
     chevronBefore = document.createElement('button');
+    chevronBefore.setAttribute('type', 'button');
     chevronBefore.className = `
-      flex items-center justify-center shrink-0 size-[36px]
+      flex items-center justify-center shrink-0 size-[24px]
       text-[var(--text-normal-primary)] hover:text-[var(--text-link-informative-default)]
       transition-colors duration-200
+      focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--border-stroke-focus,#1d9bf0)] focus-visible:rounded-[var(--x-tiny,2px)]
     `.trim().replace(/\s+/g, ' ');
     chevronBefore.setAttribute('aria-label', 'Scroll tabs left');
-    chevronBefore.innerHTML = '<svg class="size-[16px]" fill="currentColor" viewBox="0 0 24 24"><path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"/></svg>';
+    chevronBefore.setAttribute('tabindex', '0');
+    render(
+      html`<${Icon} icon="navigation/chevron-left" customSize=${12} color="currentColor" />`,
+      chevronBefore,
+    );
     tabNavWrapper.appendChild(chevronBefore);
   }
 
   // Create tab navigation
   const tabNav = document.createElement('div');
-  tabNav.className = 'flex overflow-x-auto scroll-smooth flex-1';
+  tabNav.className = 'flex overflow-x-auto scroll-smooth flex-1 max-[480px]:p-0';
   tabNav.setAttribute('role', 'tablist');
   tabNav.setAttribute('aria-label', 'Content tabs');
+  tabNav.setAttribute('aria-orientation', 'horizontal');
   tabNav.style.scrollbarWidth = 'none'; // Firefox
   tabNav.style.msOverflowStyle = 'none'; // IE/Edge
   tabNavWrapper.appendChild(tabNav);
@@ -202,13 +288,19 @@ export default async function decorate(block) {
   let chevronAfter = null;
   if (showChevrons) {
     chevronAfter = document.createElement('button');
+    chevronAfter.setAttribute('type', 'button');
     chevronAfter.className = `
-      flex items-center justify-center shrink-0 size-[36px]
+      flex items-center justify-center shrink-0 size-[24px]
       text-[var(--text-normal-primary)] hover:text-[var(--text-link-informative-default)]
       transition-colors duration-200
+      focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--border-stroke-focus,#1d9bf0)] focus-visible:rounded-[var(--x-tiny,2px)]
     `.trim().replace(/\s+/g, ' ');
     chevronAfter.setAttribute('aria-label', 'Scroll tabs right');
-    chevronAfter.innerHTML = '<svg class="size-[16px]" fill="currentColor" viewBox="0 0 24 24"><path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"/></svg>';
+    chevronAfter.setAttribute('tabindex', '0');
+    render(
+      html`<${Icon} icon="navigation/chevron-right" customSize=${12} color="currentColor" />`,
+      chevronAfter,
+    );
     tabNavWrapper.appendChild(chevronAfter);
   }
 
@@ -219,15 +311,24 @@ export default async function decorate(block) {
 
     // Size-specific dimensions (Figma specs)
     const tabHeight = size === 'large' ? 'h-[80px]' : 'h-[64px]';
-    const tabPadding = size === 'large' ? 'px-[var(--x-x-large,32px)]' : 'px-[var(--x-large,24px)]';
+    const tabPadding = 'px-6 md:px-8';
     const primaryFontSize = size === 'large' ? 'text-[18px]' : 'text-[16px]';
     const secondaryFontSize = 'text-[14px]';
 
+    // Mobile width: active tab minimum 56% (≤480px)
+    // Inactive tabs: no width restriction, content flows naturally
+    const tabWidth = isActive
+      ? 'w-auto max-[480px]:min-w-[56%]'
+      : 'w-auto';
+
     const tabButton = document.createElement('button');
+    tabButton.setAttribute('type', 'button');
     tabButton.className = `
       flex flex-col ${tabHeight} ${tabPadding} gap-[var(--tiny,4px)]
       items-center justify-center shrink-0 relative isolate
       transition-all duration-200 cursor-pointer
+      focus:outline-none focus-visible:outline-none
+      ${tabWidth}
     `.trim().replace(/\s+/g, ' ');
     tabButton.style.pointerEvents = 'auto';
 
@@ -236,6 +337,7 @@ export default async function decorate(block) {
     tabButton.setAttribute('aria-controls', `panel-${tabData.id}`);
     tabButton.setAttribute('id', `btn-${tabData.id}`);
     tabButton.setAttribute('tabindex', isActive ? '0' : '-1');
+    tabButton.setAttribute('aria-label', `${tabData.label}${tabData.secondaryLabel ? `: ${tabData.secondaryLabel}` : ''}`);
 
     // Title container (supports primary + secondary text layout)
     const titleContainer = document.createElement('div');
@@ -255,8 +357,9 @@ export default async function decorate(block) {
 
     // Primary label
     const labelSpan = document.createElement('span');
+    // Mobile: single line for all tabs (active and inactive)
     labelSpan.className = `
-      ${primaryFontSize} leading-normal overflow-hidden text-ellipsis
+      ${primaryFontSize} leading-normal whitespace-nowrap
       ${isActive ? 'font-bold text-[var(--text-normal-primary)]' : 'font-normal text-[var(--text-normal-secondary)]'}
     `.trim().replace(/\s+/g, ' ');
     labelSpan.textContent = tabData.label;
@@ -278,7 +381,7 @@ export default async function decorate(block) {
     if (tabData.secondaryLabel) {
       const secondarySpan = document.createElement('span');
       secondarySpan.className = `
-        ${secondaryFontSize} font-normal leading-[1.5] overflow-hidden text-ellipsis
+        ${secondaryFontSize} font-normal leading-[1.5] whitespace-nowrap
         text-[var(--text-normal-secondary)] z-[4]
       `.trim().replace(/\s+/g, ' ');
       secondarySpan.textContent = tabData.secondaryLabel;
@@ -339,7 +442,7 @@ export default async function decorate(block) {
     const isActive = index === activeTabIndex;
 
     const tabPanel = document.createElement('div');
-    tabPanel.className = `multitab-panel ${isActive ? '' : 'hidden'}`;
+    tabPanel.className = `multitab-panel mt-8 focus:outline-none focus-visible:outline-none animate-[fadeIn_0.3s_ease-in-out] ${isActive ? '' : 'hidden'}`;
     tabPanel.setAttribute('role', 'tabpanel');
     tabPanel.setAttribute('id', `panel-${tabData.id}`);
     tabPanel.setAttribute('aria-labelledby', `btn-${tabData.id}`);
@@ -404,10 +507,16 @@ export default async function decorate(block) {
       btn.setAttribute('aria-selected', isActive ? 'true' : 'false');
       btn.setAttribute('tabindex', isActive ? '0' : '-1');
 
+      // Update mobile width classes: active tab minimum 56%
+      btn.classList.remove('max-[480px]:min-w-[56%]');
+      if (isActive) {
+        btn.classList.add('max-[480px]:min-w-[56%]');
+      }
+
       // Find primary label span (inside titleContainer)
       const titleContainer = btn.querySelector('div[class*="gap-[4px]"]');
       const labelSpan = titleContainer?.querySelector('span:not([data-name="icon"])');
-      
+
       if (isActive) {
         // Active state
         if (labelSpan) {
@@ -475,14 +584,59 @@ export default async function decorate(block) {
       }
     });
 
-    // Auto-scroll active tab into view (smooth)
-    tabButtons[newIndex].scrollIntoView({
-      behavior: 'smooth',
-      block: 'nearest',
-      inline: 'center',
-    });
+    // Announce tab change to screen readers
+    const liveRegion = multitabContainer.querySelector('[role="status"]');
+    if (liveRegion) {
+      const tabLabel = tabSections[newIndex].label;
+      const tabSecondary = tabSections[newIndex].secondaryLabel;
+      liveRegion.textContent = `${tabLabel}${tabSecondary ? `: ${tabSecondary}` : ''} tab selected`;
+    }
 
-    // Focus new tab button
+    // Auto-scroll active tab into view (mobile-first behavior)
+    // Mobile (≤480px): Slider effect - immediate smooth scroll
+    // Desktop: Center the active tab
+    const isMobile = window.innerWidth <= 480;
+
+    if (isMobile) {
+      // Mobile: Position active tab at left 0 (hide previous tabs completely)
+      const activeTab = tabButtons[newIndex];
+      const scrollContainer = tabNav;
+
+      // Use offsetLeft directly - this is the tab's position relative to the container
+      // This ensures the left edge of the active tab aligns with scroll position 0
+      const targetScroll = activeTab.offsetLeft;
+      const startScroll = scrollContainer.scrollLeft;
+      const distance = targetScroll - startScroll;
+      const duration = 200; // 0.2 seconds
+      const startTime = performance.now();
+
+      // Linear easing for constant speed slider effect
+      const easeLinear = (t) => t;
+
+      const animateScroll = (currentTime) => {
+        const elapsed = currentTime - startTime;
+        const progress = Math.min(elapsed / duration, 1);
+        const easeProgress = easeLinear(progress);
+
+        scrollContainer.scrollLeft = startScroll + (distance * easeProgress);
+
+        if (progress < 1) {
+          requestAnimationFrame(animateScroll);
+        }
+      };
+
+      // Start animation immediately (synchronous)
+      animateScroll(performance.now());
+    } else {
+      // Desktop: Center the active tab in viewport
+      tabButtons[newIndex].scrollIntoView({
+        behavior: 'smooth',
+        block: 'nearest',
+        inline: 'center',
+      });
+    }
+
+    // Focus new tab button after animation starts
     tabButtons[newIndex].focus();
   }
 
@@ -542,11 +696,24 @@ export default async function decorate(block) {
   const scrollActiveTabIntoView = () => {
     const activeTabButton = tabButtons[activeTabIndex];
     if (!activeTabButton) return;
-    activeTabButton.scrollIntoView({
-      behavior: 'smooth',
-      block: 'nearest',
-      inline: 'center',
-    });
+
+    const isMobile = window.innerWidth <= 480;
+
+    if (isMobile) {
+      // Mobile: Position active tab at left edge
+      const scrollOffset = activeTabButton.offsetLeft;
+      tabNav.scrollTo({
+        left: scrollOffset,
+        behavior: 'smooth',
+      });
+    } else {
+      // Desktop: Center the active tab
+      activeTabButton.scrollIntoView({
+        behavior: 'smooth',
+        block: 'nearest',
+        inline: 'center',
+      });
+    }
   };
 
   if (typeof window !== 'undefined' && typeof window.requestAnimationFrame === 'function') {
@@ -557,4 +724,13 @@ export default async function decorate(block) {
   } else {
     scrollActiveTabIntoView();
   }
+
+  // Re-calculate scroll position on window resize (mobile ↔ desktop)
+  let resizeTimeout;
+  window.addEventListener('resize', () => {
+    clearTimeout(resizeTimeout);
+    resizeTimeout = setTimeout(() => {
+      scrollActiveTabIntoView();
+    }, 250);
+  });
 }

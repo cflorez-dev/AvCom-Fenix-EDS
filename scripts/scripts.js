@@ -120,20 +120,17 @@ export function decorateMain(main) {
  */
 function isMainEmpty(main) {
   if (!main) return true;
-  
+
   const sections = main.querySelectorAll('.section');
-  console.log('[DEBUG isMainEmpty] Número de sections encontradas:', sections.length);
   if (sections.length === 0) return true;
-  
+
   // Check if all sections are empty
   const hasContent = Array.from(sections).some((section) => {
     const text = section.textContent.trim();
     const blocks = section.querySelectorAll('[data-block-name]');
-    console.log('[DEBUG isMainEmpty] Section text length:', text.length, 'blocks:', blocks.length);
     return text.length > 0 || blocks.length > 0;
   });
-  
-  console.log('[DEBUG isMainEmpty] hasContent:', hasContent, 'returning:', !hasContent);
+
   return !hasContent;
 }
 
@@ -294,14 +291,10 @@ async function loadEager(doc) {
   decorateTemplateAndTheme();
   const main = doc.querySelector('main');
   if (main) {
-    console.log('[DEBUG] Main HTML antes de decorar:', main.innerHTML);
     decorateMain(main);
-    console.log('[DEBUG] Main HTML después de decorar:', main.innerHTML);
-    console.log('[DEBUG] Verificando si main está vacío...');
-    
+
     // Check if we need to load global fallback content
     const loadedGlobal = await loadGlobalFallbackContent(main);
-    console.log('[DEBUG] loadedGlobal result:', loadedGlobal);
     
     // If we loaded global content, sections need to be loaded
     if (loadedGlobal) {

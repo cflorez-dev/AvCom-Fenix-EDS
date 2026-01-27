@@ -1,27 +1,64 @@
 import {
   CMS_PROMOTIONAL_CARDS_MAX_CARDS as MAX_CARDS,
-  CMS_PROMOTIONAL_CARDS_DEFAULT_IMAGE_PATH as DEFAULT_IMAGE_PATH,
-  CMS_PROMOTIONAL_CARDS_DEFAULT_IMAGE_FORMAT as DEFAULT_IMAGE_FORMAT,
-  CMS_PROMOTIONAL_CARDS_AEM_CLOUD_BASE as AEM_CLOUD_BASE,
-  CMS_PROMOTIONAL_CARDS_FALLBACK_IMAGE as FALLBACK_IMAGE,
   CMS_PROMOTIONAL_CARDS_VALID_LIFEMILES_VARIANTS as VALID_LIFEMILES_VARIANTS,
   CMS_PROMOTIONAL_CARDS_VALID_DISCOUNT_VARIANTS as VALID_DISCOUNT_VARIANTS,
 } from '../../scripts/utils/constants.js';
 import { getStoredCurrency } from '../../scripts/services/header/language-country-selector.js';
+import { fetchAEMData } from '../../scripts/utils/aem-data.js';
+
+// ========== ENVIRONMENT CONFIG ==========
+
+/**
+ * Default values for image configuration (fallbacks if environment config is not available)
+ */
+const DEFAULT_CONFIG = {
+  aemCloudBase: '',
+  defaultImagePath: '/content/dam/Avianca-home-site/iata_images',
+  defaultImageFormat: 'png',
+  fallbackImage: '/assets/samples/Oferta-San-Andres.png',
+};
+
+/**
+ * Cache for environment configuration
+ */
+let environmentConfig = null;
+
+/**
+ * Gets image configuration from AEM environment file
+ * @returns {Promise<Object>} Configuration object with aemCloudBase, defaultImagePath, defaultImageFormat, fallbackImage
+ */
+async function getEnvironmentConfig() {
+  if (environmentConfig) return environmentConfig;
+
+  const config = await fetchAEMData('environment');
+  environmentConfig = {
+    aemCloudBase: config.data.find((item) => item.Key === 'CMS_PROMOTIONAL_CARDS_AEM_CLOUD_BASE')?.Text ?? DEFAULT_CONFIG.aemCloudBase,
+    defaultImagePath: config.data.find((item) => item.Key === 'CMS_PROMOTIONAL_CARDS_DEFAULT_IMAGE_PATH')?.Text ?? DEFAULT_CONFIG.defaultImagePath,
+    defaultImageFormat: config.data.find((item) => item.Key === 'CMS_PROMOTIONAL_CARDS_DEFAULT_IMAGE_FORMAT')?.Text ?? DEFAULT_CONFIG.defaultImageFormat,
+    fallbackImage: config.data.find((item) => item.Key === 'CMS_PROMOTIONAL_CARDS_FALLBACK_IMAGE')?.Text ?? DEFAULT_CONFIG.fallbackImage,
+  };
+  return environmentConfig;
+}
 
 /**
  * Builds the image URL for a destination based on IATA code
+ * Uses configuration from AEM environment file
  * @param {string} iataCode - IATA code (e.g., 'PTY', 'MIA')
- * @param {string} imagePath - Path for images in DAM
- * @param {string} format - Image format (webp, jpg, png)
- * @returns {string} Full image URL
+ * @param {string} imagePath - Path for images in DAM (optional, uses environment config if not provided)
+ * @param {string} format - Image format (webp, jpg, png) (optional, uses environment config if not provided)
+ * @returns {Promise<string>} Full image URL
  */
-export function buildIataImageUrl(iataCode, imagePath = DEFAULT_IMAGE_PATH, format = DEFAULT_IMAGE_FORMAT) {
+export async function buildIataImageUrl(iataCode, imagePath = null, format = null) {
+  const envConfig = await getEnvironmentConfig();
+
+  const effectiveImagePath = imagePath ?? envConfig.defaultImagePath;
+  const effectiveFormat = format ?? envConfig.defaultImageFormat;
+
   if (!iataCode) {
-    return `${window.hlx?.codeBasePath || ''}${FALLBACK_IMAGE}`;
+    return `${window.hlx?.codeBasePath || ''}${envConfig.fallbackImage}`;
   }
 
-  return `${AEM_CLOUD_BASE}${imagePath}/${iataCode.toLowerCase()}.${format}`;
+  return `${envConfig.aemCloudBase}${effectiveImagePath}/${iataCode.toLowerCase()}.${effectiveFormat}`;
 }
 
 /**
@@ -33,8 +70,8 @@ export function buildIataImageUrl(iataCode, imagePath = DEFAULT_IMAGE_PATH, form
  */
 export function extractCmsPromotionalCardsRailProps(block) {
   const defaultProps = {
-    imageBasePath: DEFAULT_IMAGE_PATH,
-    imageFormat: DEFAULT_IMAGE_FORMAT,
+    imageBasePath: null,
+    imageFormat: null,
     lifemilesChipVariant: 'light',
     discountChipVariant: 'discount',
     buttonText: 'Ver todas las ofertas',
@@ -104,7 +141,7 @@ export function extractCmsPromotionalCardsRailProps(block) {
 
   return {
     imageBasePath,
-    imageFormat: defaultProps.imageFormat,
+    imageFormat: null,
     lifemilesChipVariant,
     discountChipVariant,
     buttonText,
