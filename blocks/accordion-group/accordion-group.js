@@ -491,4 +491,10 @@ export default function decorate(block) {
   // Hide the controller block in published mode (it's just config)
   block.classList.add('accordion-group--initialized');
   block.style.display = 'none';
+
+  // Remove spacing from controller section container
+  const controllerSection = block.closest('.section');
+  if (controllerSection) {
+    controllerSection.classList.add('!p-0', '!m-0', '!h-0', '!overflow-hidden');
+  }
 }
