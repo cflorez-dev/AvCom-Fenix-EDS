@@ -1,6 +1,6 @@
 import { h } from '@dropins/tools/preact.js';
 import htm from 'htm';
-import { ButtonSample } from '../../../design-system/atoms/button/buton.sample.js';
+import { ButtonSample } from '../../../design-system/atoms/button/button.sample.js';
 import { LinkButtonSample } from '../../../design-system/atoms/link-button/link-button.sample.js';
 import { LogoSample } from '../../../design-system/atoms/logo/logo.sample.js';
 import { ChipSample } from '../../../design-system/atoms/chip/chip.sample.js';

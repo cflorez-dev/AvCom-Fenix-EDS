@@ -1,0 +1,58 @@
+/* MultiTab Container */
+.multitab-container {
+  width: 100%;
+}
+
+/* override spacing between blocks inside multitab */
+.section.multitab-container .multitab-content > div:not(:last-child) {
+    padding-bottom: 20px;
+}
+
+/* Hide tab nav scrollbar (webkit/blink) */
+.multitab-container [role="tablist"]::-webkit-scrollbar {
+  display: none;
+}
+
+/* Hide original sections that have been converted to tabs */
+.multitab-section-hidden {
+  display: none !important;
+  visibility: hidden !important;
+  height: 0 !important;
+  overflow: hidden !important;
+  position: absolute !important;
+  pointer-events: none !important;
+}
+
+/* Tab Panel Content */
+.multitab-panel {
+  padding: var(--spacing-large) 0;
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+/* Tab Panel Hidden State */
+.multitab-panel.hidden {
+  display: none;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .multitab-container {
+    margin: var(--spacing-medium) 0;
+  }
+
+  .multitab-panel {
+    padding: var(--spacing-medium) 0;
+  }
+}
