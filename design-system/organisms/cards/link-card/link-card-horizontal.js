@@ -25,17 +25,28 @@ export const LinkCardHorizontal = ({
   description,
   image,
   imageAlt = '',
+  imageDesktop,
+  imageDesktopAlt = '',
+  imageMobile,
+  imageMobileAlt = '',
   linkText = '',
   linkAlt = '',
   href,
   onClick,
   customClassName = '',
+  ctaIconBefore = 'none',
+  ctaIconAfter = 'arrow',
+  clickBehavior = 'fullCard',
+  linkOpensIn = 'sameTab',
+  supportIcon = '',
+  badges = [],
   ...rest
 }) => {
   const [isHovered, setIsHovered] = useState(false);
   const [isFocused, setIsFocused] = useState(false);
 
-  const isClickable = !!(href || onClick);
+  // Card is only clickable if href exists AND clickBehavior is 'fullCard'
+  const isClickable = !!(href && clickBehavior === 'fullCard');
 
   // Base classes for horizontal layout
   // Parent container (mosaic) handles width and height
@@ -102,14 +113,50 @@ export const LinkCardHorizontal = ({
     setIsFocused(false);
   };
 
+  // Icon mapping
+  const iconMap = {
+    airplane: 'action/airplane',
+    calendar: 'action/calendar',
+    gift: 'action/gift',
+    star: 'action/star',
+    heart: 'action/heart',
+    ticket: 'action/ticket',
+    arrow: 'arrow-fordware',
+    'arrow-left': 'arrow-fordware',
+    'chevron-right': 'navigation/chevron-right',
+    'arrow-right': 'arrow-fordware',
+  };
+
+  const getIconSrc = (iconKey) => {
+    if (!iconKey || iconKey === 'none') return null;
+    // Filter out invalid values that aren't icon names
+    if (iconKey === 'fullCard' || iconKey === 'ctaOnly' || iconKey === 'sameTab' || iconKey === 'newTab') {
+      return null;
+    }
+    const iconPath = iconMap[iconKey] || iconKey;
+    return `${window.hlx?.codeBasePath || ''}/icons/${iconPath}.svg`;
+  };
+
+  const iconBeforeSrc = getIconSrc(ctaIconBefore);
+  const iconAfterSrc = getIconSrc(ctaIconAfter);
+
+  // Determine image source (priority: specific responsive images > fallback image prop)
+  const finalImageDesktop = imageDesktop || image;
+  const finalImageMobile = imageMobile || imageDesktop || image;
+  const finalImageDesktopAlt = imageDesktopAlt || imageAlt;
+  const finalImageMobileAlt = imageMobileAlt || imageDesktopAlt || imageAlt;
+
   // Render card content
   const renderCardContent = () => html`
     <!-- Image container -->
     <div class=${imageContainerClasses}>
       <picture class="w-full h-full">
+        ${finalImageMobile && finalImageMobile !== finalImageDesktop ? html`
+          <source media="(max-width: 767px)" srcset=${finalImageMobile} />
+        ` : null}
         <img
-          src=${image}
-          alt=${imageAlt}
+          src=${finalImageDesktop}
+          alt=${finalImageDesktopAlt}
           class="inset-0 max-w-none object-cover object-[top_center] pointer-events-none !w-full !h-full rounded-[16px]"
         />
       </picture>
@@ -135,14 +182,22 @@ export const LinkCardHorizontal = ({
           ariaLabel=${linkAlt}
           onClick=${handleLinkClick}
           size="default"
+          target=${linkOpensIn === 'newTab' ? '_blank' : undefined}
+          rel=${linkOpensIn === 'newTab' ? 'noopener noreferrer' : undefined}
         >
-          ${linkText}
-          <img
-            src=${`${window.hlx?.codeBasePath || ''}/icons/arrow-fordware.svg`}
+          ${iconBeforeSrc ? html`<img
+            src=${iconBeforeSrc}
             alt=""
-            class="block max-w-none w-[16px] h-[16px] shrink-0"
+            class=${`block max-w-none w-[16px] h-[16px] shrink-0 ${ctaIconBefore === 'arrow-left' ? 'rotate-180' : ''}`}
             aria-hidden="true"
-          />
+          />` : null}
+          ${linkText}
+          ${iconAfterSrc ? html`<img
+            src=${iconAfterSrc}
+            alt=""
+            class=${`block max-w-none w-[16px] h-[16px] shrink-0 ${ctaIconAfter === 'arrow-left' ? 'rotate-180' : ''}`}
+            aria-hidden="true"
+          />` : null}
         </${LinkButton}>
       </div>
     </div>
@@ -153,8 +208,9 @@ export const LinkCardHorizontal = ({
   // If clickable, render as button or a
   if (isClickable) {
     const Tag = href ? 'a' : 'button';
+    const targetAttr = (href && linkOpensIn === 'newTab') ? { target: '_blank', rel: 'noopener noreferrer' } : {};
     const elementProps = href
-      ? { href, ...rest }
+      ? { href, ...targetAttr, ...rest }
       : { type: 'button', ...rest };
 
     return html`
