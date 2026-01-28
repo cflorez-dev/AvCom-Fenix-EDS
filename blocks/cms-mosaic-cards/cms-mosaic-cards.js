@@ -422,11 +422,19 @@ export default async function decorate(block) {
 
     // Hide entire mosaic if filtering criteria not met
     if (targetCountries.length > 0 && currentCountry && !targetCountries.includes(currentCountry)) {
+      const section = block.closest('.section');
+      if (section) {
+        section.classList.add('!p-0', '!m-0', '!h-0', '!overflow-hidden');
+      }
       block.style.display = 'none';
       return;
     }
 
     if (targetLanguages.length > 0 && currentLang && !targetLanguages.includes(currentLang)) {
+      const section = block.closest('.section');
+      if (section) {
+        section.classList.add('!p-0', '!m-0', '!h-0', '!overflow-hidden');
+      }
       block.style.display = 'none';
       return;
     }

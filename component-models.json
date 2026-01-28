@@ -572,12 +572,264 @@
         "validation": {
           "customErrorMsg": "Please select a valid end date and time."
         }
+      },
+      {
+        "component": "multiselect",
+        "name": "target-countries",
+        "label": "Target Countries (POS)",
+        "valueType": "string",
+        "description": "Optional: Select target countries/POS. If empty, shows in all. Compared against 'selected-country' cookie (ISO-2 codes).",
+        "options": [
+          {
+            "name": "Argentina",
+            "value": "ar"
+          },
+          {
+            "name": "Bolivia",
+            "value": "bo"
+          },
+          {
+            "name": "Brasil",
+            "value": "br"
+          },
+          {
+            "name": "Canadá",
+            "value": "ca"
+          },
+          {
+            "name": "Chile",
+            "value": "cl"
+          },
+          {
+            "name": "Colombia",
+            "value": "co"
+          },
+          {
+            "name": "Costa Rica",
+            "value": "cr"
+          },
+          {
+            "name": "República Dominicana",
+            "value": "do"
+          },
+          {
+            "name": "Ecuador",
+            "value": "ec"
+          },
+          {
+            "name": "España",
+            "value": "eu"
+          },
+          {
+            "name": "Francia",
+            "value": "fr"
+          },
+          {
+            "name": "Reino Unido",
+            "value": "gb"
+          },
+          {
+            "name": "Guatemala",
+            "value": "gt"
+          },
+          {
+            "name": "Honduras",
+            "value": "hn"
+          },
+          {
+            "name": "México",
+            "value": "mx"
+          },
+          {
+            "name": "Nicaragua",
+            "value": "ni"
+          },
+          {
+            "name": "Otros",
+            "value": "ot"
+          },
+          {
+            "name": "Panamá",
+            "value": "pa"
+          },
+          {
+            "name": "Perú",
+            "value": "pe"
+          },
+          {
+            "name": "Paraguay",
+            "value": "py"
+          },
+          {
+            "name": "El Salvador",
+            "value": "sv"
+          },
+          {
+            "name": "Estados Unidos",
+            "value": "us"
+          },
+          {
+            "name": "Uruguay",
+            "value": "uy"
+          }
+        ]
+      },
+      {
+        "component": "multiselect",
+        "name": "target-languages",
+        "label": "Target Languages",
+        "valueType": "string",
+        "description": "Optional: Select target languages. If empty, shows in all. Compared against 'selected-language' cookie.",
+        "options": [
+          {
+            "name": "English",
+            "value": "en"
+          },
+          {
+            "name": "Spanish",
+            "value": "es"
+          },
+          {
+            "name": "French",
+            "value": "fr"
+          },
+          {
+            "name": "Portuguese",
+            "value": "pt"
+          }
+        ]
       }
     ]
   },
   {
     "id": "cms-informative-cards-rail",
     "fields": [
+      {
+        "component": "multiselect",
+        "name": "target-countries",
+        "label": "Target Countries (POS)",
+        "valueType": "string",
+        "description": "Optional: Select target countries/POS. If empty, shows in all. Compared against 'selected-country' cookie (ISO-2 codes).",
+        "options": [
+          {
+            "name": "Argentina",
+            "value": "ar"
+          },
+          {
+            "name": "Bolivia",
+            "value": "bo"
+          },
+          {
+            "name": "Brasil",
+            "value": "br"
+          },
+          {
+            "name": "Canadá",
+            "value": "ca"
+          },
+          {
+            "name": "Chile",
+            "value": "cl"
+          },
+          {
+            "name": "Colombia",
+            "value": "co"
+          },
+          {
+            "name": "Costa Rica",
+            "value": "cr"
+          },
+          {
+            "name": "República Dominicana",
+            "value": "do"
+          },
+          {
+            "name": "Ecuador",
+            "value": "ec"
+          },
+          {
+            "name": "España",
+            "value": "eu"
+          },
+          {
+            "name": "Francia",
+            "value": "fr"
+          },
+          {
+            "name": "Reino Unido",
+            "value": "gb"
+          },
+          {
+            "name": "Guatemala",
+            "value": "gt"
+          },
+          {
+            "name": "Honduras",
+            "value": "hn"
+          },
+          {
+            "name": "México",
+            "value": "mx"
+          },
+          {
+            "name": "Nicaragua",
+            "value": "ni"
+          },
+          {
+            "name": "Otros",
+            "value": "ot"
+          },
+          {
+            "name": "Panamá",
+            "value": "pa"
+          },
+          {
+            "name": "Perú",
+            "value": "pe"
+          },
+          {
+            "name": "Paraguay",
+            "value": "py"
+          },
+          {
+            "name": "El Salvador",
+            "value": "sv"
+          },
+          {
+            "name": "Estados Unidos",
+            "value": "us"
+          },
+          {
+            "name": "Uruguay",
+            "value": "uy"
+          }
+        ]
+      },
+      {
+        "component": "multiselect",
+        "name": "target-languages",
+        "label": "Target Languages",
+        "valueType": "string",
+        "description": "Optional: Select target languages. If empty, shows in all. Compared against 'selected-language' cookie.",
+        "options": [
+          {
+            "name": "English",
+            "value": "en"
+          },
+          {
+            "name": "Spanish",
+            "value": "es"
+          },
+          {
+            "name": "French",
+            "value": "fr"
+          },
+          {
+            "name": "Portuguese",
+            "value": "pt"
+          }
+        ]
+      },
       {
         "component": "select",
         "name": "cardVariant",
@@ -3564,6 +3816,255 @@
         "name": "description",
         "label": "Description",
         "value": ""
+      }
+    ]
+  },
+  {
+    "id": "cms-interactive-banner",
+    "fields": [
+      {
+        "component": "multiselect",
+        "name": "target-countries",
+        "label": "Target Countries (POS)",
+        "valueType": "string",
+        "description": "Optional: Select target countries/POS. If empty, shows in all. Compared against 'selected-country' cookie (ISO-2 codes).",
+        "options": [
+          {
+            "name": "Argentina",
+            "value": "ar"
+          },
+          {
+            "name": "Bolivia",
+            "value": "bo"
+          },
+          {
+            "name": "Brasil",
+            "value": "br"
+          },
+          {
+            "name": "Canadá",
+            "value": "ca"
+          },
+          {
+            "name": "Chile",
+            "value": "cl"
+          },
+          {
+            "name": "Colombia",
+            "value": "co"
+          },
+          {
+            "name": "Costa Rica",
+            "value": "cr"
+          },
+          {
+            "name": "República Dominicana",
+            "value": "do"
+          },
+          {
+            "name": "Ecuador",
+            "value": "ec"
+          },
+          {
+            "name": "España",
+            "value": "eu"
+          },
+          {
+            "name": "Francia",
+            "value": "fr"
+          },
+          {
+            "name": "Reino Unido",
+            "value": "gb"
+          },
+          {
+            "name": "Guatemala",
+            "value": "gt"
+          },
+          {
+            "name": "Honduras",
+            "value": "hn"
+          },
+          {
+            "name": "México",
+            "value": "mx"
+          },
+          {
+            "name": "Nicaragua",
+            "value": "ni"
+          },
+          {
+            "name": "Otros",
+            "value": "ot"
+          },
+          {
+            "name": "Panamá",
+            "value": "pa"
+          },
+          {
+            "name": "Perú",
+            "value": "pe"
+          },
+          {
+            "name": "Paraguay",
+            "value": "py"
+          },
+          {
+            "name": "El Salvador",
+            "value": "sv"
+          },
+          {
+            "name": "Estados Unidos",
+            "value": "us"
+          },
+          {
+            "name": "Uruguay",
+            "value": "uy"
+          }
+        ]
+      },
+      {
+        "component": "multiselect",
+        "name": "target-languages",
+        "label": "Target Languages",
+        "valueType": "string",
+        "description": "Optional: Select target languages. If empty, shows in all. Compared against 'selected-language' cookie.",
+        "options": [
+          {
+            "name": "English",
+            "value": "en"
+          },
+          {
+            "name": "Spanish",
+            "value": "es"
+          },
+          {
+            "name": "French",
+            "value": "fr"
+          },
+          {
+            "name": "Portuguese",
+            "value": "pt"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "cms-interactive-banner-item",
+    "fields": [
+      {
+        "component": "tab",
+        "label": "Default Panel",
+        "name": "defaultPanel"
+      },
+      {
+        "component": "text",
+        "valueType": "string",
+        "name": "defaultTitle",
+        "label": "Title",
+        "value": "",
+        "description": "Main heading displayed in the panel default state"
+      },
+      {
+        "component": "text",
+        "valueType": "string",
+        "name": "defaultDescriptionLine1",
+        "label": "Description Line 1",
+        "value": "",
+        "description": "First line of description (e.g., 'Business class'). If both lines are empty, media asset will be displayed instead"
+      },
+      {
+        "component": "text",
+        "valueType": "string",
+        "name": "defaultDescriptionLine2",
+        "label": "Description Line 2",
+        "value": "",
+        "description": "Second line of description (e.g., 'Américas'). Styled differently from line 1"
+      },
+      {
+        "component": "reference",
+        "valueType": "string",
+        "name": "defaultMedia",
+        "label": "Media Asset",
+        "multi": false,
+        "description": "Optional image or SVG. Only displayed if both description lines are empty"
+      },
+      {
+        "component": "reference",
+        "valueType": "string",
+        "name": "defaultBackgroundImage",
+        "label": "Background Image (Desktop)",
+        "multi": false,
+        "description": "Background image for panel default state on desktop"
+      },
+      {
+        "component": "reference",
+        "valueType": "string",
+        "name": "defaultBackgroundImageMobile",
+        "label": "Background Image (Mobile)",
+        "multi": false,
+        "description": "Background image for panel default state on mobile. If empty, uses desktop image."
+      },
+      {
+        "component": "tab",
+        "label": "Interactive Panel",
+        "name": "interactivePanel"
+      },
+      {
+        "component": "richtext",
+        "valueType": "string",
+        "name": "interactiveDescription",
+        "label": "Description",
+        "value": "",
+        "description": "Text content displayed when panel enters interactive state"
+      },
+      {
+        "component": "text",
+        "valueType": "string",
+        "name": "interactiveButtonText",
+        "label": "Button Text",
+        "value": "",
+        "description": "Call-to-action button text for interactive panel"
+      },
+      {
+        "component": "text",
+        "valueType": "string",
+        "name": "interactiveButtonUrl",
+        "label": "Button URL",
+        "value": "",
+        "description": "Link destination for CTA button (internal or external)"
+      },
+      {
+        "component": "boolean",
+        "valueType": "boolean",
+        "name": "interactiveButtonOpenInNewTab",
+        "label": "Open in New Tab",
+        "description": "If enabled, the button link will open in a new browser tab (target='_blank')"
+      },
+      {
+        "component": "text",
+        "valueType": "string",
+        "name": "interactiveOverlayBackground",
+        "label": "Overlay Background",
+        "value": "",
+        "description": "CSS background value for overlay (e.g., rgba(27,27,27,0.7), #1b1b1bb3, linear-gradient(...)). Default: rgba(27, 27, 27, 0.70)"
+      },
+      {
+        "component": "reference",
+        "valueType": "string",
+        "name": "interactiveBackgroundImage",
+        "label": "Background Image (Desktop)",
+        "multi": false,
+        "description": "Background image for panel interactive state on desktop"
+      },
+      {
+        "component": "reference",
+        "valueType": "string",
+        "name": "interactiveBackgroundImageMobile",
+        "label": "Background Image (Mobile)",
+        "multi": false,
+        "description": "Background image for panel interactive state on mobile. If empty, uses desktop image."
       }
     ]
   }

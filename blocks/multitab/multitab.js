@@ -141,28 +141,48 @@ export default async function decorate(block) {
 
   // Check feature flags
   if (!show) {
+    const section = block.closest('.section');
+    if (section) {
+      section.classList.add('!p-0', '!m-0', '!h-0', '!overflow-hidden');
+    }
     block.style.display = 'none';
     return;
   }
 
   if (enableFrom && now < enableFrom) {
+    const section = block.closest('.section');
+    if (section) {
+      section.classList.add('!p-0', '!m-0', '!h-0', '!overflow-hidden');
+    }
     block.style.display = 'none';
     return;
   }
 
   if (enableTo && now > enableTo) {
+    const section = block.closest('.section');
+    if (section) {
+      section.classList.add('!p-0', '!m-0', '!h-0', '!overflow-hidden');
+    }
     block.style.display = 'none';
     return;
   }
 
   // Target countries validation: only validate if both config AND cookie exist
   if (targetCountries.length > 0 && currentCountry && !targetCountries.includes(currentCountry)) {
+    const section = block.closest('.section');
+    if (section) {
+      section.classList.add('!p-0', '!m-0', '!h-0', '!overflow-hidden');
+    }
     block.style.display = 'none';
     return;
   }
 
   // Target languages validation: only validate if config exists
   if (targetLanguages.length > 0 && currentLang && !targetLanguages.includes(currentLang)) {
+    const section = block.closest('.section');
+    if (section) {
+      section.classList.add('!p-0', '!m-0', '!h-0', '!overflow-hidden');
+    }
     block.style.display = 'none';
     return;
   }
@@ -332,6 +352,43 @@ export default async function decorate(block) {
     `.trim().replace(/\s+/g, ' ');
     tabButton.style.pointerEvents = 'auto';
 
+    // Add focus indicator styling
+    tabButton.addEventListener('focus', (e) => {
+      if (e.target.matches(':focus-visible')) {
+        const existingFocusIndicator = e.target.querySelector('[data-name="focus-indicator"]');
+        if (!existingFocusIndicator) {
+          const focusIndicator = document.createElement('div');
+          focusIndicator.className = 'absolute inset-0 border-2 border-[var(--border-stroke-focus,#1d9bf0)] pointer-events-none z-[3]';
+          focusIndicator.setAttribute('data-name', 'focus-indicator');
+          e.target.appendChild(focusIndicator);
+        }
+
+        // Change text styles to focused state (font-normal, secondary color)
+        const titleContainer = e.target.querySelector('div[class*="gap-[4px]"]');
+        const labelSpan = titleContainer?.querySelector('span:not([data-name="icon"])');
+        if (labelSpan) {
+          labelSpan.classList.remove('font-bold', 'text-[var(--text-normal-primary)]');
+          labelSpan.classList.add('font-normal', 'text-[var(--text-normal-secondary)]');
+        }
+      }
+    });
+
+    tabButton.addEventListener('blur', (e) => {
+      const focusIndicator = e.target.querySelector('[data-name="focus-indicator"]');
+      if (focusIndicator) {
+        focusIndicator.remove();
+      }
+
+      // Restore original text styles based on active state
+      const isActiveTab = e.target.getAttribute('aria-selected') === 'true';
+      const titleContainer = e.target.querySelector('div[class*="gap-[4px]"]');
+      const labelSpan = titleContainer?.querySelector('span:not([data-name="icon"])');
+      if (labelSpan && isActiveTab) {
+        labelSpan.classList.remove('font-normal', 'text-[var(--text-normal-secondary)]');
+        labelSpan.classList.add('font-bold', 'text-[var(--text-normal-primary)]');
+      }
+    });
+
     tabButton.setAttribute('role', 'tab');
     tabButton.setAttribute('aria-selected', isActive ? 'true' : 'false');
     tabButton.setAttribute('aria-controls', `panel-${tabData.id}`);
@@ -359,7 +416,7 @@ export default async function decorate(block) {
     const labelSpan = document.createElement('span');
     // Mobile: single line for all tabs (active and inactive)
     labelSpan.className = `
-      ${primaryFontSize} leading-normal whitespace-nowrap
+      font-[var(--family-red-hat-display)] ${primaryFontSize} leading-normal whitespace-nowrap tracking-[var(--letter-spacing-normal)]
       ${isActive ? 'font-bold text-[var(--text-normal-primary)]' : 'font-normal text-[var(--text-normal-secondary)]'}
     `.trim().replace(/\s+/g, ' ');
     labelSpan.textContent = tabData.label;
@@ -381,7 +438,7 @@ export default async function decorate(block) {
     if (tabData.secondaryLabel) {
       const secondarySpan = document.createElement('span');
       secondarySpan.className = `
-        ${secondaryFontSize} font-normal leading-[1.5] whitespace-nowrap
+        font-[var(--family-red-hat-display)] ${secondaryFontSize} font-normal leading-[1.5] whitespace-nowrap tracking-[var(--letter-spacing-normal)]
         text-[var(--text-normal-secondary)] z-[4]
       `.trim().replace(/\s+/g, ' ');
       secondarySpan.textContent = tabData.secondaryLabel;
@@ -413,6 +470,14 @@ export default async function decorate(block) {
           hoverIndicator.setAttribute('data-name', 'hover-indicator');
           target.appendChild(hoverIndicator);
         }
+
+        // Change primary text color to primary on hover
+        const titleContainer = target.querySelector('div[class*="gap-[4px]"]');
+        const labelSpan = titleContainer?.querySelector('span:not([data-name="icon"])');
+        if (labelSpan) {
+          labelSpan.classList.remove('text-[var(--text-normal-secondary)]');
+          labelSpan.classList.add('text-[var(--text-normal-primary)]');
+        }
       }
     };
 
@@ -421,6 +486,14 @@ export default async function decorate(block) {
       const hoverIndicator = target.querySelector('[data-name="hover-indicator"]');
       if (hoverIndicator) {
         hoverIndicator.remove();
+      }
+
+      // Restore secondary text color when not hovering
+      const titleContainer = target.querySelector('div[class*="gap-[4px]"]');
+      const labelSpan = titleContainer?.querySelector('span:not([data-name="icon"])');
+      if (labelSpan && target.getAttribute('aria-selected') !== 'true') {
+        labelSpan.classList.remove('text-[var(--text-normal-primary)]');
+        labelSpan.classList.add('text-[var(--text-normal-secondary)]');
       }
     };
 

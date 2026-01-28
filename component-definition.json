@@ -797,6 +797,37 @@
               }
             }
           }
+        },
+        {
+          "title": "CMS Interactive Banner",
+          "id": "cms-interactive-banner",
+          "plugins": {
+            "xwalk": {
+              "page": {
+                "resourceType": "core/franklin/components/block/v1/block",
+                "template": {
+                  "name": "CMS Interactive Banner",
+                  "model": "cms-interactive-banner",
+                  "filter": "cms-interactive-banner"
+                }
+              }
+            }
+          }
+        },
+        {
+          "title": "CMS Interactive Banner Item",
+          "id": "cms-interactive-banner-item",
+          "plugins": {
+            "xwalk": {
+              "page": {
+                "resourceType": "core/franklin/components/block/v1/block",
+                "template": {
+                  "name": "CMS Interactive Banner Item",
+                  "model": "cms-interactive-banner-item"
+                }
+              }
+            }
+          }
         }
       ]
     }

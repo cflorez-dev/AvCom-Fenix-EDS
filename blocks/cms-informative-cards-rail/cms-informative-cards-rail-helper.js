@@ -1,61 +1,4 @@
 /**
- * Extracts props from a CMS Informative Cards Rail block.
- * 
- * Block structure:
- * - Row 0: Variant (horizontal/vertical)
- * - Row 1: Loading strategy (lazy/eager)
- * - Rows 2+: Card data rows
- * 
- * Each card row contains cells with:
- * - Cell 0: Image - picture element
- * - Cell 1: Title - p element
- * - Cell 2: Details/Description - p element
- * - Cell 3: Action Type - p element ("none", "chevron") OR Empty (if button)
- * - Cell 4: Button text - p element (if action is button) OR Empty
- * - Cell 5: Link URL - .button-container > p > a OR p > a
- * 
- * @param {Element} block - The CMS Informative Cards Rail block element
- * @returns {Object} Configuration object with variant, gap, and cards array
- */
-export function extractCmsInformativeCardsRailProps(block) {
-  if (!block) return { variant: 'horizontal', gap: '16px', cards: [] };
-
-  const rows = [...block.children];
-  const props = {
-    variant: 'horizontal',
-    gap: '16px',
-    cards: [],
-  };
-
-  // Extract variant from row 0
-  if (rows[0]) {
-    const variantCell = rows[0].querySelector('div > p');
-    if (variantCell) {
-      const variantValue = variantCell.textContent.trim().toLowerCase();
-      props.variant = variantValue === 'vertical' ? 'vertical' : 'horizontal';
-    }
-  }
-
-  // Extract cards starting from row 2
-  for (let i = 2; i < rows.length; i += 1) {
-    const row = rows[i];
-    const cells = [...row.children];
-
-    // Skip if row doesn't have enough cells
-    if (cells.length < 6) continue;
-
-    const card = extractCardFromRow(cells);
-    
-    // Only add card if it has minimum required data
-    if (card.title || card.image) {
-      props.cards.push(card);
-    }
-  }
-
-  return props;
-}
-
-/**
  * Extracts a single card's data from a row's cells
  * @param {Array<Element>} cells - Array of cell elements
  * @returns {Object} Card data object
@@ -119,18 +62,18 @@ function extractCardFromRow(cells) {
   }
 
   // Determine action type based on cells 3 and 4
-  if (buttonTextFromCell4) {
-    // Cell 4 has button text -> it's a button
-    card.actionType = 'button';
-    card.buttonText = buttonTextFromCell4;
-    card.showChevron = false;
-  } else if (actionTypeFromCell3 === 'chevron') {
-    // Cell 3 says "chevron"
+  if (actionTypeFromCell3 === 'chevron') {
+    // Cell 3 says "chevron" - take priority
     card.actionType = 'chevron';
     card.showChevron = true;
   } else if (actionTypeFromCell3 === 'none') {
-    // Cell 3 says "none"
+    // Cell 3 says "none" - take priority
     card.actionType = 'none';
+    card.showChevron = false;
+  } else if (buttonTextFromCell4) {
+    // Cell 3 is empty/other AND Cell 4 has button text -> it's a button
+    card.actionType = 'button';
+    card.buttonText = buttonTextFromCell4;
     card.showChevron = false;
   } else {
     // Default to chevron if nothing specified
@@ -152,6 +95,147 @@ function extractCardFromRow(cells) {
   }
 
   return card;
+}
+
+/**
+ * Reads parent configuration from first rows
+ * Uses semantic detection instead of fixed positions to handle optional fields
+ * @param {Element} block - The block element
+ * @returns {Object} Parent configuration with configRowCount
+ */
+function readParentConfig(block) {
+  const rows = [...block.children];
+  const config = {
+    targetCountries: '',
+    targetLanguages: '',
+    variant: 'horizontal',
+    loading: 'lazy',
+    configRowCount: 0, // Track how many rows are config vs cards
+  };
+
+  // Known values for semantic detection
+  const variantValues = ['horizontal', 'vertical'];
+  const loadingValues = ['lazy', 'eager'];
+
+  let foundVariant = false;
+  let foundLoading = false;
+
+  // Iterate through rows and detect config values semantically
+  for (let i = 0; i < rows.length; i += 1) {
+    const row = rows[i];
+    const cell = row.querySelector('div > p');
+    const value = cell?.textContent?.trim().toLowerCase() || '';
+
+    if (!value) {
+      // Empty row might be end of config, but continue checking
+      // eslint-disable-next-line no-continue
+      continue;
+    }
+
+    // Check if this is variant
+    if (variantValues.includes(value)) {
+      config.variant = value;
+      foundVariant = true;
+      config.configRowCount = i + 1;
+      // eslint-disable-next-line no-continue
+      continue;
+    }
+
+    // Check if this is loading
+    if (loadingValues.includes(value)) {
+      config.loading = value;
+      foundLoading = true;
+      config.configRowCount = i + 1;
+      // eslint-disable-next-line no-continue
+      continue;
+    }
+
+    // If we found both variant and loading, remaining rows are cards
+    if (foundVariant && foundLoading) {
+      break;
+    }
+
+    // Check if this row is a card (has image in first cell)
+    const firstCell = row.children[0];
+    const hasImage = firstCell?.querySelector('picture img');
+    if (hasImage) {
+      // This is a card row, stop config parsing
+      break;
+    }
+
+    // Otherwise, treat as target country/language (comma-separated values or country codes)
+    // Country codes are typically 2-letter (co, us, mx) or language codes (es, en)
+    // Could be comma-separated: "co,mx,ec" or single value: "co"
+    const isCountryOrLangFormat = /^[a-z]{2}(,[a-z]{2})*$/i.test(value);
+
+    if (isCountryOrLangFormat) {
+      // First occurrence: target countries
+      // Second occurrence: target languages
+      if (!config.targetCountries) {
+        config.targetCountries = value;
+        config.configRowCount = i + 1;
+      } else if (!config.targetLanguages) {
+        config.targetLanguages = value;
+        config.configRowCount = i + 1;
+      }
+    }
+  }
+
+  return config;
+}
+
+/**
+ * Extracts props from a CMS Informative Cards Rail block.
+ * Block structure (flexible order, optional fields):
+ * - Target Countries (optional, comma-separated, e.g., "co,mx,ec")
+ * - Target Languages (optional, comma-separated, e.g., "es,en")
+ * - Variant (required, "horizontal" or "vertical")
+ * - Loading strategy (required, "lazy" or "eager")
+ * - Card data rows (one row per card)
+ * Each card row contains cells with:
+ * - Cell 0: Image - picture element
+ * - Cell 1: Title - p element
+ * - Cell 2: Details/Description - p element
+ * - Cell 3: Action Type - p element ("none", "chevron") OR Empty (if button)
+ * - Cell 4: Button text - p element (if action is button) OR Empty
+ * - Cell 5: Link URL - .button-container > p > a OR p > a
+ * @param {Element} block - The CMS Informative Cards Rail block element
+ * @returns {Object} Configuration object with variant, gap, and cards array
+ */
+export function extractCmsInformativeCardsRailProps(block) {
+  if (!block) return { variant: 'horizontal', gap: '16px', cards: [] };
+
+  const rows = [...block.children];
+  const config = readParentConfig(block);
+
+  const props = {
+    variant: config.variant === 'vertical' ? 'vertical' : 'horizontal',
+    gap: '16px',
+    cards: [],
+    targetCountries: config.targetCountries,
+    targetLanguages: config.targetLanguages,
+  };
+
+  // Extract cards starting from the row after config rows
+  // Use configRowCount to determine where cards start
+  const cardStartIndex = config.configRowCount || 0;
+
+  for (let i = cardStartIndex; i < rows.length; i += 1) {
+    const row = rows[i];
+    const cells = [...row.children];
+
+    // Skip if row doesn't have enough cells
+    if (cells.length >= 6) {
+      const card = extractCardFromRow(cells);
+
+      // Only add card if it has minimum required data
+      if (card.title || card.image) {
+        props.cards.push(card);
+      }
+    }
+  }
+
+  return props;
 }
 
 /**

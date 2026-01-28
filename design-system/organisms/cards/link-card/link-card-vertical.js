@@ -45,7 +45,6 @@ export const LinkCardVertical = ({
   ...rest
 }) => {
   const [isHovered, setIsHovered] = useState(false);
-  const [isFocused, setIsFocused] = useState(false);
 
   // Card is only clickable if href exists AND clickBehavior is 'fullCard'
   const isClickable = !!(href && clickBehavior === 'fullCard');
@@ -61,9 +60,9 @@ export const LinkCardVertical = ({
     + 'border border-solid border-[var(--border-stroke-default)] '
     + 'flex flex-col items-start justify-start '
     + 'hover:shadow-[0_2px_20px_2px_rgba(73,73,73,0.25)] '
-    + 'focus:!border-[var(--focus-primary)] focus:shadow-[0_2px_20px_2px_rgba(73,73,73,0.25)] '
-    + 'focus:outline focus:outline-2 focus:outline-[var(--focus-primary)] focus:outline-offset-2 '
-    + 'active:!border-[var(--focus-primary)] active:shadow-[0_2px_20px_2px_rgba(73,73,73,0.25)]';
+    + 'focus-visible:!border-[var(--focus-primary)] focus-visible:shadow-[0_2px_20px_2px_rgba(73,73,73,0.25)] '
+    + 'focus-visible:outline focus-visible:outline-2 focus-visible:outline-[var(--focus-primary)] focus-visible:outline-offset-2 '
+    + '';
 
   // Image container classes - fixed heights for mobile/tablet, responsive for desktop
   let imageContainerClasses = 'image-container flex items-center justify-start md:flex-1 '
@@ -118,15 +117,12 @@ export const LinkCardVertical = ({
     }
   };
 
-  // Handler for card focus
-  const handleFocus = () => {
-    if (isClickable) {
-      setIsFocused(true);
+  // Handler for keyboard navigation
+  const handleKeyDown = (e) => {
+    if (isClickable && (e.key === 'Enter' || e.key === ' ')) {
+      e.preventDefault();
+      handleCardClick(e);
     }
-  };
-
-  const handleBlur = () => {
-    setIsFocused(false);
   };
 
   // Icon mapping
@@ -234,10 +230,9 @@ export const LinkCardVertical = ({
         class=${finalClasses}
         data-name="linkCardVertical"
         onClick=${handleCardClick}
+        onKeyDown=${handleKeyDown}
         onMouseEnter=${() => setIsHovered(true)}
         onMouseLeave=${() => setIsHovered(false)}
-        onFocus=${handleFocus}
-        onBlur=${handleBlur}
         ...${elementProps}
       >
         ${renderCardContent()}
@@ -250,6 +245,7 @@ export const LinkCardVertical = ({
     <div
       class=${finalClasses}
       data-name="linkCardVertical"
+      tabIndex=${0}
       onMouseEnter=${() => setIsHovered(true)}
       onMouseLeave=${() => setIsHovered(false)}
       ...${rest}
