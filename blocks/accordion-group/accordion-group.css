@@ -180,16 +180,8 @@
     padding: var(--spacing-x-large, 24px) var(--spacing-x-large, 24px) var(--spacing-large, 20px);
 }
 
-.accordion-group-trigger:focus {
-    outline: 2px solid var(--focus-ring-color, #0066cc);
-    outline-offset: -2px;
-}
-
-.accordion-group-trigger:focus-visible {
-    outline: 2px solid var(--focus-ring-color, #0066cc);
-    outline-offset: -2px;
-}
-
+.accordion-group-trigger:focus,
+.accordion-group-trigger:focus-visible,
 .accordion-group-trigger:focus:not(:focus-visible) {
     outline: none;
 }

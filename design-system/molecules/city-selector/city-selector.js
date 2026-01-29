@@ -419,7 +419,7 @@ export const CitySelector = ({
         class="
           w-full p-4 text-left cursor-pointer transition-[background-color]
           ${isItemFocused ? 'bg-background-card-lighter' : 'bg-background-brand-secondary-default'}
-          ${isSelected ? 'bg-background-brand-primary-lighter' : ''}
+          ${isSelected ? 'bg-background-brand-primary-lighter relative' : ''}
           hover:bg-[var(--bg-hover-light)] group
           focus-visible:border-[var(--color-border-stroke-focus)] focus-visible:outline-none focus-visible:border-2
           active:bg-[var(--state-hover-darken)] active:text-[var(--text-brand-light)]
@@ -430,6 +430,9 @@ export const CitySelector = ({
         role="option"
         aria-selected=${isSelected}
       >
+        ${isSelected && html`
+          <div class="h-9 w-[4px] bg-[var(--green-primary)] absolute left-0 top-0 bottom-0 my-auto" aria-hidden="true"></div>
+        `}
         <div class="flex flex-col gap-[4px]">
           <!-- Primera fila: Ciudad, País y Código IATA -->
           <div class="flex justify-between items-center">

@@ -95,8 +95,7 @@ export const fetchCities = async ({
       }
     }
 
-    const citiesFiltered = cities.filter((city) => city.active);
-    return citiesFiltered;
+    return cities;
   } catch (error) {
     console.error('Error fetching cities:', error);
 

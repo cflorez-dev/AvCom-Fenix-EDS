@@ -220,6 +220,7 @@ export default function decorate(block) {
   let dismissStrategy = 'session';
   let isSticky = true;
   let marqueeMode = 'auto';
+  let linkTarget = 'self';
   let alertId = '';
   let publishStart = '';
   let publishEnd = '';
@@ -263,29 +264,44 @@ export default function decorate(block) {
       }
     }
 
-    // Read targeting rows (7, 8, 9)
+    if (rows[7]?.children[0]?.textContent?.trim()) {
+      const targetText = rows[7].children[0].textContent.trim().toLowerCase();
+      if (['self', 'blank'].includes(targetText)) {
+        linkTarget = targetText;
+      }
+    }
+
+    // Allow block config to override linkTarget (for consistency with marqueeMode and dismissStrategy)
+    const config = readBlockConfig(block);
+    if (config?.linkTarget) {
+      const configTarget = String(config.linkTarget).trim().toLowerCase();
+      if (['self', 'blank'].includes(configTarget)) {
+        linkTarget = configTarget;
+      }
+    }
+    // Read targeting rows (8, 9, 10)
     let targetMarkets = '';
     let targetLanguages = '';
     let targetPageTypes = '';
 
-    if (rows[7]?.children[0]?.textContent?.trim()) {
-      targetMarkets = rows[7].children[0].textContent.trim();
-    }
-
     if (rows[8]?.children[0]?.textContent?.trim()) {
-      targetLanguages = rows[8].children[0].textContent.trim();
+      targetMarkets = rows[8].children[0].textContent.trim();
     }
 
     if (rows[9]?.children[0]?.textContent?.trim()) {
-      targetPageTypes = rows[9].children[0].textContent.trim();
+      targetLanguages = rows[9].children[0].textContent.trim();
     }
 
     if (rows[10]?.children[0]?.textContent?.trim()) {
-      publishStart = rows[10].children[0].textContent.trim();
+      targetPageTypes = rows[10].children[0].textContent.trim();
     }
 
     if (rows[11]?.children[0]?.textContent?.trim()) {
-      publishEnd = rows[11].children[0].textContent.trim();
+      publishStart = rows[11].children[0].textContent.trim();
+    }
+
+    if (rows[12]?.children[0]?.textContent?.trim()) {
+      publishEnd = rows[12].children[0].textContent.trim();
     }
 
     // Set targeting values in config
@@ -308,7 +324,8 @@ export default function decorate(block) {
           'targetpagetypes', 'publishstart', 'publishend', 'alert type', 'alerttype',
           'show dismiss button', 'showdismissbutton', 'dismiss strategy',
           'sticky position', 'stickyposition', 'marquee mode', 'marqueemode',
-          'marquee speed', 'marqueespeed', 'alert id', 'alertid'].includes(key);
+          'marquee speed', 'marqueespeed', 'alert id', 'alertid',
+          'linktarget', 'link target'].includes(key);
       });
 
       if (firstContentRow && firstContentRow.children[1]) {
@@ -321,6 +338,7 @@ export default function decorate(block) {
     dismissStrategy = config.dismissstrategy || config['dismiss strategy'] || 'session';
     isSticky = (config.issticky || config['sticky position'] || config.stickyposition) !== 'false';
     marqueeMode = config.marqueemode || config['marquee mode'] || 'auto';
+    linkTarget = config.linktarget || config['link target'] || 'self';
     alertId = config.alertid || config['alert id'] || '';
     publishStart = config.publishstart || config['publish start date'] || config.publishstartdate || '';
     publishEnd = config.publishend || config['publish end date'] || config.publishenddate || '';
@@ -359,6 +377,7 @@ export default function decorate(block) {
           alertId=${alertId}
           isSticky=${false}
           marqueeMode=${marqueeMode}
+          linkTarget=${linkTarget}
           customClassName="marquesina-block"
         />
       `,
@@ -382,6 +401,7 @@ export default function decorate(block) {
         alertId=${alertId}
         isSticky=${isSticky}
         marqueeMode=${marqueeMode}
+        linkTarget=${linkTarget}
         customClassName="marquesina-block"
       />
     `,

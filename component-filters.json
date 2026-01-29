@@ -18,6 +18,7 @@
       "fragment",
       "design-system-block",
       "cms-alert",
+      "cms-modal",
       "cms-rich-text",
       "cms-hero-banner",
       "cms-secondary-banner",
@@ -28,9 +29,11 @@
       "cms-mosaic-cards",
       "cms-background-image",
       "form-header-banner",
+      "form-hero-header-banner",
       "back-to-top-button",
       "breadcrumb",
       "marquesina",
+      "multitab",
       "origin-dropdown-selector",
       "header-logo",
       "header-language-selector",
@@ -43,7 +46,9 @@
       "cms-sticky-countdown-banner",
       "cms-loader",
       "booking-box",
-      "accordion-group"
+      "accordion-group",
+      "tips-cards",
+      "cms-interactive-banner"
     ]
   },
   {
@@ -125,6 +130,18 @@
     "id": "booking-box",
     "components": [
       "booking-box-button"
+    ]
+  },
+  {
+    "id": "tips-cards",
+    "components": [
+      "tips-card-item"
+    ]
+  },
+  {
+    "id": "cms-interactive-banner",
+    "components": [
+      "cms-interactive-banner-item"
     ]
   }
 ]

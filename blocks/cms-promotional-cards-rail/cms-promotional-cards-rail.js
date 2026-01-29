@@ -105,9 +105,9 @@ function getCityNameFromIata(iataCode) {
  * Maps offer data to PromotionCard props
  * @param {Object} oferta - Offer data
  * @param {Object} blockConfig - Block configuration
- * @returns {Object} Props for PromotionCard
+ * @returns {Promise<Object>} Props for PromotionCard
  */
-function mapOfertaToCardProps(oferta, blockConfig) {
+async function mapOfertaToCardProps(oferta, blockConfig) {
   const {
     imageBasePath,
     imageFormat,
@@ -153,7 +153,7 @@ function mapOfertaToCardProps(oferta, blockConfig) {
   const lifemilesTagText = lifemilesTagData?.Text;
 
   return {
-    image: buildIataImageUrl(destinationCode, imageBasePath, imageFormat),
+    image: await buildIataImageUrl(destinationCode, imageBasePath, imageFormat),
     imageAlt: cityName,
     destination: cityName,
     label,
@@ -175,7 +175,7 @@ function mapOfertaToCardProps(oferta, blockConfig) {
  * @param {Array} ofertas - Array of offers to render
  * @param {Object} blockConfig - Block configuration
  */
-function renderCards(container, ofertas, blockConfig) {
+async function renderCards(container, ofertas, blockConfig) {
   container.innerHTML = '';
 
   if (!ofertas || ofertas.length === 0) {
@@ -183,17 +183,17 @@ function renderCards(container, ofertas, blockConfig) {
     return;
   }
 
-  ofertas.forEach((oferta) => {
+  const cardPromises = ofertas.map(async (oferta) => {
     const cardWrapper = document.createElement('li');
     cardWrapper.className = 'flex-1';
 
-    const cardProps = mapOfertaToCardProps(oferta, blockConfig);
+    const cardProps = await mapOfertaToCardProps(oferta, blockConfig);
     const destinationUrl = oferta.Link || '#';
 
     render(
       html`
-        <${PromotionCard} 
-          ...${cardProps} 
+        <${PromotionCard}
+          ...${cardProps}
           onClick=${() => {
     if (destinationUrl && destinationUrl !== '#') {
       window.location.href = destinationUrl;
@@ -204,8 +204,11 @@ function renderCards(container, ofertas, blockConfig) {
       cardWrapper,
     );
 
-    container.appendChild(cardWrapper);
+    return cardWrapper;
   });
+
+  const cardWrappers = await Promise.all(cardPromises);
+  cardWrappers.forEach((cardWrapper) => container.appendChild(cardWrapper));
 }
 
 /**
@@ -251,7 +254,7 @@ async function initializeDataCaches() {
  * @param {Object} blockConfig - Block configuration
  */
 function setupOriginChangeListener(container, currentOrigin, blockConfig) {
-  window.addEventListener(CITY_FROM_ORIGIN_DROPDOWN_EVENT, (event) => {
+  window.addEventListener(CITY_FROM_ORIGIN_DROPDOWN_EVENT, async (event) => {
     const { originIataCode, originName } = event.detail || {};
 
     if (originIataCode) {
@@ -259,7 +262,7 @@ function setupOriginChangeListener(container, currentOrigin, blockConfig) {
       currentOrigin.originName = originName;
 
       const newOfertas = filterOfertasByConfig(briefofertasCache, originIataCode);
-      renderCards(container, newOfertas, blockConfig);
+      await renderCards(container, newOfertas, blockConfig);
     }
   });
 }
@@ -306,7 +309,7 @@ export default async function decorate(block) {
     briefofertasCache,
     currentOrigin.originIataCode,
   );
-  renderCards(container, initialOfertas, blockConfig);
+  await renderCards(container, initialOfertas, blockConfig);
 
   // Render CTA button
   if (showButton) {

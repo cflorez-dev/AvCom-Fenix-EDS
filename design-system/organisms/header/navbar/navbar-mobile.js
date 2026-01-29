@@ -40,20 +40,11 @@ export const NavbarMobile = ({
   const [showLanguageForm, setShowLanguageForm] = useState(false);
   const [menuIcon, setMenuIcon] = useState(null);
   const [chevronIcon, setChevronIcon] = useState(null);
-  const [arrowForwardIcon, setArrowForwardIcon] = useState(null);
   const [backIcon, setBackIcon] = useState(null);
 
   // Get all countries and languages from service (load once)
   const allCountries = getCountries();
   const allLanguages = getLanguages();
-
-  // Close icon as inline SVG (no file loading needed)
-  const closeIconSVG = html`
-  <svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg" class="text-[var(--color-text-normal-primary)]">
-  <path d="M0 0L14 14" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-  <path d="M14 0L0 14" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-</svg>
-  `;
 
   useEffect(() => {
     const loadIcons = async () => {
@@ -66,13 +57,11 @@ export const NavbarMobile = ({
 
         const menuIconPath = buildIconPath('menu.svg', codeBasePath);
         const chevronIconPath = buildIconPath('chevron-right.svg', codeBasePath);
-        const arrowForwardIconPath = buildIconPath('arrow-fordware.svg', codeBasePath);
         const backIconPath = buildIconPath('back-icon.svg', codeBasePath);
 
         const [
           menuIconSVG,
           chevronIconSVG,
-          arrowForwardIconSVG,
           backIconSVG,
         ] = await Promise.all([
           loadSVGIcon(menuIconPath).catch((err) => {
@@ -85,11 +74,6 @@ export const NavbarMobile = ({
             console.error('Error loading chevron icon:', chevronIconPath, err);
             return null;
           }),
-          loadSVGIcon(arrowForwardIconPath).catch((err) => {
-            // eslint-disable-next-line no-console
-            console.error('Error loading arrow forward icon:', arrowForwardIconPath, err);
-            return null;
-          }),
           loadSVGIcon(backIconPath).catch((err) => {
             // eslint-disable-next-line no-console
             console.error('Error loading back icon:', backIconPath, err);
@@ -99,7 +83,6 @@ export const NavbarMobile = ({
 
         setMenuIcon(menuIconSVG);
         setChevronIcon(chevronIconSVG);
-        setArrowForwardIcon(arrowForwardIconSVG);
         setBackIcon(backIconSVG);
       } catch (error) {
         // eslint-disable-next-line no-console
@@ -317,6 +300,7 @@ export const NavbarMobile = ({
           <ul class="list-none p-0 m-0 flex flex-col">
             ${selectedSection.subItems.map((subItem) => {
     const [isHovered, setIsHovered] = useState(false);
+    const isExternalLink = subItem.url && subItem.url.startsWith('http');
     return html`
                 <li
                   onMouseEnter=${() => setIsHovered(true)}
@@ -327,12 +311,18 @@ export const NavbarMobile = ({
                   <div class="w-full flex items-center justify-center h-[56px] py-[16px] px-[16px] text-[16px] group-hover:translate-x-2 transition-transform" >
                     <a
                       href=${subItem.url || '#'}
+                      target=${isExternalLink ? '_blank' : undefined}
+                      rel=${isExternalLink ? 'noopener noreferrer' : undefined}
                       class="flex items-center justify-between no-underline text-base font-medium text-[var(--text-normal-secondary)] w-full transition-colors hover:text-[var(--brand-secondary)] active:text-[var(--brand-secondary)] focus-visible:outline-none focus-visible:ring-0 [&:hover]:scale-100"
                       onClick=${handleNavLinkClick}
                     >
                       <span class=${`sub-item-link-text  h-[21px] ${isHovered ? 'text-[var(--brand-secondary)]' : 'text-[var(--text-normal-secondary)]'}`}>${subItem.itemLabel}</span>
                       <span class=${`w-6 h-6 inline-flex items-center justify-center shrink-0 ml-3 ${isHovered ? 'text-[var(--brand-secondary)]' : 'text-[var(--text-normal-secondary)]'}`}>
-                        ${renderIcon(arrowForwardIcon, '12')}
+                        <${Icon}
+                          icon=${isExternalLink ? 'navigation/open-in-new-16' : 'navigation/arrow-forward-16'}
+                          size="s"
+                          customClassName=${isHovered ? 'text-[var(--brand-secondary)]' : 'text-[var(--text-normal-secondary)]'}
+                        />
                       </span>
                     </a>
                   </div>
@@ -388,7 +378,7 @@ export const NavbarMobile = ({
               class="inline-flex items-center justify-center w-6 h-6 p-0 bg-transparent border-none cursor-pointer rounded text-[var(--brand-primary)] transition-colors"
               onClick=${handleCloseModal}
             >
-              ${closeIconSVG}
+              <${Icon} icon="action/close-14" size="xl" color="var(--brand-primary)" />
             </button>
           </header>
           <div class="px-[16px] lg:px-8">

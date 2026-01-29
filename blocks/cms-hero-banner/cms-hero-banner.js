@@ -1,8 +1,10 @@
 import { h, render } from '@dropins/tools/preact.js';
+import { useEffect } from '@dropins/tools/preact-hooks.js';
 import htm from 'htm';
 import { readBlockConfig, loadCSS } from '../../scripts/aem.js';
 import { PromotionalCountdownCard, AbsoluteCountdown } from '../../design-system/molecules/promotional-countdown-card/promotional-countdown-card.js';
 import { fetchAEMData } from '../../scripts/utils/aem-data.js';
+import { getStoredCountry, getStoredLanguage } from '../../scripts/services/header/language-country-selector.js';
 
 const html = htm.bind(h);
 
@@ -73,6 +75,9 @@ export default async function decorate(block) {
     enddate = null,
   } = config;
 
+  const targetcountries = config['target-countries'] || '';
+  const targetlanguages = config['target-languages'] || '';
+
   // Load i18n cache
   if (!i18Cache) {
     const language = getLanguageFromCookie();
@@ -86,12 +91,60 @@ export default async function decorate(block) {
   const minutesLabel = getI18nLabel('cms-hero-banner.counter.labels.minutes') || 'Min';
   const secondsLabel = getI18nLabel('cms-hero-banner.counter.labels.seconds') || 'Seg';
 
+  // Country/Language filtering
+  const targetCountries = targetcountries
+    ? targetcountries.split(',').map((country) => country.trim().toLowerCase())
+    : [];
+  const targetLanguages = targetlanguages
+    ? targetlanguages.split(',').map((lang) => lang.trim().toLowerCase())
+    : [];
+
+  const currentCountry = getStoredCountry()?.toLowerCase() || '';
+  const currentLang = getStoredLanguage()?.toLowerCase() || document.documentElement.lang?.toLowerCase() || 'en';
+
+  // Target countries validation: only validate if both config AND cookie exist
+  if (targetCountries.length > 0 && currentCountry && !targetCountries.includes(currentCountry)) {
+    const section = block.closest('.section');
+    if (section) {
+      section.classList.add('!p-0', '!m-0', '!h-0', '!overflow-hidden');
+    }
+    block.classList.add('hidden');
+    return;
+  }
+
+  // Target languages validation: only validate if config exists
+  if (targetLanguages.length > 0 && currentLang && !targetLanguages.includes(currentLang)) {
+    const section = block.closest('.section');
+    if (section) {
+      section.classList.add('!p-0', '!m-0', '!h-0', '!overflow-hidden');
+    }
+    block.classList.add('hidden');
+    return;
+  }
+
   // Check if should show based on start date
   const now = getColombiaTime();
 
   if (startdate) {
     const startDate = new Date(startdate);
     if (startDate > now) {
+      const section = block.closest('.section');
+      if (section) {
+        section.classList.add('!p-0', '!m-0', '!h-0', '!overflow-hidden');
+      }
+      block.classList.add('hidden');
+      return;
+    }
+  }
+
+  // If countdown is enabled, check if end date has passed
+  if ((showcountdown === 'true' || showcountdown === true) && enddate) {
+    const endDate = new Date(enddate);
+    if (endDate <= now) {
+      const section = block.closest('.section');
+      if (section) {
+        section.classList.add('!p-0', '!m-0', '!h-0', '!overflow-hidden');
+      }
       block.classList.add('hidden');
       return;
     }
@@ -110,31 +163,65 @@ export default async function decorate(block) {
   block.style.setProperty('--hero-tablet', `url(${tabletBg})`);
   block.style.setProperty('--hero-mobile', `url(${mobileBg})`);
 
+  // Create wrapper component that handles auto-hide on countdown expiration
+  const HeroBannerWrapper = ({ children }) => {
+    useEffect(() => {
+      if ((showcountdown === 'true' || showcountdown === true) && enddate) {
+        const checkExpiration = () => {
+          const currentTime = getColombiaTime();
+          const endDate = new Date(enddate);
+
+          if (endDate <= currentTime) {
+            const section = block.closest('.section');
+            if (section) {
+              section.classList.add('!p-0', '!m-0', '!h-0', '!overflow-hidden');
+            }
+            block.classList.add('hidden');
+          }
+        };
+
+        // Check immediately
+        checkExpiration();
+
+        // Check every second
+        const timer = setInterval(checkExpiration, 1000);
+
+        return () => clearInterval(timer);
+      }
+
+      return () => {};
+    }, []);
+
+    return children;
+  };
+
   // Create container for the Preact component
   const cardContainer = document.createElement('div');
   cardContainer.className = 'w-full max-w-full min-[1248px]:h-full relative z-10';
 
-  // Render PromotionalCountdownCard component
+  // Render PromotionalCountdownCard component wrapped with auto-hide logic
   render(
     html`
-      <${PromotionalCountdownCard}
-        title=${title || ''}
-        subtitle=${description || ''}
-        countdownLabel=${countdowntitle || 'La oferta termina en'}
-        endDateTime=${enddate || ''}
-        showCountdown=${showcountdown === 'true' || showcountdown === true}
-        priceLabel=${pricelabel || ''}
-        price=${price || ''}
-        routeLabel=${route || ''}
-        showPrice=${showpricetag === 'true' || showpricetag === true}
-        buttonText=${ctatext || 'Reservar'}
-        buttonUrl=${ctaurl || '#'}
-        showButton=${showbutton === 'true' || showbutton === true}
-        daysLabel=${daysLabel}
-        hoursLabel=${hoursLabel}
-        minutesLabel=${minutesLabel}
-        secondsLabel=${secondsLabel}
-      />
+      <${HeroBannerWrapper}>
+        <${PromotionalCountdownCard}
+          title=${title || ''}
+          subtitle=${description || ''}
+          countdownLabel=${countdowntitle || 'La oferta termina en'}
+          endDateTime=${enddate || ''}
+          showCountdown=${showcountdown === 'true' || showcountdown === true}
+          priceLabel=${pricelabel || ''}
+          price=${price || ''}
+          routeLabel=${route || ''}
+          showPrice=${showpricetag === 'true' || showpricetag === true}
+          buttonText=${ctatext || 'Reservar'}
+          buttonUrl=${ctaurl || '#'}
+          showButton=${showbutton === 'true' || showbutton === true}
+          daysLabel=${daysLabel}
+          hoursLabel=${hoursLabel}
+          minutesLabel=${minutesLabel}
+          secondsLabel=${secondsLabel}
+        />
+      </${HeroBannerWrapper}>
     `,
     cardContainer,
   );
@@ -145,7 +232,7 @@ export default async function decorate(block) {
   if (showcountdown === 'true' || showcountdown === true) {
     const countdownContainer = document.createElement('div');
     countdownContainer.className = 'absolute-countdown-wrapper';
-    
+
     render(
       html`
         <${AbsoluteCountdown}

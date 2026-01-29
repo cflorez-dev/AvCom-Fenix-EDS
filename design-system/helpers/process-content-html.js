@@ -162,6 +162,7 @@ const addClassToTag = (htmlString, tagName, classNames) => {
  * @param {string} [linkButtonOptions.customClassName=''] - Additional CSS classes
  * @param {string} [linkButtonOptions.alertVariant] - Alert variant for rel processing
  * @param {boolean} [linkButtonOptions.processRelAttributes=false] - Process rel attributes
+ * @param {'self'|'blank'} [linkButtonOptions.linkTarget='self'] - Target for links
  * @returns {string} Processed HTML string
  */
 const processLinkTags = (htmlString, linkButtonOptions = {}) => {
@@ -254,6 +255,33 @@ const processLinkTags = (htmlString, linkButtonOptions = {}) => {
               '',
             );
           }
+        }
+      }
+
+      // Process linkTarget option - add target="_blank" and security attributes
+      if (linkButtonOptions.linkTarget === 'blank') {
+        // Add target="_blank" if not already present
+        if (!processedAttributes.match(/\btarget\s*=/i)) {
+          processedAttributes = `${processedAttributes} target="_blank"`;
+        }
+
+        // Add noopener noreferrer for security when opening in new tab
+        const currentRelMatch = processedAttributes.match(/rel=["']([^"']*)["']/i);
+        if (currentRelMatch) {
+          const currentRel = currentRelMatch[1];
+          const relParts = currentRel.split(/\s+/).filter(Boolean);
+          if (!relParts.includes('noopener')) {
+            relParts.push('noopener');
+          }
+          if (!relParts.includes('noreferrer')) {
+            relParts.push('noreferrer');
+          }
+          processedAttributes = processedAttributes.replace(
+            /rel=["'][^"']*["']/i,
+            `rel="${relParts.join(' ')}"`,
+          );
+        } else {
+          processedAttributes = `${processedAttributes} rel="noopener noreferrer"`;
         }
       }
 

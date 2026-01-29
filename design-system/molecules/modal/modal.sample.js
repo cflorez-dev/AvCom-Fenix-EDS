@@ -2,6 +2,7 @@ import { h } from '@dropins/tools/preact.js';
 import { useState } from '@dropins/tools/preact-hooks.js';
 import htm from 'htm';
 import { Modal } from './modal.js';
+import { ModalAviancaLayout } from './modal-avianca-layout.js';
 import { Button } from '../../atoms/button/button.js';
 
 const html = htm.bind(h);
@@ -17,6 +18,7 @@ export const ModalSample = () => {
   const [isOpen4, setIsOpen4] = useState(false);
   const [isOpen5, setIsOpen5] = useState(false);
   const [isOpen6, setIsOpen6] = useState(false);
+  const [isOpenAvianca, setIsOpenAvianca] = useState(false);
 
   // Example 1: Simple modal with HTML content
   const simpleContent = html`
@@ -126,6 +128,29 @@ export const ModalSample = () => {
       <h1 class="mb-[var(--spacing-x-large)]">
         Modal Component Examples
       </h1>
+
+      <!-- Example 7: Avianca Layout Modal -->
+      <section class="mb-[var(--spacing-x-large)]">
+        <h2 class="mb-[var(--spacing-medium)]">
+          Example 7: Avianca Layout Modal
+        </h2>
+        <${Button} variant="secondary" onClick=${() => setIsOpenAvianca(true)}>
+          Open Avianca Modal
+        </${Button}>
+        <${ModalAviancaLayout}
+          isOpen=${isOpenAvianca}
+          onClose=${() => setIsOpenAvianca(false)}
+          title="Title"
+          description="Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nam finibus est quam, eu suscipit mi aliquet vel. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nam finibus est quam, eu suscipit mi aliquet vel."
+          icon="alert/success"
+          primaryButtonLabel="Confirmar"
+          secondaryButtonLabel="Cancelar"
+          onPrimaryClick=${() => {
+    setIsOpenAvianca(false);
+  }}
+          onSecondaryClick=${() => setIsOpenAvianca(false)}
+        />
+      </section>
 
       <!-- Example 1: Simple modal -->
       <section class="mb-[var(--spacing-x-large)]">

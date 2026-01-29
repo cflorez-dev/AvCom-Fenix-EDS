@@ -10,6 +10,9 @@
  * @param {number} cardIndex - Card index (0-based)
  * @returns {string} Tailwind classes applied to the card wrapper
  */
+
+import { getStoredCountry, getStoredLanguage } from '../../scripts/services/header/language-country-selector.js';
+
 function getCardClasses(template, cardIndex) {
   // Desktop classes (≥768px) - grid 3x3
   const templates = {
@@ -55,7 +58,7 @@ function getCardClasses(template, cardIndex) {
   };
 
   const desktopClasses = templates[template]?.[cardIndex] || '';
-  
+
   // Tablet classes (480-767px): 2x2 grid, equal proportions
   const tabletPosition = [
     'sm:col-start-1 sm:row-start-1', // Card 1: top-left
@@ -111,8 +114,8 @@ function getCardDimensions(gridClasses) {
  * @returns {Object} Preact component
  */
 function createCMSMosaicCards(deps) {
-  const { h, html, LinkCard } = deps;
-  
+  const { html, LinkCard } = deps;
+
   return ({ cards = [], template = 'template-1' }) => {
     if (!cards || cards.length === 0) {
       return html`
@@ -124,7 +127,7 @@ function createCMSMosaicCards(deps) {
 
     return html`
       <div 
-        class="parent-cms-mosaic grid w-full gap-4 grid-cols-[repeat(3,minmax(0,1fr))] md:grid-cols-[repeat(3,minmax(0,1fr))] md:grid-rows-[auto_auto_auto] sm:min-h-[31.25rem] sm:grid-cols-2 sm:grid-rows-2 sm:max-h-none max-[480px]:inline-flex max-[480px]:flex-col max-[480px]:gap-0 max-[480px]:max-h-none" 
+        class="parent-cms-mosaic grid w-full gap-4 grid-cols-[repeat(3,minmax(0,1fr))] md:grid-cols-[repeat(3,minmax(0,1fr))] md:grid-rows-[auto_auto_auto] sm:min-h-[31.25rem] sm:grid-cols-2 sm:grid-rows-2 sm:max-h-none max-[480px]:inline-flex max-[480px]:flex-col max-[480px]:gap-0 max-[480px]:max-h-none pt-[5px]" 
         data-name="cmsMosaicCards"
         data-template=${template}
       >
@@ -140,13 +143,23 @@ function createCMSMosaicCards(deps) {
             data-card=${index + 1}
           >
             <${LinkCard}
-              image=${card.image}
-              imageAlt=${card.imageAlt}
+              image=${card.imageMobile || card.imageDesktop}
+              imageAlt=${card.imageMobileAlt || card.imageDesktopAlt}
+              imageDesktop=${card.imageDesktop}
+              imageDesktopAlt=${card.imageDesktopAlt}
+              imageMobile=${card.imageMobile}
+              imageMobileAlt=${card.imageMobileAlt}
               title=${card.title}
               description=${card.description}
-              linkText=${card.linkText}
-              href=${card.href}
+              linkText=${card.ctaLabel}
+              href=${card.linkUrl}
               linkAlt=${card.linkAlt}
+              linkOpensIn=${card.linkOpensIn}
+              ctaIconBefore=${card.ctaIconBefore}
+              ctaIconAfter=${card.ctaIconAfter}
+              clickBehavior=${card.clickBehavior}
+              supportIcon=${card.supportIcon}
+              badges=${card.badges}
               columns=${columns}
               rows=${rows}
             />
@@ -162,7 +175,10 @@ function createCMSMosaicCards(deps) {
 /**
  * Parse parent config from AEM block structure
  * With Universal Editor parent-child pattern:
- * - First rows contain parent fields (layout, loading)
+ * - Row 0: layout
+ * - Row 1: loading
+ * - Row 2: target-countries
+ * - Row 3: target-languages
  * - Then a container div holds all child items
  * @param {Element} block - The block element
  * @returns {Object} Parent configuration
@@ -171,6 +187,8 @@ function parseParentConfig(block) {
   const config = {
     layout: 'featured-left-tall', // default
     loading: 'lazy', // default
+    targetCountries: '',
+    targetLanguages: '',
   };
 
   const rows = [...block.children];
@@ -191,6 +209,22 @@ function parseParentConfig(block) {
     }
   }
 
+  // Row 2: target-countries field (comma-separated)
+  if (rows[2] && rows[2].children.length === 1) {
+    const countriesValue = rows[2].children[0].textContent.trim();
+    if (countriesValue) {
+      config.targetCountries = countriesValue;
+    }
+  }
+
+  // Row 3: target-languages field (comma-separated)
+  if (rows[3] && rows[3].children.length === 1) {
+    const languagesValue = rows[3].children[0].textContent.trim();
+    if (languagesValue) {
+      config.targetLanguages = languagesValue;
+    }
+  }
+
   return config;
 }
 
@@ -202,66 +236,148 @@ function parseParentConfig(block) {
  */
 function parseCardDataFromItem(item) {
   const cells = [...item.children];
-  
+
   const cardData = {
-    image: '',
-    imageAlt: '',
+    imageDesktop: '',
+    imageDesktopAlt: '',
+    imageMobile: '',
+    imageMobileAlt: '',
     title: '',
     description: '',
-    linkText: '',
-    href: '',
+    ctaLabel: '',
+    supportIcon: '',
+    badges: [],
+    linkUrl: '',
     linkAlt: '',
+    linkOpensIn: 'sameTab',
+    ctaIconBefore: 'none',
+    ctaIconAfter: 'none',
+    clickBehavior: 'fullCard',
   };
 
+  let cellIndex = 0;
+
   // Cell 0: imageDesktop (picture/img)
-  if (cells[0]) {
-    const img = cells[0].querySelector('img');
+  if (cells[cellIndex]) {
+    const img = cells[cellIndex].querySelector('img');
     if (img) {
-      cardData.image = img.src;
-      cardData.imageAlt = img.alt || '';
+      cardData.imageDesktop = img.src;
+    }
+    cellIndex += 1;
+  }
+
+  // Cell 1: imageDesktopAlt
+  if (cells[cellIndex]) {
+    cardData.imageDesktopAlt = cells[cellIndex].textContent.trim();
+    cellIndex += 1;
+  }
+
+  // Cell 2: imageMobile (picture/img) - OPTIONAL
+  // Check if this cell has an image, if not, skip it
+  if (cells[cellIndex] && cells[cellIndex].querySelector('img')) {
+    cardData.imageMobile = cells[cellIndex].querySelector('img').src;
+    cellIndex += 1;
+
+    // Cell 3: imageMobileAlt - only if imageMobile exists
+    if (cells[cellIndex]) {
+      cardData.imageMobileAlt = cells[cellIndex].textContent.trim();
+      cellIndex += 1;
     }
   }
 
-  // Cell 2: title (current Universal Editor structure)
-  if (cells[2]) {
-    cardData.title = cells[2].textContent.trim();
+  // Now continue with text fields
+  // Cell N: title
+  if (cells[cellIndex]) {
+    cardData.title = cells[cellIndex].textContent.trim();
+    cellIndex += 1;
   }
 
-  // Cell 3: description (current Universal Editor structure)
-  if (cells[3]) {
-    cardData.description = cells[3].textContent.trim();
+  // Cell N+1: description
+  if (cells[cellIndex]) {
+    cardData.description = cells[cellIndex].textContent.trim();
+    cellIndex += 1;
   }
 
-  // Cell 4: ctaLabel (optional)
-  if (cells[4]) {
-    const ctaText = cells[4].textContent.trim();
-    if (ctaText) {
-      cardData.linkText = ctaText;
+  // Cell N+2: ctaLabel
+  if (cells[cellIndex]) {
+    cardData.ctaLabel = cells[cellIndex].textContent.trim();
+    cellIndex += 1;
+  }
+
+  // Cell N+3: supportIcon
+  if (cells[cellIndex]) {
+    cardData.supportIcon = cells[cellIndex].textContent.trim();
+    cellIndex += 1;
+  }
+
+  // Cell N+4: badges (comma-separated)
+  if (cells[cellIndex]) {
+    const badgesText = cells[cellIndex].textContent.trim();
+    if (badgesText) {
+      cardData.badges = badgesText.split(',').map((b) => b.trim()).filter(Boolean);
     }
+    cellIndex += 1;
   }
 
-  // Cell 7: linkUrl (according to current Universal Editor structure)
-  if (cells[7]) {
-    const link = cells[7].querySelector('a');
-    let linkUrl = link ? link.href : cells[7].textContent.trim();
-    
+  // Cell N+5: linkUrl (has button-container or link)
+  if (cells[cellIndex]) {
+    const link = cells[cellIndex].querySelector('a');
+    let linkUrl = link ? link.href : cells[cellIndex].textContent.trim();
+
     // Process linkUrl to ensure it's a valid URL
     if (linkUrl) {
       if (
-        !linkUrl.startsWith('http://') &&
-        !linkUrl.startsWith('https://') &&
-        !linkUrl.startsWith('/') &&
-        !linkUrl.startsWith('//')
+        !linkUrl.startsWith('http://')
+        && !linkUrl.startsWith('https://')
+        && !linkUrl.startsWith('/')
+        && !linkUrl.startsWith('//')
       ) {
         linkUrl = `/${linkUrl}`;
       }
-      cardData.href = linkUrl;
+      cardData.linkUrl = linkUrl;
     }
+    cellIndex += 1;
   }
 
-  // Cell 8: linkAlt
-  if (cells[8]) {
-    cardData.linkAlt = cells[8].textContent.trim();
+  // Cell N+6: linkAlt
+  if (cells[cellIndex]) {
+    cardData.linkAlt = cells[cellIndex].textContent.trim();
+    cellIndex += 1;
+  }
+
+  // Cell N+7: linkOpensIn
+  if (cells[cellIndex]) {
+    const opensIn = cells[cellIndex].textContent.trim();
+    if (opensIn === 'sameTab' || opensIn === 'newTab') {
+      cardData.linkOpensIn = opensIn;
+    }
+    cellIndex += 1;
+  }
+
+  // Cell N+8: ctaIconBefore
+  if (cells[cellIndex]) {
+    const iconBefore = cells[cellIndex].textContent.trim();
+    if (iconBefore) {
+      cardData.ctaIconBefore = iconBefore;
+    }
+    cellIndex += 1;
+  }
+
+  // Cell N+9: ctaIconAfter
+  if (cells[cellIndex]) {
+    const iconAfter = cells[cellIndex].textContent.trim();
+    if (iconAfter) {
+      cardData.ctaIconAfter = iconAfter;
+    }
+    cellIndex += 1;
+  }
+
+  // Cell N+10: clickBehavior
+  if (cells[cellIndex]) {
+    const behavior = cells[cellIndex].textContent.trim();
+    if (behavior === 'ctaOnly' || behavior === 'fullCard') {
+      cardData.clickBehavior = behavior;
+    }
   }
 
   return cardData;
@@ -293,6 +409,36 @@ export default async function decorate(block) {
     // Parse parent config from block (first rows)
     const config = parseParentConfig(block);
 
+    // Country and language filtering (PARENT level)
+    const targetCountries = config.targetCountries
+      ? config.targetCountries.split(',').map((c) => c.trim().toLowerCase())
+      : [];
+    const targetLanguages = config.targetLanguages
+      ? config.targetLanguages.split(',').map((l) => l.trim().toLowerCase())
+      : [];
+
+    const currentCountry = getStoredCountry()?.toLowerCase() || '';
+    const currentLang = getStoredLanguage()?.toLowerCase() || document.documentElement.lang?.toLowerCase() || 'en';
+
+    // Hide entire mosaic if filtering criteria not met
+    if (targetCountries.length > 0 && currentCountry && !targetCountries.includes(currentCountry)) {
+      const section = block.closest('.section');
+      if (section) {
+        section.classList.add('!p-0', '!m-0', '!h-0', '!overflow-hidden');
+      }
+      block.style.display = 'none';
+      return;
+    }
+
+    if (targetLanguages.length > 0 && currentLang && !targetLanguages.includes(currentLang)) {
+      const section = block.closest('.section');
+      if (section) {
+        section.classList.add('!p-0', '!m-0', '!h-0', '!overflow-hidden');
+      }
+      block.style.display = 'none';
+      return;
+    }
+
     // Map layout values to template numbers
     const layoutToTemplate = {
       'featured-left-tall': 'template-1',
@@ -308,16 +454,17 @@ export default async function decorate(block) {
 
     const childItems = [];
 
-    // After parent fields (row 0: layout, row 1: loading), 
-    // find child item rows
-    // Each link-card child will be a row with multiple cells (12+ cells for all link-card fields)
-    for (let i = 2; i < allRows.length; i += 1) {
+    // Find child item rows dynamically
+    // Parent fields have 1 cell, child items have 15 cells
+    // This handles cases where not all parent fields are configured
+    for (let i = 0; i < allRows.length; i += 1) {
       const row = allRows[i];
 
-      // Child items have multiple cells (12 cells for link-card)
+      // Child items have multiple cells (15 cells for link-card)
+      // Parent fields have only 1 cell
       if (row.children.length > 1) {
         const cardData = parseCardDataFromItem(row);
-        if (cardData.image || cardData.title) {
+        if (cardData.imageDesktop || cardData.title) {
           childItems.push(cardData);
         }
       }

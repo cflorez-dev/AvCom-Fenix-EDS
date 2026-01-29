@@ -27,6 +27,7 @@ const html = htm.bind(h);
  *   (optional, overrides internal calculation)
  * @param {Object} [props.contentRef] - External ref for content container (optional)
  * @param {boolean} [props.fullWidth=false] - Enable full-width container with inner max-width
+ * @param {'self'|'blank'} [props.linkTarget='self'] - Target for links (same tab or new tab)
  * @param {Object} [props.rest] - Additional props spread to container
  * @returns {import('preact').VNode} Alert component
  */
@@ -48,6 +49,7 @@ export const Alert = ({
   shouldMarquee: externalShouldMarquee,
   contentRef: externalContentRef,
   fullWidth = false,
+  linkTarget = 'self',
   ...rest
 }) => {
   const [isVisible, setIsVisible] = useState(true);
@@ -221,7 +223,7 @@ export const Alert = ({
   const currentVariantClasses = variantClasses[normalizedVariant] || variantClasses.informative;
 
   const outerContainerClasses = fullWidth
-    ? `w-full ${currentVariantClasses.bg} ${currentVariantClasses.text} ${currentVariantClasses.border}`
+    ? `w-full ${currentVariantClasses.bg} ${currentVariantClasses.text} ${currentVariantClasses.border} ${isRounded ? 'rounded-xl' : 'rounded-none'}`
     : '';
 
   // Inner container classes
@@ -235,7 +237,6 @@ export const Alert = ({
     flex
     w-full
     box-border
-    ${isRounded ? 'rounded-xl' : 'rounded-none'}
     items-center
     justify-center
     gap-[12px]
@@ -324,12 +325,13 @@ export const Alert = ({
   // Process HTML to add text-sm class to <p> elements and font-bold to <strong> elements
   // Also process links to add appropriate rel attributes for SEO
   const processedContentHTML = processContentHTML(contentHTML, normalizedVariant, {
-    pClassName: 'text-sm',
+    pClassName: 'text-sm leading-[21px]',
     strongClassName: 'font-bold',
     processRelAttributes: true,
     linkButtonOptions: {
       size: fullWidth ? 'compact' : 'default',
       customClassName: normalizedVariant === 'informative' ? '!text-text-link-informative-active' : '',
+      linkTarget,
     },
   });
 
@@ -351,7 +353,7 @@ export const Alert = ({
         <div ref=${contentRef} class="${contentClasses}">
           ${marqueeMode && shouldMarquee ? html`
             <div class="${marqueeAnimationClass}">
-              <div class="inline-block" dangerouslySetInnerHTML=${{ __html: processedContentHTML }} />
+              <div class="inline-block ml-[var(--spacing-x-large)]" dangerouslySetInnerHTML=${{ __html: processedContentHTML }} />
               <div class="inline-block ml-[var(--spacing-x-large)]" dangerouslySetInnerHTML=${{ __html: processedContentHTML }} />
             </div>
           ` : html`
