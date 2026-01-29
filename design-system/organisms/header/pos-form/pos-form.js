@@ -155,9 +155,9 @@ export const PosForm = ({
       </div>
 
       <!-- Form -->
-      <form onSubmit=${handleConfirm} class=${`flex flex-col gap-2 ${responsiveMode ? 'lg:gap-6 ' : ''}`}>
+      <form onSubmit=${handleConfirm} class=${`flex flex-col gap-6 ${responsiveMode ? 'lg:gap-6 ' : ''}`}>
         <!-- Selects Container - Row on large screens only if responsiveMode is true -->
-        <div class=${`flex flex-col gap-2 leading-[auto] ${responsiveMode ? 'lg:flex-row lg:gap-6' : ''}`}>
+        <div class=${`flex flex-col gap-6 leading-[auto] ${responsiveMode ? 'lg:flex-row lg:gap-6' : ''}`}>
           <!-- Country/Region Select -->
           <div class=${responsiveMode ? 'flex-1' : ''}>
             <${Select}
