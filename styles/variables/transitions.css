@@ -1,0 +1,35 @@
+/* Transitions and Animations System */
+
+:root {
+  /* Transition Durations */
+  --transition-fast: 0.15s;
+  --transition-normal: 0.2s;
+  --transition-slow: 0.3s;
+  --transition-slower: 0.5s;
+  
+  /* Easing Functions */
+  --ease-in-out: ease-in-out;
+  --ease-in: ease-in;
+  --ease-out: ease-out;
+  --ease-linear: linear;
+  --ease-custom: cubic-bezier(0.4, 0, 0.2, 1);
+  
+  /* Common Transition Presets */
+  --transition-all: all var(--transition-normal) var(--ease-in-out);
+  --transition-colors: color var(--transition-normal) var(--ease-in-out),
+                       background-color var(--transition-normal) var(--ease-in-out),
+                       border-color var(--transition-normal) var(--ease-in-out);
+  --transition-transform: transform var(--transition-normal) var(--ease-in-out);
+  --transition-opacity: opacity var(--transition-normal) var(--ease-in-out);
+  
+  /* Border Widths */
+  --border-width-thin: 1px;
+  --border-width-normal: 2px;
+  --border-width-thick: 4px;
+}
+
+/* Animations */
+@keyframes button-spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}

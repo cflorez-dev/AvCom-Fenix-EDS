@@ -1,0 +1,149 @@
+/* MultiTab Container */
+.multitab-container {
+    width: 100%;
+}
+
+/* override spacing between blocks inside multitab */
+.section.multitab-container .multitab-content > div:not(:last-child) {
+    padding-bottom: 32px;
+}
+
+/* Hide tab nav scrollbar (webkit/blink) */
+.multitab-container [role="tablist"]::-webkit-scrollbar {
+    display: none;
+}
+
+.section.multitab-container .multitab-content .columns-img-col img {
+    border-radius: var(--border-radius-large);
+}
+
+/* columns inside accordion */
+.section.multitab-container .multitab-content .columns-img-col ~ .columns-text-col,
+.section.multitab-container .multitab-content .columns-text-col + .columns-img-col {
+    padding: var(--spacing-large);
+    border-radius: var(--border-radius-large);
+    background: var(--bg-page-light);
+}
+
+.section.multitab-container .multitab-content .columns-text-col h1,
+.section.multitab-container .multitab-content .columns-text-col h2,
+.section.multitab-container .multitab-content .columns-text-col h3 {
+    font-size: var(--heading-h400-size);
+    font-style: normal;
+    font-weight: var(--heading-h400-weight);
+    line-height: var(--heading-h400-line-height);
+    margin-top: 0;
+    margin-bottom: var(--spacing-x-small);
+}
+
+/* ul line-height inside accordion */
+.section.multitab-container .multitab-content ul {
+    line-height: var(--line-height-auto);
+}
+
+/* ul styles inside accordion */
+.section.multitab-container .multitab-content ul:not(.list-none) {
+    padding-left: var(--spacing-large);
+    margin: 0;
+    list-style: disc;
+}
+
+/* override first paragraph and ul margin inside accordion */
+.section.multitab-container .multitab-content p:first-child,
+.section.multitab-container .multitab-content .columns-text-col ul {
+    margin: 0;
+}
+
+/* override ul styles inside accordion */
+.section.multitab-container .multitab-content ul.list-style-none {
+    list-style: none !important; /* override default ul styles */
+}
+
+/* text styles inside accordion */
+.section.multitab-container .multitab-content .columns-text-col li,
+.section.multitab-container .multitab-content .columns-text-col p {
+    font-size: var(--paragraph-p200-size);
+    font-style: normal;
+    font-weight: var(--paragraph-p200-weight);
+    line-height: var(--paragraph-p200-line-height);
+    margin: 0;
+}
+
+/* link styles inside accordion */
+.section.multitab-container .multitab-content .columns-text-col a:any-link {
+    color: var(--link-color-secondary);
+    font-weight: 400;
+    line-height: 150%;
+    text-decoration-line: underline;
+    text-decoration-style: solid;
+    text-decoration-skip-ink: auto;
+    text-decoration-thickness: auto;
+    text-underline-offset: auto;
+    text-underline-position: from-font;
+    cursor: pointer;
+    pointer-events: auto;
+}
+
+/* override banner secondary important styles */
+.section.multitab-item.columns-container.cms-secondary-banner-container {
+    max-width: 1248px !important; /* override section styles */
+    margin: auto !important; /* override section styles */
+    padding: var(--spacing-x-x-large) var(--main-section-div-padding, var(--spacing-medium)) !important; /* override section styles */
+}
+
+/* override banner block margin inside multitab */
+.section.multitab-container .cms-secondary-banner-wrapper .cms-secondary-banner-wrapper .block {
+    margin: 0;
+}
+
+/* Hide original sections that have been converted to tabs
+   Use !important to override other display styles */
+.multitab-section-hidden {
+    display: none !important;
+    visibility: hidden !important;
+    height: 0 !important;
+    overflow: hidden !important;
+    position: absolute !important;
+    pointer-events: none !important;
+}
+
+/* Tab Panel Hidden State */
+.multitab-panel.hidden {
+    display: none;
+}
+
+/* Keyframe for Tailwind animate-[fadeIn_0.3s_ease-in-out] */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(8px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Mobile tabs behavior (≤480px) */
+/* stylelint-disable-next-line media-feature-range-notation */
+@media (max-width: 1024px) {
+    /* Snap scroll for smooth mobile navigation with slower transition */
+    .multitab-container [role="tablist"] {
+        scroll-snap-type: x mandatory;
+        -webkit-overflow-scrolling: touch;
+        scroll-behavior: smooth;
+    }
+
+    /* Snap align tabs to start for precise positioning */
+    .multitab-container [role="tab"] {
+        scroll-snap-align: start;
+        scroll-snap-stop: always;
+    }
+
+    /* Reduce chevron size on mobile if present */
+    .multitab-container button[aria-label*="Scroll tabs"] {
+        width: 32px;
+        height: 32px;
+    }
+}

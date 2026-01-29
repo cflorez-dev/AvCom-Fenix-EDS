@@ -21,7 +21,7 @@
 
 @media (width >= 900px) {
   .columns > div {
-    align-items: center;
+    align-items: stretch;
     flex-direction: unset;
     gap: 24px;
   }
@@ -29,5 +29,12 @@
   .columns > div > div {
     flex: 1;
     order: unset;
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .columns > div > .columns-img-col,
+  .columns > div > .columns-text-col {
+    min-height: 100%;
   }
 }

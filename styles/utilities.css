@@ -1,0 +1,191 @@
+/* Utility Classes - Based on Figma Design System */
+
+/* Typography Utilities */
+.heading-h300,
+.heading-h300 * {
+  font-family: var(--heading-h300-family);
+  font-weight: var(--heading-h300-weight);
+  font-size: var(--heading-h300-size);
+  line-height: var(--heading-h300-line-height);
+  letter-spacing: var(--heading-h300-letter-spacing);
+}
+
+.heading-h400,
+.heading-h400 * {
+  font-family: var(--heading-h400-family);
+  font-weight: var(--heading-h400-weight);
+  font-size: var(--heading-h400-size);
+  line-height: var(--heading-h400-line-height);
+  letter-spacing: var(--heading-h400-letter-spacing);
+}
+
+.heading-h500,
+.heading-h500 * {
+  font-family: var(--heading-h500-family);
+  font-weight: var(--heading-h500-weight);
+  font-size: var(--heading-h500-size);
+  line-height: var(--heading-h500-line-height);
+  letter-spacing: var(--heading-h500-letter-spacing);
+}
+
+.heading-h600 {
+  font-family: var(--heading-h600-family);
+  font-weight: var(--heading-h600-weight);
+  font-size: var(--heading-h600-size);
+  line-height: var(--heading-h600-line-height);
+  letter-spacing: var(--heading-h600-letter-spacing);
+}
+
+.heading-h600 * {
+  font-family: inherit;
+  font-size: inherit;
+  line-height: inherit;
+  letter-spacing: inherit;
+}
+
+.heading-h800,
+.heading-h800 * {
+  font-family: var(--heading-h800-family);
+  font-weight: var(--heading-h800-weight);
+  font-size: var(--heading-h800-size);
+  line-height: var(--heading-h800-line-height);
+  letter-spacing: var(--heading-h800-letter-spacing);
+}
+
+.heading-h900,
+.heading-h900 * {
+  font-family: var(--heading-h900-family);
+  font-weight: var(--heading-h900-weight);
+  font-size: var(--heading-h900-size);
+  line-height: var(--heading-h900-line-height);
+  letter-spacing: var(--heading-h900-letter-spacing);
+}
+
+.paragraph-p100,
+.paragraph-p100 * {
+  font-family: var(--paragraph-p100-family);
+  font-weight: var(--paragraph-p100-weight);
+  font-size: var(--paragraph-p100-size);
+  line-height: var(--paragraph-p100-line-height);
+  letter-spacing: var(--paragraph-p100-letter-spacing);
+}
+
+.paragraph-p200,
+.paragraph-p200 * {
+  font-family: var(--paragraph-p200-family);
+  font-weight: var(--paragraph-p200-weight);
+  font-size: var(--paragraph-p200-size);
+  line-height: var(--paragraph-p200-line-height);
+  letter-spacing: var(--paragraph-p200-letter-spacing);
+}
+
+.paragraph-p300,
+.paragraph-p300 * {
+  font-family: var(--paragraph-p300-family);
+  font-weight: var(--paragraph-p300-weight);
+  font-size: var(--paragraph-p300-size);
+  line-height: var(--paragraph-p300-line-height);
+  letter-spacing: var(--paragraph-p300-letter-spacing);
+}
+
+.paragraph-p400,
+.paragraph-p400 * {
+  font-family: var(--paragraph-p400-family);
+  font-weight: var(--paragraph-p400-weight);
+  font-size: var(--paragraph-p400-size);
+  line-height: var(--paragraph-p400-line-height);
+  letter-spacing: var(--paragraph-p400-letter-spacing);
+}
+
+.button-b100,
+.button-b100 * {
+  font-family: var(--button-b100-family);
+  font-weight: var(--button-b100-weight);
+  font-size: var(--button-b100-size);
+  line-height: var(--button-b100-line-height);
+  letter-spacing: var(--button-b100-letter-spacing);
+}
+
+.button-b200,
+.button-b200 * {
+  font-family: var(--button-b200-family);
+  font-weight: var(--button-b200-weight);
+  font-size: var(--button-b200-size);
+  line-height: var(--button-b200-line-height);
+  letter-spacing: var(--button-b200-letter-spacing);
+}
+
+.link-l150 {
+  font-family: var(--link-l150-family);
+  font-weight: var(--link-l150-weight);
+  font-size: var(--link-l150-size);
+  line-height: var(--link-l150-line-height);
+  letter-spacing: var(--link-l150-letter-spacing);
+}
+
+.link-l200 {
+  font-family: var(--link-l200-family);
+  font-weight: var(--link-l200-weight);
+  font-size: var(--link-l200-size);
+  line-height: var(--link-l200-line-height);
+  letter-spacing: var(--link-l200-letter-spacing);
+}
+
+/* Shadow Utilities */
+.shadow-small {
+  box-shadow: var(--shadow-small);
+}
+
+.shadow-medium {
+  box-shadow: var(--shadow-medium);
+}
+
+/* Border Radius Utilities */
+.rounded-small {
+  border-radius: var(--border-radius-small);
+}
+
+.rounded-large {
+  border-radius: var(--border-radius-large);
+}
+
+.rounded-x-large {
+  border-radius: var(--border-radius-x-large);
+}
+
+.rounded-full {
+  border-radius: var(--border-radius-full);
+}
+
+/* Color Utilities */
+.text-primary {
+  color: var(--text-normal-primary);
+}
+
+.text-secondary {
+  color: var(--text-normal-secondary);
+}
+
+.text-error {
+  color: var(--text-normal-error);
+}
+
+.text-link {
+  color: var(--text-link-default);
+}
+
+.bg-primary {
+  background-color: var(--bg-brand-primary-default);
+}
+
+.bg-secondary {
+  background-color: var(--bg-brand-secondary-default);
+}
+
+.bg-card {
+  background-color: var(--bg-card-lighter);
+}
+
+.bg-page {
+  background-color: var(--bg-page-lighter);
+}

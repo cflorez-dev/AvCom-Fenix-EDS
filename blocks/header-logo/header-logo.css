@@ -1,0 +1,3 @@
+.header-logo-img {
+  transition: height 200ms ease, width 200ms ease;
+}

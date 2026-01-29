@@ -1,23 +1,3416 @@
 [
   {
-    "...": "./_page.json#/models"
+    "id": "page-metadata",
+    "fields": [
+      {
+        "component": "text",
+        "valueType": "string",
+        "name": "jcr:title",
+        "label": "Title"
+      },
+      {
+        "component": "text",
+        "valueType": "string",
+        "name": "jcr:description",
+        "label": "Description"
+      },
+      {
+        "component": "text",
+        "valueType": "string",
+        "name": "keywords",
+        "multi": true,
+        "label": "Keywords"
+      }
+    ]
   },
   {
-    "...": "./_image.json#/models"
+    "id": "header-navbar",
+    "fields": []
   },
   {
-    "...": "./_title.json#/models"
+    "id": "header-menu-item",
+    "fields": [
+      {
+        "component": "text",
+        "name": "label",
+        "label": "Label",
+        "value": "",
+        "description": "Display text for menu item"
+      },
+      {
+        "component": "text",
+        "name": "url",
+        "label": "URL",
+        "value": "",
+        "description": "Link URL for menu item"
+      },
+      {
+        "component": "text",
+        "name": "icon",
+        "label": "Icon Name",
+        "value": "",
+        "description": "Icon name from design system (e.g., airplane, calendar)"
+      },
+      {
+        "component": "richtext",
+        "name": "submenu",
+        "label": "Submenu Content",
+        "value": "",
+        "description": "Rich text content for submenu dropdown"
+      }
+    ]
   },
   {
-    "...": "./_text.json#/models"
+    "id": "image",
+    "fields": [
+      {
+        "component": "reference",
+        "name": "image",
+        "label": "Image",
+        "multi": false
+      },
+      {
+        "component": "text",
+        "name": "imageAlt",
+        "label": "Alt Text"
+      }
+    ]
   },
   {
-    "...": "./_button.json#/models"
+    "id": "title",
+    "fields": [
+      {
+        "component": "text",
+        "name": "title",
+        "label": "Title"
+      },
+      {
+        "component": "select",
+        "name": "titleType",
+        "label": "Title Type",
+        "options": [
+          {
+            "name": "h1",
+            "value": "h1"
+          },
+          {
+            "name": "h2",
+            "value": "h2"
+          },
+          {
+            "name": "h3",
+            "value": "h3"
+          },
+          {
+            "name": "h4",
+            "value": "h4"
+          },
+          {
+            "name": "h5",
+            "value": "h5"
+          },
+          {
+            "name": "h6",
+            "value": "h6"
+          }
+        ]
+      }
+    ]
   },
   {
-    "...": "./_section.json#/models"
+    "id": "button",
+    "fields": [
+      {
+        "component": "aem-content",
+        "name": "link",
+        "label": "Link"
+      },
+      {
+        "component": "text",
+        "name": "linkText",
+        "label": "Text"
+      },
+      {
+        "component": "text",
+        "name": "linkTitle",
+        "label": "Title"
+      },
+      {
+        "component": "select",
+        "name": "linkType",
+        "label": "Type",
+        "options": [
+          {
+            "name": "default",
+            "value": ""
+          },
+          {
+            "name": "primary",
+            "value": "primary"
+          },
+          {
+            "name": "secondary",
+            "value": "secondary"
+          }
+        ]
+      }
+    ]
   },
   {
-    "...": "../blocks/*/_*.json#/models"
+    "id": "section",
+    "fields": [
+      {
+        "component": "text",
+        "name": "name",
+        "label": "Section Name",
+        "description": "The label shown for this section in the Content Tree"
+      },
+      {
+        "component": "text",
+        "name": "id",
+        "label": "Section id",
+        "description": "The HTML id attribute for this section"
+      },
+      {
+        "component": "multiselect",
+        "name": "style",
+        "label": "Style",
+        "options": [
+          {
+            "name": "Highlight",
+            "value": "highlight"
+          },
+          {
+            "name": "marquesina-container",
+            "value": "marquesina-container"
+          },
+          {
+            "name": "Center Content",
+            "value": "center-content"
+          },
+          {
+            "name": "layout-1-2-992",
+            "value": "layout-1-2-992"
+          },
+          {
+            "name": "Accordion Item",
+            "value": "accordion-item"
+          },
+          {
+            "name": "MultiTab Item",
+            "value": "multitab-item"
+          }
+        ]
+      },
+      {
+        "component": "text",
+        "name": "accordion-group",
+        "label": "Accordion Group ID",
+        "description": "Links this section to an Accordion Group block. Must match the Group ID of the Accordion Group controller."
+      },
+      {
+        "component": "text",
+        "name": "accordion-label",
+        "label": "Accordion Label",
+        "description": "The clickable title shown in the accordion header when this section is an accordion item."
+      },
+      {
+        "component": "select",
+        "name": "accordion-heading-level",
+        "label": "Accordion Heading Level",
+        "description": "Semantic heading level for the accordion label (H2, H3, H4). Choose based on page heading hierarchy.",
+        "options": [
+          {
+            "name": "H2",
+            "value": "2"
+          },
+          {
+            "name": "H3",
+            "value": "3"
+          },
+          {
+            "name": "H4",
+            "value": "4"
+          }
+        ]
+      },
+      {
+        "component": "boolean",
+        "name": "accordion-default-open",
+        "label": "Accordion Default Open",
+        "description": "Whether this accordion item should be expanded by default when the page loads."
+      },
+      {
+        "component": "text",
+        "name": "multitab-group",
+        "label": "MultiTab Group ID",
+        "description": "Links this section to a MultiTab block. Must match the Group ID of the MultiTab controller."
+      },
+      {
+        "component": "text",
+        "name": "multitab-label",
+        "label": "Tab Label (Primary)",
+        "description": "The primary text shown in the tab button for this content."
+      },
+      {
+        "component": "text",
+        "name": "multitab-secondary-label",
+        "label": "Tab Label (Secondary)",
+        "description": "Optional secondary text shown below the primary label in the tab button."
+      },
+      {
+        "component": "text",
+        "name": "multitab-icon",
+        "label": "Tab Icon",
+        "description": "Optional icon path for the tab (e.g., 'action/check', 'alert/info'). Leave empty for no icon."
+      },
+      {
+        "component": "select",
+        "name": "multitab-icon-position",
+        "label": "Tab Icon Position",
+        "description": "Position of the icon relative to the tab label",
+        "options": [
+          {
+            "name": "Before",
+            "value": "before"
+          },
+          {
+            "name": "After",
+            "value": "after"
+          }
+        ]
+      },
+      {
+        "component": "boolean",
+        "name": "multitab-default-open",
+        "label": "Default Tab",
+        "description": "Whether this tab should be active by default when the page loads."
+      }
+    ]
+  },
+  {
+    "id": "card",
+    "fields": [
+      {
+        "component": "reference",
+        "valueType": "string",
+        "name": "image",
+        "label": "Image",
+        "multi": false
+      },
+      {
+        "component": "richtext",
+        "name": "text",
+        "value": "",
+        "label": "Text",
+        "valueType": "string"
+      }
+    ]
+  },
+  {
+    "id": "cms-promotional-cards-rail",
+    "fields": [
+      {
+        "component": "text",
+        "valueType": "string",
+        "name": "imageBasePath",
+        "label": "Image Base Path",
+        "value": "",
+        "description": "Base path for IATA destination images in DAM"
+      },
+      {
+        "component": "select",
+        "name": "lifemilesChipVariant",
+        "label": "Lifemiles Chip Variant",
+        "options": [
+          {
+            "name": "Light (Celeste background)",
+            "value": "light"
+          },
+          {
+            "name": "Dark (Dark background)",
+            "value": "dark"
+          }
+        ],
+        "value": "light",
+        "description": "Visual style of the Lifemiles chip according to Figma design"
+      },
+      {
+        "component": "select",
+        "name": "discountChipVariant",
+        "label": "Discount Chip Variant",
+        "options": [
+          {
+            "name": "Discount (Red background, white text)",
+            "value": "discount"
+          },
+          {
+            "name": "Discount Light (White bg, red text)",
+            "value": "discount-light"
+          }
+        ],
+        "value": "discount",
+        "description": "Visual style of the discount chip according to Figma design"
+      },
+      {
+        "component": "text",
+        "valueType": "string",
+        "name": "buttonText",
+        "label": "Button Text",
+        "value": "",
+        "description": "Text displayed on the button"
+      },
+      {
+        "component": "text",
+        "valueType": "string",
+        "name": "buttonUrl",
+        "label": "Button URL",
+        "value": "",
+        "description": "Link URL for the button"
+      },
+      {
+        "component": "boolean",
+        "name": "showButton",
+        "label": "Show Button",
+        "value": true,
+        "description": "Show or hide the button at the bottom"
+      }
+    ]
+  },
+  {
+    "id": "columns",
+    "fields": [
+      {
+        "component": "text",
+        "valueType": "number",
+        "name": "columns",
+        "value": "",
+        "label": "Columns"
+      },
+      {
+        "component": "text",
+        "valueType": "number",
+        "name": "rows",
+        "value": "",
+        "label": "Rows"
+      }
+    ]
+  },
+  {
+    "id": "fragment",
+    "fields": [
+      {
+        "component": "aem-content",
+        "name": "reference",
+        "label": "Reference"
+      }
+    ]
+  },
+  {
+    "id": "hero",
+    "fields": [
+      {
+        "component": "reference",
+        "valueType": "string",
+        "name": "image",
+        "label": "Image",
+        "multi": false
+      },
+      {
+        "component": "text",
+        "valueType": "string",
+        "name": "imageAlt",
+        "label": "Alt",
+        "value": ""
+      },
+      {
+        "component": "richtext",
+        "name": "text",
+        "value": "",
+        "label": "Text",
+        "valueType": "string"
+      }
+    ]
+  },
+  {
+    "id": "design-system-block",
+    "fields": [
+      {
+        "component": "richtext",
+        "name": "text",
+        "value": "",
+        "label": "Text",
+        "valueType": "string"
+      }
+    ]
+  },
+  {
+    "id": "cms-hero-banner",
+    "fields": [
+      {
+        "component": "richtext",
+        "valueType": "string",
+        "name": "title",
+        "label": "Main Title",
+        "description": "Main banner heading. To use HTML tags like <br/>, select the 'Code' option in the rich text editor"
+      },
+      {
+        "component": "richtext",
+        "valueType": "string",
+        "name": "description",
+        "label": "Description",
+        "description": "Banner descriptive text"
+      },
+      {
+        "component": "reference",
+        "valueType": "string",
+        "name": "imageDesktop",
+        "label": "Desktop Image (>1248px)",
+        "description": "Image for desktop screens (JPG, PNG, GIF, WEBP)"
+      },
+      {
+        "component": "reference",
+        "valueType": "string",
+        "name": "imageTablet",
+        "label": "Tablet Image (768-1247px)",
+        "description": "Image for tablets (optional, uses Desktop if not defined)"
+      },
+      {
+        "component": "reference",
+        "valueType": "string",
+        "name": "imageMobile",
+        "label": "Mobile Image (<768px)",
+        "description": "Image for mobile (optional, uses Tablet or Desktop if not defined)"
+      },
+      {
+        "component": "boolean",
+        "name": "showPriceTag",
+        "label": "Show price information container",
+        "value": false,
+        "description": "Enables the container that displays price information"
+      },
+      {
+        "component": "text",
+        "valueType": "string",
+        "name": "priceLabel",
+        "label": "Price label text",
+        "description": "Text that appears on the price label (e.g.: 'Route from')"
+      },
+      {
+        "component": "text",
+        "valueType": "string",
+        "name": "price",
+        "label": "Price to display",
+        "description": "Price displayed on the banner (e.g.: 'USD 240')"
+      },
+      {
+        "component": "text",
+        "valueType": "string",
+        "name": "route",
+        "label": "Flight route",
+        "description": "Flight route displayed on the banner (e.g.: 'Bogotá - Miami')"
+      },
+      {
+        "component": "boolean",
+        "name": "showButton",
+        "label": "Show CTA Button",
+        "value": false,
+        "description": "Enables the call-to-action (CTA) button"
+      },
+      {
+        "component": "text",
+        "valueType": "string",
+        "name": "ctaText",
+        "label": "Button Text",
+        "description": "Call-to-action button text"
+      },
+      {
+        "component": "text",
+        "valueType": "string",
+        "name": "ctaUrl",
+        "label": "Button URL",
+        "description": "CTA button link"
+      },
+      {
+        "component": "boolean",
+        "name": "showCountdown",
+        "label": "Show Countdown",
+        "value": false,
+        "description": "Enables the countdown timer"
+      },
+      {
+        "component": "text",
+        "valueType": "string",
+        "name": "countdownTitle",
+        "label": "Countdown Title",
+        "description": "Title that appears above the countdown"
+      },
+      {
+        "component": "date-time",
+        "valueType": "date-time",
+        "name": "startDate",
+        "label": "Visibility Start Date",
+        "description": "Date and time when the banner starts being displayed",
+        "required": false,
+        "placeholder": "YYYY-MM-DD HH:mm:ss",
+        "displayFormat": null,
+        "valueFormat": null,
+        "validation": {
+          "customErrorMsg": "Please select a valid start date and time."
+        }
+      },
+      {
+        "component": "date-time",
+        "valueType": "date-time",
+        "name": "endDate",
+        "label": "Visibility End Date",
+        "description": "Date and time when the banner stops being displayed",
+        "required": false,
+        "placeholder": "YYYY-MM-DD HH:mm:ss",
+        "displayFormat": null,
+        "valueFormat": null,
+        "validation": {
+          "customErrorMsg": "Please select a valid end date and time."
+        }
+      },
+      {
+        "component": "multiselect",
+        "name": "target-countries",
+        "label": "Target Countries (POS)",
+        "valueType": "string",
+        "description": "Optional: Select target countries/POS. If empty, shows in all. Compared against 'selected-country' cookie (ISO-2 codes).",
+        "options": [
+          { "name": "Argentina", "value": "ar" },
+          { "name": "Bolivia", "value": "bo" },
+          { "name": "Brasil", "value": "br" },
+          { "name": "Canadá", "value": "ca" },
+          { "name": "Chile", "value": "cl" },
+          { "name": "Colombia", "value": "co" },
+          { "name": "Costa Rica", "value": "cr" },
+          { "name": "República Dominicana", "value": "do" },
+          { "name": "Ecuador", "value": "ec" },
+          { "name": "España", "value": "eu" },
+          { "name": "Francia", "value": "fr" },
+          { "name": "Reino Unido", "value": "gb" },
+          { "name": "Guatemala", "value": "gt" },
+          { "name": "Honduras", "value": "hn" },
+          { "name": "México", "value": "mx" },
+          { "name": "Nicaragua", "value": "ni" },
+          { "name": "Otros", "value": "ot" },
+          { "name": "Panamá", "value": "pa" },
+          { "name": "Perú", "value": "pe" },
+          { "name": "Paraguay", "value": "py" },
+          { "name": "El Salvador", "value": "sv" },
+          { "name": "Estados Unidos", "value": "us" },
+          { "name": "Uruguay", "value": "uy" }
+        ]
+      },
+      {
+        "component": "multiselect",
+        "name": "target-languages",
+        "label": "Target Languages",
+        "valueType": "string",
+        "description": "Optional: Select target languages. If empty, shows in all. Compared against 'selected-language' cookie.",
+        "options": [
+          { "name": "English", "value": "en" },
+          { "name": "Spanish", "value": "es" },
+          { "name": "French", "value": "fr" },
+          { "name": "Portuguese", "value": "pt" }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "cms-informative-cards-rail",
+    "fields": [
+      {
+        "component": "multiselect",
+        "name": "target-countries",
+        "label": "Target Countries (POS)",
+        "valueType": "string",
+        "description": "Optional: Select target countries/POS. If empty, shows in all. Compared against 'selected-country' cookie (ISO-2 codes).",
+        "options": [
+          { "name": "Argentina", "value": "ar" },
+          { "name": "Bolivia", "value": "bo" },
+          { "name": "Brasil", "value": "br" },
+          { "name": "Canadá", "value": "ca" },
+          { "name": "Chile", "value": "cl" },
+          { "name": "Colombia", "value": "co" },
+          { "name": "Costa Rica", "value": "cr" },
+          { "name": "República Dominicana", "value": "do" },
+          { "name": "Ecuador", "value": "ec" },
+          { "name": "España", "value": "eu" },
+          { "name": "Francia", "value": "fr" },
+          { "name": "Reino Unido", "value": "gb" },
+          { "name": "Guatemala", "value": "gt" },
+          { "name": "Honduras", "value": "hn" },
+          { "name": "México", "value": "mx" },
+          { "name": "Nicaragua", "value": "ni" },
+          { "name": "Otros", "value": "ot" },
+          { "name": "Panamá", "value": "pa" },
+          { "name": "Perú", "value": "pe" },
+          { "name": "Paraguay", "value": "py" },
+          { "name": "El Salvador", "value": "sv" },
+          { "name": "Estados Unidos", "value": "us" },
+          { "name": "Uruguay", "value": "uy" }
+        ]
+      },
+      {
+        "component": "multiselect",
+        "name": "target-languages",
+        "label": "Target Languages",
+        "valueType": "string",
+        "description": "Optional: Select target languages. If empty, shows in all. Compared against 'selected-language' cookie.",
+        "options": [
+          { "name": "English", "value": "en" },
+          { "name": "Spanish", "value": "es" },
+          { "name": "French", "value": "fr" },
+          { "name": "Portuguese", "value": "pt" }
+        ]
+      },
+      {
+        "component": "select",
+        "name": "cardVariant",
+        "label": "Card Variant",
+        "options": [
+          {
+            "name": "Vertical (Image Top)",
+            "value": "vertical"
+          },
+          {
+            "name": "Horizontal (Image Left)",
+            "value": "horizontal"
+          }
+        ],
+        "value": "vertical"
+      },
+      {
+        "component": "select",
+        "name": "loading",
+        "label": "Loading Mode",
+        "options": [
+          {
+            "name": "Lazy",
+            "value": "lazy"
+          },
+          {
+            "name": "Eager",
+            "value": "eager"
+          }
+        ],
+        "value": "lazy",
+        "description": "Image loading strategy"
+      }
+    ]
+  },
+  {
+    "id": "cms-informative-card",
+    "fields": [
+      {
+        "component": "reference",
+        "valueType": "string",
+        "name": "illustration",
+        "label": "Illustration/Image",
+        "multi": false
+      },
+      {
+        "component": "text",
+        "valueType": "string",
+        "name": "illustrationAlt",
+        "label": "Image Alt Text",
+        "value": "",
+        "description": "Alt text for the card image"
+      },
+      {
+        "component": "text",
+        "valueType": "string",
+        "name": "title",
+        "label": "Title",
+        "value": ""
+      },
+      {
+        "component": "richtext",
+        "valueType": "string",
+        "name": "details",
+        "label": "Details/Description",
+        "value": ""
+      },
+      {
+        "component": "select",
+        "name": "actionType",
+        "label": "Action Type",
+        "options": [
+          {
+            "name": "Button",
+            "value": "button"
+          },
+          {
+            "name": "Chevron",
+            "value": "chevron"
+          },
+          {
+            "name": "None",
+            "value": "none"
+          }
+        ],
+        "value": "button"
+      },
+      {
+        "component": "text",
+        "valueType": "string",
+        "name": "buttonLabel",
+        "label": "Button Label",
+        "value": "",
+        "condition": {
+            "===": [
+              { "var": "actionType" },
+              "button"
+            ]
+          }
+      },
+      {
+        "component": "text",
+        "valueType": "string",
+        "name": "buttonLink",
+        "label": "Action Link",
+        "value": "",
+        "description": "Navigation URL for the action link"
+      }
+    ]
+  },
+  {
+    "id": "marquesina",
+    "fields": [
+      {
+        "component": "richtext",
+        "name": "content",
+        "label": "Alert Content",
+        "valueType": "string",
+        "value": "",
+        "description": "Contenido de la alerta. Permite formato mixto (bold/regular), enlaces y listas."
+      },
+      {
+        "component": "select",
+        "name": "variant",
+        "label": "Alert Type",
+        "options": [
+          {
+            "name": "Informative",
+            "value": "informative"
+          },
+          {
+            "name": "Promotional",
+            "value": "promotional"
+          },
+          {
+            "name": "Caution",
+            "value": "caution"
+          }
+        ],
+        "value": "informative",
+        "description": "Tipo de alerta que define los estilos visuales"
+      },
+      {
+        "component": "select",
+        "name": "icon",
+        "label": "Icon",
+        "options": [
+          {
+            "name": "Auto (based on variant)",
+            "value": "auto"
+          },
+          {
+            "name": "Error",
+            "value": "alert/Error"
+          },
+          {
+            "name": "Info",
+            "value": "alert/info"
+          },
+          {
+            "name": "Check Circle",
+            "value": "alert/check_circle"
+          },
+          {
+            "name": "Alarm",
+            "value": "action/alarm"
+          }
+        ],
+        "value": "auto",
+        "description": "Ícono a mostrar en la alerta"
+      },
+      {
+        "component": "select",
+        "name": "dismissStrategy",
+        "label": "Dismiss Strategy",
+        "options": [
+          {
+            "name": "Session (dismiss for this session)",
+            "value": "session"
+          },
+          {
+            "name": "Permanent (dismiss forever)",
+            "value": "permanent"
+          },
+          {
+            "name": "None (always show)",
+            "value": "none"
+          }
+        ],
+        "value": "session",
+        "description": "Estrategia de persistencia del cierre"
+      },
+      {
+        "component": "text",
+        "valueType": "string",
+        "name": "alertId",
+        "label": "Alert ID",
+        "value": "",
+        "description": "ID único para rastreo de cierre (auto-generado si se deja vacío)"
+      },
+      {
+        "component": "boolean",
+        "name": "isSticky",
+        "label": "Sticky Position",
+        "value": true,
+        "description": "Fijar la marquesina en la parte superior al hacer scroll"
+      },
+      {
+        "component": "select",
+        "name": "marqueeMode",
+        "label": "Marquee Mode",
+        "options": [
+          {
+            "name": "Auto (only if content overflows)",
+            "value": "auto"
+          },
+          {
+            "name": "Always",
+            "value": "always"
+          },
+          {
+            "name": "Never",
+            "value": "never"
+          }
+        ],
+        "value": "auto",
+        "description": "Modo de animación de desplazamiento"
+      },
+      {
+        "component": "select",
+        "name": "linkTarget",
+        "label": "Link Behavior",
+        "options": [
+          {
+            "name": "Same tab (default)",
+            "value": "self"
+          },
+          {
+            "name": "New tab",
+            "value": "blank"
+          }
+        ],
+        "value": "self",
+        "description": "Define si los enlaces se abren en la misma pestaña o en una nueva"
+      },
+      {
+        "component": "text",
+        "valueType": "string",
+        "name": "targetMarkets",
+        "label": "Target Markets (comma-separated)",
+        "value": "",
+        "description": "Mercados objetivo separados por comas (ej: CO,PA,EC). Vacío = todos"
+      },
+      {
+        "component": "text",
+        "valueType": "string",
+        "name": "targetLanguages",
+        "label": "Target Languages (comma-separated)",
+        "value": "",
+        "description": "Idiomas objetivo separados por comas (ej: es,en). Vacío = todos"
+      },
+      {
+        "component": "text",
+        "valueType": "string",
+        "name": "targetPageTypes",
+        "label": "Target Page Types (comma-separated)",
+        "value": "",
+        "description": "Tipos de página objetivo (ej: home,destinations,booking). Vacío = todos"
+      },
+      {
+        "component": "text",
+        "valueType": "string",
+        "name": "publishStart",
+        "label": "Publish Start Date (ISO 8601)",
+        "value": "",
+        "description": "Fecha de inicio de publicación (ej: 2024-01-15T00:00:00). Vacío = inmediato"
+      },
+      {
+        "component": "text",
+        "valueType": "string",
+        "name": "publishEnd",
+        "label": "Publish End Date (ISO 8601)",
+        "value": "",
+        "description": "Fecha de fin de publicación (ej: 2024-12-31T23:59:59). Vacío = sin límite"
+      }
+    ]
+  },
+  {
+    "id": "carousel",
+    "fields": [
+      {
+        "component": "select",
+        "name": "loading",
+        "label": "Loading Mode",
+        "options": [
+          {
+            "name": "Lazy",
+            "value": "lazy"
+          },
+          {
+            "name": "Eager",
+            "value": "eager"
+          }
+        ],
+        "value": "lazy",
+        "description": "Modo de carga de imágenes en el carousel"
+      },
+      {
+        "component": "select",
+        "name": "speed",
+        "label": "Scroll Speed",
+        "options": [
+          {
+            "name": "Slow",
+            "value": "slow"
+          },
+          {
+            "name": "Normal",
+            "value": "normal"
+          },
+          {
+            "name": "Fast",
+            "value": "fast"
+          }
+        ],
+        "value": "normal",
+        "description": "Velocidad de desplazamiento del carousel"
+      },
+      {
+        "component": "select",
+        "name": "direction",
+        "label": "Scroll Direction",
+        "options": [
+          {
+            "name": "Left",
+            "value": "left"
+          },
+          {
+            "name": "Right",
+            "value": "right"
+          }
+        ],
+        "value": "left",
+        "description": "Dirección de desplazamiento del carousel"
+      }
+    ]
+  },
+  {
+    "id": "origin-dropdown-selector",
+    "fields": [
+      {
+        "component": "richtext",
+        "valueType": "string",
+        "name": "label",
+        "label": "Etiqueta del Selector",
+        "value": "",
+        "description": "Texto que aparece como etiqueta del dropdown. Permite estilos (bold, enlaces, small, etc.)"
+      },
+      {
+        "component": "text",
+        "valueType": "string",
+        "name": "defaultValue",
+        "label": "Ciudad por Defecto (Código)",
+        "value": "",
+        "description": "Código IATA de la ciudad a mostrar por defecto (ej: BOG, MDE, CLO). Si está vacío o no coincide, se usa la primera ciudad de las ofertas disponibles."
+      }
+    ]
+  },
+  {
+    "id": "header-logo",
+    "fields": [
+      {
+        "component": "reference",
+        "name": "logo-desktop",
+        "label": "Logo Desktop",
+        "description": "Logo para resolución desktop (900px+)",
+        "multi": false
+      },
+      {
+        "component": "reference",
+        "name": "logo-mobile",
+        "label": "Logo Mobile",
+        "description": "Logo para resolución mobile",
+        "multi": false
+      },
+      {
+        "component": "text",
+        "valueType": "string",
+        "name": "logo-alt",
+        "label": "Logo Alt Text",
+        "value": "Avianca",
+        "description": "Texto alternativo para accesibilidad"
+      },
+      {
+        "component": "text",
+        "valueType": "string",
+        "name": "home-url",
+        "label": "Home URL",
+        "value": "/",
+        "description": "URL al hacer clic en el logo (se ajusta por POS/idioma)"
+      }
+    ]
+  },
+  {
+    "id": "navbar-item",
+    "fields": [
+      {
+        "component": "text",
+        "name": "label",
+        "label": "Label",
+        "value": ""
+      },
+      {
+        "component": "text",
+        "name": "url",
+        "label": "URL",
+        "value": ""
+      },
+      {
+        "component": "text",
+        "name": "icon",
+        "label": "Icon Name",
+        "value": "",
+        "description": "Icon name from design system (e.g., airplane, calendar)"
+      }
+    ]
+  },
+  {
+    "id": "header-language-selector",
+    "fields": [
+      {
+        "component": "select",
+        "name": "default-pos",
+        "label": "Default POS",
+        "options": [
+          {
+            "name": "Español - Colombia",
+            "value": "es-col"
+          },
+          {
+            "name": "English - Colombia",
+            "value": "en-col"
+          },
+          {
+            "name": "Español - Estados Unidos",
+            "value": "es-us"
+          },
+          {
+            "name": "English - United States",
+            "value": "en-us"
+          }
+        ],
+        "value": "es-col",
+        "description": "POS por defecto cuando no hay geolocalización"
+      },
+      {
+        "component": "boolean",
+        "name": "show-search-button",
+        "label": "Show Search Button",
+        "value": false,
+        "description": "Mostrar botón de búsqueda (no aplica para MVP1)"
+      },
+      {
+        "component": "text",
+        "valueType": "string",
+        "name": "form-title",
+        "label": "Form Title",
+        "value": "",
+        "description": "Título del formulario de selección de idioma y país"
+      },
+      {
+        "component": "text",
+        "valueType": "string",
+        "name": "country-field-label",
+        "label": "Country Field Label",
+        "value": "",
+        "description": "Etiqueta del campo de selección de país"
+      },
+      {
+        "component": "text",
+        "valueType": "string",
+        "name": "language-field-label",
+        "label": "Language Field Label",
+        "value": "",
+        "description": "Etiqueta del campo de selección de idioma"
+      },
+      {
+        "component": "text",
+        "valueType": "string",
+        "name": "confirm-button",
+        "label": "Confirm Button",
+        "value": "",
+        "description": "Texto del botón de confirmación"
+      },
+      {
+        "component": "text",
+        "valueType": "string",
+        "name": "aria-button",
+        "label": "ARIA Button Label",
+        "value": "",
+        "description": "Texto accesible para lectores de pantalla del botón"
+      }
+    ]
+  },
+  {
+    "id": "header-user-actions",
+    "fields": [
+      {
+        "component": "text",
+        "valueType": "string",
+        "name": "cart-button-label",
+        "label": "Cart Button Label",
+        "value": "Carrito",
+        "description": "Texto del botón del carrito"
+      },
+      {
+        "component": "text",
+        "valueType": "string",
+        "name": "cart-button-icon",
+        "label": "Cart Button Icon",
+        "value": "shopping-cart",
+        "description": "Nombre del ícono del carrito"
+      },
+      {
+        "component": "boolean",
+        "name": "show-cart-button",
+        "label": "Show Cart Button",
+        "value": true,
+        "description": "Mostrar botón del carrito"
+      },
+      {
+        "component": "text",
+        "valueType": "string",
+        "name": "user-button-label",
+        "label": "User Button Label",
+        "value": "Mi cuenta",
+        "description": "Texto del botón de usuario"
+      },
+      {
+        "component": "text",
+        "valueType": "string",
+        "name": "user-button-icon",
+        "label": "User Button Icon",
+        "value": "user",
+        "description": "Nombre del ícono de usuario"
+      },
+      {
+        "component": "boolean",
+        "name": "show-user-button",
+        "label": "Show User Button",
+        "value": true,
+        "description": "Mostrar botón de usuario"
+      }
+    ]
+  },
+  {
+    "id": "footer-partners-logos",
+    "fields": []
+  },
+  {
+    "id": "footer-partners-logos-item",
+    "fields": [
+      {
+        "component": "reference",
+        "valueType": "string",
+        "name": "image",
+        "label": "Logo Image",
+        "multi": false,
+        "description": "Imagen del logo del partner"
+      },
+      {
+        "component": "text",
+        "valueType": "string",
+        "name": "alt",
+        "label": "Alt Text",
+        "value": "",
+        "description": "Texto alternativo para accesibilidad"
+      },
+      {
+        "component": "text",
+        "valueType": "string",
+        "name": "url",
+        "label": "URL",
+        "value": "",
+        "description": "Enlace del logo (opcional)"
+      }
+    ]
+  },
+  {
+    "id": "footer-partner-logo-item",
+    "fields": [
+      {
+        "component": "reference",
+        "valueType": "string",
+        "name": "image",
+        "label": "Logo Image",
+        "multi": false,
+        "description": "Imagen del logo del partner"
+      },
+      {
+        "component": "text",
+        "valueType": "string",
+        "name": "alt",
+        "label": "Alt Text",
+        "value": "",
+        "description": "Texto alternativo para accesibilidad"
+      },
+      {
+        "component": "text",
+        "valueType": "string",
+        "name": "url",
+        "label": "URL",
+        "value": "",
+        "description": "Enlace del logo (opcional)"
+      }
+    ]
+  },
+  {
+    "id": "footer-bottom",
+    "fields": [
+      {
+        "component": "select",
+        "name": "theme",
+        "label": "Tema Visual",
+        "options": [
+          {
+            "name": "Light",
+            "value": "light"
+          },
+          {
+            "name": "Dark",
+            "value": "dark"
+          }
+        ],
+        "value": "light",
+        "description": "Modo de visualización"
+      },
+      {
+        "component": "boolean",
+        "name": "show-app-store-buttons",
+        "label": "Mostrar Botones de App Store",
+        "value": false,
+        "description": "Muestra botones de descarga para App Store y Google Play"
+      },
+      {
+        "component": "reference",
+        "valueType": "string",
+        "name": "app-store-imagen-dark",
+        "label": "App Store - Imagen Dark",
+        "multi": false,
+        "description": "Imagen del botón de App Store en modo oscuro"
+      },
+      {
+        "component": "reference",
+        "valueType": "string",
+        "name": "app-store-imagen-light",
+        "label": "App Store - Imagen Light",
+        "multi": false,
+        "description": "Imagen del botón de App Store en modo claro"
+      },
+      {
+        "component": "text",
+        "valueType": "string",
+        "name": "app-store-url",
+        "label": "App Store - URL",
+        "value": "https://apps.apple.com",
+        "description": "Enlace a la App Store"
+      },
+      {
+        "component": "boolean",
+        "name": "app-store-nueva-pestana",
+        "label": "App Store - Abrir en Nueva Pestaña",
+        "value": true,
+        "description": "Si está activo, el enlace se abre en una nueva pestaña"
+      },
+      {
+        "component": "reference",
+        "valueType": "string",
+        "name": "google-play-imagen-dark",
+        "label": "Google Play - Imagen Dark",
+        "multi": false,
+        "description": "Imagen del botón de Google Play en modo oscuro"
+      },
+      {
+        "component": "reference",
+        "valueType": "string",
+        "name": "google-play-imagen-light",
+        "label": "Google Play - Imagen Light",
+        "multi": false,
+        "description": "Imagen del botón de Google Play en modo claro"
+      },
+      {
+        "component": "text",
+        "valueType": "string",
+        "name": "google-play-url",
+        "label": "Google Play - URL",
+        "value": "https://play.google.com",
+        "description": "Enlace a Google Play Store"
+      },
+      {
+        "component": "boolean",
+        "name": "google-play-nueva-pestana",
+        "label": "Google Play - Abrir en Nueva Pestaña",
+        "value": true,
+        "description": "Si está activo, el enlace se abre en una nueva pestaña"
+      },
+      {
+        "component": "reference",
+        "valueType": "string",
+        "name": "red-social-1-imagen-dark",
+        "label": "Red Social 1 - Imagen Dark",
+        "multi": false,
+        "description": "Imagen del ícono en modo oscuro"
+      },
+      {
+        "component": "reference",
+        "valueType": "string",
+        "name": "red-social-1-imagen-light",
+        "label": "Red Social 1 - Imagen Light",
+        "multi": false,
+        "description": "Imagen del ícono en modo claro"
+      },
+      {
+        "component": "text",
+        "valueType": "string",
+        "name": "red-social-1-url",
+        "label": "Red Social 1 - URL",
+        "value": "",
+        "description": "Enlace a la red social"
+      },
+      {
+        "component": "boolean",
+        "name": "red-social-1-nueva-pestana",
+        "label": "Red Social 1 - Abrir en Nueva Pestaña",
+        "value": true,
+        "description": "Si está activo, el enlace se abre en una nueva pestaña"
+      },
+      {
+        "component": "reference",
+        "valueType": "string",
+        "name": "red-social-2-imagen-dark",
+        "label": "Red Social 2 - Imagen Dark",
+        "multi": false,
+        "description": "Imagen del ícono en modo oscuro"
+      },
+      {
+        "component": "reference",
+        "valueType": "string",
+        "name": "red-social-2-imagen-light",
+        "label": "Red Social 2 - Imagen Light",
+        "multi": false,
+        "description": "Imagen del ícono en modo claro"
+      },
+      {
+        "component": "text",
+        "valueType": "string",
+        "name": "red-social-2-url",
+        "label": "Red Social 2 - URL",
+        "value": "",
+        "description": "Enlace a la red social"
+      },
+      {
+        "component": "boolean",
+        "name": "red-social-2-nueva-pestana",
+        "label": "Red Social 2 - Abrir en Nueva Pestaña",
+        "value": true,
+        "description": "Si está activo, el enlace se abre en una nueva pestaña"
+      },
+      {
+        "component": "reference",
+        "valueType": "string",
+        "name": "red-social-3-imagen-dark",
+        "label": "Red Social 3 - Imagen Dark",
+        "multi": false,
+        "description": "Imagen del ícono en modo oscuro"
+      },
+      {
+        "component": "reference",
+        "valueType": "string",
+        "name": "red-social-3-imagen-light",
+        "label": "Red Social 3 - Imagen Light",
+        "multi": false,
+        "description": "Imagen del ícono en modo claro"
+      },
+      {
+        "component": "text",
+        "valueType": "string",
+        "name": "red-social-3-url",
+        "label": "Red Social 3 - URL",
+        "value": "",
+        "description": "Enlace a la red social"
+      },
+      {
+        "component": "boolean",
+        "name": "red-social-3-nueva-pestana",
+        "label": "Red Social 3 - Abrir en Nueva Pestaña",
+        "value": true,
+        "description": "Si está activo, el enlace se abre en una nueva pestaña"
+      },
+      {
+        "component": "reference",
+        "valueType": "string",
+        "name": "red-social-4-imagen-dark",
+        "label": "Red Social 4 - Imagen Dark",
+        "multi": false,
+        "description": "Imagen del ícono en modo oscuro"
+      },
+      {
+        "component": "reference",
+        "valueType": "string",
+        "name": "red-social-4-imagen-light",
+        "label": "Red Social 4 - Imagen Light",
+        "multi": false,
+        "description": "Imagen del ícono en modo claro"
+      },
+      {
+        "component": "text",
+        "valueType": "string",
+        "name": "red-social-4-url",
+        "label": "Red Social 4 - URL",
+        "value": "",
+        "description": "Enlace a la red social"
+      },
+      {
+        "component": "boolean",
+        "name": "red-social-4-nueva-pestana",
+        "label": "Red Social 4 - Abrir en Nueva Pestaña",
+        "value": true,
+        "description": "Si está activo, el enlace se abre en una nueva pestaña"
+      },
+      {
+        "component": "reference",
+        "valueType": "string",
+        "name": "red-social-5-imagen-dark",
+        "label": "Red Social 5 - Imagen Dark",
+        "multi": false,
+        "description": "Imagen del ícono en modo oscuro"
+      },
+      {
+        "component": "reference",
+        "valueType": "string",
+        "name": "red-social-5-imagen-light",
+        "label": "Red Social 5 - Imagen Light",
+        "multi": false,
+        "description": "Imagen del ícono en modo claro"
+      },
+      {
+        "component": "text",
+        "valueType": "string",
+        "name": "red-social-5-url",
+        "label": "Red Social 5 - URL",
+        "value": "",
+        "description": "Enlace a la red social"
+      },
+      {
+        "component": "boolean",
+        "name": "red-social-5-nueva-pestana",
+        "label": "Red Social 5 - Abrir en Nueva Pestaña",
+        "value": true,
+        "description": "Si está activo, el enlace se abre en una nueva pestaña"
+      }
+    ]
+  },
+  {
+    "id": "footer-columns",
+    "fields": []
+  },
+  {
+    "id": "footer-column-item",
+    "fields": [
+      {
+        "component": "text",
+        "valueType": "string",
+        "name": "title",
+        "label": "Title",
+        "value": "",
+        "description": "Título de la columna del footer"
+      },
+      {
+        "component": "richtext",
+        "valueType": "string",
+        "name": "content",
+        "label": "Content",
+        "value": "",
+        "description": "Contenido rich text de la columna (puede incluir enlaces, listas, texto formateado)"
+      }
+    ]
+  },
+  {
+    "id": "cms-mosaic-cards",
+    "fields": [
+      {
+        "component": "select",
+        "name": "layout",
+        "label": "Layout",
+        "options": [
+          { "name": "Featured Left Tall (4 cards)", "value": "featured-left-tall" },
+          { "name": "Horizontal + Tall Right (4 cards)", "value": "horizontal-tall-right" },
+          { "name": "Tall Left + Horizontal Stack (4 cards)", "value": "tall-left-horizontal" },
+          { "name": "Horizontal Stack + Tall Right (4 cards)", "value": "horizontal-stack-tall-right" },
+          { "name": "Three Vertical Cards (3 cards)", "value": "three-vertical" },
+          { "name": "Square + Horizontal Left, Tall Right (3 cards)", "value": "square-horizontal-tall" },
+          { "name": "Tall Left, Square + Horizontal Right (3 cards)", "value": "tall-square-horizontal" }
+        ],
+        "value": "featured-left-tall",
+        "description": "Mosaic layout pattern defining card arrangement and sizes"
+      },
+      {
+        "component": "select",
+        "name": "loading",
+        "label": "Loading Mode",
+        "options": [
+          { "name": "Lazy", "value": "lazy" },
+          { "name": "Eager", "value": "eager" }
+        ],
+        "value": "lazy",
+        "description": "Image loading strategy for all cards"
+      },
+      {
+        "component": "multiselect",
+        "name": "target-countries",
+        "label": "Target Countries (POS)",
+        "valueType": "string",
+        "description": "Optional: Select target countries/POS. If empty, shows in all. Compared against 'selected-country' cookie (ISO-2 codes).",
+        "options": [
+          { "name": "Argentina", "value": "ar" },
+          { "name": "Bolivia", "value": "bo" },
+          { "name": "Brasil", "value": "br" },
+          { "name": "Canadá", "value": "ca" },
+          { "name": "Chile", "value": "cl" },
+          { "name": "Colombia", "value": "co" },
+          { "name": "Costa Rica", "value": "cr" },
+          { "name": "República Dominicana", "value": "do" },
+          { "name": "Ecuador", "value": "ec" },
+          { "name": "España", "value": "eu" },
+          { "name": "Francia", "value": "fr" },
+          { "name": "Reino Unido", "value": "gb" },
+          { "name": "Guatemala", "value": "gt" },
+          { "name": "Honduras", "value": "hn" },
+          { "name": "México", "value": "mx" },
+          { "name": "Nicaragua", "value": "ni" },
+          { "name": "Otros", "value": "ot" },
+          { "name": "Panamá", "value": "pa" },
+          { "name": "Perú", "value": "pe" },
+          { "name": "Paraguay", "value": "py" },
+          { "name": "El Salvador", "value": "sv" },
+          { "name": "Estados Unidos", "value": "us" },
+          { "name": "Uruguay", "value": "uy" }
+        ]
+      },
+      {
+        "component": "multiselect",
+        "name": "target-languages",
+        "label": "Target Languages",
+        "valueType": "string",
+        "description": "Optional: Select target languages. If empty, shows in all. Compared against 'selected-language' cookie.",
+        "options": [
+          { "name": "English", "value": "en" },
+          { "name": "Spanish", "value": "es" },
+          { "name": "French", "value": "fr" },
+          { "name": "Portuguese", "value": "pt" }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "link-card",
+    "fields": [
+      {
+        "component": "reference",
+        "valueType": "string",
+        "name": "imageDesktop",
+        "label": "Desktop Image",
+        "multi": false,
+        "description": "Desktop image (JPG/PNG/WEBP/SVG)"
+      },
+      {
+        "component": "text",
+        "valueType": "string",
+        "name": "imageDesktopAlt",
+        "label": "Desktop Image Alt Text",
+        "value": "",
+        "description": "Alt text for desktop image (multilanguage, required for accessibility)"
+      },
+      {
+        "component": "reference",
+        "valueType": "string",
+        "name": "imageMobile",
+        "label": "Mobile Image",
+        "multi": false,
+        "description": "Optional mobile-specific image (JPG/PNG/WEBP/SVG)"
+      },
+      {
+        "component": "text",
+        "valueType": "string",
+        "name": "imageMobileAlt",
+        "label": "Mobile Image Alt Text",
+        "value": "",
+        "description": "Alt text for mobile image (multilanguage, optional)"
+      },
+      {
+        "component": "text",
+        "valueType": "string",
+        "name": "title",
+        "label": "Title",
+        "value": "",
+        "description": "Card title (multilanguage, required)"
+      },
+      {
+        "component": "text",
+        "valueType": "string",
+        "name": "description",
+        "label": "Description",
+        "value": "",
+        "description": "Card description (multilanguage, optional)"
+      },
+      {
+        "component": "text",
+        "valueType": "string",
+        "name": "ctaLabel",
+        "label": "CTA Label",
+        "value": "",
+        "description": "Call-to-action button text (multilanguage, required)"
+      },
+      {
+        "component": "text",
+        "valueType": "string",
+        "name": "supportIcon",
+        "label": "Support Icon",
+        "value": "",
+        "description": "Optional decorative icon name (e.g., airplane, calendar, gift)"
+      },
+      {
+        "component": "multiselect",
+        "name": "badges",
+        "label": "Badges",
+        "options": [
+          { "name": "New", "value": "new" },
+          { "name": "Popular", "value": "popular" },
+          { "name": "Offer", "value": "offer" },
+          { "name": "Limited Time", "value": "limited-time" },
+          { "name": "Exclusive", "value": "exclusive" },
+          { "name": "Recommended", "value": "recommended" }
+        ],
+        "description": "Optional badges to display on the card (multilanguage)"
+      },
+      {
+        "component": "text",
+        "valueType": "string",
+        "name": "linkUrl",
+        "label": "Link URL",
+        "value": "",
+        "description": "Destination URL for the card/CTA"
+      },
+      {
+        "component": "text",
+        "valueType": "string",
+        "name": "linkAlt",
+        "label": "Link Alt Text",
+        "value": "",
+        "description": "Alt text/aria-label for the link (accessibility, multilanguage)"
+      },
+      {
+        "component": "select",
+        "name": "linkOpensIn",
+        "label": "Link Opens In",
+        "options": [
+          { "name": "Same Tab", "value": "sameTab" },
+          { "name": "New Tab", "value": "newTab" }
+        ],
+        "value": "sameTab",
+        "description": "Where the link should open (use New Tab for external links)"
+      },
+      {
+        "component": "select",
+        "name": "ctaIconBefore",
+        "label": "CTA Icon Before",
+        "options": [
+          { "name": "None", "value": "none" },
+          { "name": "Arrow", "value": "arrow" },
+          { "name": "Arrow Left", "value": "arrow-left" },
+          { "name": "Chevron Right", "value": "chevron-right" },
+          { "name": "Arrow Right", "value": "arrow-right" }
+        ],
+        "value": "none",
+        "description": "Optional icon before CTA text"
+      },
+      {
+        "component": "select",
+        "name": "ctaIconAfter",
+        "label": "CTA Icon After",
+        "options": [
+          { "name": "None", "value": "none" },
+          { "name": "Arrow", "value": "arrow" },
+          { "name": "Arrow Left", "value": "arrow-left" },
+          { "name": "Chevron Right", "value": "chevron-right" },
+          { "name": "Arrow Right", "value": "arrow-right" }
+        ],
+        "value": "none",
+        "description": "Icon after CTA text (commonly arrow icon)"
+      },
+      {
+        "component": "select",
+        "name": "clickBehavior",
+        "label": "Click Behavior",
+        "options": [
+          { "name": "CTA Only", "value": "ctaOnly" },
+          { "name": "Full Card", "value": "fullCard" }
+        ],
+        "value": "fullCard",
+        "description": "Whether only the CTA button or the entire card is clickable"
+      }
+    ]
+  },
+  {
+    "id": "cms-background-image",
+    "fields": [
+      {
+        "component": "reference",
+        "valueType": "string",
+        "name": "mobileImage",
+        "label": "Mobile Image",
+        "multi": false,
+        "description": "Background image for mobile devices (< 768px) - Required (JPG/PNG/WEBP/SVG)"
+      },
+      {
+        "component": "reference",
+        "valueType": "string",
+        "name": "tabletImage",
+        "label": "Tablet Image",
+        "multi": false,
+        "description": "Background image for tablets (768px-1279px) - Optional (uses mobile if not provided)"
+      },
+      {
+        "component": "reference",
+        "valueType": "string",
+        "name": "desktopImage",
+        "label": "Desktop Image",
+        "multi": false,
+        "description": "Background image for desktop (≥ 1280px) - Optional (uses tablet/mobile if not provided)"
+      },
+      {
+        "component": "text",
+        "valueType": "string",
+        "name": "fallbackColor",
+        "label": "Fallback Color",
+        "value": "#f5f5f5",
+        "description": "Background color while image loads (hex color)"
+      },
+      {
+        "component": "select",
+        "name": "position",
+        "label": "Background Position",
+        "options": [
+          { "name": "Center", "value": "center" },
+          { "name": "Top", "value": "top" },
+          { "name": "Bottom", "value": "bottom" },
+          { "name": "Left", "value": "left" },
+          { "name": "Right", "value": "right" },
+          { "name": "Top Left", "value": "top left" },
+          { "name": "Top Right", "value": "top right" },
+          { "name": "Bottom Left", "value": "bottom left" },
+          { "name": "Bottom Right", "value": "bottom right" }
+        ],
+        "value": "center",
+        "description": "Position of the background image"
+      },
+      {
+        "component": "select",
+        "name": "behavior",
+        "label": "Scroll Behavior",
+        "options": [
+          { "name": "Scroll (moves with content)", "value": "scroll" },
+          { "name": "Fixed (parallax effect)", "value": "fixed" }
+        ],
+        "value": "scroll",
+        "description": "How the background behaves when scrolling"
+      },
+      {
+        "component": "select",
+        "name": "size",
+        "label": "Background Size",
+        "options": [
+          { "name": "Cover (fill entire area)", "value": "cover" },
+          { "name": "Contain (fit entire image)", "value": "contain" }
+        ],
+        "value": "cover",
+        "description": "How the background image is sized"
+      },
+      {
+        "component": "boolean",
+        "name": "enabled",
+        "label": "Enable Background Image",
+        "value": true,
+        "description": "Enable or disable this background image instance"
+      }
+    ]
+  },
+  {
+    "id": "cms-alert",
+    "fields": [
+      {
+        "component": "select",
+        "name": "variant",
+        "label": "Alert Type",
+        "options": [
+          { "name": "Success (Positiva)", "value": "success" },
+          { "name": "Error (Crítica)", "value": "error" },
+          { "name": "Informative (Informativa)", "value": "informative" },
+          { "name": "Caution (Advertencia)", "value": "caution" },
+          { "name": "Neutral", "value": "neutral" }
+        ],
+        "value": "informative",
+        "description": "Type of alert to display with corresponding icon and colors"
+      },
+      {
+        "component": "richtext",
+        "name": "content",
+        "label": "Content",
+        "valueType": "string",
+        "value": "",
+        "description": "Rich text content for alert. Use bold for title, regular for body. Supports links and formatting."
+      },
+      {
+        "component": "boolean",
+        "name": "dismissible",
+        "label": "Show Dismiss Button",
+        "value": true,
+        "description": "Allow users to dismiss/close the alert"
+      }
+    ]
+  },
+  {
+    "id": "cms-modal",
+    "fields": [
+      {
+        "component": "text",
+        "valueType": "string",
+        "name": "title",
+        "label": "Title",
+        "value": "",
+        "description": "Main title of the modal"
+      },
+      {
+        "component": "richtext",
+        "name": "description",
+        "label": "Description",
+        "valueType": "string",
+        "value": "",
+        "description": "Modal body text. Supports HTML, line breaks, and dynamic variables (e.g., reservation code, price, passenger name). Scrollable if more than 3 lines."
+      },
+      {
+        "component": "text",
+        "valueType": "string",
+        "name": "primaryCtaLabel",
+        "label": "Primary CTA Label",
+        "value": "",
+        "description": "Text for the primary button (optional)"
+      },
+      {
+        "component": "text",
+        "valueType": "string",
+        "name": "primaryCtaUrl",
+        "label": "Primary CTA URL",
+        "value": "",
+        "description": "Link URL for primary button (optional)"
+      },
+      {
+        "component": "boolean",
+        "name": "primaryCtaOpenInNewTab",
+        "label": "Primary CTA - Open in New Tab",
+        "value": false,
+        "description": "Open primary CTA link in a new browser tab"
+      },
+      {
+        "component": "text",
+        "valueType": "string",
+        "name": "secondaryCtaLabel",
+        "label": "Secondary CTA Label",
+        "value": "",
+        "description": "Text for the secondary button (optional). If no URL provided, acts as close button."
+      },
+      {
+        "component": "text",
+        "valueType": "string",
+        "name": "secondaryCtaUrl",
+        "label": "Secondary CTA URL",
+        "value": "",
+        "description": "Link URL for secondary button (optional). If empty, button acts as close."
+      },
+      {
+        "component": "boolean",
+        "name": "secondaryCtaOpenInNewTab",
+        "label": "Secondary CTA - Open in New Tab",
+        "value": false,
+        "description": "Open secondary CTA link in a new browser tab"
+      },
+      {
+        "component": "boolean",
+        "name": "showDismissButton",
+        "label": "Show Dismiss Button (X)",
+        "value": true,
+        "description": "Display the X close button in top-right corner"
+      },
+      {
+        "component": "text",
+        "valueType": "string",
+        "name": "icon",
+        "label": "Icon",
+        "value": "",
+        "description": "Icon name from system (e.g., 'alert/success', 'navigation/arrow-right'). Optional."
+      },
+      {
+        "component": "reference",
+        "valueType": "string",
+        "name": "iconImage",
+        "label": "Icon Image",
+        "multi": false,
+        "description": "Custom icon/illustration image (jpg, png, webp, gif). Overrides system icon if provided."
+      },
+      {
+        "component": "reference",
+        "valueType": "string",
+        "name": "coverImage",
+        "label": "Cover Image",
+        "multi": false,
+        "description": "Header cover image for the modal (jpg, png, webp, gif). Optional."
+      }
+    ]
+  },
+  {
+    "id": "back-to-top-button",
+    "fields": [
+      {
+        "component": "text",
+        "valueType": "number",
+        "name": "threshold",
+        "label": "Scroll Threshold (px)",
+        "value": "300",
+        "description": "Number of pixels to scroll before button appears"
+      },
+      {
+        "component": "text",
+        "valueType": "string",
+        "name": "bottomPosition",
+        "label": "Bottom Position",
+        "value": "24px",
+        "description": "Distance from bottom edge (e.g., 24px, 2rem)"
+      },
+      {
+        "component": "text",
+        "valueType": "string",
+        "name": "rightPosition",
+        "label": "Right Position",
+        "value": "24px",
+        "description": "Distance from right edge (e.g., 24px, 2rem)"
+      },
+      {
+        "component": "reference",
+        "valueType": "string",
+        "name": "icon",
+        "label": "Custom Icon (optional)",
+        "multi": false,
+        "description": "Optional custom SVG icon. Leave empty for default arrow-up icon."
+      },
+      {
+        "component": "text",
+        "valueType": "string",
+        "name": "ariaLabel",
+        "label": "Aria Label",
+        "value": "Back to top",
+        "description": "Accessibility label for screen readers (multilanguage)"
+      },
+      {
+        "component": "boolean",
+        "name": "enabled",
+        "label": "Enabled",
+        "value": true,
+        "description": "Enable or disable the back-to-top button"
+      }
+    ]
+  },
+  {
+    "id": "cms-secondary-banner",
+    "fields": [
+      {
+        "component": "text",
+        "name": "title",
+        "label": "Title (H2)",
+        "description": "Main title - uses H2 for SEO hierarchy",
+        "valueType": "string",
+        "value": ""
+      },
+      {
+        "component": "text",
+        "name": "firstLabel",
+        "label": "First Label",
+        "description": "Primary supporting text",
+        "valueType": "string",
+        "value": ""
+      },
+      {
+        "component": "text",
+        "name": "secondaryLabel",
+        "label": "Secondary Label",
+        "description": "Secondary supporting text",
+        "valueType": "string",
+        "value": ""
+      },
+      {
+        "component": "reference",
+        "name": "imageDesktop",
+        "label": "Desktop Image",
+        "description": "Main image for desktop (JPG, PNG, WEBP, SVG)",
+        "valueType": "string"
+      },
+      {
+        "component": "reference",
+        "name": "imageMobile",
+        "label": "Mobile Image",
+        "description": "Main image for mobile (JPG, PNG, WEBP, SVG)",
+        "valueType": "string"
+      },
+      {
+        "component": "text",
+        "name": "imageAlt",
+        "label": "Image Alt Text",
+        "description": "Alternative text for image (SEO)",
+        "valueType": "string",
+        "value": ""
+      },
+      {
+        "component": "text",
+        "name": "ctaText",
+        "label": "CTA Text",
+        "description": "Call to action button text",
+        "valueType": "string",
+        "value": ""
+      },
+      {
+        "component": "text",
+        "name": "ctaUrl",
+        "label": "CTA URL",
+        "description": "Call to action button link (internal or external)",
+        "valueType": "string",
+        "value": ""
+      },
+      {
+        "component": "select",
+        "name": "ctaLinkType",
+        "label": "CTA Link Type",
+        "description": "Link behavior for SEO",
+        "valueType": "string",
+        "options": [
+          {
+            "name": "Dofollow",
+            "value": "dofollow"
+          },
+          {
+            "name": "Nofollow",
+            "value": "nofollow"
+          },
+          {
+            "name": "Sponsored",
+            "value": "sponsored"
+          }
+        ],
+        "value": "dofollow"
+      },
+      {
+        "component": "select",
+        "name": "mode",
+        "label": "Theme Mode",
+        "description": "Light mode (dark text + primary CTA) or Dark mode (white text + secondary CTA)",
+        "valueType": "string",
+        "options": [
+          {
+            "name": "Light",
+            "value": "light"
+          },
+          {
+            "name": "Dark",
+            "value": "dark"
+          }
+        ],
+        "value": "light"
+      },
+      {
+        "component": "select",
+        "name": "backgroundType",
+        "label": "Background Type",
+        "description": "Solid color or gradient for left column and condor",
+        "valueType": "string",
+        "options": [
+          {
+            "name": "Solid",
+            "value": "solid"
+          },
+          {
+            "name": "Gradient",
+            "value": "gradient"
+          }
+        ],
+        "value": "solid"
+      },
+      {
+        "component": "text",
+        "name": "backgroundColor",
+        "label": "Background Color",
+        "description": "Solid background color for left column (hex code, e.g., #FF0000)",
+        "valueType": "string",
+        "value": "#1b1b1b"
+      },
+      {
+        "component": "text",
+        "name": "gradientColorStart",
+        "label": "Gradient Start Color",
+        "description": "First color for gradient - applies to both background and condor (hex code)",
+        "valueType": "string",
+        "value": ""
+      },
+      {
+        "component": "text",
+        "name": "gradientColorEnd",
+        "label": "Gradient End Color",
+        "description": "Second color for gradient - applies to both background and condor (hex code)",
+        "valueType": "string",
+        "value": ""
+      },
+      {
+        "component": "text",
+        "name": "condorStrokeColor",
+        "label": "Condor Stroke Color",
+        "description": "Stroke/border color for condor element (hex code)",
+        "valueType": "string",
+        "value": ""
+      },
+      {
+        "component": "select",
+        "name": "loading",
+        "label": "Loading Mode",
+        "description": "Image loading strategy (lazy if not in first fold)",
+        "valueType": "string",
+        "options": [
+          {
+            "name": "Lazy",
+            "value": "lazy"
+          },
+          {
+            "name": "Eager",
+            "value": "eager"
+          }
+        ],
+        "value": "lazy"
+      }
+    ]
+  },
+  {
+    "id": "cms-rich-text",
+    "fields": [
+      {
+        "component": "richtext",
+        "name": "text",
+        "label": "Rich Text Content",
+        "valueType": "string",
+        "value": "",
+        "description": "Rich text content with full formatting support (headings, paragraphs, lists, links, bold, italic, etc.)"
+      }
+    ]
+  },
+  {
+    "id": "form-header-banner",
+    "fields": [
+      {
+        "component": "reference",
+        "valueType": "string",
+        "name": "image",
+        "label": "Banner Image",
+        "multi": false,
+        "description": "Main banner image"
+      },
+      {
+        "component": "text",
+        "valueType": "string",
+        "name": "imageAlt",
+        "label": "Image Alt Text",
+        "value": "",
+        "description": "Alternative text for the image (accessibility)"
+      },
+      {
+        "component": "select",
+        "name": "loading",
+        "label": "Image Loading Mode",
+        "options": [
+          { "name": "Lazy", "value": "lazy" },
+          { "name": "Eager", "value": "eager" }
+        ],
+        "value": "eager",
+        "description": "Image loading strategy (eager for above-the-fold content)"
+      },
+      {
+        "component": "text",
+        "valueType": "string",
+        "name": "titleText",
+        "label": "Title Text",
+        "value": "",
+        "description": "Main title text"
+      },
+      {
+        "component": "select",
+        "name": "titleLevel",
+        "label": "Title Level",
+        "options": [
+          { "name": "H1", "value": "h1" },
+          { "name": "H2", "value": "h2" },
+          { "name": "H3", "value": "h3" },
+          { "name": "H4", "value": "h4" },
+          { "name": "H5", "value": "h5" },
+          { "name": "H6", "value": "h6" }
+        ],
+        "value": "h1",
+        "description": "Semantic heading level for the title"
+      },
+      {
+        "component": "text",
+        "valueType": "string",
+        "name": "subtitleText",
+        "label": "Subtitle Text",
+        "value": "",
+        "description": "Secondary text or subtitle"
+      },
+      {
+        "component": "select",
+        "name": "subtitleLevel",
+        "label": "Subtitle Level",
+        "options": [
+          { "name": "H2", "value": "h2" },
+          { "name": "H3", "value": "h3" },
+          { "name": "H4", "value": "h4" },
+          { "name": "H5", "value": "h5" },
+          { "name": "H6", "value": "h6" },
+          { "name": "Paragraph", "value": "p" }
+        ],
+        "value": "p",
+        "description": "Semantic level for the subtitle"
+      },
+      {
+        "component": "boolean",
+        "name": "showAlert",
+        "label": "Show Alert",
+        "value": false,
+        "description": "Display alert message after the form"
+      },
+      {
+        "component": "select",
+        "name": "alertType",
+        "label": "Alert Type",
+        "options": [
+          { "name": "Info", "value": "info" },
+          { "name": "Success", "value": "success" },
+          { "name": "Warning", "value": "warning" },
+          { "name": "Error", "value": "error" }
+        ],
+        "value": "info",
+        "description": "Visual style of the alert"
+      },
+      {
+        "component": "boolean",
+        "name": "alertDismissible",
+        "label": "Alert Dismissible",
+        "value": true,
+        "description": "Allow users to close the alert"
+      },
+      {
+        "component": "richtext",
+        "name": "alertContent",
+        "label": "Alert Content",
+        "valueType": "string",
+        "value": "",
+        "description": "Rich text content for the alert message"
+      }
+    ]
+  },
+  {
+    "id": "form-hero-header-banner",
+    "fields": [
+      {
+        "component": "reference",
+        "valueType": "string",
+        "name": "image",
+        "label": "Banner Image",
+        "multi": false,
+        "description": "Main banner image"
+      },
+      {
+        "component": "text",
+        "valueType": "string",
+        "name": "imageAlt",
+        "label": "Image Alt Text",
+        "value": "",
+        "description": "Alternative text for the image (accessibility)"
+      },
+      {
+        "component": "select",
+        "name": "loading",
+        "label": "Image Loading Mode",
+        "options": [
+          { "name": "Lazy", "value": "lazy" },
+          { "name": "Eager", "value": "eager" }
+        ],
+        "value": "eager",
+        "description": "Image loading strategy (eager for above-the-fold content)"
+      },
+      {
+        "component": "text",
+        "valueType": "string",
+        "name": "titleText",
+        "label": "Title Text",
+        "value": "",
+        "description": "Main title text"
+      },
+      {
+        "component": "select",
+        "name": "titleLevel",
+        "label": "Title Level",
+        "options": [
+          { "name": "H1", "value": "h1" },
+          { "name": "H2", "value": "h2" },
+          { "name": "H3", "value": "h3" },
+          { "name": "H4", "value": "h4" },
+          { "name": "H5", "value": "h5" },
+          { "name": "H6", "value": "h6" }
+        ],
+        "value": "h1",
+        "description": "Semantic heading level for the title"
+      },
+      {
+        "component": "text",
+        "valueType": "string",
+        "name": "subtitleText",
+        "label": "Subtitle Text",
+        "value": "",
+        "description": "Secondary text or subtitle"
+      },
+      {
+        "component": "select",
+        "name": "subtitleLevel",
+        "label": "Subtitle Level",
+        "options": [
+          { "name": "H2", "value": "h2" },
+          { "name": "H3", "value": "h3" },
+          { "name": "H4", "value": "h4" },
+          { "name": "H5", "value": "h5" },
+          { "name": "H6", "value": "h6" },
+          { "name": "Paragraph", "value": "p" }
+        ],
+        "value": "p",
+        "description": "Semantic level for the subtitle"
+      },
+      {
+        "component": "boolean",
+        "name": "showAlert",
+        "label": "Show Alert",
+        "value": false,
+        "description": "Display alert message after the form"
+      },
+      {
+        "component": "select",
+        "name": "alertType",
+        "label": "Alert Type",
+        "options": [
+          { "name": "Info", "value": "info" },
+          { "name": "Success", "value": "success" },
+          { "name": "Warning", "value": "warning" },
+          { "name": "Error", "value": "error" }
+        ],
+        "value": "info",
+        "description": "Visual style of the alert"
+      },
+      {
+        "component": "boolean",
+        "name": "alertDismissible",
+        "label": "Alert Dismissible",
+        "value": true,
+        "description": "Allow users to close the alert"
+      },
+      {
+        "component": "richtext",
+        "name": "alertContent",
+        "label": "Alert Content",
+        "valueType": "string",
+        "value": "",
+        "description": "Rich text content for the alert message"
+      }
+    ]
+  },
+  {
+    "id": "cms-promotional-card-carrousel",
+    "fields": [
+      {
+        "component": "select",
+        "name": "loading",
+        "label": "Loading Mode",
+        "options": [
+          {
+            "name": "Lazy",
+            "value": "lazy"
+          },
+          {
+            "name": "Eager",
+            "value": "eager"
+          }
+        ],
+        "value": "lazy",
+        "description": "Image loading strategy for all cards in the carousel. Use 'eager' for above-the-fold carousels, 'lazy' for others."
+      }
+    ]
+  },
+  {
+    "id": "cms-promotional-card-carrousel-item",
+    "fields": [
+      {
+        "component": "reference",
+        "valueType": "string",
+        "name": "image",
+        "label": "Card Image",
+        "multi": false
+      },
+      {
+        "component": "text",
+        "valueType": "string",
+        "name": "imageAlt",
+        "label": "Image Alt Text",
+        "value": "",
+        "description": "Alternative text for the image (accessibility and SEO)"
+      },
+      {
+        "component": "text",
+        "valueType": "string",
+        "name": "backgroundColor",
+        "label": "Background Color",
+        "value": "",
+        "description": "Hex color code for the card content background (e.g., #380980, #E4DFD5)"
+      },
+      {
+        "component": "select",
+        "name": "variant",
+        "label": "Card Variant",
+        "options": [
+          {
+            "name": "Dark (Light background)",
+            "value": "dark"
+          },
+          {
+            "name": "Light (Dark background)",
+            "value": "light"
+          }
+        ],
+        "value": "dark",
+        "description": "Affects text and CTA button colors."
+      },
+      {
+        "component": "text",
+        "valueType": "string",
+        "name": "title",
+        "label": "Card Title",
+        "value": ""
+      },
+      {
+        "component": "richtext",
+        "name": "description",
+        "label": "Card Description",
+        "valueType": "string",
+        "value": "",
+        "description": "description for the card"
+      },
+      {
+        "component": "text",
+        "valueType": "string",
+        "name": "ctaText",
+        "label": "CTA Button Text",
+        "value": "",
+        "description": "Text for the call-to-action button (optional). If empty and link provided, whole card becomes clickable."
+      },
+      {
+        "component": "text",
+        "valueType": "string",
+        "name": "ctaLink",
+        "label": "CTA/Card Link",
+        "value": "",
+        "description": "URL for CTA button or whole card link (internal or external). Supports dofollow for SEO."
+      }
+    ]
+  },
+  {
+    "id": "cms-informative-cards-carousel",
+    "fields": [
+      {
+        "component": "select",
+        "name": "loading",
+        "label": "Loading Mode",
+        "options": [
+          {
+            "name": "Lazy",
+            "value": "lazy"
+          },
+          {
+            "name": "Eager",
+            "value": "eager"
+          }
+        ],
+        "value": "lazy",
+        "description": "Image loading strategy."
+      }
+    ]
+  },
+  {
+    "id": "cms-informative-cards-carousel-item",
+    "fields": [
+      {
+        "component": "reference",
+        "valueType": "string",
+        "name": "image",
+        "label": "Card Image",
+        "multi": false
+      },
+      {
+        "component": "text",
+        "valueType": "string",
+        "name": "imageAlt",
+        "label": "Image Alt Text",
+        "value": "",
+        "description": "Descriptive alt text."
+      },
+      {
+        "component": "text",
+        "valueType": "string",
+        "name": "title",
+        "label": "Card Title",
+        "value": ""
+      },
+      {
+        "component": "richtext",
+        "valueType": "string",
+        "name": "details",
+        "label": "Card Details",
+        "value": ""
+      },
+      {
+        "component": "text",
+        "valueType": "string",
+        "name": "ctaText",
+        "label": "Button Text",
+        "value": "",
+        "description": "Button label (optional). If provided with ctaLink, shows CTA button. If empty, ctaLink makes whole card clickable."
+      },
+      {
+        "component": "text",
+        "valueType": "string",
+        "name": "ctaLink",
+        "label": "CTA/Card Link",
+        "value": "",
+        "description": "URL for CTA button or whole card link (internal or external). Required for any interaction."
+      },
+      {
+        "component": "boolean",
+        "name": "ctaTargetBlank",
+        "label": "CTA Opens New Tab",
+        "value": false,
+        "description": "Open CTA link in new tab"
+      },
+      {
+        "component": "select",
+        "name": "ctaRel",
+        "label": "CTA Link Rel Attribute",
+        "options": [
+          {
+            "name": "Dofollow (Internal/Key links)",
+            "value": "dofollow"
+          },
+          {
+            "name": "Nofollow (Promotional/External)",
+            "value": "nofollow"
+          },
+          {
+            "name": "Sponsored (Affiliate/Paid)",
+            "value": "sponsored"
+          }
+        ],
+        "value": "dofollow",
+        "description": "SEO link relationship. Use dofollow for internal key links, nofollow/sponsored for promotional or external."
+      }
+    ]
+  },
+  {
+    "id": "cms-button",
+    "fields": [
+      {
+        "component": "text",
+        "valueType": "string",
+        "name": "text",
+        "label": "Button Text",
+        "value": "",
+        "description": "Main text displayed on the button"
+      },
+      {
+        "component": "select",
+        "name": "variant",
+        "label": "Button Type",
+        "options": [
+          {
+            "name": "Primary",
+            "value": "primary"
+          },
+          {
+            "name": "Secondary",
+            "value": "secondary"
+          },
+          {
+            "name": "Tertiary (Link Button)",
+            "value": "tertiary"
+          }
+        ],
+        "value": "",
+        "description": "Button visual hierarchy and style"
+      },
+      {
+        "component": "text",
+        "valueType": "string",
+        "name": "icon",
+        "label": "Icon",
+        "value": "",
+        "description": "Icon displayed on the button"
+      },
+      {
+        "component": "select",
+        "name": "iconPosition",
+        "label": "Icon Position",
+        "options": [
+          {
+            "name": "Before text (prefix)",
+            "value": "prefix"
+          },
+          {
+            "name": "After text (suffix)",
+            "value": "suffix"
+          }
+        ],
+        "value": "",
+        "description": "Icon placement relative to text"
+      },
+      {
+        "component": "select",
+        "name": "linkType",
+        "label": "Link Type",
+        "options": [
+          {
+            "name": "Internal Link",
+            "value": "internal"
+          },
+          {
+            "name": "External Link",
+            "value": "external"
+          },
+          {
+            "name": "Anchor Link",
+            "value": "anchor"
+          }
+        ],
+        "value": "",
+        "description": "Type of link"
+      },
+      {
+        "component": "text",
+        "valueType": "string",
+        "name": "href",
+        "label": "Link URL",
+        "value": "",
+        "description": "Full URL for the link"
+      },
+      {
+        "component": "select",
+        "name": "target",
+        "label": "Link Target",
+        "options": [
+          {
+            "name": "Same window (_self)",
+            "value": "_self"
+          },
+          {
+            "name": "New window (_blank)",
+            "value": "_blank"
+          }
+        ],
+        "value": "",
+        "description": "Where to open the link"
+      },
+      {
+        "component": "text",
+        "valueType": "string",
+        "name": "tooltip",
+        "label": "Tooltip Text",
+        "value": "",
+        "description": "Help text shown on hover"
+      },
+      {
+        "component": "text",
+        "valueType": "string",
+        "name": "title",
+        "label": "Title Attribute",
+        "value": "",
+        "description": "Alternative title for accessibility"
+      },
+      {
+        "component": "text",
+        "valueType": "string",
+        "name": "customAttributes",
+        "label": "Custom Attributes (JSON)",
+        "value": "",
+        "description": "Additional attributes in JSON format. Example: {\"aria-label\": \"Buy now\", \"data-tracking\": \"cta-buy\", \"data-pos\": \"CO\"}"
+      }
+    ]
+  },
+  {
+    "id": "cms-sticky-countdown-banner",
+    "fields": [
+      {
+        "component": "text",
+        "valueType": "string",
+        "name": "title",
+        "label": "Title",
+        "value": "",
+        "description": "Main title text for the countdown banner"
+      },
+      {
+        "component": "text",
+        "valueType": "string",
+        "name": "subtitle",
+        "label": "Subtitle",
+        "value": "",
+        "description": "Subtitle text displayed below the title"
+      },
+      {
+        "component": "date-time",
+        "valueType": "date-time",
+        "name": "startDateTime",
+        "label": "Start Date & Time",
+        "value": "",
+        "description": "Start date and time for the countdown. If left empty, the component will start immediately from the current date."
+      },
+      {
+        "component": "date-time",
+        "valueType": "date-time",
+        "name": "endDateTime",
+        "label": "End Date & Time",
+        "value": "",
+        "required": true,
+        "description": "End date and time when the countdown finishes",
+        "validation": {
+          "customErrorMsg": "End date and time is required for the countdown to work properly"
+        }
+      },
+      {
+        "component": "boolean",
+        "name": "dismissible",
+        "label": "Dismissible",
+        "value": true,
+        "description": "Allow users to dismiss/close the banner"
+      },
+      {
+        "component": "text",
+        "valueType": "string",
+        "name": "backgroundColor",
+        "label": "Background Color",
+        "value": "",
+        "description": "Background color in hexadecimal format. Example: #000000"
+      },
+      {
+        "component": "text",
+        "valueType": "string",
+        "name": "textColor",
+        "label": "Text Color",
+        "value": "",
+        "description": "Text color in hexadecimal format. Example: #FFFFFF"
+      },
+      {
+        "component": "text",
+        "valueType": "string",
+        "name": "counterTextColor",
+        "label": "Counter Text Color",
+        "value": "",
+        "description": "Counter text color in hexadecimal format. Example: #FFFFFF"
+      },
+      {
+        "component": "text",
+        "valueType": "string",
+        "name": "counterBackgroundColor",
+        "label": "Counter Background Color",
+        "value": "",
+        "description": "Counter background color in hexadecimal format. Example: #1B1B1B"
+      },
+      {
+        "component": "text",
+        "valueType": "string",
+        "name": "buttonColor",
+        "label": "Button Color",
+        "value": "",
+        "description": "Dismiss button color in hexadecimal format. Example: #FFFFFF"
+      },
+      {
+        "component": "text",
+        "valueType": "string",
+        "name": "ariaRole",
+        "label": "ARIA Role",
+        "value": "",
+        "description": "ARIA role for accessibility. Examples: status, banner"
+      }
+    ]
+  },
+  {
+    "id": "cms-loader",
+    "fields": [
+      {
+        "component": "reference",
+        "valueType": "string",
+        "name": "image",
+        "label": "Loader Image",
+        "value": "",
+        "description": "Image to display in the loader"
+      },
+      {
+        "component": "text",
+        "valueType": "string",
+        "name": "text",
+        "label": "Loader Text",
+        "value": "",
+        "description": "Text message to display below the loader image"
+      }
+    ]
+  },
+  {
+    "id": "accordion-group",
+    "fields": [
+      {
+        "component": "text",
+        "name": "group-id",
+        "label": "Group ID",
+        "value": "",
+        "description": "Unique identifier for this accordion group. Sections with matching 'Accordion Group ID' will become items in this accordion."
+      },
+      {
+        "component": "select",
+        "name": "open-mode",
+        "label": "Open Mode",
+        "options": [
+          {
+            "name": "Exclusive (one open at a time)",
+            "value": "exclusive"
+          },
+          {
+            "name": "Multiple (several can be open)",
+            "value": "multiple"
+          }
+        ],
+        "value": "exclusive",
+        "description": "Exclusive: opening an item closes others. Multiple: several items can be open simultaneously."
+      },
+      {
+        "component": "select",
+        "name": "default-open",
+        "label": "Default Open State",
+        "options": [
+          {
+            "name": "None",
+            "value": "none"
+          },
+          {
+            "name": "First item",
+            "value": "first"
+          },
+          {
+            "name": "All items",
+            "value": "all"
+          }
+        ],
+        "value": "none",
+        "description": "Which items should be open when the page loads. Individual items can override with 'Accordion Default Open'."
+      },
+      {
+        "component": "boolean",
+        "name": "enable-feature-flag",
+        "label": "Enable Visibility Control",
+        "value": false,
+        "description": "Enable progressive rollout by country, language, or date range."
+      },
+      {
+        "component": "text",
+        "name": "target-countries",
+        "label": "Target Countries (comma-separated)",
+        "value": "",
+        "description": "Example: CO,PA,EC. Empty = all countries. Only applies if Visibility Control is enabled.",
+        "condition": {
+          "===": [
+            {
+              "var": "enable-feature-flag"
+            },
+            true
+          ]
+        }
+      },
+      {
+        "component": "text",
+        "name": "target-languages",
+        "label": "Target Languages (comma-separated)",
+        "value": "",
+        "description": "Example: es,en. Empty = all languages. Only applies if Visibility Control is enabled.",
+        "condition": {
+          "===": [
+            {
+              "var": "enable-feature-flag"
+            },
+            true
+          ]
+        }
+      },
+      {
+        "component": "text",
+        "name": "visibility-start-date",
+        "label": "Visibility Start Date",
+        "value": "",
+        "description": "ISO date (YYYY-MM-DD). Accordion hidden before this date. Only applies if Visibility Control is enabled.",
+        "condition": {
+          "===": [
+            {
+              "var": "enable-feature-flag"
+            },
+            true
+          ]
+        }
+      },
+      {
+        "component": "text",
+        "name": "visibility-end-date",
+        "label": "Visibility End Date",
+        "value": "",
+        "description": "ISO date (YYYY-MM-DD). Accordion hidden after this date. Only applies if Visibility Control is enabled.",
+        "condition": {
+          "===": [
+            {
+              "var": "enable-feature-flag"
+            },
+            true
+          ]
+        }
+      }
+    ]
+  },
+  {
+    "id": "booking-box",
+    "fields": []
+  },
+  {
+    "id": "booking-box-button",
+    "fields": [
+      {
+        "component": "text",
+        "valueType": "string",
+        "name": "text",
+        "label": "Button Text",
+        "value": "",
+        "description": "Text displayed on the action button"
+      },
+      {
+        "component": "text",
+        "valueType": "string",
+        "name": "href",
+        "label": "Button URL",
+        "value": "",
+        "description": "Destination URL for the button"
+      }
+    ]
+  },
+  {
+    "id": "breadcrumb",
+    "fields": [
+      {
+        "component": "text",
+        "valueType": "string",
+        "name": "slug",
+        "label": "Custom Last Item Text",
+        "value": "",
+        "description": "Optional custom text for the last breadcrumb item. If empty, uses the page title from URL path."
+      }
+    ]
+  },
+  {
+    "id": "multitab",
+    "fields": [
+      {
+        "component": "text",
+        "valueType": "string",
+        "name": "group-id",
+        "label": "Group ID",
+        "value": "",
+        "description": "Unique identifier for this tab group. Tab sections must have matching multitab-group metadata."
+      },
+      {
+        "component": "text",
+        "valueType": "string",
+        "name": "default-tab",
+        "label": "Default Tab ID",
+        "value": "",
+        "description": "Optional: ID of the tab to open by default (e.g., 'tab-group-0'). If empty, first tab opens."
+      },
+      {
+        "component": "text",
+        "valueType": "string",
+        "name": "enable-from",
+        "label": "Enable From Date",
+        "value": "",
+        "description": "Optional: Start date in ISO format (YYYY-MM-DD). Block hidden before this date."
+      },
+      {
+        "component": "text",
+        "valueType": "string",
+        "name": "enable-to",
+        "label": "Enable To Date",
+        "value": "",
+        "description": "Optional: End date in ISO format (YYYY-MM-DD). Block hidden after this date."
+      },
+      {
+        "component": "multiselect",
+        "name": "target-countries",
+        "label": "Target Countries (POS)",
+        "valueType": "string",
+        "description": "Optional: Select target countries/POS. If empty, shows in all. Compared against 'selected-country' cookie (ISO-2 codes).",
+        "options": [
+          { "name": "Argentina", "value": "ar" },
+          { "name": "Bolivia", "value": "bo" },
+          { "name": "Brasil", "value": "br" },
+          { "name": "Canadá", "value": "ca" },
+          { "name": "Chile", "value": "cl" },
+          { "name": "Colombia", "value": "co" },
+          { "name": "Costa Rica", "value": "cr" },
+          { "name": "República Dominicana", "value": "do" },
+          { "name": "Ecuador", "value": "ec" },
+          { "name": "España", "value": "eu" },
+          { "name": "Francia", "value": "fr" },
+          { "name": "Reino Unido", "value": "gb" },
+          { "name": "Guatemala", "value": "gt" },
+          { "name": "Honduras", "value": "hn" },
+          { "name": "México", "value": "mx" },
+          { "name": "Nicaragua", "value": "ni" },
+          { "name": "Otros", "value": "ot" },
+          { "name": "Panamá", "value": "pa" },
+          { "name": "Perú", "value": "pe" },
+          { "name": "Paraguay", "value": "py" },
+          { "name": "El Salvador", "value": "sv" },
+          { "name": "Estados Unidos", "value": "us" },
+          { "name": "Uruguay", "value": "uy" }
+        ]
+      },
+      {
+        "component": "multiselect",
+        "name": "target-languages",
+        "label": "Target Languages",
+        "valueType": "string",
+        "description": "Optional: Select target languages. If empty, shows in all. Compared against 'selected-language' cookie.",
+        "options": [
+          { "name": "English", "value": "en" },
+          { "name": "Spanish", "value": "es" },
+          { "name": "French", "value": "fr" },
+          { "name": "Portuguese", "value": "pt" }
+        ]
+      },
+      {
+        "component": "select",
+        "name": "size",
+        "label": "Tab Size",
+        "value": "large",
+        "description": "Size variant for the tabs: large (80px height) or small (64px height)",
+        "valueType": "string",
+        "options": [
+          {
+            "name": "Large (80px)",
+            "value": "large"
+          },
+          {
+            "name": "Small (64px)",
+            "value": "small"
+          }
+        ]
+      },
+      {
+        "component": "boolean",
+        "name": "show-chevrons",
+        "label": "Show Navigation Chevrons",
+        "value": false,
+        "description": "Display left/right chevron buttons for navigating tabs when scrolling is needed"
+      },
+      {
+        "component": "select",
+        "name": "show",
+        "label": "Show Block",
+        "value": "true",
+        "description": "Enable or disable the entire block",
+        "valueType": "string",
+        "options": [
+          {
+            "name": "true",
+            "value": "true"
+          },
+          {
+            "name": "false",
+            "value": "false"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "tips-cards",
+    "fields": [
+      {
+        "component": "select",
+        "name": "loading",
+        "label": "Loading Mode",
+        "options": [
+          {
+            "name": "Lazy",
+            "value": "lazy"
+          },
+          {
+            "name": "Eager",
+            "value": "eager"
+          }
+        ],
+        "value": "lazy",
+        "description": "Image loading strategy for icons."
+      }
+    ]
+  },
+  {
+    "id": "tips-card-item",
+    "fields": [
+      {
+        "component": "reference",
+        "valueType": "string",
+        "name": "icon",
+        "label": "Icon",
+        "multi": false
+      },
+      {
+        "component": "text",
+        "valueType": "string",
+        "name": "iconAlt",
+        "label": "Icon Alt Text",
+        "value": "",
+        "description": "Alternative text for the icon (accessibility)"
+      },
+      {
+        "component": "text",
+        "valueType": "string",
+        "name": "title",
+        "label": "Title",
+        "value": ""
+      },
+      {
+        "component": "text",
+        "valueType": "string",
+        "name": "description",
+        "label": "Description",
+        "value": ""
+      }
+    ]
+  },
+  {
+    "id": "cms-interactive-banner",
+    "fields": [
+      {
+        "component": "multiselect",
+        "name": "target-countries",
+        "label": "Target Countries (POS)",
+        "valueType": "string",
+        "description": "Optional: Select target countries/POS. If empty, shows in all. Compared against 'selected-country' cookie (ISO-2 codes).",
+        "options": [
+          { "name": "Argentina", "value": "ar" },
+          { "name": "Bolivia", "value": "bo" },
+          { "name": "Brasil", "value": "br" },
+          { "name": "Canadá", "value": "ca" },
+          { "name": "Chile", "value": "cl" },
+          { "name": "Colombia", "value": "co" },
+          { "name": "Costa Rica", "value": "cr" },
+          { "name": "República Dominicana", "value": "do" },
+          { "name": "Ecuador", "value": "ec" },
+          { "name": "España", "value": "eu" },
+          { "name": "Francia", "value": "fr" },
+          { "name": "Reino Unido", "value": "gb" },
+          { "name": "Guatemala", "value": "gt" },
+          { "name": "Honduras", "value": "hn" },
+          { "name": "México", "value": "mx" },
+          { "name": "Nicaragua", "value": "ni" },
+          { "name": "Otros", "value": "ot" },
+          { "name": "Panamá", "value": "pa" },
+          { "name": "Perú", "value": "pe" },
+          { "name": "Paraguay", "value": "py" },
+          { "name": "El Salvador", "value": "sv" },
+          { "name": "Estados Unidos", "value": "us" },
+          { "name": "Uruguay", "value": "uy" }
+        ]
+      },
+      {
+        "component": "multiselect",
+        "name": "target-languages",
+        "label": "Target Languages",
+        "valueType": "string",
+        "description": "Optional: Select target languages. If empty, shows in all. Compared against 'selected-language' cookie.",
+        "options": [
+          { "name": "English", "value": "en" },
+          { "name": "Spanish", "value": "es" },
+          { "name": "French", "value": "fr" },
+          { "name": "Portuguese", "value": "pt" }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "cms-interactive-banner-item",
+    "fields": [
+      {
+        "component": "tab",
+        "label": "Default Panel",
+        "name": "defaultPanel"
+      },
+      {
+        "component": "text",
+        "valueType": "string",
+        "name": "defaultTitle",
+        "label": "Title",
+        "value": "",
+        "description": "Main heading displayed in the panel default state"
+      },
+      {
+        "component": "text",
+        "valueType": "string",
+        "name": "defaultDescriptionLine1",
+        "label": "Description Line 1",
+        "value": "",
+        "description": "First line of description (e.g., 'Business class'). If both lines are empty, media asset will be displayed instead"
+      },
+      {
+        "component": "text",
+        "valueType": "string",
+        "name": "defaultDescriptionLine2",
+        "label": "Description Line 2",
+        "value": "",
+        "description": "Second line of description (e.g., 'Américas'). Styled differently from line 1"
+      },
+      {
+        "component": "reference",
+        "valueType": "string",
+        "name": "defaultMedia",
+        "label": "Media Asset",
+        "multi": false,
+        "description": "Optional image or SVG. Only displayed if both description lines are empty"
+      },
+      {
+        "component": "reference",
+        "valueType": "string",
+        "name": "defaultBackgroundImage",
+        "label": "Background Image (Desktop)",
+        "multi": false,
+        "description": "Background image for panel default state on desktop"
+      },
+      {
+        "component": "reference",
+        "valueType": "string",
+        "name": "defaultBackgroundImageMobile",
+        "label": "Background Image (Mobile)",
+        "multi": false,
+        "description": "Background image for panel default state on mobile. If empty, uses desktop image."
+      },
+      {
+        "component": "tab",
+        "label": "Interactive Panel",
+        "name": "interactivePanel"
+      },
+      {
+        "component": "richtext",
+        "valueType": "string",
+        "name": "interactiveDescription",
+        "label": "Description",
+        "value": "",
+        "description": "Text content displayed when panel enters interactive state"
+      },
+      {
+        "component": "text",
+        "valueType": "string",
+        "name": "interactiveButtonText",
+        "label": "Button Text",
+        "value": "",
+        "description": "Call-to-action button text for interactive panel"
+      },
+      {
+        "component": "text",
+        "valueType": "string",
+        "name": "interactiveButtonUrl",
+        "label": "Button URL",
+        "value": "",
+        "description": "Link destination for CTA button (internal or external)"
+      },
+      {
+        "component": "boolean",
+        "valueType": "boolean",
+        "name": "interactiveButtonOpenInNewTab",
+        "label": "Open in New Tab",
+        "description": "If enabled, the button link will open in a new browser tab (target='_blank')"
+      },
+      {
+        "component": "text",
+        "valueType": "string",
+        "name": "interactiveOverlayBackground",
+        "label": "Overlay Background",
+        "value": "",
+        "description": "CSS background value for overlay (e.g., rgba(27,27,27,0.7), #1b1b1bb3, linear-gradient(...)). Default: rgba(27, 27, 27, 0.70)"
+      },
+      {
+        "component": "reference",
+        "valueType": "string",
+        "name": "interactiveBackgroundImage",
+        "label": "Background Image (Desktop)",
+        "multi": false,
+        "description": "Background image for panel interactive state on desktop"
+      },
+      {
+        "component": "reference",
+        "valueType": "string",
+        "name": "interactiveBackgroundImageMobile",
+        "label": "Background Image (Mobile)",
+        "multi": false,
+        "description": "Background image for panel interactive state on mobile. If empty, uses desktop image."
+      }
+    ]
   }
+
 ]
