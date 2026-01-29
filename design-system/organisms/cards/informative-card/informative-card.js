@@ -1,5 +1,4 @@
 import { h } from '@dropins/tools/preact.js';
-import { useState } from '@dropins/tools/preact-hooks.js';
 import htm from 'htm';
 import { Button } from '../../../atoms/button/button.js';
 import { Icon } from '../../../atoms/icon/icon.js';
@@ -16,7 +15,7 @@ const html = htm.bind(h);
  * @param {string} props.details - Texto descriptivo de la tarjeta (requerido)
  * @param {string} props.image - URL de la imagen (requerido)
  * @param {string} [props.imageAlt=''] - Texto alternativo para la imagen
- * @param {'none'|'button'|'chevron'|'both'} [props.ActionType='none'] - Tipo de acción (both solo para dev)
+ * @param {'none'|'button'|'chevron'|'both'} [props.ActionType='none']
  * @param {string} [props.buttonText=null] - Texto del botón (requerido si ActionType es 'button')
  * @param {Function} [props.onClick] - Callback para click en botón/chevron
  * @returns {import('preact').VNode} InformativeCard component
@@ -38,12 +37,12 @@ export const InformativeCard = ({
   const cursorClass = ((ActionType === 'chevron' || ActionType === 'none') && onClick) ? 'cursor-pointer' : '';
 
   return html`
-    ${(variant === 'horizontal' ) ? html`
+    ${(variant === 'horizontal') ? html`
       <div 
         data-button="${ActionType === 'button' ? 'true' : ''}" 
         data-chevronicon="${ActionType === 'chevron' ? 'true' : ''}" 
         data-direction="${ActionType === 'horizontal' ? 'horizontal' : 'vertical'}" 
-        className="w-80 min-w-72 h-auto bg-background-card-lighter rounded-2xl outline outline-1 outline-offset-[-1px] outline-border-brand-primary-disable inline-flex justify-start items-center overflow-hidden hover:shadow-[0px_2px_20px_2px_rgba(73,73,73,0.25)] transition-shadow mdlg:w-full mdlg:min-w-0 ${focusClasses} ${cursorClass}"
+        className="w-80 min-w-72 h-full bg-background-card-lighter rounded-2xl outline outline-1 outline-offset-[-1px] outline-border-brand-primary-disable inline-flex justify-start items-center overflow-hidden hover:shadow-[0px_2px_20px_2px_rgba(73,73,73,0.25)] transition-shadow mdlg:w-full mdlg:min-w-0 ${focusClasses} ${cursorClass}"
         tabIndex=${(ActionType === 'chevron' || ActionType === 'none') ? 0 : undefined}
         onClick=${(ActionType === 'chevron' || ActionType === 'none') ? onClick : undefined}
       >

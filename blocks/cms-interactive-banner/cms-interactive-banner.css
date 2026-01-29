@@ -1,0 +1,23 @@
+/* CMS Interactive Banner Block Styles */
+
+/* Author Mode Indicator */
+.cms-interactive-banner-author-indicator {
+  background: #f0f0f0;
+  padding: 8px;
+  border: 1px dashed #0066cc;
+  margin-bottom: 8px;
+  font-size: 12px;
+  color: #666;
+  text-align: center;
+}
+
+.interactive-banner-description > p {
+  margin: 0;
+}
+
+@media (width <= 1023px) {
+    .section.cms-interactive-banner-container {
+        padding-inline: 16px;
+    }
+}
+

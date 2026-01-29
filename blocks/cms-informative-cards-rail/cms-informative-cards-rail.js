@@ -2,6 +2,7 @@ import { h, render } from '@dropins/tools/preact.js';
 import htm from 'htm';
 import { InformativeCard } from '../../design-system/organisms/cards/informative-card/informative-card.js';
 import { extractCmsInformativeCardsRailProps, validateCmsInformativeCardsRailProps } from './cms-informative-cards-rail-helper.js';
+import { getStoredCountry, getStoredLanguage } from '../../scripts/services/header/language-country-selector.js';
 
 const html = htm.bind(h);
 
@@ -11,7 +12,6 @@ const html = htm.bind(h);
  * @returns {string} Tailwind grid-cols classes for desktop
  */
 function getDesktopGridColumns(cardCount, variant) {
-  console.log('Determining grid columns for cardCount:', cardCount, 'variant:', variant);
   if (variant === 'horizontal') {
     if (cardCount === 1) {
       return 'md:grid-cols-1';
@@ -21,10 +21,9 @@ function getDesktopGridColumns(cardCount, variant) {
     }
     // 3 or more cards: use 3 columns, extras wrap to new rows
     return 'md:grid-cols-3';
-  } else {
-    // Vertical variant: always 4 columns on desktop
-    return 'md:grid-cols-4';
   }
+  // Vertical variant: always 4 columns on desktop
+  return 'md:grid-cols-4';
 }
 
 /**
@@ -38,15 +37,47 @@ export default function decorate(block) {
   if (isAuthorEnv) {
     // In author mode: preserve original editable content
     block.classList.add('cms-informative-cards-rail-author-mode');
-    
+
     // Add visual indicator for author
     const authorIndicator = document.createElement('div');
     authorIndicator.className = 'cms-informative-cards-rail-author-indicator';
     authorIndicator.textContent = 'ℹ️ CMS Informative Cards Rail (Author Mode - Edit below)';
     authorIndicator.style.cssText = 'background: #f0f0f0; padding: 8px; border: 1px dashed #0066cc; margin-bottom: 8px; font-size: 12px; color: #666;';
     block.insertBefore(authorIndicator, block.firstChild);
-    
+
     // Don't transform the block - keep it editable
+    return;
+  }
+
+  // Production mode: extract props and render with Preact
+  const props = extractCmsInformativeCardsRailProps(block);
+
+  // Country/Language filtering
+  const targetCountries = props.targetCountries
+    ? props.targetCountries.split(',').map((country) => country.trim().toLowerCase())
+    : [];
+  const targetLanguages = props.targetLanguages
+    ? props.targetLanguages.split(',').map((lang) => lang.trim().toLowerCase())
+    : [];
+
+  const currentCountry = getStoredCountry()?.toLowerCase() || '';
+  const currentLang = getStoredLanguage()?.toLowerCase() || document.documentElement.lang?.toLowerCase() || 'en';
+
+  // Target countries validation: only validate if both config AND cookie exist
+  if (targetCountries.length > 0 && currentCountry && !targetCountries.includes(currentCountry)) {
+    const section = block.closest('.section');
+    if (section) {
+      section.classList.add('!p-0', '!m-0', '!h-0', '!overflow-hidden');
+    }
+    return;
+  }
+
+  // Target languages validation: only validate if config exists
+  if (targetLanguages.length > 0 && currentLang && !targetLanguages.includes(currentLang)) {
+    const section = block.closest('.section');
+    if (section) {
+      section.classList.add('!p-0', '!m-0', '!h-0', '!overflow-hidden');
+    }
     return;
   }
 
@@ -60,18 +91,15 @@ export default function decorate(block) {
       'scrollbar-none',
       '[scrollbar-width:none]', // Firefox
       '[-ms-overflow-style:none]', // IE/Edge
-      '[&::-webkit-scrollbar]:hidden' // Chrome/Safari
+      '[&::-webkit-scrollbar]:hidden', // Chrome/Safari
     );
   }
 
-  // Production mode: extract props and render with Preact
-  const props = extractCmsInformativeCardsRailProps(block);
-  
   // Validate props in development
   if (typeof console !== 'undefined') {
     const validation = validateCmsInformativeCardsRailProps(props);
     if (!validation.isValid) {
-      console.warn('CMS Informative Cards Rail validation errors:', validation.errors);
+      return;
     }
   }
 

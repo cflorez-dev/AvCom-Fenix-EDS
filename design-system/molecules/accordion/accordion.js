@@ -35,6 +35,13 @@ export const Accordion = ({
     }
   };
 
+  const handleKeyDown = (e) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      handleToggle(e);
+    }
+  };
+
   useEffect(() => {
     if (contentRef.current) {
       const contentEl = contentRef.current;
@@ -70,7 +77,7 @@ export const Accordion = ({
 
   // Tailwind classes for structure and layout
   const containerClasses = `inline-flex flex-col gap-6 items-start w-full ${customClassName}`;
-  const headerClasses = 'self-stretch h-14 inline-flex items-start justify-between cursor-pointer py-4';
+  const headerClasses = 'self-stretch h-14 inline-flex items-start justify-between cursor-pointer py-4 focus-visible:outline-none';
   const titleClasses = 'flex-1 h-6 !m-0 font-sans text-lg font-bold leading-normal text-text-normal-lighter';
   const iconContainerClasses = `transition-transform duration-300 ease-in-out ${isOpen ? 'rotate-180' : 'rotate-0'}`;
   const contentClasses = `flex flex-col gap-3 items-start w-full overflow-hidden transition-[max-height] duration-300 ease-in-out ${!isOpen && height === '0px' ? 'hidden' : 'flex'}`;
@@ -89,6 +96,7 @@ export const Accordion = ({
       <div
         class=${headerClasses}
         onClick=${handleToggle}
+        onKeyDown=${handleKeyDown}
         role="button"
         tabindex="0"
         aria-expanded=${isOpen}
