@@ -110,7 +110,7 @@ export default function decorate(block) {
   // Render the rail component using Preact
   const RailComponent = () => html`
     <div
-      class="self-stretch inline-flex justify-start items-start gap-4 overflow-hidden mdlg:grid mdlg:w-full mdlg:overflow-visible ${getDesktopGridColumns(props.cards?.length || 0, props.variant)}"
+      class="self-stretch inline-flex justify-start items-start gap-4 overflow-hidden pt-[4px] pb-[4px] pl-[4px] pr-[4px] mdlg:p-0 mdlg:grid mdlg:w-full mdlg:overflow-visible ${getDesktopGridColumns(props.cards?.length || 0, props.variant)}"
       data-variant=${props.variant}
     >
       ${props.cards.map((card, index) => {

@@ -82,11 +82,11 @@ export const Select = ({
 
   // State-based styling classes - Figma specs, Tailwind only
   const stateClasses = {
-    normal: 'border-2 border-border-input-default hover:border-border-input-positive',
-    success: 'border-2 border-border-input-positive',
-    error: 'border-2 border-border-input-error',
-    disabled: 'border-2 border-border-input-disabled cursor-not-allowed',
-    readonly: 'border-2 border-border-input-disabled cursor-default bg-background-input-disabled',
+    normal: 'border-1 border-border-input-default hover:border-border-input-positive',
+    success: 'border-1 border-border-input-positive',
+    error: 'border-1 border-border-input-error',
+    disabled: 'border-1 border-border-input-disabled cursor-not-allowed',
+    readonly: 'border-1 border-border-input-disabled cursor-default bg-background-input-disabled',
   };
 
   const labelStateClasses = {
@@ -332,7 +332,7 @@ export const Select = ({
           ${selectedOption && html`
             <span
               class=${`
-                relative -bottom-2 left-[2px] flex-1 text-left
+                relative -bottom-2 flex-1 text-left
                 text-base font-bold font-['Red_Hat_Display'] leading-auto
                 ${actualState === 'disabled' ? 'text-text-input-disabled' : 'text-text-normal-primary'}
               `}

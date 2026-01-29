@@ -246,7 +246,7 @@ export const NavbarMobile = ({
   })}
         </ul>
         <!-- Language Selector Button -->
-        <div class="px-[16px] py-[16px]">
+        <div class="px-[1rem] py-[1.5rem]">
           <${LanguageSelectorButton} onClick=${handleLanguageButtonClick} customClassName="[&:hover]:scale-100" />
         </div>
       </nav>
