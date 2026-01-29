@@ -157,11 +157,12 @@ export const PosForm = ({
       <!-- Form -->
       <form onSubmit=${handleConfirm} class=${`flex flex-col gap-2 ${responsiveMode ? 'lg:gap-6 ' : ''}`}>
         <!-- Selects Container - Row on large screens only if responsiveMode is true -->
-        <div class=${`flex flex-col gap-2 ${responsiveMode ? 'lg:flex-row lg:gap-6' : ''}`}>
+        <div class=${`flex flex-col gap-2 leading-[auto] ${responsiveMode ? 'lg:flex-row lg:gap-6' : ''}`}>
           <!-- Country/Region Select -->
           <div class=${responsiveMode ? 'flex-1' : ''}>
             <${Select}
               label=${finalCountryLabel}
+              labelClassName="left-[1rem] top-[0.625rem] leading-[1.125rem]"
               placeholder=${countryPlaceholder}
               options=${getOrderedCountries()}
               value=${selectedCountry}
@@ -170,7 +171,7 @@ export const PosForm = ({
               required=${true}
               id="pos-country"
               hasPrefixIcon=${false}
-              dropdownMaxHeight="221px"
+              dropdownMaxHeight="13.813rem"
               name="country"
             />
           </div>
@@ -179,6 +180,7 @@ export const PosForm = ({
           <div class=${responsiveMode ? 'flex-1' : ''}>
             <${Select}
               label=${finalLanguageLabel}
+              labelClassName="left-[1rem] top-[0.625rem] leading-[1.125rem]"
               placeholder=${languagePlaceholder}
               options=${getOrderedLanguages()}
               value=${selectedLanguage}
