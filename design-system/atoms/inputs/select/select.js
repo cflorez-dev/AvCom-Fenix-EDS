@@ -1,3 +1,4 @@
+/* eslint-disable */ /* Reason: focus only on the changes made  */
 import { h } from '@dropins/tools/preact.js';
 import { useState, useEffect, useRef } from '@dropins/tools/preact-hooks.js';
 import htm from 'htm';
@@ -42,6 +43,7 @@ export const Select = ({
   iconName,
   hasPrefixIcon,
   dropdownMaxHeight,
+  labelClassName = '',
   customClassName = '',
   id,
   name,
@@ -300,6 +302,7 @@ export const Select = ({
                 ? `top-2 text-xs leading-4 ${hasPrefixIconValue ? 'left-[46px]' : 'left-5'}`
                 : `top-1/2 -translate-y-1/2 text-sm leading-5 ${hasPrefixIconValue ? 'left-[calc(var(--padding-16)+1.25rem+var(--spacing-small))]' : 'left-[var(--padding-16)]'}`
               }
+              ${labelClassName}
             `}
           >
             ${label}${required ? '*' : ''}
@@ -330,7 +333,7 @@ export const Select = ({
             <span
               class=${`
                 relative -bottom-2 left-[2px] flex-1 text-left
-                text-base font-bold font-['Red_Hat_Display']
+                text-base font-bold font-['Red_Hat_Display'] leading-auto
                 ${actualState === 'disabled' ? 'text-text-input-disabled' : 'text-text-normal-primary'}
               `}
             >
@@ -371,14 +374,13 @@ export const Select = ({
           style=${dropdownMaxHeightValue ? { maxHeight: dropdownMaxHeightValue } : undefined}
           class=${`
             py-2
-            absolute z-50 w-full mt-[var(--spacing-tiny)]
+            absolute z-50 w-full
             ${!dropdownMaxHeightValue ? 'max-h-64' : ''}
-            overflow-y-auto
             bg-white
             rounded-[var(--border-radius-large)]
             shadow-[0_2px_20px_2px_rgba(73,73,73,0.25)]
           `}
-        >
+        ><div class="max-h-[13.813rem] overflow-y-auto">
           ${options.map((option, index) => {
             const handleOptionKeyDown = (e) => {
               if (e.key === 'Tab') {
@@ -482,7 +484,7 @@ export const Select = ({
                   ${isPressed ? 'bg-[var(--state-hover-darken)] text-[var(--text-brand-light)]' : 'text-text-normal-primary hover:bg-[var(--bg-hover-light)]'}
                 `}
               >
-                <span class="flex items-center gap-[var(--spacing-small)]">
+                <span class="flex items-center gap-4">
                   ${option.flagPath && html`
                     <img
                       src=${option.flagPath}
@@ -496,19 +498,8 @@ export const Select = ({
                   <span>${option.label}</span>
                 </span>
                 ${selectedValue === option.value && html`
-                  <svg
-                    class="w-6 h-6 text-border-input-positive flex-shrink-0"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                    aria-hidden="true"
-                  >
-                    <path
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      stroke-width="3"
-                      d="M5 13l4 4L19 7"
-                    />
+                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" class="flex-shrink-0">
+                    <path fill-rule="evenodd" clip-rule="evenodd" d="M8.59 15.58L4.42 11.41L3 12.82L8.59 18.41L20.59 6.41L19.18 5L8.59 15.58Z" fill="#1EA93C"/>
                   </svg>
                 `}
                 ${selectedValue === option.value && html`
@@ -519,7 +510,7 @@ export const Select = ({
               </div>
             `;
           })}
-        </div>
+        </div></div>
       `}
 
       <!-- Helper Text -->

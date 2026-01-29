@@ -310,7 +310,7 @@ export const LanguageSearch = ({
 
       // Create overlay directly in main (or body if main doesn't exist)
       const overlay = document.createElement('div');
-      overlay.className = 'language-search-overlay fixed inset-0 bg-black/50 z-[98] cursor-pointer';
+      overlay.className = 'language-search-overlay fixed inset-0 bg-[rgba(27,27,27,0.70)] z-[98] cursor-pointer';
       overlay.addEventListener('click', () => {
         setIsDropdownOpen(false);
         setIsFocused(false);
@@ -318,12 +318,12 @@ export const LanguageSearch = ({
       });
       mainElement.appendChild(overlay);
       overlayRef.current = overlay;
-    } else {
-      // Remove overlay when dropdown closes
-      if (overlayRef.current && overlayRef.current.parentNode) {
-        overlayRef.current.parentNode.removeChild(overlayRef.current);
-        overlayRef.current = null;
-      }
+    }
+
+    // Remove overlay when dropdown closes
+    if (!isDropdownOpen && overlayRef.current && overlayRef.current.parentNode) {
+      overlayRef.current.parentNode.removeChild(overlayRef.current);
+      overlayRef.current = null;
     }
 
     return () => {
