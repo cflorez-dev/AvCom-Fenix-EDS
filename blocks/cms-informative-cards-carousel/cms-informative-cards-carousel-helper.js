@@ -68,13 +68,10 @@ export function extractCarouselCards(block) {
   // 5: ctaTargetBlank (boolean text in <p>)
   // 6: ctaRel (select text in <p>)
 
-  cardRows.forEach((row, index) => {
+  cardRows.forEach((row) => {
     const cells = Array.from(row.children);
 
-    console.log(`🔍 CMS Informative Cards Carousel - Processing card row ${index + 1}:`, { row, cells, cellsLength: cells.length });
-
     if (cells.length < 7) {
-      console.warn(`CMS Informative Cards Carousel: Row ${index + 1} has insufficient cells (${cells.length}/7). Skipping.`);
       return;
     }
 
@@ -83,53 +80,39 @@ export function extractCarouselCards(block) {
     const imgElement = imageCell?.querySelector('img');
     const image = imgElement?.src || '';
     const imageAlt = imgElement?.alt || '';
-    
+
     // Extract title (cell 1) - from <p> text
     const title = cells[1]?.textContent?.trim() || '';
-    
+
     // Extract details (cell 2) - preserve HTML from <p>
     const details = cells[2]?.innerHTML?.trim() || '';
-    
+
     // Extract ctaText (cell 3) - from <p> text
     const ctaText = cells[3]?.textContent?.trim() || '';
-    
+
     // Extract ctaLink (cell 4) - from button-container <a href="">
     const ctaLinkCell = cells[4];
     const ctaLinkElement = ctaLinkCell?.querySelector('.button-container a') || ctaLinkCell?.querySelector('a');
     const ctaLink = ctaLinkElement?.href || '';
-    
+
     // Extract ctaTargetBlank (cell 5) - boolean from <p> text
     const ctaTargetBlankText = cells[5]?.textContent?.trim().toLowerCase() || 'false';
     const ctaTargetBlank = ctaTargetBlankText === 'true';
-    
+
     // Extract ctaRel (cell 6) - from <p> text (dofollow, nofollow, sponsored)
     const ctaRelRaw = cells[6]?.textContent?.trim().toLowerCase() || 'dofollow';
     const ctaRel = ['dofollow', 'nofollow', 'sponsored'].includes(ctaRelRaw) ? ctaRelRaw : 'dofollow';
 
-    console.log(`🎴 CMS Informative Cards Carousel - Card ${index + 1} extracted data:`, {
-      image,
-      imageAlt,
-      title,
-      details: details.substring(0, 50) + '...',
-      ctaText,
-      ctaLink,
-      ctaTargetBlank,
-      ctaRel,
-    });
-
     // Validate required fields
     if (!image) {
-      console.warn(`CMS Informative Cards Carousel: Row ${index + 1} missing image. Skipping card.`);
       return;
     }
 
     if (!title) {
-      console.warn(`CMS Informative Cards Carousel: Row ${index + 1} missing title. Skipping card.`);
       return;
     }
 
     if (!details) {
-      console.warn(`CMS Informative Cards Carousel: Row ${index + 1} missing details. Skipping card.`);
       return;
     }
 

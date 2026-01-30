@@ -23,34 +23,46 @@ const CarouselPaginationDots = ({
 }) => {
   const dots = Array.from({ length: totalPages }, (_, index) => {
     const isSelected = index === currentPage;
-
-    // ========== DOT CLASSES (Tailwind) ==========
     const dotSizeClasses = isSelected
       ? 'w-[16px] h-[8px]'
       : 'w-[8px] h-[8px]';
 
-    const dotClasses = `${dotSizeClasses} relative shrink-0 ${onDotClick ? 'cursor-pointer' : ''}`;
+    const dotClasses = `
+      ${dotSizeClasses}
+      relative
+      shrink-0
+      transition-all
+      duration-300
+      ease-in-out
+      ${onDotClick ? 'cursor-pointer' : ''}
+    `;
 
-    // ========== PAGINATION INNER STYLES (Inline) ==========
-    const paginationClasses = 'absolute inset-0 rounded-[4px] border border-solid';
+    const paginationClasses = `
+      absolute inset-0
+      rounded-[4px]
+      border border-solid
+      transition-all
+      duration-300
+      ease-in-out
+    `;
 
     const paginationStyles = isSelected
       ? {
-          backgroundColor: '#1b1b1b',
-          borderColor: '#1b1b1b',
-        }
+        backgroundColor: '#1b1b1b',
+        borderColor: '#1b1b1b',
+      }
       : {
-          backgroundColor: 'rgba(255, 255, 255, 0.7)',
-          borderColor: '#1b1b1b',
-        };
-    
+        backgroundColor: 'rgba(255, 255, 255, 0.7)',
+        borderColor: '#1b1b1b',
+      };
+
     return html`
       <button
         key=${index}
         type="button"
         class=${dotClasses}
         onClick=${onDotClick ? () => onDotClick(index) : null}
-        aria-label="${('Page ' + (index + 1))}"
+        aria-label=${`Page ${index + 1}`}
         aria-current=${isSelected}
         data-selected="${isSelected}"
       >
@@ -64,7 +76,7 @@ const CarouselPaginationDots = ({
 
   return html`
     <div
-      class="${`inline-flex justify-start items-start gap-[4px] ${customClassName}`}"
+      class="inline-flex justify-start items-start gap-[4px] ${customClassName}"
       data-name="carouselPaginationDots"
       data-pages="${totalPages}"
       role="tablist"
@@ -83,12 +95,13 @@ const CarouselPaginationDots = ({
  * @param {number} [props.itemsPerView=3] - Number of items visible at once (desktop)
  * @param {number} [props.gap=12] - Gap between items in pixels
  * @param {boolean} [props.showNavigation=true] - Show navigation buttons
- * @param {number|false} [props.navigationBreakpoint=false] - Minimum width (px) to show navigation buttons. Set to false to always show (if showNavigation=true), or number to hide below that width
+ * @param {number|false} [props.navigationBreakpoint=false] - Minimum width (px) to show
+ *   navigation buttons. Set to false to always show (if showNavigation=true), or number to
+ *   hide below that width
  * @param {boolean} [props.showPagination=true] - Show pagination dots
- * @param {boolean} [props.autoPlay=true] - Enable auto-play
- * @param {number} [props.autoPlayInterval=3000] - Auto-play interval in ms
  * @param {boolean} [props.loop=true] - Enable infinite loop
- * @param {boolean} [props.infiniteMobile=false] - Enable infinite mobile mode (removes outer container padding, adds scroll container padding)
+ * @param {boolean} [props.infiniteMobile=false] - Enable infinite mobile mode (removes outer
+ *   container padding, adds scroll container padding)
  * @param {string} [props.customClassName=''] - Additional CSS classes
  * @returns {import('preact').VNode} Carousel component
  */
@@ -99,31 +112,42 @@ export const Carousel = ({
   showNavigation = true,
   navigationBreakpoint = false,
   showPagination = true,
-  autoPlay = true,
-  autoPlayInterval = 3000,
   loop = true,
   infiniteMobile = false,
   customClassName = '',
   ...rest
 }) => {
   const scrollContainerRef = useRef(null);
-  const [currentPage, setCurrentPage] = useState(0);
-  const [canScrollLeft, setCanScrollLeft] = useState(false);
-  const [canScrollRight, setCanScrollRight] = useState(true);
+  const [currentIndex, setCurrentIndex] = useState(0);
   const [isMobile, setIsMobile] = useState(false);
   const [isTablet, setIsTablet] = useState(false);
-  const autoPlayTimerRef = useRef(null);
-  const isProgrammaticScrollRef = useRef(false);
-  const isTransitioningRef = useRef(false);
-  const isInitializedRef = useRef(false);
+  const itemStrideRef = useRef(0);
+  const [itemStride, setItemStride] = useState(0);
+  const isScrollingProgrammatically = useRef(false);
+  const scrollDebounceTimer = useRef(null);
+  const isInitialized = useRef(false);
 
   // Convert children to array
   const items = Array.isArray(children) ? children : [children].filter(Boolean);
   const totalItems = items.length;
-  const totalPages = Math.ceil(totalItems / itemsPerView);
+  const normalizedItemsPerView = Math.max(1, itemsPerView);
+  const maxStartIndex = loop
+    ? Math.max(0, totalItems - 1)
+    : Math.max(0, totalItems - normalizedItemsPerView);
 
-  // No duplication - render items as-is
-  const itemsToRender = items;
+  let totalPages = 0;
+  if (totalItems > 0) {
+    totalPages = loop ? totalItems : maxStartIndex + 1;
+  }
+
+  const loopCopies = loop ? 3 : 1;
+  const itemsToRender = Array.from({ length: loopCopies }, (_, loopIndex) => (
+    items.map((item, itemIndex) => html`
+      <div key=${`carousel-item-${loopIndex}-${itemIndex}`} class="shrink-0">
+        ${item}
+      </div>
+    `)
+  )).flat();
 
   // Detect mobile and tablet viewports
   useEffect(() => {
@@ -143,7 +167,7 @@ export const Carousel = ({
 
   // Check if navigation should be shown based on breakpoint
   const [showNavigationBasedOnWidth, setShowNavigationBasedOnWidth] = useState(true);
-  
+
   useEffect(() => {
     const checkNavigationVisibility = () => {
       if (navigationBreakpoint === false) {
@@ -162,172 +186,251 @@ export const Carousel = ({
   }, [navigationBreakpoint]);
 
   /**
-   * Update scroll button states
+   * Measure item stride (width + gap)
    */
-  const updateScrollButtons = () => {
+  const updateItemStride = () => {
     if (!scrollContainerRef.current) return;
+    const container = scrollContainerRef.current;
+    const firstChild = container.children[0];
+    if (!firstChild) return;
+    const itemWidth = firstChild.getBoundingClientRect().width;
+    const computed = window.getComputedStyle(container);
+    const gapValue = parseFloat(computed.columnGap || computed.gap || '0');
+    const stride = itemWidth + (Number.isFinite(gapValue) ? gapValue : 0);
+
+    if (stride > 0 && Math.abs(stride - itemStrideRef.current) > 1) {
+      itemStrideRef.current = stride;
+      setItemStride(stride);
+    }
+  };
+
+  useEffect(() => {
+    updateItemStride();
+    if (!scrollContainerRef.current) return undefined;
 
     const container = scrollContainerRef.current;
-    const { scrollLeft, scrollWidth, clientWidth } = container;
+    let resizeObserver;
 
-    setCanScrollLeft(scrollLeft > 0);
-    setCanScrollRight(scrollLeft < scrollWidth - clientWidth - 1);
+    if (window.ResizeObserver) {
+      resizeObserver = new ResizeObserver(() => {
+        updateItemStride();
+      });
+      resizeObserver.observe(container);
+      if (container.children[0]) {
+        resizeObserver.observe(container.children[0]);
+      }
+    } else {
+      window.addEventListener('resize', updateItemStride);
+    }
+
+    return () => {
+      if (resizeObserver) {
+        resizeObserver.disconnect();
+      } else {
+        window.removeEventListener('resize', updateItemStride);
+      }
+    };
+  }, [totalItems, gap, itemsPerView]);
+
+  /**
+   * Initialize scroll position for loop mode
+   */
+  useEffect(() => {
+    if (!scrollContainerRef.current || !itemStride || totalItems === 0 || !loop) return;
+    if (isInitialized.current) return;
+
+    const container = scrollContainerRef.current;
+    const totalLoopWidth = itemStride * totalItems;
+
+    // Set initial position instantly without animation
+    isScrollingProgrammatically.current = true;
+    container.scrollLeft = totalLoopWidth;
+    isInitialized.current = true;
+
+    // Reset flag after a small delay
+    setTimeout(() => {
+      isScrollingProgrammatically.current = false;
+    }, 50);
+  }, [itemStride, totalItems, loop]);
+
+  /**
+   * Get current scroll index based on scroll position
+   */
+  const getCurrentScrollIndex = () => {
+    if (!scrollContainerRef.current || !itemStrideRef.current || totalItems === 0) return 0;
+
+    const container = scrollContainerRef.current;
+    const totalLoopWidth = itemStrideRef.current * totalItems;
+
+    if (loop) {
+      // Calculate position relative to middle copy
+      const scrollOffset = container.scrollLeft - totalLoopWidth;
+      const normalized = ((scrollOffset % totalLoopWidth) + totalLoopWidth) % totalLoopWidth;
+      // Use threshold-based snapping instead of simple rounding
+      const rawIndex = normalized / itemStrideRef.current;
+      const threshold = 0.4; // Snap when 40% into next item
+      let calculatedIndex = Math.floor(rawIndex + threshold);
+      calculatedIndex = ((calculatedIndex % totalItems) + totalItems) % totalItems;
+      return calculatedIndex;
+    }
+
+    const rawIndex = container.scrollLeft / itemStrideRef.current;
+    const calculatedIndex = Math.floor(rawIndex + 0.4);
+    return Math.max(0, Math.min(maxStartIndex, calculatedIndex));
   };
 
   /**
-   * Scroll to specific page
+   * Scroll to specific item index within the loop
+   * Always navigates forward (to the right) in loop mode for dots
    */
-  const scrollToPage = (pageIndex, instant = false) => {
-    if (!scrollContainerRef.current) return;
+  const scrollToIndex = (itemIndex, instant = false) => {
+    if (!scrollContainerRef.current || !itemStrideRef.current || totalItems === 0) return;
 
-    isProgrammaticScrollRef.current = true;
     const container = scrollContainerRef.current;
-    const itemWidth = container.scrollWidth / totalItems;
-    const scrollAmount = pageIndex * itemsPerView * itemWidth;
+    const totalLoopWidth = itemStrideRef.current * totalItems;
+    const targetIndex = loop
+      ? ((itemIndex % totalItems) + totalItems) % totalItems
+      : Math.max(0, Math.min(maxStartIndex, itemIndex));
+
+    isScrollingProgrammatically.current = true;
+
+    let scrollAmount;
+    if (loop) {
+      // Calculate forward distance for always-right navigation
+      const forwardDistance = ((targetIndex - currentIndex) + totalItems) % totalItems;
+
+      // Move forward from current scroll position
+      scrollAmount = container.scrollLeft + (forwardDistance * itemStrideRef.current);
+
+      // Ensure we stay within bounds of middle copy
+      const minScroll = totalLoopWidth * 0.5;
+      const maxScroll = totalLoopWidth * 1.5;
+
+      if (scrollAmount < minScroll) {
+        scrollAmount += totalLoopWidth;
+      } else if (scrollAmount >= maxScroll) {
+        scrollAmount -= totalLoopWidth;
+      }
+    } else {
+      scrollAmount = targetIndex * itemStrideRef.current;
+    }
 
     container.scrollTo({
       left: scrollAmount,
-      behavior: instant ? 'instant' : 'smooth',
+      behavior: instant ? 'auto' : 'smooth',
     });
 
-    setCurrentPage(pageIndex);
-    
-    // Reset flag after scroll animation completes
+    // Reset flag after animation completes
     setTimeout(() => {
-      isProgrammaticScrollRef.current = false;
-    }, instant ? 0 : 500);
+      isScrollingProgrammatically.current = false;
+    }, instant ? 50 : 500);
   };
 
   /**
-   * Handle infinite loop wrap-around (simplified without duplication)
-   */
-  const handleInfiniteLoop = () => {
-    if (!loop || !scrollContainerRef.current) return;
-    
-    // Simply reset to first/last page when reaching the end
-    // This creates a jump but no duplicated content
-    if (currentPage >= totalPages) {
-      setTimeout(() => {
-        scrollToPage(0, true);
-      }, 300);
-    } else if (currentPage < 0) {
-      setTimeout(() => {
-        scrollToPage(totalPages - 1, true);
-      }, 300);
-    }
-  };
-
-  /**
-   * Navigate to previous page
+   * Navigate to previous item
    */
   const handlePrevious = () => {
-    const prevPage = currentPage === 0 
-      ? (loop ? totalPages - 1 : 0)
-      : currentPage - 1;
-    
-    scrollToPage(prevPage);
+    if (!scrollContainerRef.current || !itemStrideRef.current || totalItems === 0) return;
+
+    isScrollingProgrammatically.current = true;
+    const container = scrollContainerRef.current;
+    container.scrollTo({
+      left: container.scrollLeft - itemStrideRef.current,
+      behavior: 'smooth',
+    });
+
+    setTimeout(() => {
+      isScrollingProgrammatically.current = false;
+      // Force index update after animation
+      const newIndex = getCurrentScrollIndex();
+      if (newIndex !== currentIndex) {
+        setCurrentIndex(newIndex);
+      }
+    }, 200);
   };
 
   /**
-   * Navigate to next page
+   * Navigate to next item
    */
   const handleNext = () => {
-    const nextPage = currentPage === totalPages - 1
-      ? (loop ? 0 : totalPages - 1)
-      : currentPage + 1;
-    
-    scrollToPage(nextPage);
+    if (!scrollContainerRef.current || !itemStrideRef.current || totalItems === 0) return;
+
+    isScrollingProgrammatically.current = true;
+    const container = scrollContainerRef.current;
+    container.scrollTo({
+      left: container.scrollLeft + itemStrideRef.current,
+      behavior: 'smooth',
+    });
+
+    setTimeout(() => {
+      isScrollingProgrammatically.current = false;
+      // Force index update after animation
+      const newIndex = getCurrentScrollIndex();
+      if (newIndex !== currentIndex) {
+        setCurrentIndex(newIndex);
+      }
+    }, 200);
   };
 
   /**
-   * Handle scroll event to update current page
+   * Handle scroll event to update current index and manage loop boundaries
    */
   const handleScroll = () => {
-    if (!scrollContainerRef.current || isProgrammaticScrollRef.current) return;
+    if (!scrollContainerRef.current || !itemStrideRef.current || totalItems === 0) return;
 
-    const container = scrollContainerRef.current;
-    const itemWidth = container.scrollWidth / totalItems;
-    const scrollPosition = container.scrollLeft;
-    const calculatedPage = Math.round(scrollPosition / (itemsPerView * itemWidth));
-    
-    // Clamp to valid range
-    const clampedPage = Math.max(0, Math.min(totalPages - 1, calculatedPage));
-    
-    setCurrentPage(clampedPage);
-    updateScrollButtons();
-  };
-
-  /**
-   * Auto-play functionality with infinite loop
-   */
-  const startAutoPlay = () => {
-    if (!autoPlay || autoPlayTimerRef.current) return;
-
-    autoPlayTimerRef.current = setInterval(() => {
-      if (isTransitioningRef.current) return;
-      
-      setCurrentPage((prevPage) => {
-        const nextPage = prevPage === totalPages - 1
-          ? (loop ? 0 : prevPage)
-          : prevPage + 1;
-
-        // Scroll to next page
-        if (scrollContainerRef.current) {
-          isProgrammaticScrollRef.current = true;
-          const container = scrollContainerRef.current;
-          const itemWidth = container.scrollWidth / totalItems;
-          const scrollAmount = nextPage * itemsPerView * itemWidth;
-
-          container.scrollTo({
-            left: scrollAmount,
-            behavior: 'smooth',
-          });
-          
-          setTimeout(() => {
-            isProgrammaticScrollRef.current = false;
-          }, 500);
-        }
-
-        return nextPage;
-      });
-    }, autoPlayInterval);
-  };
-
-  const stopAutoPlay = () => {
-    if (autoPlayTimerRef.current) {
-      clearInterval(autoPlayTimerRef.current);
-      autoPlayTimerRef.current = null;
+    // Clear existing debounce timer
+    if (scrollDebounceTimer.current) {
+      clearTimeout(scrollDebounceTimer.current);
     }
-  };
 
-  useEffect(() => {
-    startAutoPlay();
-    return () => stopAutoPlay();
-  }, [autoPlay, autoPlayInterval]);
+    // Debounce scroll updates
+    scrollDebounceTimer.current = setTimeout(() => {
+      // Skip only if we're in the middle of a programmatic scroll
+      if (isScrollingProgrammatically.current) return;
 
-  /**
-   * Initialize carousel at correct position
-   */
-  useEffect(() => {
-    updateScrollButtons();
-  }, [totalItems, itemsPerView]);
+      const container = scrollContainerRef.current;
+      if (!container || !itemStrideRef.current) return;
 
-  /**
-   * Pause auto-play on hover
-   */
-  const handleMouseEnter = () => {
-    stopAutoPlay();
-  };
+      const totalLoopWidth = itemStrideRef.current * totalItems;
 
-  const handleMouseLeave = () => {
-    startAutoPlay();
+      if (loop) {
+        const minScroll = totalLoopWidth * 0.5;
+        const maxScroll = totalLoopWidth * 1.5;
+
+        // Reposition if we've scrolled outside middle copy bounds
+        if (container.scrollLeft <= minScroll || container.scrollLeft >= maxScroll) {
+          isScrollingProgrammatically.current = true;
+
+          // Calculate which item we're currently on
+          const currentScrollIndex = getCurrentScrollIndex();
+
+          // Snap to middle copy instantly
+          const newScrollLeft = totalLoopWidth + (currentScrollIndex * itemStrideRef.current);
+          container.scrollLeft = newScrollLeft;
+
+          setTimeout(() => {
+            isScrollingProgrammatically.current = false;
+          }, 50);
+        }
+      }
+
+      // Update current index
+      const newIndex = getCurrentScrollIndex();
+      if (newIndex !== currentIndex) {
+        setCurrentIndex(newIndex);
+      }
+    }, 100); // Increased debounce to 100ms for smoother updates
   };
 
   // Client logic: Desktop shows navigation/dots only if totalItems > itemsPerView
   // Mobile always shows dots, scroll horizontal
   // navigationBreakpoint controls when navigation arrows are visible
-  const shouldShowNavigation = showNavigation && showNavigationBasedOnWidth && totalItems > itemsPerView;
-  const shouldShowPagination = isMobile ? (showPagination && totalPages > 1) : (showPagination && totalItems > itemsPerView && totalPages > 1);
+  const shouldShowNavigation = showNavigation
+    && showNavigationBasedOnWidth
+    && totalItems > itemsPerView;
+  const shouldShowPagination = isMobile
+    ? (showPagination && totalPages > 1)
+    : (showPagination && totalItems > itemsPerView && totalPages > 1);
 
   // Infinite mobile mode: adjust padding for mobile and tablet
   // Container padding only applies when showNavigation is true (to make space for arrows)
@@ -344,26 +447,17 @@ export const Carousel = ({
     }
   }
 
-  console.log('Carousel Render:', { isMobile, isTablet, infiniteMobile, containerPadding, scrollPadding });
-
   return html`
     <div
       class="${`w-full inline-flex flex-col justify-start items-center gap-0 ${customClassName}`}"
       data-name="carousel"
-      onMouseEnter=${autoPlay ? handleMouseEnter : null}
-      onMouseLeave=${autoPlay ? handleMouseLeave : null}
       ...${rest}
     >
       <div class="self-stretch ${containerPadding} relative bg-transparent inline-flex justify-start items-center">
         <div
           ref=${scrollContainerRef}
-          class="flex-1 flex justify-start items-center overflow-x-auto scroll-smooth gap-3 scrollbar-hide ${scrollPadding}"
+          class="flex-1 flex justify-start items-center overflow-x-auto gap-3 scrollbar-hide ${scrollPadding}"
           onScroll=${handleScroll}
-          style=${{
-            gap: `${gap}px`,
-            scrollbarWidth: 'none',
-            msOverflowStyle: 'none',
-          }}
         >
           ${itemsToRender}
         </div>
@@ -372,12 +466,12 @@ export const Carousel = ({
           <${CarouselNavigationButton}
             direction="left"
             onClick=${handlePrevious}
-            disabled=${!loop && currentPage === 0}
+            disabled=${!loop && currentIndex === 0}
           />
           <${CarouselNavigationButton}
             direction="right"
             onClick=${handleNext}
-            disabled=${!loop && currentPage === totalPages - 1}
+            disabled=${!loop && currentIndex === totalPages - 1}
           />
         ` : ''}
       </div>
@@ -385,8 +479,13 @@ export const Carousel = ({
       ${shouldShowPagination ? html`
         <${CarouselPaginationDots}
           totalPages=${totalPages}
-          currentPage=${currentPage}
-          onDotClick=${(pageIndex) => scrollToPage(pageIndex)}
+          currentPage=${currentIndex}
+          onDotClick=${(pageIndex) => {
+    if (pageIndex === currentIndex) return;
+    // Update index immediately for visual feedback
+    setCurrentIndex(pageIndex);
+    scrollToIndex(pageIndex);
+  }}
         />
       ` : ''}
     </div>

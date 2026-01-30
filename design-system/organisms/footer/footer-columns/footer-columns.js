@@ -86,7 +86,7 @@ export const FooterColumns = ({
       >
         ${column.title}
       </h4>
-      <ul class="footer-column-list flex flex-col list-none p-0 m-0 gap-[12px]">
+      <ul class="footer-column-list flex flex-col list-none p-0 !m-0 gap-[12px]">
         ${column.subItems.map((item) => html`
           <li class="footer-column-item">
             ${renderLink(item)}
@@ -124,7 +124,7 @@ export const FooterColumns = ({
     >
       <!-- Desktop View: Dynamic column grid -->
       <!-- Visible only when width is greater than 1156px -->
-      <div class="footer-columns-desktop max-w-xl w-full hidden min-[1157px]:flex flex-row gap-[16px]">
+      <div class="footer-columns-desktop max-w-xl w-full hidden min-[1157px]:flex flex-row gap-[2rem]">
         ${displayColumns.map((column) => renderDesktopColumn(column))}
       </div>
 

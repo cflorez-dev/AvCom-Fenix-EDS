@@ -2,7 +2,7 @@ import { getMetadata } from '../../scripts/aem.js';
 import { getLocalizedPaths } from '../../scripts/utils/locale.js';
 import { loadFragment } from '../fragment/fragment.js';
 
-const isMobileNavbar = window.matchMedia('(max-width: 1248px)');
+const isMobileNavbar = window.matchMedia('(max-width: 1247px)');
 /**
  * loads and decorates the header, mainly the nav
  * @param {Element} block The header block element
@@ -46,7 +46,7 @@ export default async function decorate(block) {
   }
 
   const headerContainer = document.createElement('div');
-  headerContainer.className = 'header-wrapper max-w-[1248px] w-full flex flex-row justify-between items-center h-[76px] min-[1440px]:h-[76px] top-[var(--marquee-height)]';
+  headerContainer.className = 'header-wrapper max-w-[1247px] w-full flex flex-row justify-between items-center h-[76px] min-[1440px]:h-[76px] top-[var(--marquee-height)]';
   headerContainer.innerHTML = `
     <div class="header-container flex flex-row items-center gap-[24px]">
       <div class="header-navbar-mobile"></div>

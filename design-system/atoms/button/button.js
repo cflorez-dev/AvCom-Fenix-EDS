@@ -45,7 +45,7 @@ export const Button = ({
           hover:bg-background-brand-primary-hover
           hover:border-border-brand-primary-hover
           active:bg-background-brand-primary-active
-          active:border-border-brand-primary-active
+          active:!border-border-brand-primary-active
         `}
       `,
       basesClasesChild: `${disabled ? 'text-text-brand-disable' : 'text-text-brand-primary'}`,
@@ -61,7 +61,7 @@ export const Button = ({
           hover:bg-background-brand-secondary-hover
           hover:border-border-brand-secondary-hover
           active:bg-background-brand-secondary-active
-          active:border-border-brand-secondary-active
+          active:!border-border-brand-secondary-active
         `}
       `,
       basesClasesChild: `${disabled ? 'text-text-brand-disable' : 'text-text-brand-secondary'}`,
@@ -77,7 +77,7 @@ export const Button = ({
           hover:bg-background-brand-secondary-hover
           hover:border-background-brand-secondary-hover
           active:bg-background-brand-secondary-active
-          active:border-border-brand-secondary-active
+          active:!border-border-brand-secondary-active
         `}
       `,
       basesClasesChild: `${disabled ? 'text-text-brand-disable' : 'text-text-brand-secondary'}`,
@@ -93,7 +93,7 @@ export const Button = ({
           hover:bg-background-brand-highlight-hover
           hover:border-border-brand-highlight-hover
           active:bg-background-brand-highlight-active
-          active:border-border-brand-highlight-active
+          active:!border-border-brand-highlight-active
         `}
       `,
       basesClasesChild: `${disabled ? 'text-text-brand-disable' : 'text-text-brand-primary'}`,

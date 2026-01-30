@@ -209,7 +209,19 @@ export default async function decorate(block) {
 
     const tabLabel = sectionMetadata.multitabLabel || `Tab ${tabSections.length + 1}`;
     const tabSecondaryLabel = sectionMetadata.multitabSecondaryLabel || null;
-    const tabIcon = sectionMetadata.multitabIcon || null;
+    let tabIcon = sectionMetadata.multitabIcon || null;
+
+    // Clean up icon value: remove surrounding quotes and validate format
+    if (tabIcon && typeof tabIcon === 'string') {
+      // Remove surrounding quotes if present (e.g., "'action/check'" -> "action/check")
+      tabIcon = tabIcon.replace(/^['"`]+|['"`]+$/g, '').trim();
+
+      // Validate icon format: must contain "/" (e.g., "action/check", "navigation/chevron-left")
+      if (tabIcon && !tabIcon.includes('/')) {
+        tabIcon = null;
+      }
+    }
+
     const tabIconPosition = sectionMetadata.multitabIconPosition || 'before';
     const tabDefaultOpen = sectionMetadata.multitabDefaultOpen === 'true';
     const tabId = `tab-${groupId}-${tabSections.length}`;
@@ -396,54 +408,72 @@ export default async function decorate(block) {
     tabButton.setAttribute('tabindex', isActive ? '0' : '-1');
     tabButton.setAttribute('aria-label', `${tabData.label}${tabData.secondaryLabel ? `: ${tabData.secondaryLabel}` : ''}`);
 
-    // Title container (supports primary + secondary text layout)
-    const titleContainer = document.createElement('div');
-    titleContainer.className = `
-      flex gap-[4px] items-center justify-center relative w-full z-[5]
-    `.trim().replace(/\s+/g, ' ');
+    // Content container with grid layout 3x3
+    // Icon: column 1, spans all 3 rows (centered)
+    // Primary label: columns 2-3, row 1
+    // Secondary label: columns 2-3, row 2
+    const contentContainer = document.createElement('div');
 
-    // Icon before label
-    if (tabData.icon && tabData.iconPosition === 'before') {
-      const iconSpan = document.createElement('span');
-      iconSpan.className = 'flex items-center justify-center size-[16px] shrink-0';
-      iconSpan.setAttribute('data-name', 'icon');
-      const iconColor = isActive ? 'var(--text-normal-primary)' : 'var(--text-normal-secondary)';
-      render(html`<${Icon} icon=${tabData.icon} customSize=${16} color=${iconColor} />`, iconSpan);
-      titleContainer.appendChild(iconSpan);
-    }
-
-    // Primary label
-    const labelSpan = document.createElement('span');
-    // Mobile: single line for all tabs (active and inactive)
-    labelSpan.className = `
-      font-[var(--family-red-hat-display)] ${primaryFontSize} leading-normal whitespace-nowrap tracking-[var(--letter-spacing-normal)]
-      ${isActive ? 'font-bold text-[var(--text-normal-primary)]' : 'font-normal text-[var(--text-normal-secondary)]'}
-    `.trim().replace(/\s+/g, ' ');
-    labelSpan.textContent = tabData.label;
-    titleContainer.appendChild(labelSpan);
-
-    // Icon after label
-    if (tabData.icon && tabData.iconPosition === 'after') {
-      const iconSpan = document.createElement('span');
-      iconSpan.className = 'flex items-center justify-center size-[16px] shrink-0';
-      iconSpan.setAttribute('data-name', 'icon');
-      const iconColor = isActive ? 'var(--text-normal-primary)' : 'var(--text-normal-secondary)';
-      render(html`<${Icon} icon=${tabData.icon} customSize=${16} color=${iconColor} />`, iconSpan);
-      titleContainer.appendChild(iconSpan);
-    }
-
-    tabButton.appendChild(titleContainer);
-
-    // Secondary label (optional)
-    if (tabData.secondaryLabel) {
-      const secondarySpan = document.createElement('span');
-      secondarySpan.className = `
-        font-[var(--family-red-hat-display)] ${secondaryFontSize} font-normal leading-[1.5] whitespace-nowrap tracking-[var(--letter-spacing-normal)]
-        text-[var(--text-normal-secondary)] z-[4]
+    // Grid layout: if icon exists, use 3 columns; otherwise use simple flex
+    if (tabData.icon) {
+      contentContainer.className = `
+        grid grid-cols-[auto_1fr_1fr] grid-rows-[auto_auto_auto] gap-x-[8px] items-center justify-items-start relative w-full z-[5]
       `.trim().replace(/\s+/g, ' ');
-      secondarySpan.textContent = tabData.secondaryLabel;
-      tabButton.appendChild(secondarySpan);
+
+      // Icon (column 1, spans all rows, centered)
+      const iconColor = isActive ? 'var(--text-normal-primary)' : 'var(--text-normal-secondary)';
+      const iconWrapper = document.createElement('span');
+      iconWrapper.className = 'flex items-center justify-center shrink-0 row-span-3 self-center';
+      render(html`<${Icon} icon=${tabData.icon} size="s" color=${iconColor} />`, iconWrapper);
+      contentContainer.appendChild(iconWrapper);
+
+      // Primary label (columns 2-3)
+      const labelSpan = document.createElement('span');
+      labelSpan.className = `
+        col-span-2 font-[var(--family-red-hat-display)] ${primaryFontSize} leading-normal whitespace-nowrap tracking-[var(--letter-spacing-normal)]
+        ${isActive ? 'font-bold text-[var(--text-normal-primary)]' : 'font-normal text-[var(--text-normal-secondary)]'}
+      `.trim().replace(/\s+/g, ' ');
+      labelSpan.textContent = tabData.label;
+      contentContainer.appendChild(labelSpan);
+
+      // Secondary label (columns 2-3, row 2)
+      if (tabData.secondaryLabel) {
+        const secondarySpan = document.createElement('span');
+        secondarySpan.className = `
+          col-span-2 font-[var(--family-red-hat-display)] ${secondaryFontSize} font-normal leading-[1.5] whitespace-nowrap tracking-[var(--letter-spacing-normal)]
+          text-[var(--text-normal-secondary)]
+        `.trim().replace(/\s+/g, ' ');
+        secondarySpan.textContent = tabData.secondaryLabel;
+        contentContainer.appendChild(secondarySpan);
+      }
+    } else {
+      // No icon: use flex column layout
+      contentContainer.className = `
+        flex flex-col gap-[2px] items-center justify-center relative w-full z-[5]
+      `.trim().replace(/\s+/g, ' ');
+
+      // Primary label
+      const labelSpan = document.createElement('span');
+      labelSpan.className = `
+        font-[var(--family-red-hat-display)] ${primaryFontSize} leading-normal whitespace-nowrap tracking-[var(--letter-spacing-normal)]
+        ${isActive ? 'font-bold text-[var(--text-normal-primary)]' : 'font-normal text-[var(--text-normal-secondary)]'}
+      `.trim().replace(/\s+/g, ' ');
+      labelSpan.textContent = tabData.label;
+      contentContainer.appendChild(labelSpan);
+
+      // Secondary label
+      if (tabData.secondaryLabel) {
+        const secondarySpan = document.createElement('span');
+        secondarySpan.className = `
+          font-[var(--family-red-hat-display)] ${secondaryFontSize} font-normal leading-[1.5] whitespace-nowrap tracking-[var(--letter-spacing-normal)]
+          text-[var(--text-normal-secondary)]
+        `.trim().replace(/\s+/g, ' ');
+        secondarySpan.textContent = tabData.secondaryLabel;
+        contentContainer.appendChild(secondarySpan);
+      }
     }
+
+    tabButton.appendChild(contentContainer);
 
     // Green indicator (active only)
     if (isActive) {
