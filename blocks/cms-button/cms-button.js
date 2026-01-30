@@ -253,11 +253,17 @@ export default function decorate(block) {
   // 5. Build component props
   // Button accepts: "xxs" | "xs" | "sm" | "md" | "lg" | "icon"
   // LinkButton accepts: "compact" | "default" | "medium" | "large" | "huge"
+  // Detect icon-only mode (has icon but no text)
+  const hasIcon = icon && icon.trim() !== '';
+  const hasText = text && text.trim() !== '';
+  const isIconOnly = hasIcon && !hasText;
+
   const buttonProps = {
     variant: isTertiary ? 'link' : variant, // tertiary uses LinkButton variant="link"
     size: isTertiary ? 'medium' : 'md', // LinkButton uses "medium", Button uses "md"
-    customClassName: 'cms-button-element w-full',
+    customClassName: isIconOnly ? 'cms-button-element' : 'cms-button-element w-full', // No w-full for icon-only
     title: title || text, // Fallback to text if no title
+    iconOnly: isIconOnly, // Enable icon-only mode when no text present
     ...customAttrs, // Spread custom attributes (aria-*, data-*, etc)
   };
 
@@ -361,12 +367,18 @@ export default function decorate(block) {
 
   // 6. Build children (text + icon)
   const renderChildren = () => {
-    // Icon is a text field - check if it's not empty
-    const hasIcon = icon && icon.trim() !== '';
-
     if (!hasIcon) {
       // Text only
       return text;
+    }
+
+    // Icon only mode - render with avi-button__icon
+    if (isIconOnly) {
+      return html`
+        <span class="max-h-[1.25rem]">
+          <${Icon} icon=${icon} />
+        </span>
+      `;
     }
 
     // For tertiary (LinkButton), use Tailwind classes that respond to group
@@ -390,7 +402,7 @@ export default function decorate(block) {
       return { color: 'var(--color-text-link-informative-default)' };
     };
 
-    // With icon
+    // With icon and text
     const iconProps = getIconProps();
     const iconElement = html`
       <${Icon} icon=${icon} size="m" ...${iconProps} />

@@ -348,18 +348,25 @@ export const Select = ({
 
           <!-- Chevron Icon -->
           <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="16"
+            height="16"
+            viewBox="0 0 16 16"
+            fill="none"
             class=${`
               w-4 h-4 flex-shrink-0 ml-[var(--spacing-small)]
               transition-transform duration-200
               ${isOpen ? 'rotate-180' : ''}
-              ${actualState === 'disabled' ? 'text-icon-input-disabled' : 'text-text-normal-primary'}
+              ${actualState === 'disabled' ? 'opacity-50' : ''}
             `}
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
             aria-hidden="true"
           >
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+            <path
+              fill-rule="evenodd"
+              clip-rule="evenodd"
+              d="M11.06 5.72656L8 8.7799L4.94 5.72656L4 6.66656L8 10.6666L12 6.66656L11.06 5.72656Z"
+              fill="${actualState === 'disabled' ? '#999999' : '#1B1B1B'}"
+            />
           </svg>
         </div>
       </div>

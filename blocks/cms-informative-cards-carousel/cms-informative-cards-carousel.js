@@ -10,17 +10,6 @@ const html = htm.bind(h);
 const DESKTOP_BREAKPOINT = 1248;
 
 /**
- * Strip HTML tags and return plain text
- * @param {string} html - HTML string
- * @returns {string} Plain text
- */
-function stripHtmlTags(html) {
-  const div = document.createElement('div');
-  div.innerHTML = html;
-  return div.textContent || div.innerText || '';
-}
-
-/**
  * Render cards in grid layout (100% width)
  * Cards use flex-1 to distribute space equally
  * @param {Array} cards - Card data array (1-4 cards)
@@ -50,19 +39,14 @@ function renderCardsGrid(cards, loadingMode) {
 
 /**
  * Render cards in carousel (mobile <1248px with 1-4 cards)
- * Cards maintain desktop size inside carousel
+ * Cards maintain 300px fixed width inside carousel
  * Reduce itemsPerView to 1 to force navigation controls
  * @param {Array} cards - Card data array (1-4 cards)
  * @param {string} loadingMode - Image loading strategy ('lazy' or 'eager')
  * @returns {import('preact').VNode} Preact component
  */
 function renderFourCardsCarousel(cards, loadingMode) {
-  const isDesktop = window.innerWidth >= DESKTOP_BREAKPOINT;
-
-  const cardClassName = isDesktop
-    ? 'w-[400px] min-w-[400px] max-w-[400px]' 
-    : 'w-[360px] min-w-[360px] max-w-[360px]';
-  
+  const cardClassName = 'w-[300px] min-w-[300px] max-w-[300px]';
   const cardElements = cards.map((cardData) => html`
     <${InformativePhotoCard}
       title=${cardData.title}
@@ -73,11 +57,11 @@ function renderFourCardsCarousel(cards, loadingMode) {
       buttonURL=${cardData.ctaLink || ''}
       ctaTargetBlank=${cardData.ctaTargetBlank || false}
       ctaRel=${cardData.ctaRel || 'dofollow'}
-      customClassName="${cardClassName} my-[16px] ml-[-0.2px]"
+      customClassName="${cardClassName} my-[16px]"
       loading=${loadingMode}
     />
   `);
-    
+
   return html`
     <${Carousel}
       itemsPerView=${1}
@@ -96,6 +80,7 @@ function renderFourCardsCarousel(cards, loadingMode) {
 
 /**
  * Render 5+ cards in carousel (all viewports)
+ * All cards have fixed 300px width in carousel mode
  * Desktop (≥1248px): Shows 4 cards at once, remaining cards hidden
  * Mobile (<1248px): Shows 1 card at once
  * @param {Array} cards - Card data array (5+)
@@ -103,15 +88,7 @@ function renderFourCardsCarousel(cards, loadingMode) {
  * @returns {import('preact').VNode} Preact component
  */
 function renderMultiCardsCarousel(cards, loadingMode) {
-  const isDesktop = window.innerWidth >= DESKTOP_BREAKPOINT;
-  
-  // Desktop: fixed width to show 4 cards at once
-  // Mobile: fixed width to show 1 card at once
-  // Calculate: (100% - (3 gaps of 12px)) / 4 = calc((100% - 36px) / 4)
-  const cardClassName = isDesktop
-    ? 'w-[calc((100%-36px)/4)] min-w-[calc((100%-36px)/4)] max-w-[calc((100%-36px)/4)]' 
-    : 'w-[360px] min-w-[360px] max-w-[360px]';
-  
+  const cardClassName = 'w-[300px] min-w-[300px] max-w-[300px]';
   return html`
     <${Carousel}
       itemsPerView=${1}
@@ -133,7 +110,7 @@ function renderMultiCardsCarousel(cards, loadingMode) {
           buttonURL=${cardData.ctaLink || ''}
           ctaTargetBlank=${cardData.ctaTargetBlank || false}
           ctaRel=${cardData.ctaRel || 'dofollow'}
-          customClassName="${cardClassName} my-[16px] ml-[-0.2px]"
+          customClassName="${cardClassName} my-[16px] ml-[2px]"
           loading=${loadingMode}
         />
       `)}
@@ -145,8 +122,7 @@ function renderMultiCardsCarousel(cards, loadingMode) {
  * Decorates the CMS Informative Cards Carousel block
  * @param {Element} block The cms-informative-cards-carousel block element
  */
-export default function decorate(block) { 
-  console.log('[CMS Informative Cards Carousel] Decorating block...', block);
+export default function decorate(block) {
   // Extract configuration and cards using helper
   const props = extractCmsInformativeCardsCarouselProps(block);
   const cards = extractCarouselCards(block);
@@ -154,7 +130,6 @@ export default function decorate(block) {
   const loadingMode = props.loading || 'lazy';
 
   if (totalCards === 0) {
-    console.warn('[CMS Informative Cards Carousel] No valid cards found.');
     return;
   }
 
@@ -165,19 +140,16 @@ export default function decorate(block) {
 
   /**
    * Render logic based on cards count and viewport width
-   * 
    * Rules:
    * 1. Desktop (≥1248px):
    *    - ≤4 cards → Grid 100% width
    *    - 5+ cards → Carousel
-   * 
    * 2. Mobile (<1248px):
    *    - Any card count → Carousel
    */
   const renderContent = () => {
     const viewportWidth = window.innerWidth;
     const isDesktop = viewportWidth >= DESKTOP_BREAKPOINT;
-    
     if (isDesktop) {
       // Desktop: grid if ≤4 cards, carousel if 5+
       if (totalCards <= 4) {

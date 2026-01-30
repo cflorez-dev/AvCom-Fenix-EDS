@@ -477,20 +477,30 @@ export const LanguageSearch = ({
           borderActiveColor="alert-success-border"
           borderFocusColor="alert-success-border"
         >
-          <div class=" flex flex-row items-center gap-[8px]">
+          <div class="flex flex-row items-center gap-[8px]">
             ${currentFlagPath ? html`
               <img
                 src=${currentFlagPath}
                 alt=""
-                class="block w-[16px] h-[16px]  object-contain flex-shrink-0"
+                class="block w-[16px] h-[16px] object-contain flex-shrink-0"
               />
             ` : html`
               <span class="w-5 h-[15px] flex-shrink-0" />
             `}
-            <span class=" m-0 not-italic font-[family-name:var(--font-family-primary)] font-[var(--font-weight-regular)] text-[length:var(--font-size-small)] text-[var(--text-normal-primary)]">
+            <span class="m-0 not-italic font-[family-name:var(--font-family-primary)] font-[var(--font-weight-regular)] text-[length:var(--font-size-small)] text-[var(--text-normal-primary)]">
               ${formatPosDisplay(selectedPos)}
             </span>
-            
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="16"
+              height="16"
+              viewBox="0 0 16 16"
+              fill="none"
+              class=${`transition-transform duration-200 flex-shrink-0 ${isDropdownOpen ? 'rotate-0' : 'rotate-180'}`}
+              aria-hidden="true"
+            >
+              <path fill-rule="evenodd" clip-rule="evenodd" d="M8 5.33301L4 9.33301L4.94 10.273L8 7.21967L11.06 10.273L12 9.33301L8 5.33301Z" fill="#1B1B1B"/>
+            </svg>
           </div>
         </${Button}>
 
