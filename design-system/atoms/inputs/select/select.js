@@ -387,7 +387,7 @@ export const Select = ({
             rounded-[var(--border-radius-large)]
             shadow-[0_2px_20px_2px_rgba(73,73,73,0.25)]
           `}
-        ><div class="max-h-[13.813rem] overflow-y-auto">
+        ><div class="max-h-[12.813rem] overflow-y-auto">
           ${options.map((option, index) => {
             const handleOptionKeyDown = (e) => {
               if (e.key === 'Tab') {

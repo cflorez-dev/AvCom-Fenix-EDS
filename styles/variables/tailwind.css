@@ -264,7 +264,7 @@
   --line-height-loose: 2;
   
   /* Marquee Animation */
-  --animate-alert-marquee: alert-marquee 30s linear infinite;
+  --animate-alert-marquee: alert-marquee 60s linear infinite;
 }
 
 @utility leading-auto {
