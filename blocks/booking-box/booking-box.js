@@ -61,7 +61,7 @@ export default async function decorate(block) {
         i18n=${i18Data}
       />
     `,
-    container
+    container,
   );
 
   block.style.display = 'none';

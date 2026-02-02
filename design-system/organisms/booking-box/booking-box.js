@@ -110,6 +110,8 @@ export const BookingBox = ({
   const bookingBoxRef = useRef(null);
   const sentinelRef = useRef(null);
   const observerRef = useRef(null);
+  const nextSectionRef = useRef(null);
+  const removeClassTimeoutRef = useRef(null);
 
   // ========== STEP ORDER ==========
   const STEP_ORDER = ['route', 'dates', 'passengers'];
@@ -475,6 +477,53 @@ export const BookingBox = ({
       }
     };
   }, []);
+
+  // ========== BOOKING BOX CONTAINER PADDING BOTTOM WHEN STICKY ==========
+  useEffect(() => {
+    if (typeof window === 'undefined') return undefined;
+    // Find the booking box container (parent with classes 'section booking-box-container')
+    const bookingBoxContainer = bookingBoxRef.current?.closest('.section.booking-box-container');
+    if (!bookingBoxContainer) return undefined;
+    nextSectionRef.current = bookingBoxContainer;
+
+    // Clear any pending timeout
+    if (removeClassTimeoutRef.current) {
+      clearTimeout(removeClassTimeoutRef.current);
+      removeClassTimeoutRef.current = null;
+    }
+
+    // Apply or remove classes based on isSticky state
+    if (isSticky && window.innerWidth >= 768) {
+      // Add base class first, then sticky class for smooth transition
+      bookingBoxContainer.classList.add('booking-box-next-section');
+      requestAnimationFrame(() => {
+        if (nextSectionRef.current) {
+          nextSectionRef.current.classList.add('booking-box-next-section--sticky');
+        }
+      });
+    } else {
+      // Remove sticky class first (triggers transition back to 0)
+      bookingBoxContainer.classList.remove('booking-box-next-section--sticky');
+      // Wait for transition to complete before removing base class
+      removeClassTimeoutRef.current = setTimeout(() => {
+        if (nextSectionRef.current && (!isSticky || window.innerWidth < 768)) {
+          nextSectionRef.current.classList.remove('booking-box-next-section');
+        }
+        removeClassTimeoutRef.current = null;
+      }, 350); // Slightly longer than transition duration (300ms)
+    }
+    return () => {
+      // Cleanup: clear timeout and remove classes when component unmounts
+      if (removeClassTimeoutRef.current) {
+        clearTimeout(removeClassTimeoutRef.current);
+        removeClassTimeoutRef.current = null;
+      }
+      if (nextSectionRef.current) {
+        nextSectionRef.current.classList.remove('booking-box-next-section--sticky');
+        nextSectionRef.current.classList.remove('booking-box-next-section');
+      }
+    };
+  }, [isSticky]);
 
   // Detect viewport changes (mobile/desktop)
   useEffect(() => {

@@ -284,8 +284,8 @@ export const SecondaryBanner = ({
 
   // Text color classes based on mode
   const textColorClasses = mode === 'dark'
-    ? 'text-[var(--color-text-banner-light)]'
-    : 'text-[var(--color-text-banner-dark)]';
+    ? '!text-[var(--color-text-banner-light)]'
+    : '!text-[var(--color-text-banner-dark)]';
 
   return html`
     <!-- Desktop Version -->
@@ -303,16 +303,16 @@ export const SecondaryBanner = ({
               
             </div>
           <!-- Background condor pattern -->
-          <div class="w-full h-full relative z-20 flex flex-row">
+          <div class="w-full h-full relative z-20 flex flex-row gap-[8px] min-[769px]:gap-0">
               <div class="flex-1 min-w-0 h-[216px] min-[1024px]:h-[243px] flex flex-col justify-between z-10 p-[16px] min-[1024px]:p-[24px]">
                 <div class="z-10 self-stretch flex flex-col justify-center items-start gap-[4px]">
                   <h2 class="line-clamp-2 self-stretch justify-start ${textColorClasses} !text-[20px] min-[1024px]:!text-[32px] font-bold font-['Red_Hat_Display']">
                     ${title}
                   </h2>
-                  <div class="line-clamp-2 self-stretch justify-start ${textColorClasses} text-[16px] min-[1024px]:text-[24px] font-normal font-['Red_Hat_Display']">
+                  <div class="line-clamp-2 self-stretch justify-start ${textColorClasses} leading-[21px] min-[769px]:!leading-[32px] text-[16px] min-[1024px]:text-[24px] font-normal font-['Red_Hat_Display']">
                     ${firstLabel}
                   </div>
-                  <div class="line-clamp-2 self-stretch justify-start ${textColorClasses} text-[12px] min-[1024px]:text-[16px] font-normal font-['Red_Hat_Display'] opacity-90">
+                  <div class="line-clamp-2 self-stretch justify-start ${textColorClasses} leading-[16px] min-[769px]:!leading-[21px] text-[12px] min-[1024px]:text-[16px] font-normal font-['Red_Hat_Display'] opacity-90">
                     ${secondaryLabel}
                   </div>
                 </div>
@@ -329,7 +329,7 @@ export const SecondaryBanner = ({
                   </div>
                 ` : ''}
               </div>
-              <div class="spacer w-[181px] lg:w-[277px] shrink-0"></div>
+              <div class="spacer w-[181px] lg:w-[271px] shrink-0"></div>
           </div>
       </div>
 

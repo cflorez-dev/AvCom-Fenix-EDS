@@ -1,7 +1,7 @@
 /**
  * Maps block HTML data to a structured configuration object for CMS Secondary Banner
  *
- * Expected structure: 16 divs containing (in order):
+ * Expected structure: 18 divs containing (in order):
  * - Div 0: Title
  * - Div 1: First label
  * - Div 2: Secondary Label
@@ -18,6 +18,8 @@
  * - Div 13: Gradient Color End (link with color value)
  * - Div 14: Condor Stroke Color (link with color value)
  * - Div 15: Loading
+ * - Div 16: Target Countries (comma-separated)
+ * - Div 17: Target Languages (comma-separated)
  *
  * @param {Element} block The cms-secondary-banner block element
  * @returns {Object} Mapped configuration object with all banner properties
@@ -53,6 +55,8 @@ export function mapCmsSecondaryBannerData(block) {
     gradientColorEnd: extractLinkValue(divs[13]) || '',
     condorStrokeColor: extractLinkValue(divs[14]) || '',
     loading: extractTextValue(divs[15]) || pictureDesktop?.loading || pictureMobile?.loading || 'lazy',
+    targetCountries: extractTextValue(divs[16]) || '',
+    targetLanguages: extractTextValue(divs[17]) || '',
   };
 
   return mappedData;
