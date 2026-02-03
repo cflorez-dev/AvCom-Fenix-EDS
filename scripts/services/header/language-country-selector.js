@@ -26,13 +26,13 @@ const COUNTRY_DATA = {
   mex: {
     label: 'México',
     flagFileName: 'mexico-flag.svg',
-    currencyCode: 'MXN',
+    currencyCode: 'USD',
     keyIso: 'mx',
   },
   per: {
     label: 'Perú',
     flagFileName: 'peru-flag.svg',
-    currencyCode: 'PEN',
+    currencyCode: 'USD',
     keyIso: 'pe',
   },
   ecu: {
@@ -50,7 +50,7 @@ const COUNTRY_DATA = {
   cri: {
     label: 'Costa Rica',
     flagFileName: 'costa-rica-flag.svg',
-    currencyCode: 'CRC',
+    currencyCode: 'USD',
     keyIso: 'cr',
   },
   bra: {
@@ -68,55 +68,55 @@ const COUNTRY_DATA = {
   bol: {
     label: 'Bolivia',
     flagFileName: 'bolivia-flag.svg',
-    currencyCode: 'BOB',
+    currencyCode: 'USD',
     keyIso: 'bo',
   },
   chl: {
     label: 'Chile',
     flagFileName: 'chile-flag.svg',
-    currencyCode: 'CLP',
+    currencyCode: 'USD',
     keyIso: 'cl',
   },
   can: {
     label: 'Canadá',
     flagFileName: 'canada-flag.svg',
-    currencyCode: 'CAD',
+    currencyCode: 'USD',
     keyIso: 'ca',
   },
   gtm: {
     label: 'Guatemala',
     flagFileName: 'guatemala-flag.svg',
-    currencyCode: 'GTQ',
+    currencyCode: 'USD',
     keyIso: 'gt',
   },
   hnd: {
     label: 'Honduras',
     flagFileName: 'honduras-flag.svg',
-    currencyCode: 'HNL',
+    currencyCode: 'USD',
     keyIso: 'hn',
   },
   nic: {
     label: 'Nicaragua',
     flagFileName: 'nicaragua-flag.svg',
-    currencyCode: 'NIO',
+    currencyCode: 'USD',
     keyIso: 'ni',
   },
   pan: {
     label: 'Panamá',
     flagFileName: 'panama-flag.svg',
-    currencyCode: 'PAB',
+    currencyCode: 'USD',
     keyIso: 'pa',
   },
   pry: {
     label: 'Paraguay',
     flagFileName: 'paraguay-flag.svg',
-    currencyCode: 'PYG',
+    currencyCode: 'USD',
     keyIso: 'py',
   },
   dom: {
     label: 'República Dominicana',
     flagFileName: 'republica-dominicana-flag.svg',
-    currencyCode: 'DOP',
+    currencyCode: 'USD',
     keyIso: 'do',
   },
   esp: {
@@ -134,25 +134,13 @@ const COUNTRY_DATA = {
   ury: {
     label: 'Uruguay',
     flagFileName: 'uruguay-flag.svg',
-    currencyCode: 'UYU',
+    currencyCode: 'USD',
     keyIso: 'uy',
   },
-  eur: {
-    label: 'Europa',
-    flagFileName: 'europe-flag.svg',
-    currencyCode: 'EUR',
-    keyIso: 'eu',
-  },
-  fra: {
-    label: 'Francia',
-    flagFileName: 'france-flag.svg',
-    currencyCode: 'EUR',
-    keyIso: 'fr',
-  },
   oth: {
-    label: 'Otros',
+    label: 'Otros países',
     flagFileName: 'others-flag.svg',
-    currencyCode: '',
+    currencyCode: 'USD',
     keyIso: 'ot',
   },
 };
@@ -269,8 +257,6 @@ export function mapPosToStandard(pos) {
     'es-pan': 'es-pan',
     'en-can': 'en-can',
     'en-gbr': 'en-gbr',
-    'fr-fra': 'fr-fra',
-    'fr-eur': 'fr-eur',
   };
 
   // Check if we have a direct mapping
@@ -581,29 +567,59 @@ export function setStoredCurrency(currencyCode) {
 /**
  * Set country in cookie
  * Also sets currency cookie based on country
- * Also sets WL-cookieSelectedPointOfSale cookie with the same country value
- * @param {string} countryCode - Country code
+ * @param {string} countryCode - Country code (ISO code like 'co', 'us' or internal code like 'col')
  */
 export function setStoredCountry(countryCode) {
-  if (countryCode) {
-    setCookie(COUNTRY_COOKIE, countryCode);
-    // Also set WL-cookieSelectedPointOfSale cookie with the same value
-    setCookie('WL-cookieSelectedPointOfSale', countryCode);
+  if (!countryCode) return;
 
-    // Also set currency cookie based on country
-    const countryData = COUNTRY_DATA[countryCode];
-    if (countryData && countryData.currencyCode) {
-      setCookie(CURRENCY_COOKIE, countryData.currencyCode);
+  // Determine if we received an ISO code or internal code
+  // First, try to find by ISO code (keyIso)
+  let isoCode = null;
+  let internalCode = null;
+  let countryData = null;
+
+  // Check if it's an ISO code by searching in COUNTRY_DATA
+  const foundByIso = Object.entries(COUNTRY_DATA)
+    .find(([, data]) => data.keyIso === countryCode.toLowerCase());
+
+  if (foundByIso) {
+    // It's an ISO code
+    isoCode = countryCode.toLowerCase();
+    [internalCode, countryData] = foundByIso;
+  } else if (COUNTRY_DATA[countryCode.toLowerCase()]) {
+    // It's an internal code
+    internalCode = countryCode.toLowerCase();
+    countryData = COUNTRY_DATA[internalCode];
+    isoCode = countryData.keyIso;
+  } else {
+    // If we can't find it, try mapIsoToCountryCode as fallback
+    const mappedCode = mapIsoToCountryCode(countryCode);
+    if (mappedCode && COUNTRY_DATA[mappedCode]) {
+      internalCode = mappedCode;
+      countryData = COUNTRY_DATA[internalCode];
+      isoCode = countryData.keyIso;
+    } else {
+      // eslint-disable-next-line no-console
+      console.warn('[language-country-selector] setStoredCountry: Unknown country code:', countryCode);
+      return;
     }
-
-    // Dispatch event to notify components
-    window.dispatchEvent(new CustomEvent(STORAGE_EVENT, {
-      detail: {
-        country: countryCode,
-        currency: countryData?.currencyCode || null,
-      },
-    }));
   }
+
+  // Always store the ISO code in the cookie (not the internal code)
+  setCookie(COUNTRY_COOKIE, isoCode);
+
+  // Also set currency cookie based on country
+  if (countryData && countryData.currencyCode) {
+    setCookie(CURRENCY_COOKIE, countryData.currencyCode);
+  }
+
+  // Dispatch event to notify components
+  window.dispatchEvent(new CustomEvent(STORAGE_EVENT, {
+    detail: {
+      country: isoCode, // Return ISO code in event
+      currency: countryData?.currencyCode || null,
+    },
+  }));
 }
 
 /**

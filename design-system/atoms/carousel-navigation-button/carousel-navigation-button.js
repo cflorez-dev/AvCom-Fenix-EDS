@@ -109,7 +109,7 @@ export const CarouselNavigationButton = ({
       data-mode="${direction}"
       ...${rest}
     >
-      <${Icon} icon="${iconName}" size="s" />
+      <${Icon} color="var(--color-text-normal-primary)" icon="${iconName}" size="s" />
     </button>
   `;
 

@@ -18,6 +18,8 @@ const html = htm.bind(h);
  * @param {string} [props.icon='auto'] - Icon name or 'auto' for variant default, 'none' to hide
  * @param {boolean} [props.dismissible=true] - Show dismiss button
  * @param {Function} [props.onDismiss] - Callback when dismissed
+ * @param {string} [props.dismissIconHTML=''] - Custom HTML for dismiss icon (overrides default Icon)
+ * @param {string} [props.dismissButtonClassName=''] - Custom classes for dismiss button
  * @param {string} [props.customClassName=''] - Additional CSS classes
  * @param {boolean} [props.showIcon=true] - Show/hide icon
  * @param {boolean} [props.marqueeMode=true] - Enable marquee scrolling when content overflows,
@@ -44,6 +46,8 @@ export const Alert = ({
   icon = 'auto',
   dismissible = true,
   onDismiss,
+  dismissIconHTML = '',
+  dismissButtonClassName = '',
   customClassName = '',
   showIcon = true,
   shouldMarquee: externalShouldMarquee,
@@ -344,7 +348,7 @@ export const Alert = ({
       data-name="alert"
       ...${fullWidth ? {} : rest}
     >
-    <div class="max-w-[var(--max-width-content,1248px)] flex flex-row w-full mx-auto ${marqueeMode ? 'gap-[12px]' : 'gap-2'} px-0 md:px-0 !m-0 ${marqueeMode ? 'items-center' : 'items-start'}">
+    <div class="max-w-[var(--max-width-content,1248px)] flex flex-row !items-center w-full min-h-[1.5rem]  mx-auto ${marqueeMode ? 'gap-[12px]' : 'gap-2'} px-0 md:px-0 !m-0 ${marqueeMode ? 'items-center' : 'items-start'}">
         ${showIcon && iconData.icon && iconData.icon !== 'none' && html`
           <div class="${iconContainerClasses}${currentVariantClasses.iconBg ? ' rounded-full w-5 h-5 flex items-center justify-items-start' : ''}" aria-hidden="true">
             <${Icon} icon=${customIcon || iconData.icon} size="m" color=${customIconColor || iconData.color} />
@@ -368,9 +372,9 @@ export const Alert = ({
             variant="transparent" 
             size="xxs" 
             iconOnly=${true}
-            customClassName="hover:!bg-alert-dismiss-hover active:!bg-alert-dismiss-active h-[20px] w-[20px]"
+            customClassName="hover:!bg-alert-dismiss-hover active:!bg-alert-dismiss-active ${dismissButtonClassName || 'h-[20px] w-[20px]'}"
           >
-            <${Icon} icon="navigation/close" size="xs" />
+            ${dismissIconHTML ? html`<span dangerouslySetInnerHTML=${{ __html: dismissIconHTML }} />` : html`<${Icon} icon="navigation/close" size="xsm" />`}
           </${Button}>
         `}
       </div>

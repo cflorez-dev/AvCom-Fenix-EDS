@@ -118,19 +118,15 @@ async function syncCookiesToUrl(locale) {
       setStoredLanguage,
     } = await import('../services/header/language-country-selector.js');
 
-    // Convert ISO code (e.g., 'us') to internal code (e.g., 'us' or 'col')
-    const internalCountryCode = mapIsoToCountryCode(locale.country);
+    // setStoredCountry accepts ISO code directly and will handle conversion internally
+    // Pass the ISO code from locale.country directly
+    setStoredCountry(locale.country);
+    setStoredLanguage(locale.language);
 
-    if (internalCountryCode) {
-      // setStoredCountry also sets the currency cookie automatically
-      setStoredCountry(internalCountryCode);
-      setStoredLanguage(locale.language);
-
-      // eslint-disable-next-line no-console
-      console.log(
-        `[Locale] Cookies synced to URL: country=${internalCountryCode}, lang=${locale.language}`,
-      );
-    }
+    // eslint-disable-next-line no-console
+    console.log(
+      `[Locale] Cookies synced to URL: country=${locale.country}, lang=${locale.language}`,
+    );
   } catch (e) {
     // eslint-disable-next-line no-console
     console.warn('[Locale] Could not sync cookies:', e);

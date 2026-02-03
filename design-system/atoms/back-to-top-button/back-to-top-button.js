@@ -68,44 +68,38 @@ export const BackToTopButton = ({
 
   // Container classes - Fixed positioning with Tailwind (always bottom-right corner)
   const containerClasses = 'fixed '
-    + 'bottom-[24px] right-[24px] '
-    + 'max-sm:bottom-[16px] max-sm:right-[16px] '
+    + 'bottom-[20px] right-[20px] '
+    + 'max-sm:bottom-[12px] max-sm:right-[12px] '
     + 'transition-all duration-[var(--transition-normal)] ease-[var(--ease-in-out)] '
     + 'z-[90] ' // Below modals (z-100), above content
     + (isVisible
       ? 'opacity-100 visible translate-y-0'
       : 'opacity-0 invisible translate-y-[10px]');
 
-  // Position styles - can be overridden via position prop if needed
-  const hasCustomPosition = position.bottom !== '24px' || position.right !== '24px';
-  const positionStyles = hasCustomPosition ? {
-    bottom: position.bottom,
-    right: position.right,
-  } : {};
-
   // Default icon (arrow up) - Matches Figma design
   const defaultIcon = html`
     <svg 
+      xmlns="http://www.w3.org/2000/svg" 
       width="24" 
       height="24" 
       viewBox="0 0 24 24" 
       fill="none"
       class="w-[24px] h-[24px]"
     >
-      <path 
-        d="M18 15L12 9L6 15" 
-        stroke="currentColor" 
-        stroke-width="2" 
-        stroke-linecap="round" 
-        stroke-linejoin="round"
-      />
+      <g transform="translate(6, 8)">
+        <path 
+          fill-rule="evenodd" 
+          clip-rule="evenodd" 
+          d="M6 0L0 6L1.41 7.41L6 2.83L10.59 7.41L12 6L6 0Z" 
+          fill="#1B1B1B"
+        />
+      </g>
     </svg>
   `;
 
   return html`
     <div
       class=${`${containerClasses} ${customClassName}`}
-      style=${positionStyles}
       aria-hidden=${!isVisible}
       data-name="backToTopButton"
     >
@@ -116,7 +110,7 @@ export const BackToTopButton = ({
         onClick=${handleClick}
         aria-label=${ariaLabel}
         tabIndex=${isVisible ? 0 : -1}
-        customClassName="!w-[48px] !h-[48px] !min-w-[48px] !min-h-[48px] !rounded-[32px] !aspect-[1/1] !gap-[var(--spacing-x-small)]"
+        customClassName="!w-[48px] !h-[48px] !min-w-[48px] !min-h-[48px] !rounded-[32px] !aspect-[1/1] !gap-0"
         ...${rest}
       >
         ${icon || defaultIcon}

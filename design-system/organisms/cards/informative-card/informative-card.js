@@ -30,9 +30,7 @@ export const InformativeCard = ({
   buttonText = null,
   onClick,
 }) => {
-  const focusClasses = (ActionType === 'chevron' || ActionType === 'none')
-    ? 'focus:!outline focus:!outline-2 focus:!outline-border-stroke-focus focus:!outline-offset-2'
-    : '';
+  const focusClasses = 'focus-visible:!outline focus-visible:!outline-2 focus-visible:!outline-border-stroke-focus focus-visible:!outline-offset-2';
 
   const cursorClass = ((ActionType === 'chevron' || ActionType === 'none') && onClick) ? 'cursor-pointer' : '';
 
@@ -43,7 +41,7 @@ export const InformativeCard = ({
         data-chevronicon="${ActionType === 'chevron' ? 'true' : ''}" 
         data-direction="${ActionType === 'horizontal' ? 'horizontal' : 'vertical'}" 
         class="w-80 min-w-72 h-full bg-background-card-lighter rounded-2xl outline outline-1 outline-offset-[-1px] outline-border-brand-primary-disable inline-flex justify-start items-center overflow-hidden hover:shadow-[0px_2px_20px_2px_rgba(73,73,73,0.25)] transition-shadow mdlg:w-full mdlg:min-w-0 ${focusClasses} ${cursorClass}"
-        tabIndex=${(ActionType === 'chevron' || ActionType === 'none') ? 0 : undefined}
+        tabIndex=${0}
         onClick=${(ActionType === 'chevron' || ActionType === 'none') ? onClick : undefined}
       >
         <div class="self-stretch max-w-48 px-6 rounded-tl-2xl rounded-bl-2xl flex justify-center items-center">
@@ -77,7 +75,7 @@ export const InformativeCard = ({
     ` : html`
       <div 
         class="w-80 min-w-80 h-full bg-background-card-lighter rounded-2xl outline outline-1 outline-offset-[-1px] outline-border-brand-primary-disable inline-flex flex-col justify-center items-center overflow-hidden hover:shadow-[0px_2px_20px_2px_rgba(73,73,73,0.25)] transition-shadow mdlg:w-full mdlg:min-w-0 ${focusClasses} ${cursorClass}"
-        tabIndex=${(ActionType === 'chevron' || ActionType === 'none') ? 0 : undefined}
+        tabIndex=${0}
         onClick=${(ActionType === 'chevron' || ActionType === 'none') ? onClick : undefined}
       >
         <div class="w-full h-32 max-w-48 px-6 rounded-tl-2xl rounded-bl-2xl inline-flex justify-center items-center">
