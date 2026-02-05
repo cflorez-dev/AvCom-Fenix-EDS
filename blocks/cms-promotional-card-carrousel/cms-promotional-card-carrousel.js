@@ -152,13 +152,12 @@ export default function decorate(block) {
   const loadingMode = props.loading || 'lazy';
 
   if (totalCards === 0) {
-    console.warn('[CMS Promotional Card Carrousel] No valid cards found.');
     return;
   }
 
   // Create container
   const container = document.createElement('div');
-  container.className = 'w-full py-6';
+  container.className = 'w-full pt-4 pb-8';
   container.dataset.loading = loadingMode;
 
   /**

@@ -15,11 +15,7 @@
  */
 
 import { readBlockConfig } from '../../scripts/aem.js';
-import { h, render } from '@dropins/tools/preact.js';
-import htm from 'htm';
-import { Icon } from '../../design-system/atoms/icon/icon.js';
-
-const html = htm.bind(h);
+import { getStoredCountry, getStoredLanguage } from '../../scripts/services/header/language-country-selector.js';
 
 /**
  * Default configuration for accordion group
@@ -73,6 +69,50 @@ function checkFeatureFlag(config) {
 }
 
 /**
+ * Check POS (Point of Sale) visibility based on country/language from cookies
+ * Empty fields = show to all. Configured fields = hide if no match.
+ * @param {Object} config - Group configuration
+ * @returns {boolean} - Whether accordion should be visible based on POS
+ */
+function checkPOSVisibility(config) {
+  // Get stored country and language from cookies
+  const storedCountry = getStoredCountry();
+  const storedLanguage = getStoredLanguage();
+
+  // Check country targeting (empty = show to all)
+  if (config.targetCountries) {
+    const targetCountries = config.targetCountries
+      .split(',')
+      .map((c) => c.trim().toLowerCase())
+      .filter((c) => c.length > 0);
+
+    if (targetCountries.length > 0) {
+      const currentCountry = (storedCountry || '').toLowerCase();
+      if (!targetCountries.includes(currentCountry)) {
+        return false;
+      }
+    }
+  }
+
+  // Check language targeting (empty = show to all)
+  if (config.targetLanguages) {
+    const targetLanguages = config.targetLanguages
+      .split(',')
+      .map((l) => l.trim().toLowerCase())
+      .filter((l) => l.length > 0);
+
+    if (targetLanguages.length > 0) {
+      const currentLanguage = (storedLanguage || '').toLowerCase();
+      if (!targetLanguages.includes(currentLanguage)) {
+        return false;
+      }
+    }
+  }
+
+  return true;
+}
+
+/**
  * Generate unique ID for accessibility
  * @param {string} prefix - ID prefix
  * @param {number} index - Item index
@@ -94,10 +134,9 @@ function createAccordionHeader({
   panelId,
   headerId,
 }) {
-  const header = document.createElement('div');
-  header.className = 'accordion-group-header flex items-center';
-  header.setAttribute('role', 'heading');
-  header.setAttribute('aria-level', headingLevel);
+  // Create semantic heading element (h2, h3, h4, etc.)
+  const header = document.createElement(`h${headingLevel}`);
+  header.className = 'accordion-group-header flex items-center !m-0';
 
   const button = document.createElement('button');
   button.className = 'accordion-group-trigger flex items-center justify-between gap-3 w-full bg-transparent border-none rounded-[var(--border-radius-medium,12px)] cursor-pointer text-left';
@@ -114,22 +153,17 @@ function createAccordionHeader({
     'font-[family-name:var(--family-red-hat-display,"Red_Hat_Display")]',
     'text-[18px]',
     'font-bold',
-    'leading-auto',
+    '!leading-[24px]',
     'tracking-[var(--letter-spacing-normal,0)]',
   ];
   labelSpan.className = labelSpanClasses.join(' ');
   labelSpan.textContent = label;
 
-  // Chevron icon: 12x8px expand-more.svg from Figma (gap: 12px)
+  // Chevron icon: 16x16px SVG with 8x4.94px path centered inside
   const iconSpan = document.createElement('span');
-  iconSpan.className = 'accordion-group-icon flex items-center justify-center text-[var(--text-normal-primary,#1b1b1b)] shrink-0';
+  iconSpan.className = 'accordion-group-icon flex items-center justify-center text-[var(--text-normal-primary,#1b1b1b)] shrink-0 w-4 h-4';
   iconSpan.setAttribute('aria-hidden', 'true');
-  
-  // Render Icon atom using Preact
-  render(
-    html`<${Icon} icon="navigation/expand-more" size="sm" color="currentColor" customClassName="flex items-center justify-center w-4 h-4" />`,
-    iconSpan,
-  );
+  iconSpan.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" fill="none"><g transform="translate(4, 5.5)"><path fill-rule="evenodd" clip-rule="evenodd" d="M7.06 0L4 3.05333L0.94 0L0 0.94L4 4.94L8 0.94L7.06 0Z" fill="#1B1B1B"/></g></svg>';
 
   button.appendChild(labelSpan);
   button.appendChild(iconSpan);
@@ -410,6 +444,22 @@ export default function decorate(block) {
 
   // Store groupId on block for reference
   block.dataset.accordionGroupId = config.groupId;
+
+  // Check POS visibility (country/language from cookies)
+  // Empty fields = show to all. Configured = hide if no match.
+  if (!checkPOSVisibility(config)) {
+    block.style.display = 'none';
+    // Also hide associated sections
+    const main = block.closest('main');
+    const allSections = main ? Array.from(main.querySelectorAll('.section')) : [];
+    const associatedSections = allSections.filter(
+      (section) => section.dataset.accordionGroup === config.groupId,
+    );
+    associatedSections.forEach((section) => {
+      section.style.display = 'none';
+    });
+    return;
+  }
 
   // Check feature flags
   if (!checkFeatureFlag(config)) {

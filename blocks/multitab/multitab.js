@@ -356,7 +356,7 @@ export default async function decorate(block) {
     const tabButton = document.createElement('button');
     tabButton.setAttribute('type', 'button');
     tabButton.className = `
-      flex flex-col ${tabHeight} ${tabPadding} gap-[var(--tiny,4px)]
+      group flex flex-col ${tabHeight} ${tabPadding} gap-[var(--tiny,4px)]
       items-center justify-center shrink-0 relative isolate
       transition-all duration-200 cursor-pointer
       focus:outline-none focus-visible:outline-none
@@ -376,11 +376,17 @@ export default async function decorate(block) {
         }
 
         // Change text styles to focused state (font-normal, secondary color)
-        const titleContainer = e.target.querySelector('div[class*="gap-[4px]"]');
-        const labelSpan = titleContainer?.querySelector('span:not([data-name="icon"])');
+        const contentContainer = e.target.querySelector('div');
+        const labelSpan = contentContainer?.querySelector('span:not(.shrink-0)');
         if (labelSpan) {
-          labelSpan.classList.remove('font-bold', 'text-[var(--text-normal-primary)]');
+          labelSpan.classList.remove('font-bold', 'text-[color:var(--text-normal-primary,#1B1B1B)]');
           labelSpan.classList.add('font-normal', 'text-[var(--text-normal-secondary)]');
+        }
+
+        // Hide green indicator when focused (make it transparent)
+        const indicator = e.target.querySelector('[data-name="indicator"]');
+        if (indicator) {
+          indicator.classList.add('opacity-0');
         }
       }
     });
@@ -393,11 +399,17 @@ export default async function decorate(block) {
 
       // Restore original text styles based on active state
       const isActiveTab = e.target.getAttribute('aria-selected') === 'true';
-      const titleContainer = e.target.querySelector('div[class*="gap-[4px]"]');
-      const labelSpan = titleContainer?.querySelector('span:not([data-name="icon"])');
+      const contentContainer = e.target.querySelector('div');
+      const labelSpan = contentContainer?.querySelector('span:not(.shrink-0)');
       if (labelSpan && isActiveTab) {
         labelSpan.classList.remove('font-normal', 'text-[var(--text-normal-secondary)]');
-        labelSpan.classList.add('font-bold', 'text-[var(--text-normal-primary)]');
+        labelSpan.classList.add('font-bold', 'text-[color:var(--text-normal-primary,#1B1B1B)]');
+      }
+
+      // Restore green indicator when blur (make it visible again)
+      const indicator = e.target.querySelector('[data-name="indicator"]');
+      if (indicator) {
+        indicator.classList.remove('opacity-0');
       }
     });
 
@@ -417,21 +429,22 @@ export default async function decorate(block) {
     // Grid layout: if icon exists, use 3 columns; otherwise use simple flex
     if (tabData.icon) {
       contentContainer.className = `
-        grid grid-cols-[auto_1fr_1fr] grid-rows-[auto_auto_auto] gap-x-[8px] items-center justify-items-start relative w-full z-[5]
+        grid grid-cols-[auto_1fr_1fr] grid-rows-[auto_auto_auto] gap-[4px] items-center justify-items-center relative w-full z-[5]
       `.trim().replace(/\s+/g, ' ');
 
-      // Icon (column 1, spans all rows, centered)
+      // Icon (column 1, spans all rows, aligned with primary label)
       const iconColor = isActive ? 'var(--text-normal-primary)' : 'var(--text-normal-secondary)';
       const iconWrapper = document.createElement('span');
-      iconWrapper.className = 'flex items-center justify-center shrink-0 row-span-3 self-center';
+      iconWrapper.className = 'flex items-center justify-center shrink-0 row-span-3 self-start relative top-[4px]';
       render(html`<${Icon} icon=${tabData.icon} size="s" color=${iconColor} />`, iconWrapper);
       contentContainer.appendChild(iconWrapper);
 
       // Primary label (columns 2-3)
       const labelSpan = document.createElement('span');
       labelSpan.className = `
-        col-span-2 font-[var(--family-red-hat-display)] ${primaryFontSize} leading-normal whitespace-nowrap tracking-[var(--letter-spacing-normal)]
-        ${isActive ? 'font-bold text-[var(--text-normal-primary)]' : 'font-normal text-[var(--text-normal-secondary)]'}
+        col-span-2 font-[var(--family-red-hat-display)] ${primaryFontSize} leading-[1.313rem] md:leading-[1.5rem] whitespace-nowrap tracking-[var(--letter-spacing-normal)]
+        ${isActive ? 'font-bold text-[color:var(--text-normal-primary,#1B1B1B)]' : 'font-normal text-[var(--text-normal-secondary)] group-hover:text-[color:var(--text-normal-primary,#1B1B1B)] group-aria-[selected=false]:group-hover:text-[color:var(--text-normal-primary,#1B1B1B)]'}
+        transition-colors duration-200
       `.trim().replace(/\s+/g, ' ');
       labelSpan.textContent = tabData.label;
       contentContainer.appendChild(labelSpan);
@@ -455,8 +468,9 @@ export default async function decorate(block) {
       // Primary label
       const labelSpan = document.createElement('span');
       labelSpan.className = `
-        font-[var(--family-red-hat-display)] ${primaryFontSize} leading-normal whitespace-nowrap tracking-[var(--letter-spacing-normal)]
-        ${isActive ? 'font-bold text-[var(--text-normal-primary)]' : 'font-normal text-[var(--text-normal-secondary)]'}
+        font-[var(--family-red-hat-display)] ${primaryFontSize} leading-[1.313rem] md:leading-[1.5rem] whitespace-nowrap tracking-[var(--letter-spacing-normal)]
+        ${isActive ? 'font-bold text-[color:var(--text-normal-primary,#1B1B1B)]' : 'font-normal text-[var(--text-normal-secondary)] group-hover:text-[color:var(--text-normal-primary,#1B1B1B)] group-aria-[selected=false]:group-hover:text-[color:var(--text-normal-primary,#1B1B1B)]'}
+        transition-colors duration-200
       `.trim().replace(/\s+/g, ' ');
       labelSpan.textContent = tabData.label;
       contentContainer.appendChild(labelSpan);
@@ -465,7 +479,7 @@ export default async function decorate(block) {
       if (tabData.secondaryLabel) {
         const secondarySpan = document.createElement('span');
         secondarySpan.className = `
-          font-[var(--family-red-hat-display)] ${secondaryFontSize} font-normal leading-[1.5] whitespace-nowrap tracking-[var(--letter-spacing-normal)]
+          font-[var(--family-red-hat-display)] ${secondaryFontSize} font-normal leading-[1.313rem] md:leading-[1.5rem] whitespace-nowrap tracking-[var(--letter-spacing-normal)]
           text-[var(--text-normal-secondary)]
         `.trim().replace(/\s+/g, ' ');
         secondarySpan.textContent = tabData.secondaryLabel;
@@ -478,7 +492,7 @@ export default async function decorate(block) {
     // Green indicator (active only)
     if (isActive) {
       const indicator = document.createElement('div');
-      indicator.className = 'absolute bottom-0 left-0 right-0 h-[2px] bg-[var(--border-accent-positive,#1ea93c)] z-[2]';
+      indicator.className = 'absolute bottom-0 left-0 right-0 h-[2px] bg-[var(--border-accent-positive,#1ea93c)] z-[2] transition-opacity duration-200';
       indicator.setAttribute('data-name', 'indicator');
       tabButton.appendChild(indicator);
     }
@@ -489,49 +503,11 @@ export default async function decorate(block) {
     border.setAttribute('data-name', 'border');
     tabButton.appendChild(border);
 
-    // Store event handlers on button for later removal/re-attachment
-    tabButton._multitabHoverEnterHandler = (event) => {
-      const target = event.currentTarget;
-      if (target.getAttribute('aria-selected') !== 'true') {
-        const existingHoverIndicator = target.querySelector('[data-name="hover-indicator"]');
-        if (!existingHoverIndicator) {
-          const hoverIndicator = document.createElement('div');
-          hoverIndicator.className = 'absolute bottom-0 left-0 right-0 h-[2px] bg-[var(--border-stroke-darker,#1b1b1b)] z-[2]';
-          hoverIndicator.setAttribute('data-name', 'hover-indicator');
-          target.appendChild(hoverIndicator);
-        }
-
-        // Change primary text color to primary on hover
-        const titleContainer = target.querySelector('div[class*="gap-[4px]"]');
-        const labelSpan = titleContainer?.querySelector('span:not([data-name="icon"])');
-        if (labelSpan) {
-          labelSpan.classList.remove('text-[var(--text-normal-secondary)]');
-          labelSpan.classList.add('text-[var(--text-normal-primary)]');
-        }
-      }
-    };
-
-    tabButton._multitabHoverLeaveHandler = (event) => {
-      const target = event.currentTarget;
-      const hoverIndicator = target.querySelector('[data-name="hover-indicator"]');
-      if (hoverIndicator) {
-        hoverIndicator.remove();
-      }
-
-      // Restore secondary text color when not hovering
-      const titleContainer = target.querySelector('div[class*="gap-[4px]"]');
-      const labelSpan = titleContainer?.querySelector('span:not([data-name="icon"])');
-      if (labelSpan && target.getAttribute('aria-selected') !== 'true') {
-        labelSpan.classList.remove('text-[var(--text-normal-primary)]');
-        labelSpan.classList.add('text-[var(--text-normal-secondary)]');
-      }
-    };
-
-    // Attach hover listeners for inactive tabs
-    if (!isActive) {
-      tabButton.addEventListener('mouseenter', tabButton._multitabHoverEnterHandler);
-      tabButton.addEventListener('mouseleave', tabButton._multitabHoverLeaveHandler);
-    }
+    // Hover indicator (bottom border on hover for inactive tabs)
+    const hoverIndicator = document.createElement('div');
+    hoverIndicator.className = 'absolute bottom-0 left-0 right-0 h-[2px] bg-[var(--border-stroke-darker,#1b1b1b)] z-[2] opacity-0 group-aria-[selected=false]:group-hover:opacity-100 transition-opacity duration-200';
+    hoverIndicator.setAttribute('data-name', 'hover-indicator');
+    tabButton.appendChild(hoverIndicator);
 
     tabButtons.push(tabButton);
     tabNav.appendChild(tabButton);
@@ -616,15 +592,15 @@ export default async function decorate(block) {
         btn.classList.add('max-[480px]:min-w-[56%]');
       }
 
-      // Find primary label span (inside titleContainer)
-      const titleContainer = btn.querySelector('div[class*="gap-[4px]"]');
-      const labelSpan = titleContainer?.querySelector('span:not([data-name="icon"])');
+      // Find primary label span (first span that is not icon wrapper)
+      const contentContainer = btn.querySelector('div');
+      const labelSpan = contentContainer?.querySelector('span:not(.shrink-0)');
 
       if (isActive) {
         // Active state
         if (labelSpan) {
-          labelSpan.classList.remove('font-normal', 'text-[var(--text-normal-secondary)]');
-          labelSpan.classList.add('font-bold', 'text-[var(--text-normal-primary)]');
+          labelSpan.classList.remove('font-normal', 'text-[var(--text-normal-secondary)]', 'group-hover:text-[color:var(--text-normal-primary,#1B1B1B)]', 'group-aria-[selected=false]:group-hover:text-[color:var(--text-normal-primary,#1B1B1B)]');
+          labelSpan.classList.add('font-bold', 'text-[color:var(--text-normal-primary,#1B1B1B)]');
         }
 
         // Update icon colors to primary if icons exist
@@ -639,15 +615,15 @@ export default async function decorate(block) {
         // Add green indicator if not present
         if (!btn.querySelector('[data-name="indicator"]')) {
           const indicator = document.createElement('div');
-          indicator.className = 'absolute bottom-0 left-0 right-0 h-[2px] bg-[var(--border-accent-positive,#1ea93c)] z-[2]';
+          indicator.className = 'absolute bottom-0 left-0 right-0 h-[2px] bg-[var(--border-accent-positive,#1ea93c)] z-[2] transition-opacity duration-200';
           indicator.setAttribute('data-name', 'indicator');
           btn.appendChild(indicator);
         }
       } else {
         // Inactive state
         if (labelSpan) {
-          labelSpan.classList.remove('font-bold', 'text-[var(--text-normal-primary)]');
-          labelSpan.classList.add('font-normal', 'text-[var(--text-normal-secondary)]');
+          labelSpan.classList.remove('font-bold', 'text-[color:var(--text-normal-primary,#1B1B1B)]');
+          labelSpan.classList.add('font-normal', 'text-[var(--text-normal-secondary)]', 'group-hover:text-[color:var(--text-normal-primary,#1B1B1B)]', 'group-aria-[selected=false]:group-hover:text-[color:var(--text-normal-primary,#1B1B1B)]');
         }
 
         // Update icon colors to secondary if icons exist
@@ -664,17 +640,6 @@ export default async function decorate(block) {
         if (indicator) {
           indicator.remove();
         }
-
-        // Re-attach hover listeners for newly inactive tabs
-        // Remove old listeners if they exist
-        if (btn._multitabHoverEnterHandler) {
-          btn.removeEventListener('mouseenter', btn._multitabHoverEnterHandler);
-          btn.removeEventListener('mouseleave', btn._multitabHoverLeaveHandler);
-        }
-
-        // Re-attach hover listeners using stored handlers
-        btn.addEventListener('mouseenter', btn._multitabHoverEnterHandler);
-        btn.addEventListener('mouseleave', btn._multitabHoverLeaveHandler);
       }
     });
 

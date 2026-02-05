@@ -3,6 +3,7 @@ import htm from 'htm';
 import { extractCmsInformativeCardsCarouselProps, extractCarouselCards } from './cms-informative-cards-carousel-helper.js';
 import { InformativePhotoCard } from '../../design-system/organisms/cards/informative-photo-card/informative-photo-card.js';
 import { Carousel } from '../../design-system/molecules/carousel/carousel.js';
+import { getStoredCountry, getStoredLanguage } from '../../scripts/services/header/language-country-selector.js';
 
 const html = htm.bind(h);
 
@@ -10,15 +11,25 @@ const html = htm.bind(h);
 const DESKTOP_BREAKPOINT = 1248;
 
 /**
- * Render cards in grid layout (100% width)
- * Cards use flex-1 to distribute space equally
+ * Render cards in grid layout
+ * Cards use fixed 300px width only when there are 4 or more cards
+ * Otherwise, cards use flex-1 to distribute space equally
  * @param {Array} cards - Card data array (1-4 cards)
  * @param {string} loadingMode - Image loading strategy ('lazy' or 'eager')
  * @returns {import('preact').VNode} Preact component
  */
 function renderCardsGrid(cards, loadingMode) {
+  const totalCards = cards.length;
+  // Only force 300px width when there are 4 or more cards
+  const cardClassName = totalCards >= 4
+    ? 'w-[300px] min-w-[300px] max-w-[300px]'
+    : 'flex-1';
+  const containerClass = totalCards >= 4
+    ? 'flex flex-wrap gap-4 w-full'
+    : 'flex gap-4 w-full';
+
   return html`
-    <div class="flex gap-3 w-full">
+    <div class="${containerClass}">
       ${cards.map((cardData) => html`
         <${InformativePhotoCard}
           title=${cardData.title}
@@ -29,7 +40,7 @@ function renderCardsGrid(cards, loadingMode) {
           buttonURL=${cardData.ctaLink || ''}
           ctaTargetBlank=${cardData.ctaTargetBlank || false}
           ctaRel=${cardData.ctaRel || 'dofollow'}
-          customClassName="flex-1"
+          customClassName="${cardClassName}"
           loading=${loadingMode}
         />
       `)}
@@ -65,13 +76,15 @@ function renderFourCardsCarousel(cards, loadingMode) {
   return html`
     <${Carousel}
       itemsPerView=${1}
-      gap=${12}
+      gap=${16}
       showNavigation=${false}
       navigationBreakpoint=${1025}
       showPagination=${true}
       autoPlay=${false}
       loop=${false}
       infiniteMobile=${true}
+      paginateByGroup=${true}
+      customScrollContainerClassName="gap-4 min-[480px]:px-[32px]"
     >
       ${cardElements}
     </${Carousel}>
@@ -89,16 +102,21 @@ function renderFourCardsCarousel(cards, loadingMode) {
  */
 function renderMultiCardsCarousel(cards, loadingMode) {
   const cardClassName = 'w-[300px] min-w-[300px] max-w-[300px]';
+  const itemContainerClassName = 'w-[300px]';
+  const scrollContainerClassName = 'gap-4 min-[480px]:px-[32px]';
   return html`
     <${Carousel}
       itemsPerView=${1}
-      gap=${12}
+      gap=${16}
       showNavigation=${false}
       navigationBreakpoint=${1025}
       showPagination=${true}
       autoPlay=${false}
-      loop=${true}
+      loop=${false}
       infiniteMobile=${true}
+      paginateByGroup=${true}
+      itemContainerClassName="${itemContainerClassName}"
+      customScrollContainerClassName="${scrollContainerClassName}"
     >
       ${cards.map((cardData) => html`
         <${InformativePhotoCard}
@@ -110,7 +128,7 @@ function renderMultiCardsCarousel(cards, loadingMode) {
           buttonURL=${cardData.ctaLink || ''}
           ctaTargetBlank=${cardData.ctaTargetBlank || false}
           ctaRel=${cardData.ctaRel || 'dofollow'}
-          customClassName="${cardClassName} my-[16px] ml-[2px]"
+          customClassName="${cardClassName} mb-[16px] ml-[2px]"
           loading=${loadingMode}
         />
       `)}
@@ -129,13 +147,36 @@ export default function decorate(block) {
   const totalCards = cards.length;
   const loadingMode = props.loading || 'lazy';
 
+  // Country/Language filtering
+  // If target fields are configured, check if user's cookie matches
+  // Empty fields = show to all users
+  const { targetCountries, targetLanguages } = props;
+
+  if (targetCountries) {
+    const allowedCountries = targetCountries.split(',').map((c) => c.trim().toLowerCase());
+    const userCountry = (getStoredCountry() || '').toLowerCase();
+    if (!allowedCountries.includes(userCountry)) {
+      block.style.display = 'none';
+      return;
+    }
+  }
+
+  if (targetLanguages) {
+    const allowedLanguages = targetLanguages.split(',').map((l) => l.trim().toLowerCase());
+    const userLanguage = (getStoredLanguage() || '').toLowerCase();
+    if (!allowedLanguages.includes(userLanguage)) {
+      block.style.display = 'none';
+      return;
+    }
+  }
+
   if (totalCards === 0) {
     return;
   }
 
   // Create container
   const container = document.createElement('div');
-  container.className = 'w-full py-6';
+  container.className = 'w-full pt-6 pb-8';
   container.dataset.loading = loadingMode;
 
   /**

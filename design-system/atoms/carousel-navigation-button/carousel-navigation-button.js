@@ -83,8 +83,8 @@ export const CarouselNavigationButton = ({
   // ========== HOVER/FOCUS/ACTIVE STATES ==========
   const interactionClasses = disabled
     ? ''
-    : 'hover:!bg-[#FAFAFA] '
-      + 'focus-visible:!bg-[#FAFAFA] '
+    : 'hover:!bg-[#E9E9E9] '
+      + 'focus-visible:!bg-[#E9E9E9] '
       + 'focus-visible:outline-none '
       + 'focus-visible:!shadow-[0px_2px_20px_2px_rgba(73,73,73,0.25),0_0_0_2px_white,0_0_0_4px_#1d9bf0] '
       + 'active:!bg-[#D9D9D9] '

@@ -118,7 +118,7 @@ const InteractiveBanner = ({
         ></div>
 
         <!-- Content area -->
-        <div class="relative z-10 w-full px-6 pb-8 flex flex-col gap-4">
+        <div class="relative z-10 w-full px-6 pb-8 min-[1248px]:p-8 flex flex-col gap-4">
           ${panelData.defaultTitle && html`
             <div class="self-stretch">
               <div class="text-text-normal-lighter text-xl font-bold leading-auto lg:text-2xl xl:text-[1.75rem]">
@@ -155,7 +155,7 @@ const InteractiveBanner = ({
             `}
             
             <div
-              class="w-8 h-8 relative flex items-center justify-center flex-shrink-0 self-end cursor-pointer max-[1248px]:flex hidden"
+              class="w-8 h-8 relative flex items-center justify-center flex-shrink-0 self-center cursor-pointer max-[1248px]:flex hidden"
             >
               <!-- Mobile: rotate-90 (abajo), Desktop tablet: rotate-0 (derecha) -->
               <div class="absolute inset-0 flex items-center justify-center max-[1023px]:rotate-90 min-[1024px]:max-[1248px]:rotate-0 transition-all duration-200 ease-out ${isActive ? 'opacity-0' : 'opacity-100'}">
@@ -185,7 +185,7 @@ const InteractiveBanner = ({
             <div class="self-stretch p-4 rounded-tl-2xl rounded-tr-2xl backdrop-blur-sm flex flex-col justify-end items-end gap-4 lg:rounded-2xl min-[1024px]:max-[1247px]:flex-col min-[1024px]:max-[1247px]:items-end lg:flex-row lg:items-center lg:justify-center" style="background: ${overlayBackground};">
               ${panelData.interactiveDescription && html`
                 <div
-                  class="self-stretch text-text-normal-lighter text-sm leading-[1.5] min-[1024px]:max-[1247px]:text-left lg:flex-1 lg:text-left"
+                  class="self-stretch text-text-normal-lighter text-sm font-normal leading-[1.5] min-[1024px]:max-[1247px]:text-left lg:flex-1 lg:text-left"
                   dangerouslySetInnerHTML=${{ __html: panelData.interactiveDescription }}
                 ></div>
               `}
@@ -216,7 +216,7 @@ const InteractiveBanner = ({
   return html`
     <div
       data-state=${activeState}
-      class="w-full rounded-2xl flex flex-col lg:flex-row overflow-hidden ${customClassName}"
+      class="w-full rounded-2xl lg:rounded-[1.5rem] flex flex-col lg:flex-row overflow-hidden ${customClassName}"
       ...${rest}
     >
       ${renderPanel(leftPanel, 'left')}

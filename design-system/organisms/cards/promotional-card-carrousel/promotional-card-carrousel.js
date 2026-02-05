@@ -98,7 +98,7 @@ export const PromotionalCardCarrousel = ({
 
   return html`
     <div 
-      class="${cardClasses} rounded-2xl inline-flex justify-start items-center overflow-hidden ${isCardClickable ? 'cursor-pointer focus:outline focus:outline-2 focus:outline-offset-[-2px] focus:outline-sky-500' : ''} ${!isMobile ? 'hover:shadow-[0px_2px_20px_2px_rgba(73,73,73,0.25)] transition-shadow' : ''} ${customClassName}"
+      class="${cardClasses} rounded-2xl inline-flex justify-start items-center overflow-hidden ${isCardClickable ? 'cursor-pointer focus:outline focus:outline-2 focus:outline-offset-[-2px] focus:outline-[var(--color-border-stroke-focus)]' : ''} ${!isMobile ? 'hover:shadow-[0px_2px_20px_2px_rgba(73,73,73,0.25)] transition-shadow' : ''} ${customClassName}"
       data-name="promotionalCardCarrousel"
       data-variant="${variant}"
       onClick=${isCardClickable ? handleCardClick : null}
