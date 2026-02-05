@@ -192,11 +192,6 @@
     transition: transform var(--transition-slower, 500ms) var(--ease-in-out, ease-in-out);
 }
 
-.accordion-group-icon svg {
-    width: 12px;
-    height: 8px;
-}
-
 /* Icon rotation when open (direction=up from Figma) */
 .accordion-group-item--open .accordion-group-icon {
     transform: rotate(180deg);

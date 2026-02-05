@@ -103,6 +103,11 @@ const CarouselPaginationDots = ({
  * @param {boolean} [props.infiniteMobile=false] - Enable infinite mobile mode (removes outer
  *   container padding, adds scroll container padding)
  * @param {string} [props.customClassName=''] - Additional CSS classes
+ * @param {string} [props.itemContainerClassName=''] - Additional CSS classes for item containers
+ * @param {string} [props.customScrollContainerClassName=''] - Additional CSS classes for
+ *   scroll container (can override gap)
+ * @param {boolean} [props.paginateByGroup=false] - Calculate pagination dots based on
+ *   visible items group (dynamic calculation)
  * @returns {import('preact').VNode} Carousel component
  */
 export const Carousel = ({
@@ -115,6 +120,9 @@ export const Carousel = ({
   loop = true,
   infiniteMobile = false,
   customClassName = '',
+  itemContainerClassName = '',
+  customScrollContainerClassName = '',
+  paginateByGroup = false,
   ...rest
 }) => {
   const scrollContainerRef = useRef(null);
@@ -126,24 +134,42 @@ export const Carousel = ({
   const isScrollingProgrammatically = useRef(false);
   const scrollDebounceTimer = useRef(null);
   const isInitialized = useRef(false);
+  const [actualItemsPerView, setActualItemsPerView] = useState(itemsPerView);
 
   // Convert children to array
   const items = Array.isArray(children) ? children : [children].filter(Boolean);
   const totalItems = items.length;
   const normalizedItemsPerView = Math.max(1, itemsPerView);
+
+  // Use actualItemsPerView when paginateByGroup is enabled
+  const effectiveItemsPerView = paginateByGroup
+    ? actualItemsPerView
+    : normalizedItemsPerView;
+
   const maxStartIndex = loop
     ? Math.max(0, totalItems - 1)
-    : Math.max(0, totalItems - normalizedItemsPerView);
+    : Math.max(0, totalItems - effectiveItemsPerView);
 
   let totalPages = 0;
   if (totalItems > 0) {
-    totalPages = loop ? totalItems : maxStartIndex + 1;
+    if (loop) {
+      totalPages = totalItems;
+    } else if (paginateByGroup) {
+      // Calculate pages based on groups of visible items
+      totalPages = Math.ceil(totalItems / effectiveItemsPerView);
+    } else {
+      totalPages = maxStartIndex + 1;
+    }
   }
 
   const loopCopies = loop ? 3 : 1;
+  // Build item container classes: always include shrink-0, optionally add custom classes
+  const itemContainerClasses = itemContainerClassName
+    ? `shrink-0 ${itemContainerClassName}`.trim()
+    : 'shrink-0';
   const itemsToRender = Array.from({ length: loopCopies }, (_, loopIndex) => (
     items.map((item, itemIndex) => html`
-      <div key=${`carousel-item-${loopIndex}-${itemIndex}`} class="shrink-0">
+      <div key=${`carousel-item-${loopIndex}-${itemIndex}`} class="${itemContainerClasses}">
         ${item}
       </div>
     `)
@@ -164,6 +190,38 @@ export const Carousel = ({
       window.removeEventListener('resize', checkViewport);
     };
   }, []);
+
+  // Calculate actual items per view based on container width (when paginateByGroup is enabled)
+  useEffect(() => {
+    if (!paginateByGroup) {
+      return undefined;
+    }
+
+    const calculateActualItemsPerView = () => {
+      const container = scrollContainerRef.current;
+      const firstChild = container?.children[0];
+      if (!container || !firstChild) return;
+
+      const containerWidth = container.clientWidth;
+      const itemWidth = firstChild.getBoundingClientRect().width;
+      const calculated = Math.floor((containerWidth + gap) / (itemWidth + gap));
+      const newValue = Math.max(1, calculated);
+
+      if (newValue !== actualItemsPerView) {
+        setActualItemsPerView(newValue);
+      }
+    };
+
+    // Initial calculation after a small delay to ensure DOM is ready
+    const timer = setTimeout(calculateActualItemsPerView, 100);
+
+    window.addEventListener('resize', calculateActualItemsPerView);
+
+    return () => {
+      clearTimeout(timer);
+      window.removeEventListener('resize', calculateActualItemsPerView);
+    };
+  }, [paginateByGroup, gap, isMobile, isTablet]);
 
   // Check if navigation should be shown based on breakpoint
   const [showNavigationBasedOnWidth, setShowNavigationBasedOnWidth] = useState(true);
@@ -296,21 +354,8 @@ export const Carousel = ({
 
     let scrollAmount;
     if (loop) {
-      // Calculate forward distance for always-right navigation
-      const forwardDistance = ((targetIndex - currentIndex) + totalItems) % totalItems;
-
-      // Move forward from current scroll position
-      scrollAmount = container.scrollLeft + (forwardDistance * itemStrideRef.current);
-
-      // Ensure we stay within bounds of middle copy
-      const minScroll = totalLoopWidth * 0.5;
-      const maxScroll = totalLoopWidth * 1.5;
-
-      if (scrollAmount < minScroll) {
-        scrollAmount += totalLoopWidth;
-      } else if (scrollAmount >= maxScroll) {
-        scrollAmount -= totalLoopWidth;
-      }
+      // Calculate position in middle copy to align cards as in initial position
+      scrollAmount = totalLoopWidth + (targetIndex * itemStrideRef.current);
     } else {
       scrollAmount = targetIndex * itemStrideRef.current;
     }
@@ -432,6 +477,33 @@ export const Carousel = ({
     ? (showPagination && totalPages > 1)
     : (showPagination && totalItems > itemsPerView && totalPages > 1);
 
+  // Helper function to handle dot click with paginateByGroup support
+  const handleDotClick = (pageIndex) => {
+    // Convert page index to item index when paginateByGroup is enabled
+    // For the last page, use maxStartIndex to ensure we scroll to the correct position
+    const isLastPage = pageIndex === totalPages - 1;
+    const targetItemIndex = paginateByGroup && !loop
+      ? (isLastPage ? maxStartIndex : pageIndex * effectiveItemsPerView)
+      : pageIndex;
+    const currentPageIndex = paginateByGroup && !loop
+      ? (currentIndex >= maxStartIndex ? totalPages - 1 : Math.floor(currentIndex / effectiveItemsPerView))
+      : currentIndex;
+
+    if (pageIndex === currentPageIndex) return;
+
+    // Update index immediately for visual feedback
+    setCurrentIndex(targetItemIndex);
+    scrollToIndex(targetItemIndex);
+  };
+
+  // Calculate current page for pagination dots
+  // When at maxStartIndex or beyond, we're on the last page
+  const currentPage = paginateByGroup && !loop
+    ? (currentIndex >= maxStartIndex
+      ? totalPages - 1
+      : Math.floor(currentIndex / effectiveItemsPerView))
+    : currentIndex;
+
   // Infinite mobile mode: adjust padding for mobile and tablet
   // Container padding only applies when showNavigation is true (to make space for arrows)
   let containerPadding = showNavigation ? 'px-3' : 'px-0';
@@ -456,7 +528,8 @@ export const Carousel = ({
       <div class="self-stretch ${containerPadding} relative bg-transparent inline-flex justify-start items-center">
         <div
           ref=${scrollContainerRef}
-          class="flex-1 flex justify-start items-center overflow-x-auto gap-3 scrollbar-hide ${scrollPadding}"
+          class="flex-1 flex justify-start items-center overflow-x-auto scrollbar-hide ${scrollPadding} ${customScrollContainerClassName}"
+          style=${customScrollContainerClassName && customScrollContainerClassName.includes('gap-') ? '' : `gap: ${gap}px`}
           onScroll=${handleScroll}
         >
           ${itemsToRender}
@@ -479,13 +552,8 @@ export const Carousel = ({
       ${shouldShowPagination ? html`
         <${CarouselPaginationDots}
           totalPages=${totalPages}
-          currentPage=${currentIndex}
-          onDotClick=${(pageIndex) => {
-    if (pageIndex === currentIndex) return;
-    // Update index immediately for visual feedback
-    setCurrentIndex(pageIndex);
-    scrollToIndex(pageIndex);
-  }}
+          currentPage=${currentPage}
+          onDotClick=${handleDotClick}
         />
       ` : ''}
     </div>

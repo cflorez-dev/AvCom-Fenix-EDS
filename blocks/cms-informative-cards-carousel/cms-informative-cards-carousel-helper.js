@@ -1,24 +1,55 @@
-import { readBlockConfig } from '../../scripts/aem.js';
-
 /**
  * Extracts props from a CMS Informative Cards Carousel block.
- * Extracts loading mode from the parent block configuration.
+ * Extracts loading mode, target countries, and target languages from the parent block configuration.
+ *
+ * Parent row structure:
+ * - Row 0: loading
+ * - Row 1: target-countries (comma-separated)
+ * - Row 2: target-languages (comma-separated)
+ * - Row 3+: child items (cards)
  *
  * @param {Element} block - The CMS Informative Cards Carousel block element
- * @returns {Object} Configuration object with loading mode
+ * @returns {Object} Configuration object with loading mode and targeting fields
  */
 export function extractCmsInformativeCardsCarouselProps(block) {
   const defaultProps = {
     loading: 'lazy', // Default to lazy loading
+    targetCountries: '',
+    targetLanguages: '',
   };
 
   if (!block) {
     return defaultProps;
   }
 
-  // Extract configuration from block metadata using readBlockConfig
-  const config = readBlockConfig(block);
-  const loading = config.loading || defaultProps.loading;
+  const rows = Array.from(block.children);
+
+  // Row 0: loading field (single-cell row)
+  let loading = defaultProps.loading;
+  if (rows[0] && rows[0].children.length === 1) {
+    const loadingValue = rows[0].children[0].textContent.trim();
+    if (loadingValue) {
+      loading = loadingValue;
+    }
+  }
+
+  // Row 1: target-countries field (comma-separated)
+  let targetCountries = defaultProps.targetCountries;
+  if (rows[1] && rows[1].children.length === 1) {
+    const countriesValue = rows[1].children[0].textContent.trim();
+    if (countriesValue) {
+      targetCountries = countriesValue;
+    }
+  }
+
+  // Row 2: target-languages field (comma-separated)
+  let targetLanguages = defaultProps.targetLanguages;
+  if (rows[2] && rows[2].children.length === 1) {
+    const languagesValue = rows[2].children[0].textContent.trim();
+    if (languagesValue) {
+      targetLanguages = languagesValue;
+    }
+  }
 
   // All other carousel behavior is hardcoded according to acceptance criteria:
   // Desktop:
@@ -35,6 +66,8 @@ export function extractCmsInformativeCardsCarouselProps(block) {
 
   return {
     loading,
+    targetCountries,
+    targetLanguages,
   };
 }
 
@@ -54,9 +87,12 @@ export function extractCarouselCards(block) {
 
   const rows = Array.from(block.children);
 
-  // Skip the first row (index 0) - it contains parent configuration (loading mode)
-  // Start from index 1 for child items (cards)
-  const cardRows = rows.slice(1);
+  // Skip the first 3 rows - they contain parent configuration:
+  // Row 0: loading
+  // Row 1: target-countries
+  // Row 2: target-languages
+  // Start from index 3 for child items (cards)
+  const cardRows = rows.slice(3);
 
   // Each row is a child item (cms-informative-cards-carousel-item)
   // According to ACTUAL HTML structure from AEM:
