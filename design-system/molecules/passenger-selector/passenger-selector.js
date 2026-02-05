@@ -10,6 +10,7 @@ import htm from 'htm';
 import { Incrementer } from '../../atoms/incrementer/incrementer.js';
 import { Icon } from '../../atoms/icon/icon.js';
 import { Button } from '../../atoms/button/button.js';
+import { Alert } from '../alert/alert.js';
 
 const html = htm.bind(h);
 
@@ -545,20 +546,13 @@ export const PassengerSelector = ({
 
             <!-- Info Banner -->
             ${showInfoBanner && html`
-              <div class="w-full max-w-[1248px] min-w-48 min-h-14 p-4 bg-[var(--color-alert-informative-bg)] rounded-lg inline-flex justify-start items-center gap-2">
-                <${Icon} icon="alert/info" size="s" color="var(--color-alert-informative-text)" customClassName="mt-[4px]" />
-                <div class="leading-none max-h-[21px] min-h-max text-[var(--color-alert-informative-text)] text-sm font-normal"
-                  dangerouslySetInnerHTML=${{ __html: (i18n['bookingBox.labels.youthPolicyLearn']) }}
-                />
-                <button
-                  type="button"
-                  onClick=${() => setShowInfoBanner(false)}
-                  class="w-5 h-5 flex items-center justify-center cursor-pointer hover:opacity-60 transition-opacity ml-auto"
-                  aria-label=${i18n['bookingBox.aria.closeBanner'] || 'Cerrar banner'}
-                >
-                <${Icon} icon="navigation/close" size="xs"/>
-                </button>
-              </div>
+              <${Alert}
+                variant="informative"
+                contentHTML=${i18n['bookingBox.labels.youthPolicyLearn'] || ''}
+                dismissible=${true}
+                onDismiss=${() => setShowInfoBanner(false)}
+                marqueeMode=${false}
+              />
             `}
 
             ${showCabinClass && html`
@@ -677,20 +671,15 @@ export const PassengerSelector = ({
 
           <!-- Info Banner -->
           ${showInfoBanner && html`
-            <div class="w-full max-w-[1248px] min-w-48 min-h-14 p-4 bg-[var(--color-alert-informative-bg)] rounded-lg inline-flex justify-start items-center gap-2">
-              <${Icon} icon="alert/info" size="s" color="var(--color-alert-informative-text)" />
-              <div class="leading-none max-h-[21px] min-h-max text-[var(--color-alert-informative-text)] text-sm font-normal"
-                dangerouslySetInnerHTML=${{ __html: (i18n['bookingBox.labels.youthPolicyLearn']) }}
-              />
-              <button
-                type="button"
-                onClick=${() => setShowInfoBanner(false)}
-                class="w-5 h-5 flex items-center justify-center cursor-pointer hover:opacity-60 transition-opacity ml-auto"
-                aria-label=${i18n['bookingBox.aria.closeBanner'] || 'Cerrar banner'}
-              >
-                <${Icon} icon="navigation/close" size="xs"/>
-              </button>
-            </div>
+            <${Alert}
+              variant="informative"
+              contentHTML=${i18n['bookingBox.labels.youthPolicyLearn'] || ''}
+              dismissible=${true}
+              onDismiss=${() => setShowInfoBanner(false)}
+              marqueeMode=${false}
+              isRounded=${true}
+              customClassName="rounded-lg border-none !p-[16px] !leading-[21px]"
+            />
           `}
 
           ${showCabinClass && html`

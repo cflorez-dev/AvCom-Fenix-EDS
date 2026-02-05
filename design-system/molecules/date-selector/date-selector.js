@@ -576,7 +576,7 @@ export const DateSelector = ({
           aria-label=${i18n['bookingBox.aria.selectDate'] || 'Select date'}
         >
           <!-- Header with Title and Price Indicator -->
-          <div class="flex justify-between mb-4 mr-[20px]">
+          <div class="flex font-normal justify-between]">
             ${calendarTitle && html`
               <div class="font-bold text-[var(--text-normal-primary)] text-base min-h-[21px] leading-none">
                 ${calendarTitle}
@@ -612,6 +612,7 @@ export const DateSelector = ({
               disabledDates=${disabledDates}
               minDate=${minDate}
               customClassName="mb-[10px]"
+              isFirstMonth=${true}
               locale=${locale}
             />
 
@@ -751,7 +752,7 @@ export const DateSelector = ({
             class="flex-1 pl-[var(--spacing-x-x-large)] pr-5 pb-[var(--spacing-x-x-large)] overflow-y-auto"
           >
             <!-- Months in vertical scroll -->
-            ${monthsToRender.map(({ year: y, month: m }) => html`
+            ${monthsToRender.map(({ year: y, month: m }, index) => html`
               <div
                 ref=${(el) => { monthRefs.current[`${y}-${m}`] = el; }}
                 data-year=${y}
@@ -771,6 +772,7 @@ export const DateSelector = ({
                   minDate=${minDate}
                   customClassName="my-2"
                   showWeekdayHeader=${false}
+                  isFirstMonth=${index === 0}
                   locale=${locale}
                 />
               </div>
