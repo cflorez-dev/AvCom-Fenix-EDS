@@ -71,8 +71,7 @@ export const WeekdayHeader = ({
 
   const dayClasses = `
     flex items-center justify-center
-    min-w-[calc(100%/7)]
-    min-h-[21px]
+    
     px-[var(--spacing-x-small)]
     py-[var(--spacing-tiny)]
     text-[length:var(--font-size-small)]
@@ -81,6 +80,8 @@ export const WeekdayHeader = ({
     text-[var(--text-normal-primary)]
     text-center
     uppercase md:normal-case
+    !w-[42px]
+    !h-[27px]
   `.trim();
 
   // ========== RENDER ==========

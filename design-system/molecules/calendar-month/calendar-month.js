@@ -22,6 +22,7 @@ const html = htm.bind(h);
  * - `disabledDates`: `Array<string>` – Disabled dates from CMS.
  * - `minDate`: `Date | null` – Minimum selectable date.
  * - `showWeekdayHeader`: `boolean` – Show weekday header (default: true).
+ * - `isFirstMonth`: `boolean` – If true, applies reduced top padding (default: false).
  * - `customClassName`: `string` – Additional CSS classes.
  * - `...rest`: Other HTML props.
  *
@@ -71,6 +72,7 @@ export const CalendarMonth = ({
   disabledDates = [],
   minDate = null,
   showWeekdayHeader = true,
+  isFirstMonth = false,
   customClassName = '',
   ...rest
 }) => {
@@ -103,7 +105,7 @@ export const CalendarMonth = ({
     >
       <!-- Month/Year Title -->
       <div
-        class="flex items-center py-2 md:justify-center md:min-h-14 md:py-3"
+        class="flex items-center ${isFirstMonth ? 'pt-[16px]' : 'pt-[24px]'} pb-[8px] md:justify-center md:min-h-14 md:py-3"
         aria-live="polite"
         aria-atomic="true"
       >

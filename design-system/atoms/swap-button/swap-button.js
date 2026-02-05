@@ -9,7 +9,7 @@ const html = htm.bind(h);
 // Constants
 const MOBILE_BREAKPOINT = 768;
 const ICON_COLOR_DISABLED = '#949494';
-const ICON_COLOR_ENABLED = '#1b1b1b';
+const ICON_COLOR_ENABLED = '#1C1B1F';
 
 /**
  * SwapButton - Circular button to swap values between origin and destination
