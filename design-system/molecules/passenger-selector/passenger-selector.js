@@ -424,8 +424,10 @@ export const PassengerSelector = ({
             <div class="self-stretch justify-start text-[var(--text-normal-secondary)] text-xs font-normal">${i18n['bookingBox.labels.passengers'] || 'Pasajeros'}</div>
             <div class="self-stretch h-5 justify-start text-[var(--text-normal-primary)] text-base font-bold truncate">${getDisplayText}</div>
           </div>
-          <div class="${isOpen ? 'rotate-180' : ''} transition-transform duration-200">
-            <${Icon} icon="navigation/expand-more" size="sm" />
+          <div class="w-5 h-5 flex justify-center items-center">
+            <div class="${isOpen ? 'rotate-180' : ''} transition-transform duration-200 flex items-center justify-center h-5">
+              <${Icon} icon="navigation/expand-more" size="xsm" />
+            </div>
           </div>
         </button>
       </div>

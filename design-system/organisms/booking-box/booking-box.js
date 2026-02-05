@@ -657,9 +657,9 @@ export const BookingBox = ({
         `}
 
         <div ref=${bookingBoxRef} class="w-full rounded-4xl md:rounded-3xl bg-white z-[800] ${finalClasses}">
-        <div class="grid w-full gap-3 md:gap-4 lg2:gap-3 md:col-span-full md:grid-cols-[auto_150px_minmax(117px,max-content)] lg2:grid-cols-[262px_auto_328px_150px_minmax(116px,max-content)] ${stickyGrid}">
+        <div class="grid w-full gap-4 md:gap-4 lg2:gap-3 md:col-span-full md:grid-cols-[auto_160px_minmax(117px,max-content)] lg2:grid-cols-[252px_auto_328px_160px_minmax(116px,max-content)] ${stickyGrid}">
             ${!isSticky && html`
-                <div class="mb-[4px] md:mb-2 lg2:mb-0 flex justify-center md:justify-start lg2:row-start-1 lg2:row-end-2 lg2:col-start-1 lg2:col-end-2">
+                <div class="md:mb-2 lg2:mb-0 flex justify-center md:justify-start lg2:row-start-1 lg2:row-end-2 lg2:col-start-1 lg2:col-end-2">
                 <${TripTypeToggle}
                     value=${tripType}
                     onChange=${handleTripTypeChange}
@@ -692,7 +692,7 @@ export const BookingBox = ({
   }}
                 onClose=${closeStep}
                 onBack=${handleBack}
-                originDropdownPositionStyles="md:top-full lg2:top-[calc(100%+28px)] ${!isSticky ? 'lg2:left-[-20px]' : ''} ${someInputHasError ? 'lg2:top-[calc(100%+53px)]' : ''}"
+                originDropdownPositionStyles="md:top-full lg2:top-[calc(100%+28px)] ${!isSticky ? 'lg2:left-[-24px]' : ''} ${someInputHasError ? 'lg2:top-[calc(100%+53px)]' : ''}"
                 destinationDropdownPositionStyles="md:top-full lg2:top-[calc(100%+28px)] ${someInputHasError ? 'lg2:top-[calc(100%+53px)]' : ''}"
                 originHasError=${validationErrors.origin}
                 destinationHasError=${validationErrors.destination}
@@ -752,7 +752,7 @@ export const BookingBox = ({
             </div>
             `}
 
-            <div class="mt-3 md:mt-0 lg2:row-start-2 lg2:row-end-3 lg2:col-start-5 lg2:col-end-6 lg2:max-h-max">
+            <div class="mt-[8px] md:mt-0 lg2:row-start-2 lg2:row-end-3 lg2:col-start-5 lg2:col-end-6 lg2:max-h-max">
                 <${Button}
                     variant="primary"
                     size="md"
