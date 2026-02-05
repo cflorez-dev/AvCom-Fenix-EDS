@@ -418,6 +418,7 @@ export const CitySelector = ({
         type="button"
         class="
           w-full p-4 text-left cursor-pointer transition-[background-color]
+          h-[81px]
           ${isItemFocused ? 'bg-background-card-lighter' : 'bg-background-brand-secondary-default'}
           ${isSelected ? 'bg-background-brand-primary-lighter relative' : ''}
           hover:bg-[var(--bg-hover-light)] group
@@ -529,7 +530,7 @@ export const CitySelector = ({
         class=${containerClasses}
       >
         <span class="flex-shrink-0 flex items-center" aria-hidden="true">
-          <${Icon} icon=${iconInputName} size="m" />
+          <${Icon} icon=${iconInputName} size="m" customClassName=${iconInputName === 'action/plane' ? '[&_svg]:pt-[3.33px] [&_svg]:pb-[1.28px] [&_svg]:pl-[0.42px] [&_svg]:pr-[2.31px]' : ''}/>
         </span>
 
         <div class="relative flex-1 flex items-center min-h-full">
@@ -618,7 +619,7 @@ export const CitySelector = ({
       <!-- Desktop Popup (sin input de búsqueda - ya está en trigger) -->
       ${isOpen && !isMobile && html`
         <div
-          class=${`absolute ${positionDropdownStyles} px-4 py-6 bg-background-card-lighter rounded-[24px] shadow-[0px_2px_20px_2px_rgba(73,73,73,0.25)] max-h-[376px] min-h-[376px] max-w-[${DROPDOWN_MAX_WIDTH}] min-w-[${DROPDOWN_MAX_WIDTH}] overflow-hidden z-50 flex flex-col`}
+          class=${`absolute ${positionDropdownStyles} px-4 py-6 pr-0  bg-background-card-lighter rounded-[24px] shadow-[0px_2px_20px_2px_rgba(73,73,73,0.25)] max-h-[376px] min-h-[376px] max-w-[${DROPDOWN_MAX_WIDTH}] min-w-[${DROPDOWN_MAX_WIDTH}] overflow-hidden z-50 flex flex-col`}
           ref=${dropdownRef}
           role="listbox"
           aria-label=${label || 'Lista de ciudades'}
@@ -627,7 +628,7 @@ export const CitySelector = ({
           <div class="self-stretch justify-start text-text-normal-secondary text-base font-bold">${i18n['bookingBox.labels.results'] || 'Resultados'}</div>
         ` : ''}
           <!-- Cities List -->
-          <div class="flex-1 overflow-y-auto">
+          <div class="flex-1 overflow-y-auto pr-[4px]">
             ${filteredCities.length > 0 && !isLoading ? html`
                 ${filteredCities.map((city, index) => renderCityItem(city, index))}
             ` : html`
@@ -677,7 +678,7 @@ export const CitySelector = ({
         `}
 
         <!-- Content -->
-        <div class="overflow-hidden flex-1 px-[var(--spacing-x-x-large)] pt-[var(--spacing-medium)] pb-0 flex flex-col gap-[var(--spacing-medium)]">
+        <div class="overflow-hidden flex-1 px-[var(--spacing-x-x-large)] pt-[var(--spacing-medium)] pb-0 flex flex-col ">
           <!-- Search Input (siempre standalone con bordes completos) -->
           <div
             class="flex items-center gap-2 w-full h-[50px] lg2:h-[52px] px-4 bg-background-input-default rounded-lg transition-all duration-[var(--transition-normal)]
@@ -741,10 +742,10 @@ export const CitySelector = ({
           </div>
 
           ${filteredCities.length > 0 && !isLoading ? html`
-            <div class="self-stretch justify-start text-text-normal-secondary text-base font-bold">${i18n['bookingBox.labels.results'] || 'Resultados'}</div>
+            <div class="self-stretch justify-start text-text-normal-secondary text-base font-bold mt-[16px]">${i18n['bookingBox.labels.results'] || 'Resultados'}</div>
           ` : ''}
           ${filteredCities.length > 0 && !isLoading ? html`
-            <div class="overflow-y-auto">
+            <div class="overflow-y-auto scrollbar-hide">
               ${filteredCities.map((city, index) => renderCityItem(city, index))}
             </div>
           ` : html`

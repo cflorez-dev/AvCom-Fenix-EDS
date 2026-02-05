@@ -80,7 +80,7 @@ export const ActionButton = ({
           src=${icon}
           alt=""
           role="presentation"
-          class="w-5 h-5 object-contain"
+          class="w-[15px] h-[15px] object-contain"
           loading="lazy"
           decoding="async"
         />`
@@ -89,9 +89,11 @@ export const ActionButton = ({
     if (variant === 'iconRight') {
       // iconRight variant: small icon (15px) without background
       return html`
+      <div class="w-[20px] h-[20px] flex justify-center items-center">
         <div class="w-[15px] h-[15px] flex justify-center items-center overflow-hidden" aria-hidden="true">
           ${iconContent}
         </div>
+      </div>
       `;
     }
 
