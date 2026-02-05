@@ -576,7 +576,7 @@ export const DateSelector = ({
           aria-label=${i18n['bookingBox.aria.selectDate'] || 'Select date'}
         >
           <!-- Header with Title and Price Indicator -->
-          <div class="flex font-normal justify-between]">
+          <div class="flex font-normal justify-between">
             ${calendarTitle && html`
               <div class="font-bold text-[var(--text-normal-primary)] text-base min-h-[21px] leading-none">
                 ${calendarTitle}
