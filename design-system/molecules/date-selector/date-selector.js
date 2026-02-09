@@ -356,6 +356,14 @@ export const DateSelector = ({
     };
   }, [isMobile, isOpen, fetchPricingForMonth]);
 
+  useEffect(() => {
+    if (isMobile && isOpen) {
+      document.body.classList.add('!overflow-hidden');
+      return;
+    }
+    document.body.classList.remove('!overflow-hidden');
+  }, [isMobile, isOpen]);
+
   const handleClose = useCallback(() => {
     if (onClose) {
       onClose();
@@ -749,7 +757,7 @@ export const DateSelector = ({
           <div 
             ref=${scrollContainerRef}
             onScroll=${handleScroll}
-            class="flex-1 pl-[var(--spacing-x-x-large)] pr-5 pb-[var(--spacing-x-x-large)] overflow-y-auto"
+            class="flex-1 pl-[var(--spacing-x-x-large)] pr-[10px] mr-[10px] pb-[var(--spacing-x-x-large)] overflow-y-auto"
           >
             <!-- Months in vertical scroll -->
             ${monthsToRender.map(({ year: y, month: m }, index) => html`

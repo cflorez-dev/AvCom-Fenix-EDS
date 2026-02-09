@@ -39,9 +39,12 @@ function mapAlertData(block) {
 
   // Row 1: Content (innerHTML)
   if (rows[1]) {
-    const contentCell = rows[1].querySelector('div') || rows[1];
+    // Get ALL innerHTML from the content cell without any processing
+    // AEM structure: <div(row)><div(cell)>...content...</div></div>
+    const contentCell = rows[1].children[0];
     if (contentCell) {
-      innercontent = contentCell.innerHTML.trim();
+      // Simply get the innerHTML - preserve everything as-is
+      innercontent = contentCell.innerHTML;
     }
   }
 

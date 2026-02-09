@@ -109,12 +109,23 @@ export default function decorate(block) {
 
     const updateLogoSize = () => {
       const img = targetContainer.querySelector('img');
-      const scrollThreshold = 3;
+      // Hysteresis: diferentes thresholds para activar vs desactivar
+      // Esto evita el flickering cuando el scroll está cerca del threshold
+      const scrollThresholdActivate = 10; // Activar modo compacto cuando scroll > 10px
+      const scrollThresholdDeactivate = 0; // Desactivar cuando scroll <= 0px
       const compactLogoClasses = ['h-[28px]', 'w-auto'];
       if (!img) return;
-      if (window.scrollY > scrollThreshold) {
+
+      // Verificar estado actual para evitar cambios innecesarios
+      const isCurrentlyCompact = img.classList.contains('h-[28px]');
+      const currentScroll = window.scrollY;
+
+      // Solo cambiar si es necesario (evita cambios innecesarios)
+      if (!isCurrentlyCompact && currentScroll > scrollThresholdActivate) {
+        // Activar modo compacto
         img.classList.add(...compactLogoClasses);
-      } else {
+      } else if (isCurrentlyCompact && currentScroll <= scrollThresholdDeactivate) {
+        // Desactivar modo compacto
         img.classList.remove(...compactLogoClasses);
       }
     };

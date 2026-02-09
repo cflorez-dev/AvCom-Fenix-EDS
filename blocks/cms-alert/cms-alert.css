@@ -25,5 +25,10 @@
   width: 100%;
 }
 
+/* Preserve spacing between multiple paragraphs in alert content */
+.cms-alert-item strong {
+    line-height: 19px;
+}
+
 /* Alert component inherits its own styles from design-system/molecules/alert/alert.js */
 /* No additional styling needed as Alert component handles all visual presentation */
