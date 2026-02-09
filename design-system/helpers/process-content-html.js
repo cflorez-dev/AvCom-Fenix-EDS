@@ -315,8 +315,8 @@ export const processContentHTML = (htmlString, variant, options = {}) => {
 
   let processedHTML = htmlString;
 
-  // Process <p> tags - add className and remove margins with !important
-  processedHTML = addClassToTag(processedHTML, 'p', [pClassName, '!m-0']);
+  // Process <p> tags - add className with zero vertical padding
+  processedHTML = addClassToTag(processedHTML, 'p', [pClassName, 'pt-0', 'pb-0', '!m-0']);
 
   // Process <strong> tags
   processedHTML = addClassToTag(processedHTML, 'strong', strongClassName);

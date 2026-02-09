@@ -30,6 +30,9 @@ const html = htm.bind(h);
  * @param {Object} [props.contentRef] - External ref for content container (optional)
  * @param {boolean} [props.fullWidth=false] - Enable full-width container with inner max-width
  * @param {'self'|'blank'} [props.linkTarget='self'] - Target for links (same tab or new tab)
+ * @param {boolean} [props.preserveRawHTML=false] - If true, renders HTML without processing
+ *   (preserves all original attributes, classes, and structure from AEM author).
+ *   Set to true to preserve raw HTML or false (default) to apply Tailwind classes and link processing.
  * @param {Object} [props.rest] - Additional props spread to container
  * @returns {import('preact').VNode} Alert component
  */
@@ -54,6 +57,7 @@ export const Alert = ({
   contentRef: externalContentRef,
   fullWidth = false,
   linkTarget = 'self',
+  preserveRawHTML = false,
   ...rest
 }) => {
   const [isVisible, setIsVisible] = useState(true);
@@ -232,39 +236,41 @@ export const Alert = ({
 
   // Inner container classes
   const fullWidthClasses = fullWidth
-    ? marqueeMode ? 'py-4 px-6 w-full ' : 'py-4 px-4 w-full '
+    ? marqueeMode ? 'py-4 px-6 w-full ' : 'py-4 px-4 w-full border-none'
       + 'text-[var(--paragraph-p200-size,1.4rem)] '
       + 'font-[var(--paragraph-p200-weight,400)] '
       + 'leading-[var(--line-height-150,1.5)]'
-    : 'px-6 py-4';
+    : 'px-4 py-4 border-none';
   const containerClasses = `
-    flex
+    flex 
     w-full
     box-border
     items-center
     justify-center
     gap-[12px]
+    rounded-[var(--border-radius-medium)]
     ${fullWidthClasses}
     font-sans
     ${!fullWidth ? 'text-sm' : ''}
     ${!fullWidth ? 'font-normal' : ''}
-    ${!fullWidth ? 'leading-normal' : ''}
+    ${!fullWidth ? 'leading-auto' : ''}
     ${!fullWidth ? 'border' : ''}
     ${heightClasses ? `${heightClasses} overflow-y-auto` : ''}
     ${!fullWidth ? `${currentVariantClasses.bg} ${currentVariantClasses.text} ${currentVariantClasses.border}` : ''}
     ${customClassName}
   `.trim().replace(/\s+/g, ' ');
 
+  // Icon alignment: center for marquee mode, top-aligned for wrap mode
   const iconContainerClasses = `
     shrink-0
     flex
-    items-center
+    ${marqueeMode ? 'items-center' : 'items-start'}
     justify-center
   `.trim().replace(/\s+/g, ' ');
 
   const contentClasses = marqueeMode && shouldMarquee
-    ? 'flex-1 min-w-0 overflow-hidden relative leading-6'
-    : 'flex-1 min-w-0 break-words whitespace-normal';
+    ? 'flex-1 min-w-0 overflow-hidden relative leading-6 element-alert'
+    : 'flex-1 min-w-0 break-words whitespace-normal element-alert';
 
   const getDefaultIcon = (variantType) => {
     // Map 'warning' to 'caution' for icon selection
@@ -328,16 +334,19 @@ export const Alert = ({
 
   // Process HTML to add text-sm class to <p> elements and font-bold to <strong> elements
   // Also process links to add appropriate rel attributes for SEO
-  const processedContentHTML = processContentHTML(contentHTML, normalizedVariant, {
-    pClassName: 'text-sm leading-[21px]',
-    strongClassName: 'font-bold',
-    processRelAttributes: true,
-    linkButtonOptions: {
-      size: fullWidth ? 'compact' : 'default',
-      customClassName: normalizedVariant === 'informative' ? '!text-text-link-informative-active' : '',
-      linkTarget,
-    },
-  });
+  // If preserveRawHTML is true, use original HTML without processing
+  const processedContentHTML = preserveRawHTML
+    ? contentHTML
+    : processContentHTML(contentHTML, normalizedVariant, {
+      pClassName: 'text-sm leading-[21px]',
+      strongClassName: 'font-bold',
+      processRelAttributes: true,
+      linkButtonOptions: {
+        size: fullWidth ? 'compact' : 'default',
+        customClassName: normalizedVariant === 'informative' ? '!text-text-link-informative-active' : '',
+        linkTarget,
+      },
+    });
 
   const innerContent = html`
     <aside
@@ -348,7 +357,7 @@ export const Alert = ({
       data-name="alert"
       ...${fullWidth ? {} : rest}
     >
-    <div class="max-w-[var(--max-width-content,1248px)] flex flex-row !items-center w-full min-h-[1.5rem]  mx-auto ${marqueeMode ? 'gap-[12px]' : 'gap-2'} px-0 md:px-0 !m-0 ${marqueeMode ? 'items-center' : 'items-start'}">
+    <div class="max-w-[var(--max-width-content,1248px)] flex flex-row !items-start w-full  mx-auto ${marqueeMode ? 'gap-[12px]' : 'gap-2'} px-0 md:px-0 !m-0 ${marqueeMode ? 'items-center' : 'items-start'}">
         ${showIcon && iconData.icon && iconData.icon !== 'none' && html`
           <div class="${iconContainerClasses}${currentVariantClasses.iconBg ? ' rounded-full w-5 h-5 flex items-center justify-items-start' : ''}" aria-hidden="true">
             <${Icon} icon=${customIcon || iconData.icon} size="m" color=${customIconColor || iconData.color} />
@@ -374,7 +383,11 @@ export const Alert = ({
             iconOnly=${true}
             customClassName="hover:!bg-alert-dismiss-hover active:!bg-alert-dismiss-active ${dismissButtonClassName || 'h-[20px] w-[20px]'}"
           >
-            ${dismissIconHTML ? html`<span dangerouslySetInnerHTML=${{ __html: dismissIconHTML }} />` : html`<${Icon} icon="navigation/close" size="xsm" />`}
+            ${dismissIconHTML ? html`<span dangerouslySetInnerHTML=${{ __html: dismissIconHTML }} />` : html`
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" fill="none">
+                <path fill-rule="evenodd" clip-rule="evenodd" d="M12.6663 4.27398L11.7263 3.33398L7.99967 7.06065L4.27301 3.33398L3.33301 4.27398L7.05967 8.00065L3.33301 11.7273L4.27301 12.6673L7.99967 8.94065L11.7263 12.6673L12.6663 11.7273L8.93967 8.00065L12.6663 4.27398Z" fill="currentColor"/>
+              </svg>
+            `}
           </${Button}>
         `}
       </div>

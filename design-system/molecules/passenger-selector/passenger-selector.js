@@ -597,10 +597,10 @@ export const PassengerSelector = ({
         <!-- Desktop Dropdown Popup -->
         <div
           ref=${dropdownRef}
-          class="absolute ${dropdownPositionStyles} bg-white rounded-[16px] shadow-[0px_2px_12px_0px_rgba(27,27,27,0.15)] p-[24px] z-50 flex flex-col gap-[16px] w-[342px]"
+          class="absolute ${dropdownPositionStyles} bg-white rounded-[16px] shadow-[0px_2px_12px_0px_rgba(27,27,27,0.15)] p-[24px] z-50 flex flex-col gap-[16px] w-[359px]"
         >
           <!-- Title -->
-          <h3 class="!text-[16px] font-bold text-[var(--color-text-normal-primary)] leading-[normal] !mt-0 !mb-0 h-[21px]">${i18n['bookingBox.labels.whoFlies'] || '¿Quiénes vuelan?'}</h3>
+          <h3 class="!text-[16px] !font-bold text-[var(--color-text-normal-primary)] leading-[normal] !mt-0 !mb-0 h-[21px]">${i18n['bookingBox.labels.whoFlies'] || '¿Quiénes vuelan?'}</h3>
 
           <!-- Passenger List -->
           <div class="flex flex-col">
@@ -608,7 +608,7 @@ export const PassengerSelector = ({
             <div class="flex justify-between items-center h-[64px] py-[8px]">
               <div class="flex flex-col gap-[4px]">
                 <span class="text-[18px] font-normal text-[var(--color-text-normal-primary)] leading-[normal]">${i18n['bookingBox.labels.adults'] || 'Adultos'}</span>
-                <span class="text-[12px] text-[var(--color-text-disabled)] leading-[normal]">${i18n['bookingBox.labels.adultsAge'] || 'De 15 a 64 años'}</span>
+                <span class="text-[12px] font-normal text-[var(--color-text-disabled)] leading-[normal]">${i18n['bookingBox.labels.adultsAge'] || 'De 15 a 64 años'}</span>
               </div>
               <${Incrementer}
                 value=${passengers.adults}
@@ -630,7 +630,7 @@ export const PassengerSelector = ({
             <div class="flex justify-between items-center h-[64px] py-[8px]">
               <div class="flex flex-col gap-[4px]">
                 <span class="text-[18px] font-normal text-[var(--color-text-normal-primary)] leading-[normal]">${i18n['bookingBox.labels.youth'] || 'Jóvenes'}</span>
-                <span class="text-[12px] text-[var(--color-text-disabled)] leading-[normal]">${i18n['bookingBox.labels.youthAge'] || 'De 12 a 14 años'}</span>
+                <span class="text-[12px] font-normal text-[var(--color-text-disabled)] leading-[normal]">${i18n['bookingBox.labels.youthAge'] || 'De 12 a 14 años'}</span>
               </div>
               <${Incrementer}
                 value=${passengers.youth}
@@ -644,7 +644,7 @@ export const PassengerSelector = ({
             <div class="flex justify-between items-center h-[64px] py-[8px]">
               <div class="flex flex-col gap-[4px]">
                 <span class="text-[18px] font-normal text-[var(--color-text-normal-primary)] leading-[normal]">${i18n['bookingBox.labels.children'] || 'Niños'}</span>
-                <span class="text-[12px] text-[var(--color-text-disabled)] leading-[normal]">${i18n['bookingBox.labels.childrenAge'] || 'De 2 a 11 años'}</span>
+                <span class="text-[12px] font-normal text-[var(--color-text-disabled)] leading-[normal]">${i18n['bookingBox.labels.childrenAge'] || 'De 2 a 11 años'}</span>
               </div>
               <${Incrementer}
                 value=${passengers.children}
@@ -658,7 +658,7 @@ export const PassengerSelector = ({
             <div class="flex justify-between items-center h-[64px] py-[8px]">
               <div class="flex flex-col gap-[4px]">
                 <span class="text-[18px] font-normal text-[var(--color-text-normal-primary)] leading-[normal]">${i18n['bookingBox.labels.infants'] || 'Bebés'}</span>
-                <span class="text-[12px] text-[var(--color-text-disabled)] leading-[normal]">${i18n['bookingBox.labels.infantsAge'] || 'Menores de 2 años (1 por adulto)'}</span>
+                <span class="text-[12px] font-normal text-[var(--color-text-disabled)] leading-[normal]">${i18n['bookingBox.labels.infantsAge'] || 'Menores de 2 años (1 por adulto)'}</span>
               </div>
               <${Incrementer}
                 value=${passengers.infants}
@@ -678,7 +678,7 @@ export const PassengerSelector = ({
               onDismiss=${() => setShowInfoBanner(false)}
               marqueeMode=${false}
               isRounded=${true}
-              customClassName="rounded-lg border-none !p-[16px] !leading-[21px]"
+              customClassName="rounded-[8px] border-none !p-[16px] !leading-[21px]"
             />
           `}
 
@@ -714,7 +714,7 @@ export const PassengerSelector = ({
               size="md"
               onClick=${handleConfirm}
               disabled=${!!validationError}
-              customClassName="w-full max-h-[50px]"
+              customClassName="w-full max-h-[50px] py-[12px]"
             >
               ${i18n['bookingBox.labels.confirm'] || 'Confirmar'}
             </${Button}>
