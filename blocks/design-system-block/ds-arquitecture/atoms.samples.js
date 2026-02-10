@@ -17,12 +17,14 @@ import { IncrementerSample } from '../../../design-system/atoms/incrementer/incr
 import { DateInputSample } from '../../../design-system/atoms/date-input/date-input.sample.js';
 import { DayCellSample } from '../../../design-system/atoms/day-cell/day-cell.sample.js';
 import { WeekdayHeaderSample } from '../../../design-system/atoms/weekday-header/weekday-header.sample.js';
+import { DestinationCardSample } from '../../../design-system/atoms/destination-card/destination-card.sample.js';
 
 const html = htm.bind(h);
 
 export const AtomsSamples = () => html`
     <div>
         <h2>Atoms samples</h2>
+        <${DestinationCardSample} />
         <${ChipSample} />
         <${ButtonSample} />
         <${InputSample} />

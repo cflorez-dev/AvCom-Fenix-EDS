@@ -91,28 +91,37 @@ export const Input = ({
     readonly: 'text-text-normal-secondary',
   };
 
-  // Handle keydown to detect Tab key navigation
-  const handleKeyDown = (e) => {
-    if (e.key === 'Tab') {
-      tabKeyPressedRef.current = true;
-    }
-  };
+  // Listen for Tab key globally to detect keyboard navigation
+  useEffect(() => {
+    const onKeyDown = (e) => {
+      if (e.key === 'Tab') {
+        tabKeyPressedRef.current = true;
+      }
+    };
+    const onMouseDown = () => {
+      tabKeyPressedRef.current = false;
+    };
+    document.addEventListener('keydown', onKeyDown, true);
+    document.addEventListener('mousedown', onMouseDown, true);
+    return () => {
+      document.removeEventListener('keydown', onKeyDown, true);
+      document.removeEventListener('mousedown', onMouseDown, true);
+    };
+  }, []);
 
-  // Handle focus
+  // Handle focus - show keyboard ring only if Tab was pressed
   const handleFocus = () => {
     setIsFocused(true);
-    // Only show keyboard focus ring if Tab key was pressed
     if (tabKeyPressedRef.current) {
       setIsKeyboardFocused(true);
-      tabKeyPressedRef.current = false;
     }
+    tabKeyPressedRef.current = false;
   };
 
   // Handle blur
   const handleBlur = () => {
     setIsFocused(false);
     setIsKeyboardFocused(false);
-    tabKeyPressedRef.current = false;
   };
 
   // Handle input change
@@ -120,10 +129,6 @@ export const Input = ({
     if (isInteractive) {
       const newValue = e.target.value;
       setInputValue(newValue);
-      // Remove keyboard focus when typing (means interaction started with mouse)
-      if (isKeyboardFocused) {
-        setIsKeyboardFocused(false);
-      }
       if (onChange) {
         onChange(newValue);
       }
@@ -160,7 +165,6 @@ export const Input = ({
     <div
       class="relative w-full ${customClassName}"
       data-name="input"
-      onKeyDown=${handleKeyDown}
       ...${rest}
     >
       <!-- Input Container -->
@@ -181,7 +185,7 @@ export const Input = ({
         <!-- Focus Ring (keyboard navigation only) -->
         ${isKeyboardFocused && isInteractive && html`
           <div
-            class="absolute -inset-[2px] rounded-[9px] outline outline-2 outline-border-stroke-focus pointer-events-none"
+            class="absolute -inset-[2px] rounded-[9px] outline outline-border-stroke-focus pointer-events-none"
             aria-hidden="true"
           />
         `}
@@ -202,10 +206,10 @@ export const Input = ({
               transition-all duration-100 ease-in-out
               font-['Red_Hat_Display'] font-normal tracking-[0px]
               ${labelStateClasses[actualState]}
-              ${shouldFloat 
-                ? `top-[10px] text-xs leading-[18px] ${prefixIconName ? 'left-[46px]' : 'left-[var(--padding-16)]'}`
-                : `top-1/2 -translate-y-1/2 text-sm leading-[21px] ${prefixIconName ? 'left-[calc(var(--padding-16)+1.25rem+var(--spacing-small))]' : 'left-[var(--padding-16)]'}`
-              }
+              ${shouldFloat
+    ? `top-[10px] text-xs leading-[18px] ${prefixIconName ? 'left-[46px]' : 'left-[var(--padding-16)]'}`
+    : `top-1/2 -translate-y-1/2 text-sm leading-[21px] ${prefixIconName ? 'left-[calc(var(--padding-16)+1.25rem+var(--spacing-small))]' : 'left-[var(--padding-16)]'}`
+}
             `}
           >
             ${label}${required ? '*' : ''}

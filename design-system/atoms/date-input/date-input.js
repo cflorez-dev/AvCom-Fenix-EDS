@@ -11,8 +11,8 @@ const html = htm.bind(h);
 
 // Constants for state-based styling (defined outside component for performance)
 const STATE_CLASSES = {
-  normal: 'outline outline-1 outline-offset-[-1px] outline-neutral-400',
-  disabled: 'outline outline-1 outline-offset-[-1px] outline-border-input-disabled',
+  normal: 'outline outline-1  outline-neutral-400',
+  disabled: 'outline outline-1  outline-border-input-disabled',
 };
 
 const LABEL_STATE_CLASSES = {
@@ -146,7 +146,7 @@ export const DateInput = ({
   // Container classes (memoized for performance)
   const containerClasses = useMemo(() => {
     // Border radius based on variant
-    let borderRadiusClass = 'rounded-lg';
+    let borderRadiusClass = 'rounded-[8px]';
     if (variant === 'grouped-left') {
       borderRadiusClass = 'rounded-l-lg rounded-r-none';
     } else if (variant === 'grouped-right') {

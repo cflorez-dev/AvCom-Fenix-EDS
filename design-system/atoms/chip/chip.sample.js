@@ -98,6 +98,23 @@ export const ChipSample = () => html`
 
       <section class="mb-6">
         <h2 class="text-xl font-bold mb-4">
+          Control Variant (Destination Counter)
+        </h2>
+        <div class="flex gap-4 flex-wrap items-center bg-gray-100 p-4 rounded-lg">
+          <${Chip} variant="control">
+            24 ciudades
+          </${Chip}>
+          <${Chip} variant="control">
+            14 ciudades
+          </${Chip}>
+          <${Chip} variant="control">
+            8 destinos
+          </${Chip}>
+        </div>
+      </section>
+
+      <section class="mb-6">
+        <h2 class="text-xl font-bold mb-4">
           Usage Examples
         </h2>
         <div class="flex gap-4 flex-wrap items-center">
@@ -115,6 +132,9 @@ export const ChipSample = () => html`
           </${Chip}>
           <${Chip} variant="white">
             Oferta
+          </${Chip}>
+          <${Chip} variant="control">
+            24 ciudades
           </${Chip}>
         </div>
       </section>

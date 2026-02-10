@@ -284,7 +284,7 @@ export default async function decorate(block) {
 
   // Create tab navigation wrapper
   const tabNavWrapper = document.createElement('div');
-  tabNavWrapper.className = 'relative flex items-center';
+  tabNavWrapper.className = 'relative flex items-center max-[1024px]:px-4';
 
   // Chevron before (left arrow)
   let chevronBefore = null;
@@ -292,7 +292,7 @@ export default async function decorate(block) {
     chevronBefore = document.createElement('button');
     chevronBefore.setAttribute('type', 'button');
     chevronBefore.className = `
-      flex items-center justify-center shrink-0 size-[24px]
+      hidden xl:flex items-center justify-center shrink-0 size-[24px]
       text-[var(--text-normal-primary)] hover:text-[var(--text-link-informative-default)]
       transition-colors duration-200
       focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--border-stroke-focus,#1d9bf0)] focus-visible:rounded-[var(--x-tiny,2px)]
@@ -308,7 +308,7 @@ export default async function decorate(block) {
 
   // Create tab navigation
   const tabNav = document.createElement('div');
-  tabNav.className = 'flex overflow-x-auto scroll-smooth flex-1 max-[480px]:p-0';
+  tabNav.className = 'flex overflow-x-auto scroll-smooth flex-1 max-[1023px]:p-0';
   tabNav.setAttribute('role', 'tablist');
   tabNav.setAttribute('aria-label', 'Content tabs');
   tabNav.setAttribute('aria-orientation', 'horizontal');
@@ -322,7 +322,7 @@ export default async function decorate(block) {
     chevronAfter = document.createElement('button');
     chevronAfter.setAttribute('type', 'button');
     chevronAfter.className = `
-      flex items-center justify-center shrink-0 size-[24px]
+      hidden xl:flex items-center justify-center shrink-0 size-[24px]
       text-[var(--text-normal-primary)] hover:text-[var(--text-link-informative-default)]
       transition-colors duration-200
       focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--border-stroke-focus,#1d9bf0)] focus-visible:rounded-[var(--x-tiny,2px)]
@@ -343,7 +343,7 @@ export default async function decorate(block) {
 
     // Size-specific dimensions (Figma specs)
     const tabHeight = size === 'large' ? 'h-[80px]' : 'h-[64px]';
-    const tabPadding = 'px-6 md:px-8';
+    const tabPadding = size === 'large' ? 'px-6 md:px-8' : 'px-6';
     const primaryFontSize = size === 'large' ? 'text-[18px]' : 'text-[16px]';
     const secondaryFontSize = 'text-[14px]';
 
@@ -521,7 +521,7 @@ export default async function decorate(block) {
     const isActive = index === activeTabIndex;
 
     const tabPanel = document.createElement('div');
-    tabPanel.className = `multitab-panel mt-8 focus:outline-none focus-visible:outline-none animate-[fadeIn_0.3s_ease-in-out] ${isActive ? '' : 'hidden'}`;
+    tabPanel.className = `multitab-panel mt-8 max-[1024px]:px-4 focus:outline-none focus-visible:outline-none animate-[fadeIn_0.3s_ease-in-out] ${isActive ? '' : 'hidden'}`;
     tabPanel.setAttribute('role', 'tabpanel');
     tabPanel.setAttribute('id', `panel-${tabData.id}`);
     tabPanel.setAttribute('aria-labelledby', `btn-${tabData.id}`);
