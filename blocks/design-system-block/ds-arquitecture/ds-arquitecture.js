@@ -6,6 +6,9 @@ import { OrganismsSamples } from './organisms.samples.js';
 
 const html = htm.bind(h);
 
+/**
+ * DsArquitecture - Main component for the Avianca Design System showcase
+ */
 export const DsArquitecture = () => html`
     <div>
         <h1>Avianca Design System</h1>

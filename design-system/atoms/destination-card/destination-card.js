@@ -5,6 +5,7 @@ const html = htm.bind(h);
 
 /**
  * DestinationCard - Card de destino para carousel de Avianca
+ * A clickable card component displaying destination information with image and text overlay
  *
  * ## Props
  * - `destinationName`: `string` – Nombre del destino/ciudad (requerido).

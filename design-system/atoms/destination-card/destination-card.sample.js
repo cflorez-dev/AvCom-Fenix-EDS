@@ -6,6 +6,7 @@ const html = htm.bind(h);
 
 /**
  * DestinationCardSample - Ejemplos de uso del componente DestinationCard
+ * Showcases different states and configurations of the destination card component
  */
 export const DestinationCardSample = () => {
   const destinations = [

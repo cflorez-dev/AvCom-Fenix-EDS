@@ -22,7 +22,7 @@ export const ChipSample = () => html`
           <${Chip} variant="lifemiles">
             Acumula millas
           </${Chip}>
-          <${Chip} variant="lifemiles" icon="http://localhost:3845/assets/10c13ac1a228a365cb98a0064b1d5afbc84887b2.png">
+          <${Chip} variant="lifemiles" >
             Acumula millas
           </${Chip}>
         </div>
