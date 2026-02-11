@@ -179,7 +179,6 @@ export const CitySelector = ({
   // Pre-renderizar iconos para usar en portal
   const arrowBackIconRef = usePrerenderedIcon('navigation/arrow-back', 'sm');
   const closeIconRef = usePrerenderedIcon('navigation/close', 'sm');
-  const inputIconRef = usePrerenderedIcon(iconInputName, 'm');
 
   // Detectar viewport mobile
   useEffect(() => {
@@ -417,7 +416,7 @@ export const CitySelector = ({
         type="button"
         class="
           w-full p-4 text-left cursor-pointer transition-[background-color]
-          h-[81px]
+          min-h-[81px]
           ${isItemFocused ? 'bg-background-card-lighter' : 'bg-background-brand-secondary-default'}
           ${isSelected ? 'bg-background-brand-primary-lighter relative' : ''}
           hover:bg-[var(--bg-hover-light)] group
@@ -487,32 +486,53 @@ export const CitySelector = ({
   // Pre-calculated container classes (memoized)
   const containerClasses = useMemo(() => {
     // Border radius según variant
+    // Para grouped: solo redondear esquinas SUPERIORES para que la línea verde
+    // al fondo no se recorte por overflow-hidden + border-radius inferior
     let borderRadiusClass = 'rounded-lg';
     if (variant === 'grouped-first') {
       borderRadiusClass = 'rounded-t-lg rounded-b-none';
     } else if (variant === 'grouped-last') {
-      borderRadiusClass = 'rounded-t-none rounded-b-lg';
+      borderRadiusClass = 'rounded-none';
     } else if (variant === 'grouped-left') {
-      borderRadiusClass = 'rounded-l-lg rounded-r-none';
+      borderRadiusClass = 'rounded-tl-lg';
     } else if (variant === 'grouped-right') {
-      borderRadiusClass = 'rounded-l-none rounded-r-lg';
+      borderRadiusClass = 'rounded-tr-lg';
     }
 
     // Solo aplicar outline cuando es standalone (grouped ya tiene outline en contenedor padre)
     const outlineClass = variant === 'standalone' ? stateClasses[actualState] : '';
 
+    // En grouped mode, el padre ya tiene bg-background-input-default,
+    // así el trigger puede ser transparente y no se escapa fondo por las esquinas
+    const isGrouped = variant !== 'standalone';
+    const bgClass = isGrouped ? '' : 'bg-background-input-default';
+
     return `
-      flex items-center gap-2 w-full h-[50px] lg2:h-[52px]
-      px-4
-      bg-background-input-default
+      flex flex-col w-full group/trigger overflow-hidden
       ${borderRadiusClass}
-      transition-all duration-[var(--transition-normal)]
+      ${bgClass}
       ${outlineClass}
-      border-b-[3px] border-transparent
-      ${isInteractive ? 'hover:border-border-input-positive focus-within:border-border-input-positive cursor-text' : ''}
-      ${hasError && !isMobile ? '!border-[var(--alert-error-border)]' : ''}
+      transition-all duration-[var(--transition-normal)]
+      ${isInteractive ? 'cursor-text' : ''}
+      ${hasError && !isMobile ? 'border-b-[3px] !border-[var(--alert-error-border)]' : ''}
     `.trim();
   }, [actualState, isInteractive, stateClasses, variant, hasError, isMobile]);
+
+  // Clases de la línea verde: ancho, alineamiento y border-radius
+  // Para grouped: calc(100% - 4px) centrado + border-radius en esquinas
+  // que coinciden con el contenedor padre (rounded-[8px])
+  const greenLineClasses = useMemo(() => {
+    switch (variant) {
+      case 'grouped-left':
+        return 'w-[calc(100%-4px)] self-center rounded-bl-lg';
+      case 'grouped-right':
+        return 'w-[calc(100%-4px)] self-center rounded-br-lg';
+      case 'grouped-last':
+        return 'w-[calc(100%-4px)] self-center rounded-b-lg';
+      default:
+        return 'w-full';
+    }
+  }, [variant]);
 
   return html`
     <div
@@ -522,98 +542,107 @@ export const CitySelector = ({
       onKeyDown=${handleKeyDown}
       ...${rest}
     >
-      <!-- Trigger Input Container (estilo Input component) -->
+      <!-- Trigger Input Container (flex-col: content row + green line) -->
       <div
         ref=${triggerRef}
         onClick=${handleToggle}
         class=${containerClasses}
       >
-        <span class="flex-shrink-0 flex items-center" aria-hidden="true">
-          <${Icon} icon=${iconInputName} size="m" customClassName=${iconInputName === 'action/plane' ? '[&_svg]:pt-[3.33px] [&_svg]:pb-[1.28px] [&_svg]:pl-[0.42px] [&_svg]:pr-[2.31px]' : ''}/>
-        </span>
+        <!-- Content Row -->
+        <div class="flex items-center gap-2 w-full h-[50px] lg2:h-[52px] px-4">
+          <span class="flex-shrink-0 flex items-center" aria-hidden="true">
+            <${Icon} icon=${iconInputName} size="m" customClassName=${iconInputName === 'action/plane' ? '[&_svg]:pt-[3.33px] [&_svg]:pb-[1.28px] [&_svg]:pl-[0.42px] [&_svg]:pr-[2.31px]' : ''}/>
+          </span>
 
-        <div class="relative flex-1 flex items-center min-h-full">
-           <!-- Floating Label -->
-           ${!isMobile && hasError && html`
-            <div class="absolute top-full min-h-[21px] left-[-40px] flex items-start mt-[4px] font-normal text-sm leading-5 text-[var(--alert-error-icon-bg)]">
-              <svg
-                class="w-4 h-4 mr-1 flex-shrink-0 mt-0.5"
-                fill="currentColor"
-                viewBox="0 0 20 20"
-                aria-hidden="true"
-              >
-                <circle cx="10" cy="10" r="9" fill="currentColor" />
-                <text x="10" y="14" text-anchor="middle" fill="white" font-size="12" font-weight="bold">i</text>
-              </svg>
-              <span class="">${i18n['bookingBox.labels.requiredField'] || 'This field is required'}</span>
-            </div>
-            `}
-
-            ${label && html`
-              <label
-                for=${`${label}-input`}
-                class=${`
-                  
-                  pointer-events-none
-                  transition-all duration-200 ease-in-out
-                  font-[var(--font-weight-regular)] tracking-[var(--letter-spacing-normal)]
-                  ${labelStateClasses[actualState]}
-                  ${shouldFloat
+          <div class="relative flex-1 flex items-center min-h-full">
+              ${label && html`
+                <label
+                  for=${`${label}-input`}
+                  class=${`
+                    
+                    pointer-events-none
+                    transition-all duration-200 ease-in-out
+                    font-[var(--font-weight-regular)] tracking-[var(--letter-spacing-normal)]
+                    ${labelStateClasses[actualState]}
+                    ${shouldFloat
     ? 'absolute top-[7px] text-xs leading-[16px] left-0'
     : 'text-sm leading-5'}
-                  ${!isMobile && hasError ? '!text-[var(--alert-error-icon-bg)]' : ''}
-                `}
-              >
-                ${label}
-              </label>
-            `}
-
-            <!-- Content (Input Field) -->
-            <div class="flex-1 flex flex-col justify-center min-w-0">
-              <!-- Desktop: Input único con estados manejados por clases -->
-              ${!isMobile && html`
-                <input
-                  ref=${inputRef}
-                  id=${`${label}-input`}
-                  type="text"
-                  value=${isOpen ? searchQuery : displayValue}
-                  placeholder=${shouldFloat ? placeholder : ''}
-                  onInput=${handleSearchChange}
-                  onFocus=${handleFocus}
-                  onBlur=${handleBlur}
-                  onKeyDown=${handleDropdownKeyDown}
-                  autocomplete="off"
-                  autoCorrect="off"
-                  autoCapitalize="off"
-                  spellCheck="false"
-                  class=${`
-                    w-full bg-transparent !border-0 !outline-none p-0 text-ellipsis cursor-text
-                    !text-base leading-5
-                    ${shouldFloat ? 'relative top-2 !font-[var(--font-weight-bold)] h-[20px]' : 'absolute inset-0 opacity-0 cursor-pointer'}
-                    text-text-normal-primary
+                    ${!isMobile && hasError ? '!text-[var(--alert-error-icon-bg)]' : ''}
                   `}
-                  role="combobox"
-                  aria-label=${label || 'Buscar ciudad'}
-                  aria-expanded=${isOpen}
-                  aria-haspopup="listbox"
-                  aria-autocomplete="list"
-                  aria-activedescendant=${focusedIndex >= 0 ? `city-option-${focusedIndex}` : ''}
-                  aria-controls="city-listbox"
-                />
+                >
+                  ${label}
+                </label>
               `}
 
-              <!-- Mobile: Solo mostrar valor seleccionado -->
-              ${isMobile && value && !isOpen && html`
-                <div
-                  class="relative top-2 left-[2px] text-text-normal-primary font-[var(--font-weight-bold)] text-base leading-5"
-                >
-                  ${displayValue}
-                </div>
-              `}
-            </div>
-            <!-- End Content -->
-            </div>
+              <!-- Content (Input Field) -->
+              <div class="flex-1 flex flex-col justify-center min-w-0">
+                <!-- Desktop: Input único con estados manejados por clases -->
+                ${!isMobile && html`
+                  <input
+                    ref=${inputRef}
+                    id=${`${label}-input`}
+                    type="text"
+                    value=${isOpen ? searchQuery : displayValue}
+                    placeholder=${shouldFloat ? placeholder : ''}
+                    onInput=${handleSearchChange}
+                    onFocus=${handleFocus}
+                    onBlur=${handleBlur}
+                    onKeyDown=${handleDropdownKeyDown}
+                    autocomplete="off"
+                    autoCorrect="off"
+                    autoCapitalize="off"
+                    spellCheck="false"
+                    class=${`
+                      w-full bg-transparent !border-0 !outline-none p-0 text-ellipsis cursor-text
+                      !text-base leading-5
+                      ${shouldFloat ? 'relative top-2 !font-[var(--font-weight-bold)] h-[20px]' : 'absolute inset-0 opacity-0 cursor-pointer'}
+                      text-text-normal-primary
+                    `}
+                    role="combobox"
+                    aria-label=${label || 'Buscar ciudad'}
+                    aria-expanded=${isOpen}
+                    aria-haspopup="listbox"
+                    aria-autocomplete="list"
+                    aria-activedescendant=${focusedIndex >= 0 ? `city-option-${focusedIndex}` : ''}
+                    aria-controls="city-listbox"
+                  />
+                `}
+
+                <!-- Mobile: Solo mostrar valor seleccionado -->
+                ${isMobile && value && !isOpen && html`
+                  <div
+                    class="relative top-2 left-[2px] text-text-normal-primary font-[var(--font-weight-bold)] text-base leading-5"
+                  >
+                    ${displayValue}
+                  </div>
+                `}
+              </div>
+              <!-- End Content -->
+          </div>
         </div>
+        <!-- End Content Row -->
+
+        <!-- Green bottom line (simulates container's rounded cut at edges) -->
+        <div class=${`h-[3px] ${greenLineClasses} bg-transparent transition-colors duration-[var(--transition-normal)] group-hover/trigger:bg-border-input-positive group-focus-within/trigger:bg-border-input-positive`} aria-hidden="true"></div>
+      </div>
+
+      <!-- Error message (outside trigger to avoid overflow-hidden clipping) -->
+      ${!isMobile && hasError && html`
+        <div class="relative">
+          <div class="absolute top-0 min-h-[21px] left-0 flex items-start mt-[4px] font-normal text-sm leading-5 text-[var(--alert-error-icon-bg)]">
+            <svg
+              class="w-4 h-4 mr-1 flex-shrink-0 mt-0.5"
+              fill="currentColor"
+              viewBox="0 0 20 20"
+              aria-hidden="true"
+            >
+              <circle cx="10" cy="10" r="9" fill="currentColor" />
+              <text x="10" y="14" text-anchor="middle" fill="white" font-size="12" font-weight="bold">i</text>
+            </svg>
+            <span>${i18n['bookingBox.labels.requiredField'] || 'This field is required'}</span>
+          </div>
+        </div>
+      `}
 
       <!-- Desktop Popup (sin input de búsqueda - ya está en trigger) -->
       ${isOpen && !isMobile && html`
@@ -678,66 +707,74 @@ export const CitySelector = ({
 
         <!-- Content -->
         <div class="overflow-hidden flex-1 px-[var(--spacing-x-x-large)] pt-[var(--spacing-medium)] pb-0 flex flex-col ">
-          <!-- Search Input (siempre standalone con bordes completos) -->
+          <!-- Search Input (flex-col: content row + green line) -->
           <div
-            class="flex items-center gap-2 w-full h-[50px] lg2:h-[52px] px-4 bg-background-input-default rounded-lg transition-all duration-[var(--transition-normal)]
-            ${stateClasses[actualState]} border-b-[3px] border-transparent
-            ${isInteractive ? 'hover:border-border-input-positive focus-within:border-border-input-positive cursor-text' : ''} min-h-[50px] lg2:min-h-[52px]"
+            class="flex flex-col w-full bg-background-input-default rounded-lg overflow-hidden transition-all duration-[var(--transition-normal)]
+            outline outline-neutral-400 group/mobileInput min-h-[53px]
+            ${isInteractive ? 'cursor-text' : ''}"
           >
-            <span class="flex-shrink-0 flex items-center" aria-hidden="true">
-              ${inputIconRef.current && html`<div class="flex" dangerouslySetInnerHTML=${{ __html: inputIconRef.current.innerHTML }} />`}
-            </span>
-            <div class="relative flex-1 flex items-center min-h-full">
-            <!-- Floating Label -->
-              ${label && html`
-                <label
-                  for=${`${label}-input`}
-                  class=${`
-                    pointer-events-none
-                    transition-all duration-200 ease-in-out
-                    font-[var(--font-weight-regular)] tracking-[var(--letter-spacing-normal)]
-                    ${labelStateClasses[actualState]}
-                    ${shouldFloat
+            <!-- Content Row -->
+            <!-- mobile input -->
+            <div class="flex items-center gap-2 w-full h-[50px] lg2:h-[52px] px-4 min-h-[50px] lg2:min-h-[52px]">
+              <span class="flex-shrink-0 flex items-center" aria-hidden="true">
+                <${Icon} icon=${iconInputName} size="m" customClassName=${iconInputName === 'action/plane' ? '[&_svg]:pt-[3.33px] [&_svg]:pb-[1.28px] [&_svg]:pl-[0.42px] [&_svg]:pr-[2.31px]' : ''}/>
+              </span>
+              <div class="relative flex-1 flex items-center min-h-full">
+              <!-- Floating Label -->
+                ${label && html`
+                  <label
+                    for=${`${label}-input`}
+                    class=${`
+                      pointer-events-none
+                      transition-all duration-200 ease-in-out
+                      font-[var(--font-weight-regular)] tracking-[var(--letter-spacing-normal)]
+                      ${labelStateClasses[actualState]}
+                      ${shouldFloat
     ? 'absolute top-[7px] text-xs leading-[16px] left-0]'
     : 'text-sm leading-5'}
-                  `}
-                >
-                  ${label}
-                </label>
-              `}
+                    `}
+                  >
+                    ${label}
+                  </label>
+                `}
 
-              <!-- Content (Input Field) -->
-              <div class="flex-1 flex flex-col justify-center min-w-0">
-                <input
-                  ref=${inputRef}
-                  type="text"
-                  value=${searchQuery}
-                  placeholder=${shouldFloat ? placeholder : ''}
-                  onInput=${handleSearchChange}
-                  onKeyDown=${handleDropdownKeyDown}
-                  onFocus=${handleFocus}
-                  onBlur=${handleBlur}
-                  autocomplete="off"
-                  autoCorrect="off"
-                  autoCapitalize="off"
-                  spellCheck="false"
-                  class=${`
-                    w-full bg-transparent !border-0 !outline-none p-0 text-ellipsis cursor-text
-                    !text-base leading-5
-                    ${shouldFloat ? 'relative top-2 !font-[var(--font-weight-bold)] h-[20px]' : 'absolute inset-0 opacity-0 cursor-pointer'}
-                    text-text-normal-primary
-                  `}
-                  role="combobox"
-                  aria-label=${label || 'Buscar ciudad'}
-                  aria-expanded="true"
-                  aria-haspopup="listbox"
-                  aria-autocomplete="list"
-                  aria-activedescendant=${focusedIndex >= 0 ? `city-option-${index}` : ''}
-                  autoFocus
-                />
+                <!-- Content (Input Field) -->
+                <div class="flex-1 flex flex-col justify-center min-w-0">
+                  <input
+                    ref=${inputRef}
+                    type="text"
+                    value=${searchQuery}
+                    placeholder=${shouldFloat ? placeholder : ''}
+                    onInput=${handleSearchChange}
+                    onKeyDown=${handleDropdownKeyDown}
+                    onFocus=${handleFocus}
+                    onBlur=${handleBlur}
+                    autocomplete="off"
+                    autoCorrect="off"
+                    autoCapitalize="off"
+                    spellCheck="false"
+                    class=${`
+                      w-full bg-transparent !border-0 !outline-none p-0 text-ellipsis cursor-text
+                      !text-base leading-5
+                      ${shouldFloat ? 'relative top-2 !font-[var(--font-weight-bold)] h-[20px]' : 'absolute inset-0 opacity-0 cursor-pointer'}
+                      text-text-normal-primary
+                    `}
+                    role="combobox"
+                    aria-label=${label || 'Buscar ciudad'}
+                    aria-expanded="true"
+                    aria-haspopup="listbox"
+                    aria-autocomplete="list"
+                    aria-activedescendant=${focusedIndex >= 0 ? `city-option-${index}` : ''}
+                    autoFocus
+                  />
+                </div>
+                <!-- End Content -->
               </div>
-              <!-- End Content -->
             </div>
+            <!-- End Content Row -->
+
+            <!-- Green bottom line (straight, inside borders, no border-radius) -->
+            <div class="w-full h-[3px] bg-transparent transition-colors duration-[var(--transition-normal)] group-hover/mobileInput:bg-border-input-positive group-focus-within/mobileInput:bg-border-input-positive" aria-hidden="true"></div>
           </div>
 
           ${filteredCities.length > 0 && !isLoading ? html`

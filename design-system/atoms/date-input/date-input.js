@@ -145,30 +145,48 @@ export const DateInput = ({
 
   // Container classes (memoized for performance)
   const containerClasses = useMemo(() => {
-    // Border radius based on variant
+    // Border radius: solo esquinas SUPERIORES para grouped
+    // (la línea verde al fondo maneja su propio border-radius)
     let borderRadiusClass = 'rounded-[8px]';
     if (variant === 'grouped-left') {
-      borderRadiusClass = 'rounded-l-lg rounded-r-none';
+      borderRadiusClass = 'rounded-tl-lg';
     } else if (variant === 'grouped-right') {
-      borderRadiusClass = 'rounded-l-none rounded-r-lg';
+      borderRadiusClass = 'rounded-tr-lg';
     }
 
     // Outline only for standalone
     const outlineClass = variant === 'standalone' ? STATE_CLASSES[actualState] : '';
 
+    // En grouped mode, el padre ya tiene bg-background-input-default
+    const isGrouped = variant !== 'standalone';
+    const bgClass = isGrouped
+      ? (actualState === 'disabled' ? 'bg-background-input-disabled' : '')
+      : (actualState === 'disabled' ? 'bg-background-input-disabled' : 'bg-background-input-default');
+
     return `
-      flex items-center gap-2 w-full h-[52px]
-      px-4
-      ${actualState === 'disabled' ? 'bg-background-input-disabled' : 'bg-background-input-default'}
+      flex flex-col w-full group/dateInput overflow-hidden
+      ${bgClass}
       ${borderRadiusClass}
       transition-all duration-[var(--transition-normal)]
       ${outlineClass}
-      border-b-[3px] border-b-transparent
-      ${isInteractive ? 'hover:border-border-input-positive focus-within:border-border-input-positive cursor-pointer' : 'cursor-not-allowed'}
-      ${active && !hasError ? '!border-border-input-positive' : ''}
-      ${hasError ? '!border-[var(--alert-error-border)]' : ''}
+      ${isInteractive ? 'cursor-pointer' : 'cursor-not-allowed'}
+      ${hasError ? 'border-b-[3px] !border-[var(--alert-error-border)]' : ''}
     `.trim();
   }, [actualState, isInteractive, variant, hasError, active]);
+
+  // Clases de la línea verde: ancho, alineamiento y border-radius
+  // Para grouped: calc(100% - 4px) centrado + border-radius en esquinas
+  // que coinciden con el contenedor padre (rounded-[8px])
+  const greenLineClasses = useMemo(() => {
+    switch (variant) {
+      case 'grouped-left':
+        return 'w-[calc(100%-4px)] self-center rounded-bl-lg';
+      case 'grouped-right':
+        return 'w-[calc(100%-4px)] self-center rounded-br-lg';
+      default:
+        return 'w-full';
+    }
+  }, [variant]);
 
   // Label classes (memoized to avoid recalculation)
   const labelClasses = useMemo(() => `
@@ -191,7 +209,7 @@ export const DateInput = ({
   // ========== RENDER ==========
   return html`
     <div
-      class=${`${containerRelative ? 'relative' : ''} flex flex-1 ${customClassName}`}
+      class=${`${containerRelative ? 'relative' : ''} flex flex-1 ${customClassName} group-date-input-container`}
       data-name="dateInput"
       ref=${containerRef}
       onKeyDown=${handleKeyDown}
@@ -203,20 +221,60 @@ export const DateInput = ({
         onClick=${handleClick}
         class=${containerClasses}
       >
-        <!-- Icon (Calendar) -->
-        <span
-          class="flex-shrink-0 flex items-center ${actualState === 'disabled' ? 'opacity-50' : ''}"
-          aria-hidden="true"
-        >
-          <${Icon}
-            icon="action/calendar"
-            size="m"
-            customClassName=${actualState === 'disabled' ? '[&_path]:fill-icon-input-disabled' : ''}
-          />
-        </span>
+        <!-- Content Row -->
+        <div class="flex items-center gap-2 w-full h-[52px] px-4">
+          <!-- Icon (Calendar) -->
+          <span
+            class="flex-shrink-0 flex items-center ${actualState === 'disabled' ? 'opacity-50' : ''}"
+            aria-hidden="true"
+          >
+            <${Icon}
+              icon="action/calendar"
+              size="m"
+              customClassName=${actualState === 'disabled' ? '[&_path]:fill-icon-input-disabled' : ''}
+            />
+          </span>
 
-         ${hasError && html`
-          <div class="absolute top-full min-h-[21px] left-0 flex items-start mt-[4px] font-normal text-sm leading-5 text-[var(--alert-error-icon-bg)]">
+          <!-- Input Container -->
+          <div class="relative flex-1 flex items-center min-h-full">
+            <!-- Floating Label -->
+            ${label && html`
+              <label
+                for=${`${label}-date-input`}
+                class=${labelClasses}
+              >
+                ${label}
+              </label>
+            `}
+
+            <!-- Content (Display Value) -->
+            <div class="flex-1 flex flex-col justify-center min-w-0">
+              <input
+                ref=${inputRef}
+                id=${`${label}-date-input`}
+                type="text"
+                value=${value}
+                disabled=${disabled}
+                readOnly
+                tabIndex=${disabled ? -1 : 0}
+                class=${inputClasses}
+                role="button"
+                aria-label=${label || ''}
+                aria-readonly="true"
+              />
+            </div>
+          </div>
+        </div>
+        <!-- End Content Row -->
+
+        <!-- Green bottom line (simulates container's rounded cut at edges) -->
+        <div class=${`h-[3px] ${greenLineClasses} bg-transparent transition-colors duration-[var(--transition-normal)] group-hover/dateInput:bg-border-input-positive group-focus-within/dateInput:bg-border-input-positive ${active && !hasError ? '!bg-border-input-positive' : ''}`} aria-hidden="true"></div>
+      </div>
+
+      <!-- Error message (outside trigger to avoid overflow-hidden clipping) -->
+      ${hasError && html`
+        <div class="relative">
+          <div class="absolute top-0 min-h-[21px] left-0 flex items-start mt-[4px] font-normal text-sm leading-5 text-[var(--alert-error-icon-bg)]">
             <svg
               class="w-4 h-4 mr-1 flex-shrink-0 mt-0.5"
               fill="currentColor"
@@ -226,41 +284,10 @@ export const DateInput = ({
               <circle cx="10" cy="10" r="9" fill="currentColor" />
               <text x="10" y="14" text-anchor="middle" fill="white" font-size="12" font-weight="bold">i</text>
             </svg>
-            <span class="">${i18n['bookingBox.labels.requiredField'] || 'This field is required'}</span>
-          </div>
-          `}
-
-        <!-- Input Container -->
-        <div class="relative flex-1 flex items-center min-h-full">
-          <!-- Floating Label -->
-          ${label && html`
-            <label
-              for=${`${label}-date-input`}
-              class=${labelClasses}
-            >
-              ${label}
-            </label>
-          `}
-
-          <!-- Content (Display Value) -->
-          <div class="flex-1 flex flex-col justify-center min-w-0">
-            <!-- Hidden input for accessibility -->
-            <input
-              ref=${inputRef}
-              id=${`${label}-date-input`}
-              type="text"
-              value=${value}
-              disabled=${disabled}
-              readOnly
-              tabIndex=${disabled ? -1 : 0}
-              class=${inputClasses}
-              role="button"
-              aria-label=${label || ''}
-              aria-readonly="true"
-            />
+            <span>${i18n['bookingBox.labels.requiredField'] || 'This field is required'}</span>
           </div>
         </div>
-      </div>
+      `}
     </div>
   `;
 };

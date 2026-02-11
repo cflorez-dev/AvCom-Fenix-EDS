@@ -41,6 +41,7 @@ const pricingCategory = (dayData) => {
  * - `pricingData`: `Object` – Pricing object: { 'YYYY-MM-DD': price }.
  * - `disabledDates`: `Array<string>` – Disabled dates from CMS (ISO strings).
  * - `minDate`: `Date | null` – Minimum selectable date (for return >= departure).
+ * - `showRangeHighlight`: `boolean` – If false, no range shading (e.g. solo ida). Default: true.
  * - `customClassName`: `string` – Additional CSS classes.
  * - `...rest`: Other HTML props.
  *
@@ -96,6 +97,7 @@ export const MonthGrid = ({
   pricingData = {},
   disabledDates = [],
   minDate = null,
+  showRangeHighlight = true,
   customClassName = '',
   ...rest
 }) => {
@@ -211,10 +213,10 @@ export const MonthGrid = ({
         date=${date}
         isDisabled=${disabled}
         isSelected=${selected}
-        isInRange=${inRange}
-        isRangeStart=${rangeStart}
-        isRangeEnd=${rangeEnd}
-        isHoverEnd=${isHoverEnd}
+        isInRange=${showRangeHighlight ? inRange : false}
+        isRangeStart=${showRangeHighlight ? rangeStart : false}
+        isRangeEnd=${showRangeHighlight ? rangeEnd : false}
+        isHoverEnd=${showRangeHighlight ? isHoverEnd : false}
         isToday=${todayCheck}
         pricingCategory=${pricingCategory(dayPricingData)}
         onClick=${handleDayClick}

@@ -548,7 +548,7 @@ export const DateSelector = ({
   // ========== RENDER ==========
   return html`
     <div
-      class=${`${containerRelative ? 'relative' : ''} flex ${customClassName}`}
+      class=${`${containerRelative ? 'relative' : ''} flex ${customClassName}  group-container`}
       data-name="dateSelector"
       ref=${containerRef}
       ...${rest}
@@ -570,7 +570,7 @@ export const DateSelector = ({
       <!-- Desktop Popup -->
       ${isOpen && !isMobile && html`
         <div
-          class="mt-2 p-6 bg-background-card-lighter w-max rounded-[16px] shadow-[0px_2px_20px_2px_rgba(73,73,73,0.25)] z-50 absolute ${desktopDropdownPositionStyles}"
+          class="mt-2 p-6 flex flex-col gap-[16px] bg-background-card-lighter w-max rounded-[16px] shadow-[0px_2px_20px_2px_rgba(73,73,73,0.25)] z-50 absolute ${desktopDropdownPositionStyles}"
           ref=${popupRef}
           role="dialog"
           aria-label=${i18n['bookingBox.aria.selectDate'] || 'Select date'}
@@ -590,13 +590,14 @@ export const DateSelector = ({
           <!-- Desktop: 2 months side by side -->
           <div class="flex gap-[68px] relative">
             <!-- Left: Prev Arrow -->
-            <${CarouselNavigationButton} 
-              direction="left" 
-              onClick=${handlePrevMonth} 
-              disabled=${isCurrentMonth} 
-              absolute=${true} 
+            <${CarouselNavigationButton}
+              direction="left"
+              onClick=${handlePrevMonth}
+              disabled=${isCurrentMonth}
+              absolute=${true}
               absoluteTop="top-[12px]"
               absoluteTranslate="translate-y-0"
+              customClassName="shadow-calendar-nav"
             />
             
             <!-- Current month -->
@@ -611,6 +612,7 @@ export const DateSelector = ({
               pricingData=${pricingData}
               disabledDates=${disabledDates}
               minDate=${minDate}
+              showRangeHighlight=${mode !== 'single'}
               customClassName="mb-[10px]"
               isFirstMonth=${true}
               locale=${locale}
@@ -628,18 +630,20 @@ export const DateSelector = ({
               pricingData=${pricingData}
               disabledDates=${disabledDates}
               minDate=${minDate}
+              showRangeHighlight=${mode !== 'single'}
               customClassName="mb-[10px]"
               locale=${locale}
             />
 
             <!-- Right: Next Arrow -->
-            <${CarouselNavigationButton} 
-              direction="right" 
-              onClick=${handleNextMonth} 
-              disabled=${isMaxMonth} 
-              absolute=${true} 
+            <${CarouselNavigationButton}
+              direction="right"
+              onClick=${handleNextMonth}
+              disabled=${isMaxMonth}
+              absolute=${true}
               absoluteTop="top-[12px]"
               absoluteTranslate="translate-y-0"
+              customClassName="shadow-calendar-nav"
             />
           </div>
         </div>
@@ -695,7 +699,7 @@ export const DateSelector = ({
           <!-- Date Inputs -->
           <div class="flex my-6 px-[var(--spacing-x-x-large)] pointer-events-none">
             ${(mode === 'departure' || mode === 'return') && html`
-              <div class="flex flex-1 items-center outline outline-1 outline-offset-[-1px] outline-neutral-400 rounded-lg bg-background-input-default overflow-hidden">
+              <div class="flex flex-1 items-center outline outline-offset-[-1px] outline-neutral-400 rounded-lg bg-background-input-default overflow-hidden">
                 <${DateInput}
                   label=${i18n['bookingBox.labels.departure'] || 'Salida'}
                   value=${formatDate(departureDate, 'numeric')}
@@ -770,6 +774,7 @@ export const DateSelector = ({
                   pricingData=${pricingData}
                   disabledDates=${disabledDates}
                   minDate=${minDate}
+                  showRangeHighlight=${mode !== 'single'}
                   customClassName="my-2"
                   showWeekdayHeader=${false}
                   isFirstMonth=${index === 0}

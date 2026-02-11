@@ -21,6 +21,7 @@ const html = htm.bind(h);
  * - `pricingData`: `Object` – Pricing object.
  * - `disabledDates`: `Array<string>` – Disabled dates from CMS.
  * - `minDate`: `Date | null` – Minimum selectable date.
+ * - `showRangeHighlight`: `boolean` – If false, no range shading (e.g. solo ida). Default: true.
  * - `showWeekdayHeader`: `boolean` – Show weekday header (default: true).
  * - `isFirstMonth`: `boolean` – If true, applies reduced top padding (default: false).
  * - `customClassName`: `string` – Additional CSS classes.
@@ -71,6 +72,7 @@ export const CalendarMonth = ({
   pricingData = {},
   disabledDates = [],
   minDate = null,
+  showRangeHighlight = true,
   showWeekdayHeader = true,
   isFirstMonth = false,
   customClassName = '',
@@ -129,6 +131,7 @@ export const CalendarMonth = ({
         pricingData=${pricingData}
         disabledDates=${disabledDates}
         minDate=${minDate}
+        showRangeHighlight=${showRangeHighlight}
       />
     </div>
   `;
