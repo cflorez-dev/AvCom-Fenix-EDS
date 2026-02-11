@@ -62,7 +62,7 @@ export const fetchCities = async ({
 
   const endPoint = await getEndpointUrl();
   if (!endPoint) {
-    return {};
+    return [];
   }
 
   try {
