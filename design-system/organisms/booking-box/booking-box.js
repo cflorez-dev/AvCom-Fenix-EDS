@@ -543,18 +543,19 @@ export const BookingBox = ({
     };
   }, [isMobile]);
 
-  // Block body scroll when confirmation modal is open
+  // Block body scroll when any mobile modal/step is open (centralized)
+  // This covers: route steps (city-selector), date steps (date-selector), and confirmation modal
   useEffect(() => {
-    if (showConfirmModal && isMobile) {
-      document.body.style.overflow = 'hidden';
-    } else {
-      document.body.style.overflow = '';
+    const shouldBlock = isMobile && (activeStep !== null || showConfirmModal);
+
+    if (shouldBlock) {
+      document.body.classList.add('!overflow-hidden');
     }
 
     return () => {
-      document.body.style.overflow = '';
+      document.body.classList.remove('!overflow-hidden');
     };
-  }, [showConfirmModal, isMobile]);
+  }, [activeStep, showConfirmModal, isMobile]);
 
   // ========== OVERLAY BEHAVIOR ==========
   const shouldShowOverlay = useCallback(() => {

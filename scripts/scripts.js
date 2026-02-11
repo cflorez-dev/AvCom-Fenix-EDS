@@ -121,14 +121,25 @@ export function decorateMain(main) {
 function isMainEmpty(main) {
   if (!main) return true;
 
+  // Check if main has any child elements at all
+  if (main.children.length === 0) return true;
+
   const sections = main.querySelectorAll('.section');
   if (sections.length === 0) return true;
 
-  // Check if all sections are empty
+  // Check if all sections are empty or only have whitespace
   const hasContent = Array.from(sections).some((section) => {
     const text = section.textContent.trim();
     const blocks = section.querySelectorAll('[data-block-name]');
-    return text.length > 0 || blocks.length > 0;
+    const imgs = section.querySelectorAll('img, picture');
+    const links = section.querySelectorAll('a[href]');
+    
+    // Has meaningful content if:
+    // - Has non-whitespace text (more than 10 chars to ignore empty divs)
+    // - Has blocks
+    // - Has images
+    // - Has links
+    return text.length > 10 || blocks.length > 0 || imgs.length > 0 || links.length > 0;
   });
 
   return !hasContent;
@@ -189,6 +200,11 @@ function pageViewEventData() {
  * @returns {Promise<boolean>} True if fallback was loaded
  */
 async function loadGlobalFallbackContent(main) {
+  // Skip fallback for error pages (404, 500, etc.)
+  if (window.isErrorPage) {
+    return false;
+  }
+
   if (!isMainEmpty(main)) {
     return false; // Has content, no fallback needed
   }
@@ -196,6 +212,11 @@ async function loadGlobalFallbackContent(main) {
   // Loop guard: Skip if we're already on /global/ to prevent infinite recursion
   const currentPath = window.location.pathname;
   if (currentPath.startsWith('/global/')) {
+    return false;
+  }
+
+  // Skip fallback for /errors/ paths (system pages, not POS-specific)
+  if (currentPath.startsWith('/errors/')) {
     return false;
   }
 
@@ -296,9 +317,42 @@ async function loadEager(doc) {
     // Check if we need to load global fallback content
     const loadedGlobal = await loadGlobalFallbackContent(main);
     
+    const mainIsEmpty = isMainEmpty(main);
+    // eslint-disable-next-line no-console
+    console.log('[Debug] After global fallback - loadedGlobal:', loadedGlobal, 'isMainEmpty:', mainIsEmpty, 'isErrorPage:', window.isErrorPage, 'mainContent:', main.textContent.trim().substring(0, 100));
+    
     // If we loaded global content, sections need to be loaded
     if (loadedGlobal) {
       await loadSections(main);
+    } else if (mainIsEmpty) {
+      // If still empty after global fallback, load 404 content
+      try {
+        // eslint-disable-next-line no-console
+        console.log('[404 Fallback] Loading 404 content for missing page');
+        const resp = await fetch('/errors/404.plain.html');
+        if (resp.ok) {
+          const html = await resp.text();
+          const parser = new DOMParser();
+          const doc404 = parser.parseFromString(html, 'text/html');
+          const sections = doc404.body.children;
+          
+          if (sections && sections.length > 0) {
+            main.innerHTML = '';
+            Array.from(sections).forEach((section) => {
+              main.appendChild(section.cloneNode(true));
+            });
+            decorateMain(main);
+            await loadSections(main);
+            
+            // Set window flags for 404
+            window.isErrorPage = true;
+            window.errorCode = '404';
+          }
+        }
+      } catch (error) {
+        // eslint-disable-next-line no-console
+        console.error('[404 Fallback] Failed to load 404 content:', error);
+      }
     }
     
     document.body.classList.add('appear');

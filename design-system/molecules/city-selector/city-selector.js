@@ -194,7 +194,6 @@ export const CitySelector = ({
       window.removeEventListener('resize', checkMobile, { passive: true });
     };
   }, []);
-
   // Filter cities basándose en searchQuery (memoized)
   const filteredCities = useMemo(() => {
     const query = searchQuery.toLowerCase().trim();

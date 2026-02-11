@@ -405,7 +405,7 @@ export const PassengerSelector = ({
       ...${rest}
     >
       <!-- Trigger Input -->
-      <div class="h-12 w-full rounded-lg outline-1 outline-[var(--color-border-default)] inline-flex justify-start items-start">
+      <div class="h-12 w-full rounded-[8px] outline-1 outline-[var(--color-border-default)] inline-flex justify-start items-start">
         <button
           ref=${triggerRef}
           type="button"

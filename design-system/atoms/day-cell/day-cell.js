@@ -246,7 +246,7 @@ export const DayCell = ({
 
     // Today (not selected) - black border, no bg
     if (isToday) {
-      return `${base} cursor-pointer border-2 border-[var(--brand-primary)] text-[var(--brand-primary)]`;
+      return `${base} cursor-pointer border-2 border-[var(--brand-primary)] text-[var(--brand-primary)] bg-background-card-lighter`;
     }
 
     // With pricing: bg color by category

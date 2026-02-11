@@ -300,7 +300,7 @@ export const OriginDestinationSelector = ({
       ...${rest}
     >
       <!-- Grouped container with shared borders -->
-      <div class="flex flex-col md:flex-row outline outline-1 outline-offset-[-1px] outline-[var(--color-border-default)] rounded-lg bg-background-input-default">
+      <div class="flex flex-col md:flex-row outline outline-1 outline-offset-[-1px] outline-[var(--color-border-default)] rounded-[8px] bg-background-input-default">
         <!-- Origin -->
         <div class=${CITY_CONTAINER_CLASSES}>
           <${CitySelector}

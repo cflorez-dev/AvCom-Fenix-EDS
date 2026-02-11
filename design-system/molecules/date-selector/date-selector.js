@@ -356,14 +356,6 @@ export const DateSelector = ({
     };
   }, [isMobile, isOpen, fetchPricingForMonth]);
 
-  useEffect(() => {
-    if (isMobile && isOpen) {
-      document.body.classList.add('!overflow-hidden');
-      return;
-    }
-    document.body.classList.remove('!overflow-hidden');
-  }, [isMobile, isOpen]);
-
   const handleClose = useCallback(() => {
     if (onClose) {
       onClose();

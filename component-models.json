@@ -3993,7 +3993,7 @@
         "name": "show-chevrons",
         "label": "Show Navigation Chevrons",
         "value": false,
-        "description": "Display left/right chevron buttons for navigating tabs when scrolling is needed"
+        "description": "Display left/right chevron buttons for navigating tabs when scrolling is needed (only for large size - Width: ≥ 1248px)"
       },
       {
         "component": "select",

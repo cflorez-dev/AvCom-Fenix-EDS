@@ -209,7 +209,7 @@ export const MarquesinaSample = () => {
             <h3 style=${{ fontSize: '1.8rem', marginBottom: '0.8rem' }}>Clock Icon</h3>
             <${Marquesina}
               variant="informative"
-              icon="clock"
+              icon="action/alarm"
               contentHTML="<p>Recuerda llegar 2 horas antes para vuelos internacionales</p>"
               alertId="demo-icon-clock"
               isSticky=${false}
@@ -220,7 +220,7 @@ export const MarquesinaSample = () => {
             <h3 style=${{ fontSize: '1.8rem', marginBottom: '0.8rem' }}>Plane Icon</h3>
             <${Marquesina}
               variant="success"
-              icon="plane"
+              icon="action/plane"
               contentHTML="<p>Tu vuelo está listo para abordar desde la puerta B12</p>"
               alertId="demo-icon-plane"
               isSticky=${false}
