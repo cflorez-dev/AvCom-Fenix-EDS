@@ -78,39 +78,70 @@ export default function extractPanelData(section) {
   // Detect structure based on cell count and content
   // New structure: 13 cells (with mobile backgrounds)
   // Previous structure: 11 cells (with overlay), 10 cells (with boolean), or 9 cells (legacy)
-  
+
   // Check if we have the new structure with mobile images (13 cells total)
   const hasMobileImages = cells.length >= 12;
-  
+
   // Detect if we have boolean field (check cell 8 in legacy or cell 9 in new structure)
   const booleanIndex = hasMobileImages ? 9 : 8;
   const hasBooleanField = cells[booleanIndex] && !cells[booleanIndex].querySelector('picture, img') && cells[booleanIndex].textContent.trim().toLowerCase() === 'true';
-  
+
   // Detect overlay field position
   const overlayIndex = hasMobileImages ? 10 : 9;
   const hasOverlayField = cells[overlayIndex] && !cells[overlayIndex].querySelector('picture, img') && cells[overlayIndex].textContent.trim() !== '' && cells[overlayIndex].textContent.trim().toLowerCase() !== 'true';
-  
+
   const openInNewTab = hasBooleanField ? getBoolean(cells, booleanIndex) : false;
   const overlayBackground = hasOverlayField ? getText(cells, overlayIndex) : '';
 
   // Calculate background image indices based on structure
-  let defaultBgIndex, defaultBgMobileIndex, interactiveBgIndex, interactiveBgMobileIndex;
+  let defaultBgIndex;
+  let defaultBgMobileIndex;
+  let interactiveBgIndex;
+  let interactiveBgMobileIndex;
 
   if (hasMobileImages) {
     // New structure with mobile images (13 cells)
     defaultBgIndex = 4;
     defaultBgMobileIndex = 5;
-    interactiveBgIndex = hasOverlayField ? 11 : (hasBooleanField ? 11 : 9);
-    interactiveBgMobileIndex = hasOverlayField ? 12 : (hasBooleanField ? 12 : 10);
+    if (hasOverlayField) {
+      interactiveBgIndex = 11;
+      interactiveBgMobileIndex = 12;
+    } else if (hasBooleanField) {
+      interactiveBgIndex = 11;
+      interactiveBgMobileIndex = 12;
+    } else {
+      interactiveBgIndex = 9;
+      interactiveBgMobileIndex = 10;
+    }
   } else {
     // Legacy structures (9-11 cells)
     defaultBgIndex = 4;
     defaultBgMobileIndex = null;
-    interactiveBgIndex = hasOverlayField ? 10 : (hasBooleanField ? 9 : 8);
+    if (hasOverlayField) {
+      interactiveBgIndex = 10;
+    } else if (hasBooleanField) {
+      interactiveBgIndex = 9;
+    } else {
+      interactiveBgIndex = 8;
+    }
     interactiveBgMobileIndex = null;
   }
 
-  // Extract data based on cell index (AEM table structure)
+  // Calculate targeting field indices
+  let targetCountriesIndex;
+  let targetLanguagesIndex;
+
+  if (hasMobileImages) {
+    targetCountriesIndex = 13;
+    targetLanguagesIndex = 14;
+  } else if (hasOverlayField) {
+    targetCountriesIndex = 12;
+    targetLanguagesIndex = 13;
+  } else {
+    targetCountriesIndex = 11;
+    targetLanguagesIndex = 12;
+  }
+
   const data = {
     // Cell 0: Default Title
     defaultTitle: getText(cells, 0),
@@ -138,6 +169,9 @@ export default function extractPanelData(section) {
     interactiveBackgroundImage: getImageSrc(cells, interactiveBgIndex),
     // Cell 11/12 or 9/10: Interactive Background Image (Mobile) - new field
     interactiveBackgroundImageMobile: interactiveBgMobileIndex !== null ? getImageSrc(cells, interactiveBgMobileIndex) : '',
+    // Targeting fields
+    'target-countries': getText(cells, targetCountriesIndex),
+    'target-languages': getText(cells, targetLanguagesIndex),
   };
 
   return data;

@@ -311,22 +311,23 @@ async function loadScript(src, attrs) {
 }
 
 /**
- * Detecta el locale (país/idioma) desde la URL actual
- * @returns {Object|null} Objeto con country, language y prefix, o null si no se detecta
+ * Detecta el idioma desde la URL actual
+ * Pattern: /{lang}/ (e.g., /es/, /en/, /pt/)
+ * Country is resolved from cookie, not URL
+ * @returns {Object|null} Objeto con language y prefix, o null si no se detecta
  * @example
- * // URL: /co/es/page -> {country: 'co', language: 'es', prefix: '/co/es'}
+ * // URL: /es/page -> {language: 'es', prefix: '/es'}
  * // URL: /page -> null
  */
 function detectLocale() {
   const { pathname } = window.location;
-  // Patrón para detectar /country/language/ al inicio de la URL
-  const match = pathname.match(/^\/([a-z]{2})\/([a-z]{2})(?:\/|$)/);
+  // Pattern: /{lang}/ at start of URL (2 letter language code)
+  const match = pathname.match(/^\/([a-z]{2})(?:\/|$)/);
 
   if (match) {
     return {
-      country: match[1],
-      language: match[2],
-      prefix: `/${match[1]}/${match[2]}`,
+      language: match[1],
+      prefix: `/${match[1]}`,
     };
   }
 

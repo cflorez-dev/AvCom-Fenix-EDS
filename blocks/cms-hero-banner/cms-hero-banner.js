@@ -4,7 +4,7 @@ import htm from 'htm';
 import { readBlockConfig, loadCSS } from '../../scripts/aem.js';
 import { PromotionalCountdownCard, AbsoluteCountdown } from '../../design-system/molecules/promotional-countdown-card/promotional-countdown-card.js';
 import { fetchAEMData } from '../../scripts/utils/aem-data.js';
-import { getStoredCountry, getStoredLanguage } from '../../scripts/services/header/language-country-selector.js';
+import { shouldShowByTargeting, hideBlockWithSection } from '../../scripts/utils/target-filter.js';
 
 const html = htm.bind(h);
 
@@ -92,33 +92,8 @@ export default async function decorate(block) {
   const secondsLabel = getI18nLabel('cms-hero-banner.counter.labels.seconds') || 'Seg';
 
   // Country/Language filtering
-  const targetCountries = targetcountries
-    ? targetcountries.split(',').map((country) => country.trim().toLowerCase())
-    : [];
-  const targetLanguages = targetlanguages
-    ? targetlanguages.split(',').map((lang) => lang.trim().toLowerCase())
-    : [];
-
-  const currentCountry = getStoredCountry()?.toLowerCase() || '';
-  const currentLang = getStoredLanguage()?.toLowerCase() || document.documentElement.lang?.toLowerCase() || 'en';
-
-  // Target countries validation: only validate if both config AND cookie exist
-  if (targetCountries.length > 0 && currentCountry && !targetCountries.includes(currentCountry)) {
-    const section = block.closest('.section');
-    if (section) {
-      section.classList.add('!p-0', '!m-0', '!h-0', '!overflow-hidden');
-    }
-    block.classList.add('hidden');
-    return;
-  }
-
-  // Target languages validation: only validate if config exists
-  if (targetLanguages.length > 0 && currentLang && !targetLanguages.includes(currentLang)) {
-    const section = block.closest('.section');
-    if (section) {
-      section.classList.add('!p-0', '!m-0', '!h-0', '!overflow-hidden');
-    }
-    block.classList.add('hidden');
+  if (!shouldShowByTargeting(targetcountries, targetlanguages)) {
+    hideBlockWithSection(block);
     return;
   }
 

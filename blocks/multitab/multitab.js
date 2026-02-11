@@ -5,7 +5,7 @@ import { h, render } from '@dropins/tools/preact.js';
 import htm from 'htm';
 import { loadBlock } from '../../scripts/aem.js';
 import { Icon } from '../../design-system/atoms/icon/icon.js';
-import { getStoredCountry, getStoredLanguage } from '../../scripts/services/header/language-country-selector.js';
+import { shouldShowByTargeting, hideBlockWithSection } from '../../scripts/utils/target-filter.js';
 
 const html = htm.bind(h);
 
@@ -98,17 +98,11 @@ export default async function decorate(block) {
   // Feature flags
   const enableFrom = config['enable-from'] ? new Date(config['enable-from']) : null;
   const enableTo = config['enable-to'] ? new Date(config['enable-to']) : null;
-  const targetCountries = config['target-countries']
-    ? config['target-countries'].split(',').map((country) => country.trim().toLowerCase())
-    : [];
-  const targetLanguages = config['target-languages']
-    ? config['target-languages'].split(',').map((lang) => lang.trim().toLowerCase())
-    : [];
+  const targetCountries = config['target-countries'] || '';
+  const targetLanguages = config['target-languages'] || '';
   const show = config.show !== 'false';
 
   const now = new Date();
-  const currentCountry = getStoredCountry()?.toLowerCase() || '';
-  const currentLang = getStoredLanguage()?.toLowerCase() || document.documentElement.lang?.toLowerCase() || 'en';
 
   // Detect author environment (Universal Editor)
   const isAuthorEnv = window.location.hostname.includes('author-')
@@ -141,49 +135,23 @@ export default async function decorate(block) {
 
   // Check feature flags
   if (!show) {
-    const section = block.closest('.section');
-    if (section) {
-      section.classList.add('!p-0', '!m-0', '!h-0', '!overflow-hidden');
-    }
-    block.style.display = 'none';
+    hideBlockWithSection(block);
     return;
   }
 
   if (enableFrom && now < enableFrom) {
-    const section = block.closest('.section');
-    if (section) {
-      section.classList.add('!p-0', '!m-0', '!h-0', '!overflow-hidden');
-    }
-    block.style.display = 'none';
+    hideBlockWithSection(block);
     return;
   }
 
   if (enableTo && now > enableTo) {
-    const section = block.closest('.section');
-    if (section) {
-      section.classList.add('!p-0', '!m-0', '!h-0', '!overflow-hidden');
-    }
-    block.style.display = 'none';
+    hideBlockWithSection(block);
     return;
   }
 
-  // Target countries validation: only validate if both config AND cookie exist
-  if (targetCountries.length > 0 && currentCountry && !targetCountries.includes(currentCountry)) {
-    const section = block.closest('.section');
-    if (section) {
-      section.classList.add('!p-0', '!m-0', '!h-0', '!overflow-hidden');
-    }
-    block.style.display = 'none';
-    return;
-  }
-
-  // Target languages validation: only validate if config exists
-  if (targetLanguages.length > 0 && currentLang && !targetLanguages.includes(currentLang)) {
-    const section = block.closest('.section');
-    if (section) {
-      section.classList.add('!p-0', '!m-0', '!h-0', '!overflow-hidden');
-    }
-    block.style.display = 'none';
+  // Target countries and languages validation
+  if (!shouldShowByTargeting(targetCountries, targetLanguages)) {
+    hideBlockWithSection(block);
     return;
   }
 

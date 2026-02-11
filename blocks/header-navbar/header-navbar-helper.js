@@ -194,7 +194,39 @@ export function extractHeaderNavbarData(block) {
   // Process each child row (each row is a menu item)
   const rows = Array.from(block.children);
   
-  rows.forEach((row) => {
+  // Check each row independently to determine if it's targeting config
+  // Row 0: country codes, Row 1: language codes - each validated separately
+  const validCountries = ['co', 'ar', 'mx', 'pe', 'ec', 'sv', 'cr', 'br', 'bo', 'cl', 'ca', 'gt', 'hn', 'ni', 'pa', 'py', 'do', 'eu', 'gb', 'uy', 'ot', 'us'];
+  const validLanguages = ['es', 'en', 'pt', 'fr'];
+  let startIndex = 0;
+
+  // Check row 0 for country targeting
+  if (rows.length >= 1) {
+    const firstRowValue = rows[0]?.children[0]?.textContent?.trim().toLowerCase();
+    const hasOnlyTargetingColumns = rows[0].children.length <= 2;
+    const hasValidCountryCode = firstRowValue
+      && (validCountries.includes(firstRowValue) || firstRowValue.split(',').every((c) => validCountries.includes(c.trim())));
+    const isEmpty = !firstRowValue || firstRowValue === '';
+
+    if (hasOnlyTargetingColumns && (hasValidCountryCode || isEmpty)) {
+      startIndex += 1;
+    }
+  }
+
+  // Check row 1 for language targeting (independently of row 0)
+  if (rows.length >= 2) {
+    const adjustedIndex = startIndex;
+    const secondRowValue = rows[adjustedIndex]?.children[0]?.textContent?.trim().toLowerCase();
+    const hasOnlyTargetingColumns = rows[adjustedIndex].children.length <= 2;
+    const hasValidLanguageCode = secondRowValue
+      && (validLanguages.includes(secondRowValue) || secondRowValue.split(',').every((l) => validLanguages.includes(l.trim())));
+
+    if (hasOnlyTargetingColumns && hasValidLanguageCode) {
+      startIndex += 1;
+    }
+  }
+  
+  rows.slice(startIndex).forEach((row) => {
     // Ignorar elementos que no son items (como indicadores de autor, etc.)
     if (row.classList.contains('header-navbar-author-indicator') || 
         row.classList.contains('header-navbar-author-mode')) {

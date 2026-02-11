@@ -1,4 +1,6 @@
 import { extractHeaderLogoData } from './header-logo.helper.js';
+import { readBlockConfig } from '../../scripts/aem.js';
+import { shouldShowByTargeting } from '../../scripts/utils/target-filter.js';
 
 const isDesktop = window.matchMedia('(min-width: 769px)');
 
@@ -83,6 +85,40 @@ export default function decorate(block) {
     authorIndicator.className = 'bg-[var(--color-background-author-indicator)] p-2 border border-dashed border-[var(--color-border-author-indicator)] mb-2 text-xs text-[var(--color-text-author-indicator)]';
     block.insertBefore(authorIndicator, block.firstChild);
 
+    return;
+  }
+
+  // 1.1 Targeting check - hide if not matching current POS
+  const config = readBlockConfig(block);
+  
+  // Leer targeting desde config (formato estándar: target-countries | co)
+  let targetCountries = config['target-countries'] || '';
+  let targetLanguages = config['target-languages'] || '';
+  
+  // Fallback: Si no hay config con nombre, leer de las primeras dos filas simples
+  // SOLO si el contenido parece ser un código de país/idioma válido
+  if (!targetCountries && !targetLanguages) {
+    const validCountries = ['co', 'ar', 'mx', 'pe', 'ec', 'sv', 'cr', 'br', 'bo', 'cl', 'ca', 'gt', 'hn', 'ni', 'pa', 'py', 'do', 'eu', 'gb', 'uy', 'ot', 'us'];
+    const validLanguages = ['es', 'en', 'pt', 'fr'];
+    
+    const rows = block.querySelectorAll(':scope > div');
+    if (rows.length >= 2) {
+      const firstRowValue = rows[0]?.children[0]?.textContent?.trim().toLowerCase();
+      // Solo usar si es un código de país válido (2-3 letras) o lista separada por comas
+      if (firstRowValue && (validCountries.includes(firstRowValue) || firstRowValue.split(',').every((c) => validCountries.includes(c.trim())))) {
+        targetCountries = firstRowValue;
+      }
+      
+      const secondRowValue = rows[1]?.children[0]?.textContent?.trim().toLowerCase();
+      // Solo usar si es un código de idioma válido o lista separada por comas
+      if (secondRowValue && (validLanguages.includes(secondRowValue) || secondRowValue.split(',').every((l) => validLanguages.includes(l.trim())))) {
+        targetLanguages = secondRowValue;
+      }
+    }
+  }
+
+  if (!shouldShowByTargeting(targetCountries, targetLanguages)) {
+    block.style.display = 'none';
     return;
   }
 

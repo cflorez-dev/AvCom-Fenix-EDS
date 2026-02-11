@@ -1,3 +1,5 @@
+import { filterItemsByTargeting } from '../../scripts/utils/target-filter.js';
+
 /**
  * Extracts a single card's data from a row's cells
  * @param {Array<Element>} cells - Array of cell elements
@@ -91,6 +93,22 @@ function extractCardFromRow(cells) {
     }
     if (link) {
       card.buttonUrl = link.getAttribute('href') || '#';
+    }
+  }
+
+  // Cell 6: target-countries (multiselect, comma-separated)
+  if (cells[6]) {
+    const targetCountriesP = cells[6].querySelector('p');
+    if (targetCountriesP) {
+      card['target-countries'] = targetCountriesP.textContent.trim();
+    }
+  }
+
+  // Cell 7: target-languages (multiselect, comma-separated)
+  if (cells[7]) {
+    const targetLanguagesP = cells[7].querySelector('p');
+    if (targetLanguagesP) {
+      card['target-languages'] = targetLanguagesP.textContent.trim();
     }
   }
 
@@ -234,6 +252,9 @@ export function extractCmsInformativeCardsRailProps(block) {
       }
     }
   }
+
+  // Filter cards by country/language targeting
+  props.cards = filterItemsByTargeting(props.cards);
 
   return props;
 }

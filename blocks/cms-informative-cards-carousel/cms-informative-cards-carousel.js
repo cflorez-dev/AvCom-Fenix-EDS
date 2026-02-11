@@ -3,7 +3,7 @@ import htm from 'htm';
 import { extractCmsInformativeCardsCarouselProps, extractCarouselCards } from './cms-informative-cards-carousel-helper.js';
 import { InformativePhotoCard } from '../../design-system/organisms/cards/informative-photo-card/informative-photo-card.js';
 import { Carousel } from '../../design-system/molecules/carousel/carousel.js';
-import { getStoredCountry, getStoredLanguage } from '../../scripts/services/header/language-country-selector.js';
+import { shouldShowByTargeting, hideBlockWithSection } from '../../scripts/utils/target-filter.js';
 
 const html = htm.bind(h);
 
@@ -148,26 +148,9 @@ export default function decorate(block) {
   const loadingMode = props.loading || 'lazy';
 
   // Country/Language filtering
-  // If target fields are configured, check if user's cookie matches
-  // Empty fields = show to all users
-  const { targetCountries, targetLanguages } = props;
-
-  if (targetCountries) {
-    const allowedCountries = targetCountries.split(',').map((c) => c.trim().toLowerCase());
-    const userCountry = (getStoredCountry() || '').toLowerCase();
-    if (!allowedCountries.includes(userCountry)) {
-      block.style.display = 'none';
-      return;
-    }
-  }
-
-  if (targetLanguages) {
-    const allowedLanguages = targetLanguages.split(',').map((l) => l.trim().toLowerCase());
-    const userLanguage = (getStoredLanguage() || '').toLowerCase();
-    if (!allowedLanguages.includes(userLanguage)) {
-      block.style.display = 'none';
-      return;
-    }
+  if (!shouldShowByTargeting(props.targetCountries, props.targetLanguages)) {
+    hideBlockWithSection(block);
+    return;
   }
 
   if (totalCards === 0) {

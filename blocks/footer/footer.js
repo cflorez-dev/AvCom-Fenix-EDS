@@ -10,7 +10,7 @@ export default async function decorate(block) {
   // Load footer as fragment with localized paths and fallback
   const footerMeta = getMetadata('footer');
   const customPath = footerMeta ? new URL(footerMeta, window.location).pathname : null;
-  const footerPaths = getLocalizedPaths('footer', customPath);
+  const footerPaths = await getLocalizedPaths('footer', customPath);
   
   // Attempt to load in priority order
   let fragment = null;

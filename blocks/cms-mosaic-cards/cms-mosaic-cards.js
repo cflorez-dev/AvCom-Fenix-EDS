@@ -11,7 +11,7 @@
  * @returns {string} Tailwind classes applied to the card wrapper
  */
 
-import { getStoredCountry, getStoredLanguage } from '../../scripts/services/header/language-country-selector.js';
+import { shouldShowByTargeting, hideBlockWithSection, filterItemsByTargeting } from '../../scripts/utils/target-filter.js';
 
 function getCardClasses(template, cardIndex) {
   // Desktop classes (≥768px) - grid 3x3
@@ -378,6 +378,18 @@ function parseCardDataFromItem(item) {
     if (behavior === 'ctaOnly' || behavior === 'fullCard') {
       cardData.clickBehavior = behavior;
     }
+    cellIndex += 1;
+  }
+
+  // Cell N+11: target-countries (multiselect, comma-separated)
+  if (cells[cellIndex]) {
+    cardData['target-countries'] = cells[cellIndex].textContent.trim();
+    cellIndex += 1;
+  }
+
+  // Cell N+12: target-languages (multiselect, comma-separated)
+  if (cells[cellIndex]) {
+    cardData['target-languages'] = cells[cellIndex].textContent.trim();
   }
 
   return cardData;
@@ -410,32 +422,8 @@ export default async function decorate(block) {
     const config = parseParentConfig(block);
 
     // Country and language filtering (PARENT level)
-    const targetCountries = config.targetCountries
-      ? config.targetCountries.split(',').map((c) => c.trim().toLowerCase())
-      : [];
-    const targetLanguages = config.targetLanguages
-      ? config.targetLanguages.split(',').map((l) => l.trim().toLowerCase())
-      : [];
-
-    const currentCountry = getStoredCountry()?.toLowerCase() || '';
-    const currentLang = getStoredLanguage()?.toLowerCase() || document.documentElement.lang?.toLowerCase() || 'en';
-
-    // Hide entire mosaic if filtering criteria not met
-    if (targetCountries.length > 0 && currentCountry && !targetCountries.includes(currentCountry)) {
-      const section = block.closest('.section');
-      if (section) {
-        section.classList.add('!p-0', '!m-0', '!h-0', '!overflow-hidden');
-      }
-      block.style.display = 'none';
-      return;
-    }
-
-    if (targetLanguages.length > 0 && currentLang && !targetLanguages.includes(currentLang)) {
-      const section = block.closest('.section');
-      if (section) {
-        section.classList.add('!p-0', '!m-0', '!h-0', '!overflow-hidden');
-      }
-      block.style.display = 'none';
+    if (!shouldShowByTargeting(config.targetCountries, config.targetLanguages)) {
+      hideBlockWithSection(block);
       return;
     }
 
@@ -460,7 +448,7 @@ export default async function decorate(block) {
     for (let i = 0; i < allRows.length; i += 1) {
       const row = allRows[i];
 
-      // Child items have multiple cells (15 cells for link-card)
+      // Child items have multiple cells (17 cells for link-card with targeting)
       // Parent fields have only 1 cell
       if (row.children.length > 1) {
         const cardData = parseCardDataFromItem(row);
@@ -470,8 +458,12 @@ export default async function decorate(block) {
       }
     }
 
-    if (childItems.length === 0) {
-      console.warn('No link-card children found in cms-mosaic-cards block');
+    // Filter cards by targeting
+    const filteredItems = filterItemsByTargeting(childItems);
+
+    if (filteredItems.length === 0) {
+      console.warn('No link-card children found after filtering in cms-mosaic-cards block');
+      hideBlockWithSection(block);
       return;
     }
 
@@ -487,7 +479,7 @@ export default async function decorate(block) {
     render(
       html`
         <${CMSMosaicCards} 
-          cards=${childItems} 
+          cards=${filteredItems} 
           template=${template}
         />
       `,

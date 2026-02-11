@@ -11,6 +11,7 @@ import { Incrementer } from '../../atoms/incrementer/incrementer.js';
 import { Icon } from '../../atoms/icon/icon.js';
 import { Button } from '../../atoms/button/button.js';
 import { Alert } from '../alert/alert.js';
+import { processContentHTML } from '../../helpers/process-content-html.js';
 
 const html = htm.bind(h);
 
@@ -354,6 +355,19 @@ export const PassengerSelector = ({
     [passengers.adults, passengers.youth, passengers.children],
   );
 
+  // Process groupTravelLink HTML so <a> get LinkButton styles (process-content-html)
+  const groupTravelLinkProcessed = useMemo(() => {
+    const processed = processContentHTML(
+      i18n['bookingBox.labels.groupTravelLink'] || '',
+      'informative',
+      { linkButtonOptions: { customClassName: '!text-[14px]' } },
+    );
+    // Normalize link text size: replace 16px with 14px (LinkButton default can be 16px)
+    return processed
+      .replace(/\b!?text-\[16px\]/g, 'text-[14px]')
+      .replace(/\b!?text-\[1rem\]/g, 'text-[14px]');
+  }, [i18n['bookingBox.labels.groupTravelLink']]);
+
   // Performance: Radio Button Component optimizado
   const RadioButton = ({ label, checked, onClick }) => {
     // Performance: Pre-calculate classes
@@ -496,8 +510,8 @@ export const PassengerSelector = ({
               <!-- Helper Text (solo mostrar cuando total = 9) -->
               ${totalPassengers === MAX_TOTAL_PASSENGERS && html`
                 <p 
-                  class="text-[14px] text-[var(--color-text-brand-disable)] leading-[1.5] link-container"
-                  dangerouslySetInnerHTML=${{ __html: (i18n['bookingBox.labels.groupTravelLink']) }}
+                  class="!text-[14px] text-[var(--color-text-brand-disable)] leading-[1.5] link-container !m-0"
+                  dangerouslySetInnerHTML=${{ __html: groupTravelLinkProcessed }}
                 />
               `}
 
@@ -621,8 +635,8 @@ export const PassengerSelector = ({
             <!-- Helper Text (solo mostrar cuando total = 9) -->
             ${totalPassengers === MAX_TOTAL_PASSENGERS && html`
               <p 
-                class="text-[14px] text-[var(--color-text-brand-disable)] leading-[1.5] link-container"
-                dangerouslySetInnerHTML=${{ __html: (i18n['bookingBox.labels.groupTravelLink']) }}
+                class="text-[14px] text-[var(--color-text-brand-disable)] leading-[1.5] link-container !m-0"
+                dangerouslySetInnerHTML=${{ __html: groupTravelLinkProcessed }}
               />
             `}
 

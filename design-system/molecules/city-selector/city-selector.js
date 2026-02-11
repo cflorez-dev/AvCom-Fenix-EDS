@@ -422,7 +422,7 @@ export const CitySelector = ({
           hover:bg-[var(--bg-hover-light)] group
           focus-visible:border-[var(--color-border-stroke-focus)] focus-visible:outline-none focus-visible:border-2
           active:bg-[var(--state-hover-darken)] active:text-[var(--text-brand-light)]
-          border-b border-border-stroke-default last:border-b-0
+          border-b border-border-stroke-default
         "
         onClick=${() => handleCitySelect(city)}
         onKeyDown=${handleKeyDown}
@@ -647,7 +647,7 @@ export const CitySelector = ({
       <!-- Desktop Popup (sin input de búsqueda - ya está en trigger) -->
       ${isOpen && !isMobile && html`
         <div
-          class=${`absolute ${positionDropdownStyles} px-4 py-6 pr-0  bg-background-card-lighter rounded-[24px] shadow-[0px_2px_20px_2px_rgba(73,73,73,0.25)] max-h-[376px] min-h-[376px] max-w-[${DROPDOWN_MAX_WIDTH}] min-w-[${DROPDOWN_MAX_WIDTH}] overflow-hidden z-50 flex flex-col`}
+          class=${`absolute ${positionDropdownStyles} px-4 py-6 pr-0  bg-background-card-lighter rounded-[24px]  max-h-[376px] min-h-[376px] max-w-[${DROPDOWN_MAX_WIDTH}] min-w-[${DROPDOWN_MAX_WIDTH}] overflow-hidden z-50 flex flex-col`}
           ref=${dropdownRef}
           role="listbox"
           aria-label=${label || 'Lista de ciudades'}

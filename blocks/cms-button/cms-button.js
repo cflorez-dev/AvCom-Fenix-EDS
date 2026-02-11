@@ -4,6 +4,7 @@ import { readBlockConfig } from '../../scripts/aem.js';
 import { Button } from '../../design-system/atoms/button/button.js';
 import { LinkButton } from '../../design-system/atoms/link-button/link-button.js';
 import { Icon } from '../../design-system/atoms/icon/icon.js';
+import { shouldShowByTargeting, hideBlockWithSection } from '../../scripts/utils/target-filter.js';
 
 const html = htm.bind(h);
 
@@ -195,6 +196,12 @@ export default function decorate(block) {
   const mappedData = mapBlockData(block);
   // Fallback to readBlockConfig if available
   const config = readBlockConfig(block);
+
+  // Check targeting (country/language filtering)
+  if (!shouldShowByTargeting(config['target-countries'], config['target-languages'])) {
+    hideBlockWithSection(block);
+    return;
+  }
 
   // Extract configuration with default values, prioritizing mappedData
   const text = mappedData.text || config.text || '';

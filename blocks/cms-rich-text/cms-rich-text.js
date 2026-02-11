@@ -1,6 +1,8 @@
 import processRichTextContent from './cms-rich-text-helper.js';
 import { getLinkButtonStyles } from '../../design-system/atoms/link-button/link-button.js';
 import loadSVGIcon from '../../scripts/utils/svg.helper.js';
+import { readBlockConfig } from '../../scripts/aem.js';
+import { shouldShowByTargeting, hideBlockWithSection } from '../../scripts/utils/target-filter.js';
 
 /**
  * Processes <a> tags in a container to apply LinkButton styles
@@ -117,7 +119,7 @@ function processListElements(container) {
 
   container.querySelectorAll('ul').forEach((ulElement) => {
     const existingClasses = (ulElement.className || '').split(/\s+/).filter(Boolean);
-    
+
     // Only add list-disc and pl-5 if list-style-none is NOT present
     if (!existingClasses.includes('list-none')) {
       const mergedClasses = [...new Set([...existingClasses, 'list-disc', 'pl-5'])]
@@ -129,7 +131,7 @@ function processListElements(container) {
 
   container.querySelectorAll('ol').forEach((olElement) => {
     const existingClasses = (olElement.className || '').split(/\s+/).filter(Boolean);
-    
+
     // Only add list-decimal and pl-5 if list-style-none is NOT present
     if (!existingClasses.includes('list-none')) {
       const mergedClasses = [...new Set([...existingClasses, 'list-decimal', 'pl-5'])]
@@ -162,10 +164,17 @@ export default function decorate(block) {
     return;
   }
 
-  // 2. Process and transform content (map code tags to HTML)
+  // 2. Check targeting (country/language filtering)
+  const config = readBlockConfig(block);
+  if (!shouldShowByTargeting(config['target-countries'], config['target-languages'])) {
+    hideBlockWithSection(block);
+    return;
+  }
+
+  // 3. Process and transform content (map code tags to HTML)
   processRichTextContent(block);
 
-  // 3. Production Mode: transform the block directly
+  // 4. Production Mode: transform the block directly
   // Add container class to the block itself
   block.classList.add('cms-rich-text-container');
 
@@ -181,7 +190,7 @@ export default function decorate(block) {
   // Append content wrapper to the block
   block.appendChild(content);
 
-  // 4. Process <a> tags and list styles AFTER everything is in place
+  // 5. Process <a> tags and list styles AFTER everything is in place
   // Apply LinkButton styles (informative variant) and list bullets/numbers
   processLinkElements(content);
   processListElements(content);

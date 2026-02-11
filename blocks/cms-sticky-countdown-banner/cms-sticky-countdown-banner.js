@@ -6,6 +6,7 @@ import {
   validateCmsStickyCountdownBannerProps,
 } from './cms-sticky-countdown-banner-helper.js';
 import { StickyCountdownBanner } from '../../design-system/molecules/sticky-countdown-banner/sticky-countdown-banner.js';
+import { shouldShowByTargeting, hideBlockWithSection } from '../../scripts/utils/target-filter.js';
 
 const html = htm.bind(h);
 
@@ -52,6 +53,13 @@ function getI18nLabel(key) {
 export default async function decorate(block) {
   const isAuthorEnv = window.xwalk?.isAuthorEnv;
   const props = extractCmsStickyCountdownBannerProps(block);
+
+  // Check targeting (country/language filtering) - skip in author mode
+  if (!isAuthorEnv && !shouldShowByTargeting(props.targetCountries, props.targetLanguages)) {
+    hideBlockWithSection(block);
+    return;
+  }
+
   const validation = validateCmsStickyCountdownBannerProps(props);
 
   if (!validation.isValid) {

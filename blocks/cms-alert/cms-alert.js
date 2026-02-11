@@ -2,6 +2,7 @@ import { h, render } from '@dropins/tools/preact.js';
 import htm from 'htm';
 import { readBlockConfig } from '../../scripts/aem.js';
 import { Alert } from '../../design-system/molecules/alert/alert.js';
+import { shouldShowByTargeting, hideBlockWithSection } from '../../scripts/utils/target-filter.js';
 
 const html = htm.bind(h);
 
@@ -96,6 +97,12 @@ export default function decorate(block) {
 
   // 2. Production Mode: Read block configuration
   const config = readBlockConfig(block);
+
+  // Check targeting (country/language filtering)
+  if (!shouldShowByTargeting(config['target-countries'], config['target-languages'])) {
+    hideBlockWithSection(block);
+    return;
+  }
 
   // 3. Map HTML structure to alert data object
   const mappedData = mapAlertData(block);
