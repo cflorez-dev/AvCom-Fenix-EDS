@@ -404,32 +404,32 @@ export const PassengerSelector = ({
       data-name="passengerSelector"
       ...${rest}
     >
-      <!-- Trigger Input -->
-      <div class="h-12 w-full rounded-[8px] outline-1 outline-[var(--color-border-default)] inline-flex justify-start items-start">
+      <!-- Trigger Input (flex-col: content row + green line) -->
+      <div class="w-full rounded-lg outline-1 outline-[var(--color-border-default)] inline-flex justify-start items-start overflow-hidden">
         <button
           ref=${triggerRef}
           type="button"
-          class="flex-1 h-12 px-4 flex justify-start items-center gap-2 cursor-pointer transition-all duration-200 outline-0 bg-white max-w-full border-b-[3px] border-b-transparent rounded-lg
-            focus-within:border-border-input-positive
-            hover:border-border-input-positive
-            active:border-border-input-positive
-            ${isOpen ? '!border-border-input-positive' : ''}
-            "
+          class="flex-1 flex flex-col cursor-pointer transition-all duration-200 outline-0 bg-white max-w-full rounded-lg overflow-hidden group/passengerTrigger"
           onClick=${handleTriggerClick}
           aria-expanded=${isOpen}
           aria-haspopup="true"
           aria-label=${i18n['bookingBox.aria.selectPassengers'] || 'Seleccionar pasajeros'}
         >
-          <${Icon} icon="action/addpeople" size="m"/>
-          <div class="flex-1 inline-flex flex-col justify-center items-start text-left min-w-0">
-            <div class="self-stretch justify-start text-[var(--text-normal-secondary)] text-xs font-normal">${i18n['bookingBox.labels.passengers'] || 'Pasajeros'}</div>
-            <div class="self-stretch h-5 justify-start text-[var(--text-normal-primary)] text-base font-bold truncate">${getDisplayText}</div>
-          </div>
-          <div class="w-5 h-5 flex justify-center items-center">
-            <div class="${isOpen ? 'rotate-180' : ''} transition-transform duration-200 flex items-center justify-center h-5">
-              <${Icon} icon="navigation/expand-more" size="xsm" />
+          <!-- Content Row -->
+          <div class="flex items-center gap-2 w-full h-12 px-4">
+            <${Icon} icon="action/addpeople" size="m"/>
+            <div class="flex-1 inline-flex flex-col justify-center items-start text-left min-w-0">
+              <div class="self-stretch justify-start text-[var(--text-normal-secondary)] text-xs font-normal">${i18n['bookingBox.labels.passengers'] || 'Pasajeros'}</div>
+              <div class="self-stretch h-5 justify-start text-[var(--text-normal-primary)] text-base font-bold truncate">${getDisplayText}</div>
+            </div>
+            <div class="w-5 h-5 flex justify-center items-center">
+              <div class="${isOpen ? 'rotate-180' : ''} transition-transform duration-200 flex items-center justify-center h-5">
+                <${Icon} icon="navigation/expand-more" size="xsm" />
+              </div>
             </div>
           </div>
+          <!-- Green bottom line (straight, no border-radius) -->
+          <div class="w-full h-[3px] bg-transparent transition-colors duration-200 group-hover/passengerTrigger:bg-border-input-positive group-focus-within/passengerTrigger:bg-border-input-positive ${isOpen ? '!bg-border-input-positive' : ''}" aria-hidden="true"></div>
         </button>
       </div>
 

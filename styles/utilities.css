@@ -140,6 +140,11 @@
   box-shadow: var(--shadow-medium);
 }
 
+/* Calendar dropdown nav buttons (prev/next month) - design tokens */
+.shadow-calendar-nav {
+  box-shadow: var(--shadows-axis-none, 0) var(--shadows-axis-none, 0) var(--shadows-blur-tiny, 6px) var(--shadows-spread-none, 0) var(--effect-shadow-light, rgba(90, 90, 90, 0.2)) !important;
+}
+
 /* Border Radius Utilities */
 .rounded-small {
   border-radius: var(--border-radius-small);
