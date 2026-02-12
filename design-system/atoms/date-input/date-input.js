@@ -101,6 +101,7 @@ export const DateInput = ({
   active = false,
   containerRelative = true,
   hasError = false,
+  showErrorMessage = true,
   i18n = {},
   ...rest
 }) => {
@@ -272,8 +273,8 @@ export const DateInput = ({
       </div>
 
       <!-- Error message (absolute: floats below trigger without affecting layout) -->
-      ${hasError && html`
-        <div class="absolute top-full left-0 min-h-[21px] flex items-start mt-[4px] font-normal text-sm leading-5 text-[var(--alert-error-icon-bg)]">
+      ${showErrorMessage && hasError && html`
+        <div class="absolute top-full left-0 min-h-[21px] hidden md:flex items-start mt-[4px] font-normal text-sm leading-5 text-[var(--alert-error-icon-bg)]">
           <svg
             class="w-4 h-4 mr-1 flex-shrink-0 mt-0.5"
             fill="currentColor"

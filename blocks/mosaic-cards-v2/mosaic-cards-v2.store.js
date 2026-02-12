@@ -40,9 +40,20 @@ class MosaicCardsV2Store {
       return;
     }
 
+    // CRITICAL: Only register ONCE - ignore subsequent calls to prevent duplication
+    if (this.groups.has(groupId)) {
+      // eslint-disable-next-line no-console
+      console.log(`[STORE] registerGroup("${groupId}") SKIPPED - already registered with ${this.groups.get(groupId).cards.length} cards`);
+      return;
+    }
+
+    // CRITICAL: Store a FROZEN COPY of cards to prevent any external mutations
+    const cardsCopy = [...(data.cards || [])];
+    Object.freeze(cardsCopy); // Prevent push/pop/splice etc.
+
     const groupData = {
       groupId,
-      cards: data.cards || [],
+      cards: cardsCopy,
       metadata: data.metadata || {},
       registeredAt: new Date().toISOString(),
     };
@@ -87,11 +98,14 @@ class MosaicCardsV2Store {
   /**
    * Get cards from a specific group
    * @param {string} groupId - The group identifier
-   * @returns {Array} Array of cards or empty array if group not found
+   * @returns {Array} Array of cards or empty array if group not found (returns a copy)
    */
   getCards(groupId) {
     const group = this.getGroup(groupId);
-    return group ? group.cards : [];
+    // eslint-disable-next-line no-console
+    console.log(`[STORE] getCards("${groupId}") returning ${group ? group.cards.length : 0} cards (internal array)`);
+    // ALWAYS return a deep copy to prevent mutations
+    return group ? group.cards.map(card => ({ ...card })) : [];
   }
 
   /**

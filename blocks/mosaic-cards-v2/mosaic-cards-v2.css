@@ -7,6 +7,23 @@
     min-height: 400px;
     overflow: hidden !important;
     box-sizing: border-box;
+    opacity: 0;
+    transition: opacity 0.3s ease-in-out;
+}
+
+/* Show container after content is ready */
+.mosaic-v2-container.ready {
+    opacity: 1;
+}
+
+/* Mobile carousel initial state */
+.mosaic-v2-mobile-carousel {
+    opacity: 0;
+    transition: opacity 0.3s ease-in-out;
+}
+
+.mosaic-v2-mobile-carousel.ready {
+    opacity: 1;
 }
 
 /* Marquee track - linear transition only */

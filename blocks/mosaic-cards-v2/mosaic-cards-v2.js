@@ -3,7 +3,7 @@ import htm from 'htm';
 import { h, render } from '@dropins/tools/preact.js';
 import { getStoredCountry, getStoredLanguage } from '../../scripts/services/header/language-country-selector.js';
 import { loadBlock } from '../../scripts/aem.js';
-import { registerMosaicGroup } from './mosaic-cards-v2.store.js';
+import { registerMosaicGroup, getMosaicStore } from './mosaic-cards-v2.store.js';
 import { initMobileViewHelper } from './mosaic-cards-v2-mobile-view.helper.js';
 
 const html = htm.bind(h);
@@ -423,13 +423,20 @@ export default async function decorate(block) {
   });
 
   // Register all cards data in the store
-  registerMosaicGroup(groupId, allCardsData, {
-    autoplay,
-    autoplaySpeed,
-    loop,
-    showArrows,
-    totalMosaics: mosaicSections.length,
-  });
+  // Check if already registered to prevent duplicates on re-decoration
+  const store = getMosaicStore();
+  if (store.hasGroup(groupId)) {
+    // eslint-disable-next-line no-console
+    console.log(`[MOSAIC] Group "${groupId}" already registered, skipping re-registration`);
+  } else {
+    registerMosaicGroup(groupId, allCardsData, {
+      autoplay,
+      autoplaySpeed,
+      loop,
+      showArrows,
+      totalMosaics: mosaicSections.length,
+    });
+  }
 
   // Add each mosaic section as a slide or single item
   const slides = [];
@@ -789,4 +796,12 @@ export default async function decorate(block) {
 
   // Insert carousel after original section
   section.insertAdjacentElement('afterend', carouselContainer);
+
+  // Mark carousel as ready after DOM manipulation is complete
+  // This triggers the fade-in effect from CSS
+  requestAnimationFrame(() => {
+    setTimeout(() => {
+      carouselContainer.classList.add('ready');
+    }, 100);
+  });
 }

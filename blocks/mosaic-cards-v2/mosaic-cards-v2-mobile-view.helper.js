@@ -1,3 +1,4 @@
+/* eslint-disable max-len */
 import { h, render } from '@dropins/tools/preact.js';
 import { useState, useEffect } from '@dropins/tools/preact-hooks.js';
 import htm from 'htm';
@@ -48,8 +49,11 @@ async function createMobileCarousel(allCards, groupId, config = {}) {
   carouselWrapper.setAttribute('role', 'list');
   carouselWrapper.setAttribute('aria-live', 'polite');
 
-  // Duplicate cards for infinite loop (like carousel.js)
+  // Duplicate cards for infinite loop (only once, not on viewport changes)
   const duplicatedCards = [...allCards, ...allCards];
+  
+  // Store original count for pagination calculation
+  const originalCardsCount = allCards.length;
 
   // Render each card using LinkCard component
   duplicatedCards.forEach((cardData, index) => {
@@ -60,9 +64,9 @@ async function createMobileCarousel(allCards, groupId, config = {}) {
     const snapClasses = autoplay ? '' : 'snap-center snap-always max-[479px]:snap-center min-[480px]:snap-start';
     cardSlide.className = `carousel-slide flex-shrink-0 w-full min-[480px]:w-[calc(50%-8px)] ${snapClasses}`;
     cardSlide.setAttribute('data-card-index', index);
-    cardSlide.setAttribute('data-original-index', index % allCards.length);
+    cardSlide.setAttribute('data-original-index', index % originalCardsCount);
     cardSlide.setAttribute('role', 'listitem');
-    cardSlide.setAttribute('aria-label', `Card ${(index % allCards.length) + 1} of ${allCards.length}`);
+    cardSlide.setAttribute('aria-label', `Card ${(index % originalCardsCount) + 1} of ${originalCardsCount}`);
 
     // Ensure all props have values - avoid undefined
     const props = {
@@ -121,6 +125,8 @@ async function createMobileCarousel(allCards, groupId, config = {}) {
   let autoScrollInterval = null;
   let userPaused = false;
   let pauseTimeout = null;
+  let isInitialized = false;
+  let isDotNavigating = false;
 
   // Auto-scroll for smooth continuous movement
   // Defined here before event listeners need it
@@ -200,7 +206,7 @@ async function createMobileCarousel(allCards, groupId, config = {}) {
     const allSlides = Array.from(carouselWrapper.querySelectorAll('.carousel-slide'));
     
     // Use offsetLeft of first card in second set for accurate width calculation
-    const firstCardSecondSet = allSlides[allCards.length];
+    const firstCardSecondSet = allSlides[originalCardsCount];
     const totalOriginalWidth = firstCardSecondSet ? firstCardSecondSet.offsetLeft : 0;
     
     if (!totalOriginalWidth) return;
@@ -251,6 +257,52 @@ async function createMobileCarousel(allCards, groupId, config = {}) {
 
   document.addEventListener('visibilitychange', handleVisibilityChange);
 
+  // Handle viewport resize (orientation change) - only within mobile viewport
+  const handleResize = () => {
+    // Only handle resize if we're still in mobile viewport
+    if (window.innerWidth > 767) {
+      // We've switched to desktop, stop handling resize here
+      // The main handler in initMobileViewHelper will take over
+      return;
+    }
+    
+    // Recalculate positions after resize
+    const allSlides = Array.from(carouselWrapper.querySelectorAll('.carousel-slide'));
+    const firstCardSecondSet = allSlides[originalCardsCount];
+    const newTotalOriginalWidth = firstCardSecondSet ? firstCardSecondSet.offsetLeft : 0;
+    
+    // Get current scroll position and calculate which card we're viewing
+    const currentScroll = carouselWrapper.scrollLeft;
+    const slideWidth = allSlides[0]?.offsetWidth || 0;
+    const gap = 16;
+    const itemStride = slideWidth + gap;
+    
+    // Calculate current card index (modulo to get original card)
+    const currentCardIndex = Math.round(currentScroll / itemStride);
+    const originalCardIndex = currentCardIndex % originalCardsCount;
+    
+    // After resize, reposition to the same card in the second set
+    // This maintains the infinite loop capability
+    const targetSlide = allSlides[originalCardsCount + originalCardIndex];
+    if (targetSlide && newTotalOriginalWidth > 0) {
+      const originalBehavior = carouselWrapper.style.scrollBehavior;
+      carouselWrapper.style.scrollBehavior = 'auto';
+      carouselWrapper.scrollLeft = targetSlide.offsetLeft;
+      
+      requestAnimationFrame(() => {
+        carouselWrapper.style.scrollBehavior = originalBehavior;
+      });
+    }
+  };
+
+  let resizeTimeout;
+  const debouncedResize = () => {
+    clearTimeout(resizeTimeout);
+    resizeTimeout = setTimeout(handleResize, 150);
+  };
+
+  window.addEventListener('resize', debouncedResize);
+
   carouselContainer.appendChild(carouselWrapper);
 
   // Set initial scroll position to start of second set for true infinite loop
@@ -260,7 +312,7 @@ async function createMobileCarousel(allCards, groupId, config = {}) {
     
     // Use the offsetLeft of the first card in the second set for accurate positioning
     // This accounts for actual DOM layout with gaps between (not after) elements
-    const firstCardSecondSet = allSlides[allCards.length];
+    const firstCardSecondSet = allSlides[originalCardsCount];
     const totalOriginalWidth = firstCardSecondSet ? firstCardSecondSet.offsetLeft : 0;
 
     // Temporarily disable smooth scroll for initial positioning
@@ -273,6 +325,9 @@ async function createMobileCarousel(allCards, groupId, config = {}) {
     // Restore smooth scroll
     setTimeout(() => {
       carouselWrapper.style.scrollBehavior = originalBehavior;
+      isInitialized = true;
+      // Mark carousel as ready to show (fade in)
+      carouselContainer.classList.add('ready');
     }, 50);
   }, 0);
 
@@ -284,7 +339,7 @@ async function createMobileCarousel(allCards, groupId, config = {}) {
   }, 1500);
 
   // Add navigation dots using CarouselPaginationDots component (only if showArrows is enabled)
-  if (showArrows && allCards.length > 1) {
+  if (showArrows && originalCardsCount > 1) {
     const dotsWrapper = document.createElement('div');
     dotsWrapper.className = 'carousel-dots flex justify-center mt-4';
     dotsWrapper.setAttribute('role', 'tablist');
@@ -293,7 +348,7 @@ async function createMobileCarousel(allCards, groupId, config = {}) {
     // State management for dots
     const DotsController = () => {
       const [currentPage, setCurrentPage] = useState(0);
-      const [totalPages, setTotalPages] = useState(allCards.length);
+      const [totalPages, setTotalPages] = useState(Math.ceil(originalCardsCount / 1)); // Default 1 card per page mobile
 
       useEffect(() => {
         const updateDots = () => {
@@ -307,7 +362,7 @@ async function createMobileCarousel(allCards, groupId, config = {}) {
 
           // Calculate cards per page based on viewport
           const cardsPerPage = viewportWidth < 480 ? 1 : 2;
-          const calculatedTotalPages = Math.ceil(allCards.length / cardsPerPage);
+          const calculatedTotalPages = Math.ceil(originalCardsCount / cardsPerPage);
 
           // Update total pages if viewport changed
           if (calculatedTotalPages !== totalPages) {
@@ -317,7 +372,7 @@ async function createMobileCarousel(allCards, groupId, config = {}) {
           // Calculate current page based on scroll position
           // Get the card index that's currently most visible
           const cardIndex = Math.round(scrollLeft / itemStride);
-          const originalCardIndex = cardIndex % allCards.length;
+          const originalCardIndex = cardIndex % originalCardsCount;
           const pageIndex = Math.floor(originalCardIndex / cardsPerPage);
 
           // Only update if page changed and is valid
@@ -365,6 +420,18 @@ async function createMobileCarousel(allCards, groupId, config = {}) {
           totalPages=${totalPages}
           currentPage=${currentPage}
           onDotClick=${(pageIndex) => {
+    // Wait for initialization to complete
+    if (!isInitialized) {
+      setTimeout(() => {
+        // Re-trigger click after initialization
+        const dots = dotsWrapper.querySelectorAll('button');
+        if (dots[pageIndex]) {
+          dots[pageIndex].click();
+        }
+      }, 100);
+      return;
+    }
+
     const viewportWidth = window.innerWidth;
     const cardsPerPage = viewportWidth < 480 ? 1 : 2;
     const targetCardIndex = pageIndex * cardsPerPage;
@@ -374,17 +441,25 @@ async function createMobileCarousel(allCards, groupId, config = {}) {
     
     // Calculate which set we're in using real DOM position
     const currentScroll = carouselWrapper.scrollLeft;
-    const firstCardSecondSet = allSlides[allCards.length];
+    const firstCardSecondSet = allSlides[originalCardsCount];
     const totalOriginalWidth = firstCardSecondSet ? firstCardSecondSet.offsetLeft : 0;
     
-    // Find target slide in the appropriate set
+    // Smart navigation: find the closest instance of the target card
+    // We have two instances: one in first set (index targetCardIndex)
+    // and one in second set (index originalCardsCount + targetCardIndex)
+    const firstSetSlide = allSlides[targetCardIndex];
+    const secondSetSlide = allSlides[originalCardsCount + targetCardIndex];
+    
+    // Calculate distance to each option
+    const distanceToFirst = firstSetSlide ? Math.abs(currentScroll - firstSetSlide.offsetLeft) : Infinity;
+    const distanceToSecond = secondSetSlide ? Math.abs(currentScroll - secondSetSlide.offsetLeft) : Infinity;
+    
+    // Choose the closest one
     let targetSlide;
-    if (currentScroll < totalOriginalWidth) {
-      // We're in the first set
-      targetSlide = allSlides[targetCardIndex];
+    if (distanceToFirst < distanceToSecond) {
+      targetSlide = firstSetSlide;
     } else {
-      // We're in the second set
-      targetSlide = allSlides[allCards.length + targetCardIndex];
+      targetSlide = secondSetSlide;
     }
 
     if (!targetSlide) return;
@@ -392,7 +467,8 @@ async function createMobileCarousel(allCards, groupId, config = {}) {
     // Get exact position using offsetLeft
     const finalScrollPosition = targetSlide.offsetLeft;
 
-    // Pause auto-scroll
+    // Pause auto-scroll and disable infinite scroll reset during navigation
+    isDotNavigating = true;
     userPaused = true;
     if (autoScrollInterval) {
       clearInterval(autoScrollInterval);
@@ -409,13 +485,14 @@ async function createMobileCarousel(allCards, groupId, config = {}) {
       behavior: 'smooth'
     });
 
-    // Resume after delay
+    // Resume after delay (short delay to allow smooth scroll to complete)
     pauseTimeout = setTimeout(() => {
+      isDotNavigating = false;
       userPaused = false;
       if (autoplay && !document.hidden && !isUserScrolling) {
         startAutoScroll();
       }
-    }, 2000);
+    }, 800);
   }}
         />
       `;
@@ -424,6 +501,25 @@ async function createMobileCarousel(allCards, groupId, config = {}) {
     render(html`<${DotsController} />`, dotsWrapper);
     carouselContainer.appendChild(dotsWrapper);
   }
+
+  // Cleanup function
+  const cleanup = () => {
+    window.removeEventListener('resize', debouncedResize);
+    document.removeEventListener('visibilitychange', handleVisibilityChange);
+    carouselWrapper.removeEventListener('scroll', handleInfiniteScroll);
+    if (autoScrollInterval) {
+      clearInterval(autoScrollInterval);
+    }
+    if (pauseTimeout) {
+      clearTimeout(pauseTimeout);
+    }
+    if (resizeTimeout) {
+      clearTimeout(resizeTimeout);
+    }
+  };
+
+  // Store cleanup function on container for later access
+  carouselContainer._cleanup = cleanup;
 
   return carouselContainer;
 }
@@ -496,13 +592,11 @@ async function showMobileView(mosaicSections, container, groupId, config = {}) {
     }
   });
 
-  // Get cards from store - make a deep copy to avoid mutations
-  let allCards = getMosaicCards(groupId);
+  // Get cards from store
+  const storeCards = getMosaicCards(groupId);
 
-  // Create a deep copy of all cards to prevent mutations
-  if (allCards.length > 0) {
-    allCards = allCards.map((card) => ({ ...card }));
-  }
+  // Create a copy of all cards to prevent mutations to the store
+  let allCards = storeCards.map((card) => ({ ...card }));
 
   if (allCards.length === 0) {
     // eslint-disable-next-line no-console
@@ -521,7 +615,13 @@ async function showMobileView(mosaicSections, container, groupId, config = {}) {
   // Create mobile carousel with autoplay config
   const carousel = await createMobileCarousel(allCards, groupId, config);
 
-  // Clear and append to container
+  // Cleanup previous carousel BEFORE modifying DOM
+  const existingCarousel = container.querySelector('.mosaic-v2-mobile-carousel');
+  if (existingCarousel && existingCarousel._cleanup) {
+    existingCarousel._cleanup();
+  }
+
+  // Clear and append to container (cleanup already done above)
   container.innerHTML = '';
   container.appendChild(carousel);
   container.style.display = 'block';
@@ -547,9 +647,24 @@ export function initMobileViewHelper(config) {
     return { destroy: () => {} };
   }
 
+  // Track current view state to avoid unnecessary re-renders
+  let currentView = null; // 'mobile' or 'desktop'
+
   // Initial render based on viewport
   async function handleResize() {
-    if (isMobileViewport()) {
+    const isMobile = isMobileViewport();
+    const targetView = isMobile ? 'mobile' : 'desktop';
+
+    // Only switch views if we're changing between mobile and desktop
+    if (currentView === targetView) {
+      return; // Already in the correct view, do nothing
+    }
+
+    // eslint-disable-next-line no-console
+    console.log(`[${groupId}] Switching from ${currentView} to ${targetView}`);
+    currentView = targetView;
+
+    if (isMobile) {
       await showMobileView(mosaicSections, container, groupId, { autoplay, autoplaySpeed, showArrows });
     } else {
       showDesktopView(mosaicSections, container);

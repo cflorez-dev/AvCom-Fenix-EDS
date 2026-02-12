@@ -110,8 +110,6 @@ export const BookingBox = ({
   const bookingBoxRef = useRef(null);
   const sentinelRef = useRef(null);
   const observerRef = useRef(null);
-  const nextSectionRef = useRef(null);
-  const removeClassTimeoutRef = useRef(null);
 
   // ========== STEP ORDER ==========
   const STEP_ORDER = ['route', 'dates', 'passengers'];
@@ -417,6 +415,11 @@ export const BookingBox = ({
   ]);
 
   // ========== DESKTOP STICKY INTEGRATION ==========
+  // Sticky only when header has fully hidden the box (next pixel after cover = sticky)
+  const STICKY_HEADER_OFFSET_PX = 50; // same as md:top-[calc(var(--marquee-height,0px)+50px)]
+  const SETUP_RETRY_MS = 80;
+  const SETUP_RETRY_MAX = 25;
+
   useEffect(() => {
     if (typeof window === 'undefined') return undefined;
 
@@ -425,20 +428,47 @@ export const BookingBox = ({
 
     const isDesktop = () => window.innerWidth >= 768;
 
+    const getStickyRootMarginTop = () => {
+      const marqueeHeightStr = getComputedStyle(document.documentElement)
+        .getPropertyValue('--marquee-height')
+        .trim();
+      const marqueePx = Number.parseInt(marqueeHeightStr, 10) || 0;
+      const headerBottom = marqueePx + STICKY_HEADER_OFFSET_PX;
+      const boxHeight = bookingBoxRef.current?.offsetHeight ?? 0;
+      // Trigger when bottom of box reaches header bottom: root top = headerBottom - boxHeight
+      return { rootTop: headerBottom - boxHeight, boxHeight };
+    };
+
     let observer = null;
+    let retryCount = 0;
+    let retryId = null;
 
     const setupObserver = () => {
-      // Clear previous observer if it exists
       if (observer) {
         observer.disconnect();
         observer = null;
       }
 
-      // Only create observer on desktop (>= 768px)
       if (!isDesktop()) {
         setIsSticky(false);
         return;
       }
+
+      const { rootTop, boxHeight } = getStickyRootMarginTop();
+
+      // Don't create observer until we have a valid box height (ref may not be ready on first run)
+      if (!bookingBoxRef.current || boxHeight <= 0) {
+        if (retryCount < SETUP_RETRY_MAX) {
+          retryCount += 1;
+          retryId = setTimeout(setupObserver, SETUP_RETRY_MS);
+        }
+        return;
+      }
+      retryCount = 0;
+
+      const rootMargin = rootTop > 0
+        ? `-${rootTop}px 0px 0px 0px`
+        : `${-rootTop}px 0px 0px 0px`;
 
       observer = new IntersectionObserver(
         (entries) => {
@@ -448,7 +478,7 @@ export const BookingBox = ({
         },
         {
           root: null,
-          rootMargin: '-1px 0px 0px 0px',
+          rootMargin,
           threshold: 0,
         },
       );
@@ -457,18 +487,32 @@ export const BookingBox = ({
       observerRef.current = observer;
     };
 
-    // Initial setup
-    setupObserver();
+    const runSetup = () => {
+      retryCount = 0;
+      if (retryId) {
+        clearTimeout(retryId);
+        retryId = null;
+      }
+      requestAnimationFrame(() => {
+        setupObserver();
+      });
+    };
 
-    // Re-setup on resize
+    runSetup();
+
     const handleResize = () => {
-      setupObserver();
+      runSetup();
     };
 
     window.addEventListener('resize', handleResize);
+    window.addEventListener('header-template-ready', handleResize);
+    window.addEventListener('header-resize', handleResize);
 
     return () => {
       window.removeEventListener('resize', handleResize);
+      window.removeEventListener('header-template-ready', handleResize);
+      window.removeEventListener('header-resize', handleResize);
+      if (retryId) clearTimeout(retryId);
       if (observer) {
         observer.disconnect();
       }
@@ -477,53 +521,6 @@ export const BookingBox = ({
       }
     };
   }, []);
-
-  // ========== BOOKING BOX CONTAINER PADDING BOTTOM WHEN STICKY ==========
-  useEffect(() => {
-    if (typeof window === 'undefined') return undefined;
-    // Find the booking box container (parent with classes 'section booking-box-container')
-    const bookingBoxContainer = bookingBoxRef.current?.closest('.section.booking-box-container');
-    if (!bookingBoxContainer) return undefined;
-    nextSectionRef.current = bookingBoxContainer;
-
-    // Clear any pending timeout
-    if (removeClassTimeoutRef.current) {
-      clearTimeout(removeClassTimeoutRef.current);
-      removeClassTimeoutRef.current = null;
-    }
-
-    // Apply or remove classes based on isSticky state
-    if (isSticky && window.innerWidth >= 768) {
-      // Add base class first, then sticky class for smooth transition
-      bookingBoxContainer.classList.add('booking-box-next-section');
-      requestAnimationFrame(() => {
-        if (nextSectionRef.current) {
-          nextSectionRef.current.classList.add('booking-box-next-section--sticky');
-        }
-      });
-    } else {
-      // Remove sticky class first (triggers transition back to 0)
-      bookingBoxContainer.classList.remove('booking-box-next-section--sticky');
-      // Wait for transition to complete before removing base class
-      removeClassTimeoutRef.current = setTimeout(() => {
-        if (nextSectionRef.current && (!isSticky || window.innerWidth < 768)) {
-          nextSectionRef.current.classList.remove('booking-box-next-section');
-        }
-        removeClassTimeoutRef.current = null;
-      }, 350); // Slightly longer than transition duration (300ms)
-    }
-    return () => {
-      // Cleanup: clear timeout and remove classes when component unmounts
-      if (removeClassTimeoutRef.current) {
-        clearTimeout(removeClassTimeoutRef.current);
-        removeClassTimeoutRef.current = null;
-      }
-      if (nextSectionRef.current) {
-        nextSectionRef.current.classList.remove('booking-box-next-section--sticky');
-        nextSectionRef.current.classList.remove('booking-box-next-section');
-      }
-    };
-  }, [isSticky]);
 
   // Detect viewport changes (mobile/desktop)
   useEffect(() => {
@@ -615,6 +612,7 @@ export const BookingBox = ({
       || validationErrors?.returnDate),
     [validationErrors],
   );
+
   // ========== RENDER ==========
   return html`
     <div
@@ -624,6 +622,12 @@ export const BookingBox = ({
     >
       <!-- Sentinel for IntersectionObserver -->
       <div ref=${sentinelRef} class="h-px w-full" aria-hidden="true"></div>
+
+      <!-- Sticky placeholder: keeps layout space when booking box becomes fixed -->
+      <div
+        class=${`hidden md:block w-full pointer-events-none ${isSticky ? 'h-[240px]' : 'h-0'}`}
+        aria-hidden="true"
+      ></div>
       
       <!-- Overlay -->
       ${shouldShowOverlay() && html`
@@ -657,7 +661,7 @@ export const BookingBox = ({
           </div>
         `}
 
-        <div ref=${bookingBoxRef} class="w-full rounded-4xl md:rounded-3xl bg-white z-[800] ${finalClasses}">
+        <div ref=${bookingBoxRef} class="w-full rounded-4xl md:rounded-3xl bg-white z-[800] ${finalClasses} ${isSticky ? 'booking-box-sticky-enter' : ''}">
         <div class="grid w-full gap-4 md:gap-4 lg2:gap-3 md:col-span-full md:grid-cols-[auto_160px_minmax(117px,max-content)] lg2:grid-cols-[252px_auto_328px_160px_minmax(116px,max-content)] ${stickyGrid}">
             ${!isSticky && html`
                 <div class="md:mb-2 lg2:mb-0 flex justify-center md:justify-start lg2:row-start-1 lg2:row-end-2 lg2:col-start-1 lg2:col-end-2">

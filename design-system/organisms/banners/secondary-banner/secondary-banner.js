@@ -318,14 +318,22 @@ export const SecondaryBanner = ({
                 </div>
                 ${ctaText && ctaUrl ? html`
                   <div data-appearance="secondary" data-iconafter="false" data-iconbefore="false" data-icononly="false" data-size="default" data-state="default">
-                    <${Button}
-                      variant=${mode === 'dark' ? 'primary' : 'secondary'}
-                      size=${buttonSize}
+                    <a 
                       href=${ctaUrl}
-                      rel=${ctaLinkType === 'dofollow' ? undefined : ctaLinkType}
+                      target=${(ctaUrl.startsWith('/') || ctaUrl.startsWith('#')) ? '_self' : '_blank'}
+                      rel=${(ctaUrl.startsWith('/') || ctaUrl.startsWith('#'))
+                        ? (ctaLinkType === 'dofollow' ? undefined : ctaLinkType)
+                        : `noopener noreferrer${ctaLinkType !== 'dofollow' ? ` ${ctaLinkType}` : ''}`
+                      }
+                      class="inline-block"
                     >
-                      ${ctaText}
-                    </${Button}>
+                      <${Button}
+                        variant=${mode === 'dark' ? 'primary' : 'secondary'}
+                        size=${buttonSize}
+                      >
+                        ${ctaText}
+                      </${Button}>
+                    </a>
                   </div>
                 ` : ''}
               </div>
