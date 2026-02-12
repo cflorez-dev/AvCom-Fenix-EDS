@@ -625,7 +625,7 @@ export const BookingBox = ({
 
       <!-- Sticky placeholder: keeps layout space when booking box becomes fixed -->
       <div
-        class=${`hidden md:block w-full pointer-events-none ${isSticky ? 'h-[240px]' : 'h-0'}`}
+        class=${`hidden md:block w-full pointer-events-none ${isSticky ? 'h-[290px]' : 'h-0'}`}
         aria-hidden="true"
       ></div>
       
