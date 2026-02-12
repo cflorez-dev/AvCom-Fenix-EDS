@@ -262,7 +262,7 @@ export default async function decorate(block) {
     chevronBefore.className = `
       hidden xl:flex items-center justify-center shrink-0 size-[24px]
       text-[var(--text-normal-primary)] hover:text-[var(--text-link-informative-default)]
-      transition-colors duration-200
+      transition-colors duration-200 cursor-pointer 
       focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--border-stroke-focus,#1d9bf0)] focus-visible:rounded-[var(--x-tiny,2px)]
     `.trim().replace(/\s+/g, ' ');
     chevronBefore.setAttribute('aria-label', 'Scroll tabs left');
@@ -292,7 +292,7 @@ export default async function decorate(block) {
     chevronAfter.className = `
       hidden xl:flex items-center justify-center shrink-0 size-[24px]
       text-[var(--text-normal-primary)] hover:text-[var(--text-link-informative-default)]
-      transition-colors duration-200
+      transition-colors duration-200 cursor-pointer 
       focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--border-stroke-focus,#1d9bf0)] focus-visible:rounded-[var(--x-tiny,2px)]
     `.trim().replace(/\s+/g, ' ');
     chevronAfter.setAttribute('aria-label', 'Scroll tabs right');

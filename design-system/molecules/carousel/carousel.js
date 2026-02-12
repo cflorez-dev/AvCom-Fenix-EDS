@@ -560,4 +560,5 @@ export const Carousel = ({
   `;
 };
 
+export { CarouselPaginationDots };
 export default Carousel;

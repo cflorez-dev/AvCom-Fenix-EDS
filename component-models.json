@@ -412,6 +412,18 @@
         "name": "multitab-default-open",
         "label": "Default Tab",
         "description": "Whether this tab should be active by default when the page loads."
+      },
+      {
+        "component": "text",
+        "name": "mosaic-v2-group",
+        "label": "Mosaic V2 Group ID",
+        "description": "Links this section to a Mosaic Cards V2 block. Must match the Group ID of the controller."
+      },
+      {
+        "component": "text",
+        "name": "mosaic-label",
+        "label": "Mosaic Phase Label",
+        "description": "Optional label for this mosaic phase (used for dot indicators or debugging)."
       }
     ]
   },
@@ -4269,6 +4281,132 @@
     "id": "form-header-banner",
     "fields": [
       {
+        "component": "multiselect",
+        "name": "target-countries",
+        "label": "Target Countries (POS)",
+        "valueType": "string",
+        "description": "Optional: Select target countries/POS. If empty, shows in all. Compared against 'selected-country' cookie (ISO-2 codes).",
+        "options": [
+          {
+            "name": "Argentina",
+            "value": "ar"
+          },
+          {
+            "name": "Bolivia",
+            "value": "bo"
+          },
+          {
+            "name": "Brasil",
+            "value": "br"
+          },
+          {
+            "name": "Canadá",
+            "value": "ca"
+          },
+          {
+            "name": "Chile",
+            "value": "cl"
+          },
+          {
+            "name": "Colombia",
+            "value": "co"
+          },
+          {
+            "name": "Costa Rica",
+            "value": "cr"
+          },
+          {
+            "name": "República Dominicana",
+            "value": "do"
+          },
+          {
+            "name": "Ecuador",
+            "value": "ec"
+          },
+          {
+            "name": "España",
+            "value": "eu"
+          },
+          {
+            "name": "Francia",
+            "value": "fr"
+          },
+          {
+            "name": "Reino Unido",
+            "value": "gb"
+          },
+          {
+            "name": "Guatemala",
+            "value": "gt"
+          },
+          {
+            "name": "Honduras",
+            "value": "hn"
+          },
+          {
+            "name": "México",
+            "value": "mx"
+          },
+          {
+            "name": "Nicaragua",
+            "value": "ni"
+          },
+          {
+            "name": "Otros",
+            "value": "ot"
+          },
+          {
+            "name": "Panamá",
+            "value": "pa"
+          },
+          {
+            "name": "Perú",
+            "value": "pe"
+          },
+          {
+            "name": "Paraguay",
+            "value": "py"
+          },
+          {
+            "name": "El Salvador",
+            "value": "sv"
+          },
+          {
+            "name": "Estados Unidos",
+            "value": "us"
+          },
+          {
+            "name": "Uruguay",
+            "value": "uy"
+          }
+        ]
+      },
+      {
+        "component": "multiselect",
+        "name": "target-languages",
+        "label": "Target Languages",
+        "valueType": "string",
+        "description": "Optional: Select target languages. If empty, shows in all. Compared against 'selected-language' cookie.",
+        "options": [
+          {
+            "name": "English",
+            "value": "en"
+          },
+          {
+            "name": "Spanish",
+            "value": "es"
+          },
+          {
+            "name": "French",
+            "value": "fr"
+          },
+          {
+            "name": "Portuguese",
+            "value": "pt"
+          }
+        ]
+      },
+      {
         "component": "reference",
         "valueType": "string",
         "name": "image",
@@ -4382,6 +4520,19 @@
         ],
         "value": "p",
         "description": "Semantic level for the subtitle"
+      },
+      {
+        "component": "select",
+        "name": "formType",
+        "label": "Form Type",
+        "options": [
+          {
+            "name": "Cabin Upgrade Form",
+            "value": "cabin-upgrade"
+          }
+        ],
+        "value": "cabin-upgrade",
+        "description": "Type of form to display in the banner"
       },
       {
         "component": "boolean",
@@ -5894,6 +6045,207 @@
         "label": "Show Block",
         "value": "true",
         "description": "Enable or disable the entire block",
+        "valueType": "string",
+        "options": [
+          {
+            "name": "true",
+            "value": "true"
+          },
+          {
+            "name": "false",
+            "value": "false"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "mosaic-cards-v2",
+    "fields": [
+      {
+        "component": "text",
+        "valueType": "string",
+        "name": "group-id",
+        "label": "Group ID",
+        "value": "",
+        "description": "Unique identifier for this carousel group. Mosaic sections must have matching mosaic-v2-group metadata."
+      },
+      {
+        "component": "boolean",
+        "name": "autoplay",
+        "label": "Enable Autoplay",
+        "value": false,
+        "description": "Automatically cycle through mosaic phases"
+      },
+      {
+        "component": "number",
+        "name": "autoplay-speed",
+        "label": "Autoplay Speed (ms)",
+        "value": 3000,
+        "description": "Continuous scroll velocity in marquee mode. Lower = faster, higher = slower (default: 3000)"
+      },
+      {
+        "component": "boolean",
+        "name": "loop",
+        "label": "Loop Infinitely",
+        "value": true,
+        "description": "Return to first mosaic after last one"
+      },
+      {
+        "component": "boolean",
+        "name": "show-arrows",
+        "label": "Show Navigation Arrows",
+        "value": false,
+        "description": "Display left/right arrows for manual navigation desktop | Display dots for manual navigation mobile/tablet"
+      },
+      {
+        "component": "text",
+        "valueType": "string",
+        "name": "enable-from",
+        "label": "Enable From Date",
+        "value": "",
+        "description": "Optional: Start date in ISO format (YYYY-MM-DD). Block hidden before this date."
+      },
+      {
+        "component": "text",
+        "valueType": "string",
+        "name": "enable-to",
+        "label": "Enable To Date",
+        "value": "",
+        "description": "Optional: End date in ISO format (YYYY-MM-DD). Block hidden after this date."
+      },
+      {
+        "component": "multiselect",
+        "name": "target-countries",
+        "label": "Target Countries (POS)",
+        "valueType": "string",
+        "description": "Optional: Select target countries/POS. If empty, shows in all. Compared against 'selected-country' cookie (ISO-2 codes).",
+        "options": [
+          {
+            "name": "Argentina",
+            "value": "ar"
+          },
+          {
+            "name": "Bolivia",
+            "value": "bo"
+          },
+          {
+            "name": "Brasil",
+            "value": "br"
+          },
+          {
+            "name": "Canadá",
+            "value": "ca"
+          },
+          {
+            "name": "Chile",
+            "value": "cl"
+          },
+          {
+            "name": "Colombia",
+            "value": "co"
+          },
+          {
+            "name": "Costa Rica",
+            "value": "cr"
+          },
+          {
+            "name": "República Dominicana",
+            "value": "do"
+          },
+          {
+            "name": "Ecuador",
+            "value": "ec"
+          },
+          {
+            "name": "España",
+            "value": "eu"
+          },
+          {
+            "name": "Francia",
+            "value": "fr"
+          },
+          {
+            "name": "Reino Unido",
+            "value": "gb"
+          },
+          {
+            "name": "Guatemala",
+            "value": "gt"
+          },
+          {
+            "name": "Honduras",
+            "value": "hn"
+          },
+          {
+            "name": "México",
+            "value": "mx"
+          },
+          {
+            "name": "Nicaragua",
+            "value": "ni"
+          },
+          {
+            "name": "Otros",
+            "value": "ot"
+          },
+          {
+            "name": "Panamá",
+            "value": "pa"
+          },
+          {
+            "name": "Perú",
+            "value": "pe"
+          },
+          {
+            "name": "Paraguay",
+            "value": "py"
+          },
+          {
+            "name": "El Salvador",
+            "value": "sv"
+          },
+          {
+            "name": "Estados Unidos",
+            "value": "us"
+          },
+          {
+            "name": "Uruguay",
+            "value": "uy"
+          }
+        ]
+      },
+      {
+        "component": "multiselect",
+        "name": "target-languages",
+        "label": "Target Languages",
+        "valueType": "string",
+        "description": "Optional: Select target languages. If empty, shows in all. Compared against 'selected-language' cookie.",
+        "options": [
+          {
+            "name": "English",
+            "value": "en"
+          },
+          {
+            "name": "Spanish",
+            "value": "es"
+          },
+          {
+            "name": "French",
+            "value": "fr"
+          },
+          {
+            "name": "Portuguese",
+            "value": "pt"
+          }
+        ]
+      },
+      {
+        "component": "select",
+        "name": "show",
+        "label": "Show Block",
+        "value": "true",
+        "description": "Enable or disable the entire carousel",
         "valueType": "string",
         "options": [
           {

@@ -1,6 +1,7 @@
 import { h } from '@dropins/tools/preact.js';
 import htm from 'htm';
 import { Alert } from '../../molecules/alert/alert.js';
+import { CabinUpgradeForm } from '../../organisms/forms/cabin-upgrade-form/cabin-upgrade-form.js';
 
 const html = htm.bind(h);
 
@@ -17,10 +18,12 @@ const html = htm.bind(h);
  * @param {string} [props.subtitleText=''] - Subtitle text
  * @param {'h2'|'h3'|'h4'|'h5'|'h6'|'p'} [props.subtitleLevel='p'] - Semantic level of the subtitle
  * @param {'left'|'center'|'right'} [props.contentAlignment='left'] - Content alignment
+ * @param {'cabin-upgrade'|'none'} [props.formType='cabin-upgrade'] - Type of form to display
  * @param {boolean} [props.showAlert=false] - Show alert
  * @param {'info'|'success'|'warning'|'error'} [props.alertType='info'] - Alert type
  * @param {boolean} [props.alertDismissible=true] - Allow closing the alert
  * @param {string} [props.alertContent=''] - Alert HTML content (rich text)
+ * @param {Function} [props.onFormSubmit] - Callback when form is submitted
  * @param {string} [props.customClassName=''] - Additional CSS classes
  * @param {Object} [props.rest] - Additional properties
  * @returns {import('preact').VNode} FormHeaderBanner component
@@ -34,10 +37,12 @@ export const FormHeaderBanner = ({
   subtitleText = '',
   subtitleLevel = 'p',
   contentAlignment = 'left',
+  formType = 'cabin-upgrade',
   showAlert = false,
   alertType = 'info',
   alertDismissible = true,
   alertContent = '',
+  onFormSubmit = () => {},
   customClassName = '',
   ...rest
 }) => {
@@ -51,6 +56,17 @@ export const FormHeaderBanner = ({
   };
 
   const alertVariant = getAlertVariant(alertType);
+
+  // Render form based on formType
+  const renderForm = () => {
+    if (formType === 'cabin-upgrade') {
+      return html`<${CabinUpgradeForm} onSubmit=${onFormSubmit} />`;
+    }
+    // if (formType === 'otro-formulario') {
+    //   return html`<${OtroFormulario} onSubmit=${onFormSubmit} />`;
+    // }
+    return null; // Si formType === 'none' o no reconocido
+  };
 
   // Determine fetchpriority based on loading mode
   // Only set fetchpriority="high" if eager (likely LCP/above the fold)
@@ -87,10 +103,11 @@ export const FormHeaderBanner = ({
                       <${titleLevel} class="!m-0 self-stretch justify-start text-text-normal-primary !text-[24px] min-[1024px]:!text-[32px] font-bold">${titleText}</${titleLevel}>
                       <${subtitleLevel} class="!m-0 self-stretch justify-start text-text-normal-primary !font-normal !text-[16px] min-[1024px]:!text-[20px] leading-[30px]">${subtitleText}</${subtitleLevel}>
                   </div>
-                  <div class="self-stretch flex flex-col justify-center items-start w-full h-[64px] gap-4 border border-red-600">
-                      <!-- form -->
-                      <p>form</p>
-                  </div>
+                  ${formType !== 'none' ? html`
+                    <div class="self-stretch flex flex-col justify-center items-start w-full gap-4">
+                        ${renderForm()}
+                    </div>
+                  ` : null}
                   <div data-content="true" data-title="false" data-type="informative" class="w-full max-w-[1248px] min-w-48  inline-flex justify-start items-start gap-2">
                     ${showAlert ? html`
                       <${Alert} 
