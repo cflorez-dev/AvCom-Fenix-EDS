@@ -203,3 +203,21 @@
 .scrollbar-hide::-webkit-scrollbar {
   display: none; 
 }
+
+/* Scroll Snap Utilities - For carousel snap behavior */
+.scroll-snap-type-x-mandatory {
+  scroll-snap-type: x mandatory;
+  scroll-padding-inline: 1rem; /* Add padding for better alignment */
+}
+
+.scroll-snap-align-center {
+  scroll-snap-align: center;
+}
+
+.scroll-snap-align-start {
+  scroll-snap-align: start;
+}
+
+.scroll-snap-stop-always {
+  scroll-snap-stop: always;
+}

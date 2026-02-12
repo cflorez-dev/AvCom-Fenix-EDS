@@ -157,6 +157,7 @@ export const DateSelector = ({
   desktopDropdownPositionStyles = 'absolute top-full left-0 right-0',
   departureHasError = false,
   returnHasError = false,
+  showErrorMessage = true,
   startMonth = null,
   startYear = null,
   restrictPrevNavigation = false,
@@ -563,6 +564,7 @@ export const DateSelector = ({
         required=${required}
         containerRelative=${true}
         hasError=${hasInputError}
+        showErrorMessage=${showErrorMessage}
         active=${isOpen}
         i18n=${i18n}
       />

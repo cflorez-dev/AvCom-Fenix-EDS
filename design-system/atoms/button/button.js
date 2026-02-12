@@ -17,6 +17,9 @@ const html = htm.bind(h);
  * - `loading`: `boolean` – Muestra un spinner de carga (por defecto: `false`).
  * - `borderActiveColor`: `string` – Color CSS variable para el border en estado active (opcional).
  * - `borderFocusColor`: `string` – Color CSS variable para el border en estado focus (opcional).
+ * - `href`: `string` – URL para navegar. Si se pasa, renderiza un `<a>` en lugar de `<button>`.
+ * - `target`: `string` – Target del enlace (ej: '_blank'). Solo aplica si hay `href`.
+ * - `rel`: `string` – Rel del enlace (ej: 'nofollow'). Solo aplica si hay `href`.
  * - `customClassName`: Clases CSS adicionales.
  * - `children`: Contenido dentro del botón (texto o iconos como child nodes).
  * - `...rest`: Otras propiedades válidas como `onClick`, `disabled`, etc.
@@ -31,6 +34,9 @@ export const Button = ({
   loading = false,
   borderActiveColor = null,
   borderFocusColor = null,
+  href = null,
+  target = null,
+  rel = null,
   children,
   ...rest
 }) => {
@@ -211,18 +217,18 @@ export const Button = ({
   // Build CSS custom properties object for dynamic border colors
   const customStyles = {};
   if (borderActiveColor && !disabled) {
-    const cssVarName = borderActiveColor.startsWith('var(') 
-      ? borderActiveColor 
-      : borderActiveColor.startsWith('--') 
-        ? `var(${borderActiveColor})` 
+    const cssVarName = borderActiveColor.startsWith('var(')
+      ? borderActiveColor
+      : borderActiveColor.startsWith('--')
+        ? `var(${borderActiveColor})`
         : `var(--${borderActiveColor})`;
     customStyles['--button-border-active'] = cssVarName;
   }
   if (borderFocusColor && !disabled) {
-    const cssVarName = borderFocusColor.startsWith('var(') 
-      ? borderFocusColor 
-      : borderFocusColor.startsWith('--') 
-        ? `var(${borderFocusColor})` 
+    const cssVarName = borderFocusColor.startsWith('var(')
+      ? borderFocusColor
+      : borderFocusColor.startsWith('--')
+        ? `var(${borderFocusColor})`
         : `var(--${borderFocusColor})`;
     customStyles['--button-border-focus'] = cssVarName;
   }
@@ -236,25 +242,47 @@ export const Button = ({
     hidden group-focus-visible:block
   `;
 
-  return html`
-    <button 
-    ref=${buttonRef}
-    data-button
-    disabled=${disabled}
-      class="${`${basesClases} ${basesClaesIneractions}`} ${customClassName}"
-      style=${customStyles}
-      ...${rest}
-    >
-    <div 
-      class="${outlineClasses}"
-    >
-    </div>
+  const combinedClasses = `${basesClases} ${basesClaesIneractions} ${customClassName}`;
+
+  const innerContent = html`
+    <div class="${outlineClasses}"></div>
     <span class="${`${basesClasesChild} ${basesClasesChildInteractions}`}">
       ${children}
     </span>
     ${loading && html`
       <${SimpleLoader} size="small" onDark=${!isDarkLoaderVariation} />
     `}
+  `;
+
+  // If href is provided and not disabled, render as <a> element
+  if (href && !disabled) {
+    return html`
+      <a
+        ref=${buttonRef}
+        data-button
+        href=${href}
+        target=${target}
+        rel=${rel}
+        class="${combinedClasses}"
+        style=${customStyles}
+        ...${rest}
+      >
+        ${innerContent}
+      </a>
+    `;
+  }
+
+  // Default: render as <button> element
+  return html`
+    <button 
+      ref=${buttonRef}
+      data-button
+      disabled=${disabled}
+      class="${combinedClasses}"
+      style=${customStyles}
+      ...${rest}
+    >
+      ${innerContent}
     </button>
   `;
 };

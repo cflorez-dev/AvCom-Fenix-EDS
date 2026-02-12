@@ -419,11 +419,11 @@ export const PassengerSelector = ({
       ...${rest}
     >
       <!-- Trigger Input (flex-col: content row + green line) -->
-      <div class="w-full rounded-lg outline-1 outline-[var(--color-border-default)] inline-flex justify-start items-start overflow-hidden">
+      <div class="w-full rounded-[8px] outline-1 outline-[var(--color-border-default)] inline-flex justify-start items-start overflow-hidden">
         <button
           ref=${triggerRef}
           type="button"
-          class="flex-1 flex flex-col cursor-pointer transition-all duration-200 outline-0 bg-white max-w-full rounded-lg overflow-hidden group/passengerTrigger"
+          class="flex-1 flex flex-col cursor-pointer transition-all duration-200 outline-0 bg-white max-w-full group/passengerTrigger"
           onClick=${handleTriggerClick}
           aria-expanded=${isOpen}
           aria-haspopup="true"

@@ -11,6 +11,7 @@
  * @returns {string} Tailwind classes applied to the card wrapper
  */
 
+import { getMosaicStore } from '../mosaic-cards-v2/mosaic-cards-v2.store.js';
 import { shouldShowByTargeting, hideBlockWithSection, filterItemsByTargeting } from '../../scripts/utils/target-filter.js';
 
 function getCardClasses(template, cardIndex) {
@@ -485,6 +486,68 @@ export default async function decorate(block) {
       `,
       container,
     );
+
+    // Register cards in store if this mosaic is part of a mosaic-cards-v2 group
+    setTimeout(() => {
+      // Check if this block is inside a mosaic-cards-v2 container
+      const section = block.closest('.section');
+      const groupId = section?.dataset?.mosaicV2Group;
+      
+      if (groupId) {
+        // This mosaic is part of a mosaic-cards-v2 group
+        const store = getMosaicStore();
+        
+        // Get existing group data or create new one
+        const existingGroup = store.getGroup(groupId) || { cards: [], metadata: {} };
+        
+        // Transform childItems to store format with DOM elements
+        const cardsWithElements = childItems.map((card, index) => {
+          // Find the corresponding DOM element
+          const cardElement = container.querySelector(`[data-card="${index + 1}"]`);
+          
+          return {
+            index: existingGroup.cards.length + index,
+            element: cardElement,
+            title: card.title,
+            description: card.description,
+            link: card.linkUrl ? {
+              href: card.linkUrl,
+              text: card.ctaLabel,
+              alt: card.linkAlt,
+              opensIn: card.linkOpensIn,
+            } : null,
+            image: card.imageDesktop ? {
+              src: card.imageDesktop,
+              alt: card.imageDesktopAlt,
+              mobile: card.imageMobile,
+              mobileAlt: card.imageMobileAlt,
+            } : null,
+            badges: card.badges,
+            supportIcon: card.supportIcon,
+            clickBehavior: card.clickBehavior,
+            ctaIconBefore: card.ctaIconBefore,
+            ctaIconAfter: card.ctaIconAfter,
+          };
+        });
+        
+        // Merge with existing cards (for multiple mosaics in same group)
+        const allCards = [...existingGroup.cards, ...cardsWithElements];
+        
+        // Register or update group
+        store.registerGroup(groupId, {
+          cards: allCards,
+          metadata: {
+            ...existingGroup.metadata,
+            template,
+            layout: config.layout,
+            loading: config.loading,
+            targetCountries: config.targetCountries,
+            targetLanguages: config.targetLanguages,
+            totalMosaics: (existingGroup.metadata.totalMosaics || 0) + 1,
+          },
+        });
+      }
+    }, 100);
   } catch (error) {
     console.error('Error loading cms-mosaic-cards dependencies:', error);
     block.innerHTML = `<div style="padding: 20px; background: #ffebee; border: 1px solid #f44336; border-radius: 4px;"><strong>❌ Error loading content</strong><br>${error.message}</div>`;

@@ -140,6 +140,7 @@ export const CitySelector = ({
   customClassName = '',
   disabled = false,
   hasError = false,
+  showErrorMessage = true,
   iconInputName = 'action/plane',
   positionDropdownStyles = 'top-full left-0 right-0',
   containerRelative = true,
@@ -161,12 +162,14 @@ export const CitySelector = ({
   const [searchQuery, setSearchQuery] = useState('');
   const [focusedIndex, setFocusedIndex] = useState(-1);
   const [isMobile, setIsMobile] = useState(false);
+  const [desktopListHasScrollbar, setDesktopListHasScrollbar] = useState(false);
 
   const containerRef = useRef(null);
   const inputRef = useRef(null);
   const dropdownRef = useRef(null);
   const triggerRef = useRef(null);
   const tabKeyPressedRef = useRef(false);
+  const desktopListRef = useRef(null);
 
   // Helper para cambiar estado de isOpen (controlado o no controlado)
   const setIsOpenState = useCallback((newIsOpen) => {
@@ -274,6 +277,22 @@ export const CitySelector = ({
       inputRef.current.focus();
     }
   }, [isOpen]);
+
+  // Detectar si la lista desktop tiene scrollbar (pr-4 cuando no hay scroll, pr-[4px] cuando hay scroll)
+  useEffect(() => {
+    if (!isOpen || isMobile || !desktopListRef.current || filteredCities.length === 0) {
+      setDesktopListHasScrollbar(false);
+      return () => {};
+    }
+    const el = desktopListRef.current;
+    const checkScrollbar = () => {
+      setDesktopListHasScrollbar(el.scrollHeight > el.clientHeight);
+    };
+    checkScrollbar();
+    const ro = new ResizeObserver(checkScrollbar);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [isOpen, isMobile, filteredCities.length]);
 
   // Handlers (useCallback para estabilidad)
   const handleToggle = useCallback(() => {
@@ -628,7 +647,7 @@ export const CitySelector = ({
       </div>
 
       <!-- Error message (absolute: floats below trigger without affecting layout) -->
-      ${!isMobile && hasError && html`
+      ${showErrorMessage && !isMobile && hasError && html`
         <div class="absolute top-full left-0 min-h-[21px] flex items-start mt-[4px] font-normal text-sm leading-5 text-[var(--alert-error-icon-bg)]">
           <svg
             class="w-4 h-4 mr-1 flex-shrink-0 mt-0.5"
@@ -657,7 +676,7 @@ export const CitySelector = ({
           <div class="self-stretch justify-start text-text-normal-secondary text-base font-bold">${i18n['bookingBox.labels.results'] || 'Resultados'}</div>
         ` : ''}
           <!-- Cities List -->
-          <div class="flex-1 overflow-y-auto pr-[4px]">
+          <div ref=${desktopListRef} class=${`flex-1 overflow-y-auto ${desktopListHasScrollbar ? 'pr-[4px]' : 'pr-4'}`}>
             ${filteredCities.length > 0 && !isLoading ? html`
                 ${filteredCities.map((city, index) => renderCityItem(city, index))}
             ` : html`
@@ -782,7 +801,7 @@ export const CitySelector = ({
             <div class="self-stretch justify-start text-text-normal-secondary text-base font-bold mt-[16px]">${i18n['bookingBox.labels.results'] || 'Resultados'}</div>
           ` : ''}
           ${filteredCities.length > 0 && !isLoading ? html`
-            <div class="overflow-y-auto scrollbar-hide">
+            <div class="overflow-y-auto">
               ${filteredCities.map((city, index) => renderCityItem(city, index))}
             </div>
           ` : html`

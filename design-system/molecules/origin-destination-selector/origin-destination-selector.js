@@ -295,12 +295,12 @@ export const OriginDestinationSelector = ({
 
   return html`
     <div
-      class=${`relative ${originHasError || destinationHasError ? 'mb-[25px]' : ''} ${containerClasses}`}
+      class=${`relative ${containerClasses}`}
       data-name="originDestinationSelector"
       ...${rest}
     >
       <!-- Grouped container with shared borders -->
-      <div class="flex flex-col md:flex-row outline outline-1 outline-offset-[-1px] outline-[var(--color-border-default)] rounded-[8px] bg-background-input-default">
+      <div class="flex flex-col md:flex-row outline outline-1 outline-offset-[-1px] outline-[var(--color-border-default)] rounded-[8px] bg-background-input-default overflow-hidden">
         <!-- Origin -->
         <div class=${CITY_CONTAINER_CLASSES}>
           <${CitySelector}
@@ -319,6 +319,7 @@ export const OriginDestinationSelector = ({
             containerRelative=${false}
             positionDropdownStyles=${originDropdownPositionStyles}
             hasError=${originHasError}
+            showErrorMessage=${false}
             i18n=${i18n}
             isLoading=${isLoadingCities}
             stepTitle=${i18n['bookingBox.stepTitles.selectOrigin'] || '¿A dónde vas a volar?'}
@@ -364,12 +365,50 @@ export const OriginDestinationSelector = ({
             containerRelative=${false}
             positionDropdownStyles=${destinationDropdownPositionStyles}
             hasError=${destinationHasError}
+            showErrorMessage=${false}
             i18n=${i18n}
             isLoading=${isLoadingCities}
             stepTitle=${i18n['bookingBox.stepTitles.selectDestination'] || '¿A dónde vas a volar?'}
           />
         </div>
       </div>
+
+      ${(originHasError || destinationHasError) && html`
+        <div class="mt-[4px] hidden md:flex md:gap-x-[1px]">
+          <div class="flex-1 min-h-[21px]">
+            ${originHasError && html`
+              <div class="flex items-start font-normal text-sm leading-5 text-[var(--alert-error-icon-bg)]">
+                <svg
+                  class="w-4 h-4 mr-1 flex-shrink-0 mt-0.5"
+                  fill="currentColor"
+                  viewBox="0 0 20 20"
+                  aria-hidden="true"
+                >
+                  <circle cx="10" cy="10" r="9" fill="currentColor" />
+                  <text x="10" y="14" text-anchor="middle" fill="white" font-size="12" font-weight="bold">i</text>
+                </svg>
+                <span>${i18n['bookingBox.labels.requiredField'] || 'This field is required'}</span>
+              </div>
+            `}
+          </div>
+          <div class="flex-1 min-h-[21px]">
+            ${destinationHasError && html`
+              <div class="flex items-start font-normal text-sm leading-5 text-[var(--alert-error-icon-bg)]">
+                <svg
+                  class="w-4 h-4 mr-1 flex-shrink-0 mt-0.5"
+                  fill="currentColor"
+                  viewBox="0 0 20 20"
+                  aria-hidden="true"
+                >
+                  <circle cx="10" cy="10" r="9" fill="currentColor" />
+                  <text x="10" y="14" text-anchor="middle" fill="white" font-size="12" font-weight="bold">i</text>
+                </svg>
+                <span>${i18n['bookingBox.labels.requiredField'] || 'This field is required'}</span>
+              </div>
+            `}
+          </div>
+        </div>
+      `}
     </div>
   `;
 };
