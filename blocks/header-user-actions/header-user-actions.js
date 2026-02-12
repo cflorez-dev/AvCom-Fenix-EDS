@@ -1,6 +1,7 @@
 import { h, render } from '@dropins/tools/preact.js';
 import htm from 'htm';
 import { readBlockConfig } from '../../scripts/aem.js';
+import { shouldShowByTargeting } from '../../scripts/utils/target-filter.js';
 import { Actions } from '../../design-system/organisms/header/actions/actions.js';
 
 const html = htm.bind(h);
@@ -21,9 +22,25 @@ const html = htm.bind(h);
 function mapBlockData(block) {
   const divs = Array.from(block.querySelectorAll(':scope > div'));
 
+  // Check if first 2 rows are targeting config (single-column rows with country/language codes)
+  const validCountries = ['co', 'ar', 'mx', 'pe', 'ec', 'sv', 'cr', 'br', 'bo', 'cl', 'ca', 'gt', 'hn', 'ni', 'pa', 'py', 'do', 'eu', 'gb', 'uy', 'ot', 'us'];
+  let startIndex = 0;
+  
+  if (divs.length >= 2) {
+    const firstRowValue = divs[0]?.children[0]?.textContent?.trim().toLowerCase();
+    const firstRowIsTargeting = firstRowValue && 
+      divs[0].children.length <= 2 && // Max 2 cols for targeting config
+      (validCountries.includes(firstRowValue) || firstRowValue.split(',').every((c) => validCountries.includes(c.trim())));
+    
+    if (firstRowIsTargeting) {
+      // Skip first 2 rows (target-countries and target-languages)
+      startIndex = 2;
+    }
+  }
+
   // Helper function to extract text content from nested div > p structure
   const extractValue = (div) => {
-    const innerDiv = div.querySelector(':scope > div');
+    const innerDiv = div?.querySelector(':scope > div');
     if (innerDiv) {
       const paragraph = innerDiv.querySelector('p');
       return paragraph ? paragraph.textContent.trim() : '';
@@ -42,18 +59,18 @@ function mapBlockData(block) {
     return Boolean(value);
   };
 
-  // Map data based on div order
+  // Map data based on div order (after skipping targeting rows if present)
   // Labels and icons default to empty strings, booleans default to true
   const mappedData = {
     cart: {
-      label: extractValue(divs[0]) || '',
-      icon: extractValue(divs[1]) || '',
-      show: parseBoolean(extractValue(divs[2])),
+      label: extractValue(divs[startIndex + 0]) || '',
+      icon: extractValue(divs[startIndex + 1]) || '',
+      show: parseBoolean(extractValue(divs[startIndex + 2])),
     },
     user: {
-      label: extractValue(divs[3]) || '',
-      icon: extractValue(divs[4]) || '',
-      show: parseBoolean(extractValue(divs[5])),
+      label: extractValue(divs[startIndex + 3]) || '',
+      icon: extractValue(divs[startIndex + 4]) || '',
+      show: parseBoolean(extractValue(divs[startIndex + 5])),
     },
   };
 
@@ -83,6 +100,40 @@ export default function decorate(block) {
     block.insertBefore(authorIndicator, block.firstChild);
 
     // Don't transform the block - keep it editable
+    return;
+  }
+
+  // Targeting check - hide if not matching current POS
+  const configData = readBlockConfig(block);
+  
+  // Leer targeting desde config (formato estándar: target-countries | co)
+  let targetCountries = configData['target-countries'] || '';
+  let targetLanguages = configData['target-languages'] || '';
+  
+  // Fallback: Si no hay config con nombre, leer de las primeras dos filas simples
+  // SOLO si el contenido parece ser un código de país/idioma válido
+  if (!targetCountries && !targetLanguages) {
+    const validCountries = ['co', 'ar', 'mx', 'pe', 'ec', 'sv', 'cr', 'br', 'bo', 'cl', 'ca', 'gt', 'hn', 'ni', 'pa', 'py', 'do', 'eu', 'gb', 'uy', 'ot', 'us'];
+    const validLanguages = ['es', 'en', 'pt', 'fr'];
+    
+    const rows = block.querySelectorAll(':scope > div');
+    if (rows.length >= 2) {
+      const firstRowValue = rows[0]?.children[0]?.textContent?.trim().toLowerCase();
+      // Solo usar si es un código de país válido (2-3 letras) o lista separada por comas
+      if (firstRowValue && (validCountries.includes(firstRowValue) || firstRowValue.split(',').every((c) => validCountries.includes(c.trim())))) {
+        targetCountries = firstRowValue;
+      }
+      
+      const secondRowValue = rows[1]?.children[0]?.textContent?.trim().toLowerCase();
+      // Solo usar si es un código de idioma válido o lista separada por comas
+      if (secondRowValue && (validLanguages.includes(secondRowValue) || secondRowValue.split(',').every((l) => validLanguages.includes(l.trim())))) {
+        targetLanguages = secondRowValue;
+      }
+    }
+  }
+
+  if (!shouldShowByTargeting(targetCountries, targetLanguages)) {
+    block.style.display = 'none';
     return;
   }
 

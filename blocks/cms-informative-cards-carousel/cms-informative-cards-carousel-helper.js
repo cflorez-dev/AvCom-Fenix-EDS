@@ -1,6 +1,9 @@
+import { filterItemsByTargeting } from '../../scripts/utils/target-filter.js';
+
 /**
  * Extracts props from a CMS Informative Cards Carousel block.
- * Extracts loading mode, target countries, and target languages from the parent block configuration.
+ * Extracts loading mode, target countries, and target languages from
+ * the parent block configuration.
  *
  * Parent row structure:
  * - Row 0: loading
@@ -25,7 +28,7 @@ export function extractCmsInformativeCardsCarouselProps(block) {
   const rows = Array.from(block.children);
 
   // Row 0: loading field (single-cell row)
-  let loading = defaultProps.loading;
+  let { loading } = defaultProps;
   if (rows[0] && rows[0].children.length === 1) {
     const loadingValue = rows[0].children[0].textContent.trim();
     if (loadingValue) {
@@ -34,7 +37,7 @@ export function extractCmsInformativeCardsCarouselProps(block) {
   }
 
   // Row 1: target-countries field (comma-separated)
-  let targetCountries = defaultProps.targetCountries;
+  let { targetCountries } = defaultProps;
   if (rows[1] && rows[1].children.length === 1) {
     const countriesValue = rows[1].children[0].textContent.trim();
     if (countriesValue) {
@@ -43,7 +46,7 @@ export function extractCmsInformativeCardsCarouselProps(block) {
   }
 
   // Row 2: target-languages field (comma-separated)
-  let targetLanguages = defaultProps.targetLanguages;
+  let { targetLanguages } = defaultProps;
   if (rows[2] && rows[2].children.length === 1) {
     const languagesValue = rows[2].children[0].textContent.trim();
     if (languagesValue) {
@@ -139,6 +142,12 @@ export function extractCarouselCards(block) {
     const ctaRelRaw = cells[6]?.textContent?.trim().toLowerCase() || 'dofollow';
     const ctaRel = ['dofollow', 'nofollow', 'sponsored'].includes(ctaRelRaw) ? ctaRelRaw : 'dofollow';
 
+    // Extract target-countries (cell 7) - comma-separated list
+    const targetCountries = cells[7]?.textContent?.trim() || '';
+
+    // Extract target-languages (cell 8) - comma-separated list
+    const targetLanguages = cells[8]?.textContent?.trim() || '';
+
     // Validate required fields
     if (!image) {
       return;
@@ -162,10 +171,13 @@ export function extractCarouselCards(block) {
       ctaLink,
       ctaTargetBlank,
       ctaRel,
+      'target-countries': targetCountries,
+      'target-languages': targetLanguages,
     };
 
     cards.push(card);
   });
 
-  return cards;
+  // Filter cards by targeting
+  return filterItemsByTargeting(cards);
 }

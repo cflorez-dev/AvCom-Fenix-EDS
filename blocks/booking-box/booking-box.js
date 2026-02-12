@@ -2,7 +2,7 @@ import htm from 'htm';
 import { h, render } from '@dropins/tools/preact.js';
 import { BookingBox } from '../../design-system/organisms/booking-box/booking-box.js';
 import { fetchAEMData } from '../../scripts/utils/aem-data.js';
-import { getStoredLanguage } from '../../scripts/services/header/language-country-selector.js';
+import { resolveLocale } from '../../scripts/utils/locale.js';
 
 const html = htm.bind(h);
 
@@ -46,8 +46,9 @@ export default async function decorate(block) {
     }
   });
 
-  const language = getStoredLanguage();
-  const config = await fetchAEMData(`${language}`);
+  const locale = await resolveLocale();
+  const language = locale.language || 'es';
+  const config = await fetchAEMData(language);
 
   const i18Data = Object.fromEntries(
     config.data.map(({ Key, Text }) => [Key, Text]),

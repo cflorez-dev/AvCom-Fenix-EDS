@@ -23,28 +23,8 @@ export default async function decorate(block) {
     return;
   }
 
-  // Load nav as fragment with localized paths and fallback
-  const navMeta = getMetadata('nav');
-  const customPath = navMeta ? new URL(navMeta, window.location).pathname : null;
-  const navPaths = getLocalizedPaths('nav', customPath);
-  // Try to load in priority order
-  let fragment = null;
-  for (const navPath of navPaths) {
-    // Pass 'nav' as resourceType for path caching
-    // eslint-disable-next-line no-await-in-loop
-    fragment = await loadFragment(navPath, 'nav');
-    if (fragment) {
-      // eslint-disable-next-line no-console
-      console.log(`✅ Header loaded from: ${navPath}`);
-      break;
-    }
-  }
-  if (!fragment) {
-    // eslint-disable-next-line no-console
-    console.error('❌ No header fragment found in any path:', navPaths);
-    return;
-  }
-
+  // Create header container structure FIRST so child blocks can find their containers
+  // This fixes the race condition where header-navbar couldn't find .header-navbar-desktop
   const headerContainer = document.createElement('div');
   headerContainer.className = 'header-wrapper max-w-[1247px] w-full flex flex-row justify-between items-center h-[76px] min-[1440px]:h-[76px] top-[var(--marquee-height)]';
   headerContainer.innerHTML = `
@@ -65,6 +45,29 @@ export default async function decorate(block) {
     block.parentNode.insertBefore(headerContainer, block.nextSibling);
   } else {
     block.after(headerContainer);
+  }
+
+  // Load nav as fragment with localized paths and fallback
+  // Now containers exist in DOM so header-navbar can find them during decoration
+  const navMeta = getMetadata('nav');
+  const customPath = navMeta ? new URL(navMeta, window.location).pathname : null;
+  const navPaths = await getLocalizedPaths('nav', customPath);
+  // Try to load in priority order
+  let fragment = null;
+  for (const navPath of navPaths) {
+    // Pass 'nav' as resourceType for path caching
+    // eslint-disable-next-line no-await-in-loop
+    fragment = await loadFragment(navPath, 'nav');
+    if (fragment) {
+      // eslint-disable-next-line no-console
+      console.log(`✅ Header loaded from: ${navPath}`);
+      break;
+    }
+  }
+  if (!fragment) {
+    // eslint-disable-next-line no-console
+    console.error('❌ No header fragment found in any path:', navPaths);
+    return;
   }
 
   // Helper function to emit the event

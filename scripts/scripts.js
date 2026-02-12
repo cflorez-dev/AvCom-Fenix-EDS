@@ -172,10 +172,10 @@ function getTimezoneGMTOffset() {
 
 /**
  * Get page view event data for analytics
- * @returns {Object} Page view event data with location, user, and device information
+ * @returns {Promise<Object>} Page view event data with location, user, and device information
  */
-function pageViewEventData() {
-  const locale = resolveLocale();
+async function pageViewEventData() {
+  const locale = await resolveLocale();
 
   return {
     page_location: window.location.href,
@@ -193,9 +193,8 @@ function pageViewEventData() {
 }
 
 /**
- * Load global fallback content when POS-specific content is empty
- * Implements "global by default, override by exception" pattern
- * Supports ANY page path: /{pos}/{lang}/{pagePath} → /global/{lang}/{pagePath}
+ * Load fallback content when page is empty
+ * Pattern: /{lang}/ URLs - no /global/ folder, content lives at /{lang}/
  * @param {Element} main The main element
  * @returns {Promise<boolean>} True if fallback was loaded
  */
@@ -209,13 +208,9 @@ async function loadGlobalFallbackContent(main) {
     return false; // Has content, no fallback needed
   }
 
-  // Loop guard: Skip if we're already on /global/ to prevent infinite recursion
   const currentPath = window.location.pathname;
-  if (currentPath.startsWith('/global/')) {
-    return false;
-  }
 
-  // Skip fallback for /errors/ paths (system pages, not POS-specific)
+  // Skip fallback for /errors/ paths (system pages)
   if (currentPath.startsWith('/errors/')) {
     return false;
   }
@@ -224,25 +219,25 @@ async function loadGlobalFallbackContent(main) {
   // eslint-disable-next-line no-undef
   if (window.hlx?.aue || document.querySelector('meta[name="urn:auecon:aemconnection"]')) {
     // eslint-disable-next-line no-console
-    console.log('[Content Inheritance] Skipped in author environment');
+    console.log('[Content] Skipped fallback in author environment');
     return false;
   }
 
-  const locale = resolveLocale();
+  const locale = await resolveLocale();
 
   // Extract page name from current URL path
-  // Pattern: /{pos}/{lang}/{pagePath} → extract {pagePath}
+  // Pattern: /{lang}/{pagePath} → extract {pagePath}
   // Examples:
-  //   /co/es/lifemiles → lifemiles
-  //   /co/es/ → index (default)
-  //   /co/es/category/sub → category/sub
+  //   /es/lifemiles → lifemiles
+  //   /es/ → index (default)
+  //   /es/category/sub → category/sub
   const pathParts = currentPath.split('/').filter(Boolean);
 
-  // pathParts[0] = pos (e.g., 'co'), pathParts[1] = lang (e.g., 'es')
-  // pathParts[2+] = page path
+  // pathParts[0] = lang (e.g., 'es')
+  // pathParts[1+] = page path
   let pageName = 'index'; // default for home page
-  if (pathParts.length > 2) {
-    pageName = pathParts.slice(2).join('/');
+  if (pathParts.length > 1) {
+    pageName = pathParts.slice(1).join('/');
     // Remove trailing slash if present
     if (pageName.endsWith('/')) {
       pageName = pageName.slice(0, -1);
@@ -253,16 +248,17 @@ async function loadGlobalFallbackContent(main) {
     }
   }
 
-  const globalPath = `/global/${locale.language}/${pageName}`;
+  // Fallback to default language version of same page
+  const fallbackPath = `/${locale.language}/${pageName}`;
 
   try {
     // eslint-disable-next-line no-console
-    console.log(`[Content Inheritance] POS content empty, loading global fallback: ${globalPath}`);
+    console.log(`[Content] Page empty, trying fallback: ${fallbackPath}`);
 
-    const resp = await fetch(`${globalPath}.plain.html`);
+    const resp = await fetch(`${fallbackPath}.plain.html`);
     if (!resp.ok) {
       // eslint-disable-next-line no-console
-      console.warn(`[Content Inheritance] Global fallback not found: ${globalPath}`);
+      console.warn(`[Content] Fallback not found: ${fallbackPath}`);
       return false;
     }
 
@@ -276,7 +272,7 @@ async function loadGlobalFallbackContent(main) {
 
     if (!sections || sections.length === 0) {
       // eslint-disable-next-line no-console
-      console.warn('[Content Inheritance] No content in global fallback');
+      console.warn('[Content] No content in fallback');
       return false;
     }
 
@@ -290,12 +286,12 @@ async function loadGlobalFallbackContent(main) {
     decorateMain(main);
 
     // eslint-disable-next-line no-console
-    console.log(`✅ [Content Inheritance] Loaded global content from: ${globalPath}`);
+    console.log(`✅ [Content] Loaded fallback from: ${fallbackPath}`);
 
     return true;
   } catch (error) {
     // eslint-disable-next-line no-console
-    console.error('[Content Inheritance] Failed to load global fallback:', error);
+    console.error('[Content] Failed to load fallback:', error);
     return false;
   }
 }
@@ -327,9 +323,24 @@ async function loadEager(doc) {
     } else if (mainIsEmpty) {
       // If still empty after global fallback, load 404 content
       try {
+        // Determine language-based 404 path
+        // ES uses /errors/404, other languages use /errors/404-{lang}
+        const supportedLangs = ['en', 'pt', 'fr'];
+        const lang = window.errorPageLang || 'es';
+        const fragmentPath = supportedLangs.includes(lang)
+          ? `/errors/404-${lang}.plain.html`
+          : '/errors/404.plain.html';
+        
         // eslint-disable-next-line no-console
-        console.log('[404 Fallback] Loading 404 content for missing page');
-        const resp = await fetch('/errors/404.plain.html');
+        console.log(`[404 Fallback] Loading 404 content for lang=${lang}, path=${fragmentPath}`);
+        let resp = await fetch(fragmentPath);
+        
+        // Fallback to Spanish if language-specific 404 doesn't exist
+        if (!resp.ok && fragmentPath !== '/errors/404.plain.html') {
+          // eslint-disable-next-line no-console
+          console.log('[404 Fallback] Language-specific 404 not found, falling back to Spanish');
+          resp = await fetch('/errors/404.plain.html');
+        }
         if (resp.ok) {
           const html = await resp.text();
           const parser = new DOMParser();
@@ -435,9 +446,10 @@ async function loadLazy(doc) {
   await gtmMartech.lazy();
 
   // Push page_view event to dataLayer after GTM initialization
+  const pageViewData = await pageViewEventData();
   gtmMartech.pushToDataLayer({
     event: 'page_view',
-    ...pageViewEventData(),
+    ...pageViewData,
   });
 
   // Load Adobe Launch based on environment (avianca.com = PROD, else DEV)

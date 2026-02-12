@@ -3,7 +3,7 @@ import htm from 'htm';
 import { readBlockConfig } from '../../scripts/aem.js';
 import { SecondaryBanner } from '../../design-system/organisms/banners/secondary-banner/secondary-banner.js';
 import { mapCmsSecondaryBannerData } from './cms-secondary-banner-helper.js';
-import { getStoredCountry, getStoredLanguage } from '../../scripts/services/header/language-country-selector.js';
+import { shouldShowByTargeting, hideBlockWithSection } from '../../scripts/utils/target-filter.js';
 
 const html = htm.bind(h);
 
@@ -52,24 +52,8 @@ export default function decorate(block) {
   };
 
   // Country and language filtering
-  const targetCountries = config.targetCountries
-    ? config.targetCountries.split(',').map((c) => c.trim().toLowerCase())
-    : [];
-  const targetLanguages = config.targetLanguages
-    ? config.targetLanguages.split(',').map((l) => l.trim().toLowerCase())
-    : [];
-
-  const currentCountry = getStoredCountry()?.toLowerCase() || '';
-  const currentLang = getStoredLanguage()?.toLowerCase() || document.documentElement.lang?.toLowerCase() || 'en';
-
-  // Hide entire banner if filtering criteria not met
-  if (targetCountries.length > 0 && currentCountry && !targetCountries.includes(currentCountry)) {
-    block.style.display = 'none';
-    return;
-  }
-
-  if (targetLanguages.length > 0 && currentLang && !targetLanguages.includes(currentLang)) {
-    block.style.display = 'none';
+  if (!shouldShowByTargeting(config.targetCountries, config.targetLanguages)) {
+    hideBlockWithSection(block);
     return;
   }
 

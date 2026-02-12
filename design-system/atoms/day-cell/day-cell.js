@@ -224,6 +224,11 @@ export const DayCell = ({
   const buttonClasses = useMemo(() => {
     const base = BASE_BUTTON_CLASSES;
 
+    // Disabled + Today: show today border even when disabled
+    if (isDisabled && isToday) {
+      return `${base} cursor-not-allowed border-2 border-[var(--brand-primary)] text-[var(--text-normal-secondary)] bg-background-card-lighter`;
+    }
+
     // Disabled state
     if (isDisabled) {
       return `${base} cursor-not-allowed text-[var(--text-normal-secondary)]`;

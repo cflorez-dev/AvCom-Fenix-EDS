@@ -170,7 +170,6 @@ export const DateInput = ({
       transition-all duration-[var(--transition-normal)]
       ${outlineClass}
       ${isInteractive ? 'cursor-pointer' : 'cursor-not-allowed'}
-      ${hasError ? 'border-b-[3px] !border-[var(--alert-error-border)]' : ''}
     `.trim();
   }, [actualState, isInteractive, variant, hasError, active]);
 
@@ -209,13 +208,14 @@ export const DateInput = ({
   // ========== RENDER ==========
   return html`
     <div
-      class=${`${containerRelative ? 'relative' : ''} flex flex-1 ${customClassName} group-date-input-container`}
+      class=${`${containerRelative ? 'relative' : ''} flex-1 ${customClassName} group-date-input-container`}
       data-name="dateInput"
       ref=${containerRef}
       onKeyDown=${handleKeyDown}
       ...${rest}
     >
-    
+      <!-- Trigger + Error wrapper (relative for error positioning without affecting layout) -->
+      <div class="relative">
       <div
         ref=${triggerRef}
         onClick=${handleClick}
@@ -267,27 +267,27 @@ export const DateInput = ({
         </div>
         <!-- End Content Row -->
 
-        <!-- Green bottom line (simulates container's rounded cut at edges) -->
-        <div class=${`h-[3px] ${greenLineClasses} bg-transparent transition-colors duration-[var(--transition-normal)] group-hover/dateInput:bg-border-input-positive group-focus-within/dateInput:bg-border-input-positive ${active && !hasError ? '!bg-border-input-positive' : ''}`} aria-hidden="true"></div>
+        <!-- Bottom line: red when error, green on hover/focus/active when no error -->
+        <div class=${`h-[3px] ${greenLineClasses} transition-colors duration-[var(--transition-normal)] ${hasError ? 'bg-[var(--alert-error-border)]' : 'bg-transparent group-hover/dateInput:bg-border-input-positive group-focus-within/dateInput:bg-border-input-positive'} ${active && !hasError ? '!bg-border-input-positive' : ''}`} aria-hidden="true"></div>
       </div>
 
-      <!-- Error message (outside trigger to avoid overflow-hidden clipping) -->
+      <!-- Error message (absolute: floats below trigger without affecting layout) -->
       ${hasError && html`
-        <div class="relative">
-          <div class="absolute top-0 min-h-[21px] left-0 flex items-start mt-[4px] font-normal text-sm leading-5 text-[var(--alert-error-icon-bg)]">
-            <svg
-              class="w-4 h-4 mr-1 flex-shrink-0 mt-0.5"
-              fill="currentColor"
-              viewBox="0 0 20 20"
-              aria-hidden="true"
-            >
-              <circle cx="10" cy="10" r="9" fill="currentColor" />
-              <text x="10" y="14" text-anchor="middle" fill="white" font-size="12" font-weight="bold">i</text>
-            </svg>
-            <span>${i18n['bookingBox.labels.requiredField'] || 'This field is required'}</span>
-          </div>
+        <div class="absolute top-full left-0 min-h-[21px] flex items-start mt-[4px] font-normal text-sm leading-5 text-[var(--alert-error-icon-bg)]">
+          <svg
+            class="w-4 h-4 mr-1 flex-shrink-0 mt-0.5"
+            fill="currentColor"
+            viewBox="0 0 20 20"
+            aria-hidden="true"
+          >
+            <circle cx="10" cy="10" r="9" fill="currentColor" />
+            <text x="10" y="14" text-anchor="middle" fill="white" font-size="12" font-weight="bold">i</text>
+          </svg>
+          <span>${i18n['bookingBox.labels.requiredField'] || 'This field is required'}</span>
         </div>
       `}
+      </div>
+      <!-- End Trigger + Error wrapper -->
     </div>
   `;
 };

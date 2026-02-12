@@ -153,6 +153,16 @@ const LANGUAGE_DATA = {
   fr: { label: 'Français' },
 };
 
+// Default country mapping per language
+// Used when no country cookie exists to provide logical defaults
+// Prevents illogical combinations like PT (Portuguese) + CO (Colombia/COP)
+const LANGUAGE_DEFAULT_COUNTRY = {
+  es: 'co',  // Spanish → Colombia
+  en: 'us',  // English → United States
+  pt: 'br',  // Portuguese → Brazil
+  fr: 'eu',  // French → France (using Spain EU for EUR)
+};
+
 /**
  * Get base path for icons
  * Flags are served from assets/icons/flags/ which is accessible in AEM EDS
@@ -383,6 +393,22 @@ export function mapIsoToCountryCode(isoCode) {
   }
 
   return null;
+}
+
+/**
+ * Get default country ISO code for a language
+ * Used when no country cookie exists to provide logical defaults
+ * Prevents illogical combinations like PT (Portuguese) + CO (Colombia)
+ * @param {string} language - Language code (e.g., 'es', 'pt', 'en', 'fr')
+ * @returns {string} Default country ISO code (e.g., 'co', 'br', 'us')
+ */
+export function getDefaultCountryForLanguage(language) {
+  if (!language || typeof language !== 'string') {
+    return 'co'; // Default to Colombia if invalid input
+  }
+  
+  const normalizedLang = language.toLowerCase().trim();
+  return LANGUAGE_DEFAULT_COUNTRY[normalizedLang] || 'co';
 }
 
 /**
@@ -713,9 +739,9 @@ export function setStoredPos(pos, fallback = 'es-col') {
 }
 
 /**
- * Navigate to a POS path (explicit user action only)
+ * Navigate to a language path (explicit user action only)
  * Call this when user explicitly selects a country/language
- * This function should be called AFTER setStoredPos() to navigate to the new POS
+ * Pattern: /{lang}/ - country is stored in cookie, not URL
  * @param {string} pos - POS value in format "language-country" (e.g., "es-col")
  */
 export function navigateToPOS(pos) {
@@ -724,24 +750,20 @@ export function navigateToPOS(pos) {
   const normalizedPos = normalizePos(pos, 'es-col');
   if (!normalizedPos) return;
 
-  const { language, country } = parsePos(normalizedPos);
-  if (!language || !country) return;
+  const { language } = parsePos(normalizedPos);
+  if (!language) return;
 
-  const countryData = COUNTRY_DATA[country];
-  if (!countryData) return;
+  // Pattern: /{lang}/ - always use language-only path
+  const targetPath = `/${language}/`;
 
-  const isoCountry = countryData.keyIso || country;
-  const currentHostname = window.location.hostname.toLowerCase();
-
-  let targetPath;
-  if (currentHostname === 'avianca.omni.pro') {
-    targetPath = `/${language}/`;
+  // Check if we're already on the target path
+  if (window.location.pathname.startsWith(targetPath)) {
+    // Same language path but country may have changed - reload to reflect new country content
+    // eslint-disable-next-line no-console
+    console.log('[language-country-selector] Same language, reloading for country change');
+    window.location.reload();
   } else {
-    targetPath = `/${isoCountry}/${language}/`;
-  }
-
-  // Only navigate if not already on target path
-  if (!window.location.pathname.startsWith(targetPath)) {
+    // Different language - navigate to new path
     // eslint-disable-next-line no-console
     console.log('[language-country-selector] Navigating to:', targetPath);
     window.location.href = targetPath;

@@ -2,6 +2,7 @@ import { h, render } from '@dropins/tools/preact.js';
 import htm from 'htm';
 import { readBlockConfig } from '../../scripts/aem.js';
 import { Marquesina } from '../../design-system/organisms/marquesina/marquesina.js';
+import { shouldShowByTargetingLegacy } from '../../scripts/utils/target-filter.js';
 
 const html = htm.bind(h);
 
@@ -68,20 +69,11 @@ function shouldShowMarquesina(config) {
     }
   }
 
-  // Check market targeting (e.g., "CO,PA,EC")
-  if (config.targetMarkets) {
-    const currentMarket = window.aviancaMarket || 'CO'; // Default to Colombia
-    const targetMarkets = config.targetMarkets.split(',').map((m) => m.trim());
-    if (!targetMarkets.includes(currentMarket)) {
-      return false;
-    }
-  }
-
-  // Check language targeting (e.g., "es,en")
-  if (config.targetLanguages) {
-    const currentLang = document.documentElement.lang || 'es';
-    const targetLanguages = config.targetLanguages.split(',').map((l) => l.trim());
-    if (!targetLanguages.includes(currentLang)) return false;
+  // Check country/language targeting using legacy-compatible utility
+  // Supports old format (targetMarkets, targetLanguages) and new format
+  // (target-countries, target-languages)
+  if (!shouldShowByTargetingLegacy(config)) {
+    return false;
   }
 
   // Check page type targeting (e.g., "home,destinations,booking")
@@ -271,10 +263,10 @@ export default function decorate(block) {
       }
     }
 
-    // Allow block config to override linkTarget (for consistency with marqueeMode and dismissStrategy)
-    const config = readBlockConfig(block);
-    if (config?.linkTarget) {
-      const configTarget = String(config.linkTarget).trim().toLowerCase();
+    // Override linkTarget with block config if present
+    const blockConfig = readBlockConfig(block);
+    if (blockConfig?.linkTarget) {
+      const configTarget = String(blockConfig.linkTarget).trim().toLowerCase();
       if (['self', 'blank'].includes(configTarget)) {
         linkTarget = configTarget;
       }

@@ -93,7 +93,7 @@ export async function loadFragment(path, resourceType = null) {
 
         // Cache successful path for future requests
         if (resourceType) {
-          cacheResolvedPath(resourceType, path);
+          await cacheResolvedPath(resourceType, path);
         }
 
         return 'success';
@@ -125,7 +125,15 @@ export async function loadFragment(path, resourceType = null) {
 export default async function decorate(block) {
   const link = block.querySelector('a');
   const path = link ? link.getAttribute('href') : block.textContent.trim();
-  const fragment = await loadFragment(path);
+  let fragment = await loadFragment(path);
+  
+  // Fallback to Spanish for 404 pages if language-specific fragment not found
+  if (!fragment && path.startsWith('/errors/404-')) {
+    // eslint-disable-next-line no-console
+    console.log(`[Fragment] 404 fragment not found for ${path}, falling back to /errors/404`);
+    fragment = await loadFragment('/errors/404');
+  }
+  
   if (fragment) {
     const fragmentSection = fragment.querySelector(':scope .section');
     if (fragmentSection) {

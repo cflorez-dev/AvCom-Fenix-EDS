@@ -422,7 +422,7 @@ export const CitySelector = ({
           hover:bg-[var(--bg-hover-light)] group
           focus-visible:border-[var(--color-border-stroke-focus)] focus-visible:outline-none focus-visible:border-2
           active:bg-[var(--state-hover-darken)] active:text-[var(--text-brand-light)]
-          border-b border-border-stroke-default last:border-b-0
+          border-b border-border-stroke-default
         "
         onClick=${() => handleCitySelect(city)}
         onKeyDown=${handleKeyDown}
@@ -514,9 +514,8 @@ export const CitySelector = ({
       ${outlineClass}
       transition-all duration-[var(--transition-normal)]
       ${isInteractive ? 'cursor-text' : ''}
-      ${hasError && !isMobile ? 'border-b-[3px] !border-[var(--alert-error-border)]' : ''}
     `.trim();
-  }, [actualState, isInteractive, stateClasses, variant, hasError, isMobile]);
+  }, [actualState, isInteractive, stateClasses, variant]);
 
   // Clases de la línea verde: ancho, alineamiento y border-radius
   // Para grouped: calc(100% - 4px) centrado + border-radius en esquinas
@@ -536,12 +535,14 @@ export const CitySelector = ({
 
   return html`
     <div
-      class=${`${containerRelative ? 'relative' : ''} flex ${customClassName}`}
+      class=${`${containerRelative ? 'relative' : ''} ${customClassName}`}
       data-name="citySelector"
       ref=${containerRef}
       onKeyDown=${handleKeyDown}
       ...${rest}
     >
+      <!-- Trigger + Error wrapper (relative for error positioning without affecting layout) -->
+      <div class="relative">
       <!-- Trigger Input Container (flex-col: content row + green line) -->
       <div
         ref=${triggerRef}
@@ -622,32 +623,32 @@ export const CitySelector = ({
         </div>
         <!-- End Content Row -->
 
-        <!-- Green bottom line (simulates container's rounded cut at edges) -->
-        <div class=${`h-[3px] ${greenLineClasses} bg-transparent transition-colors duration-[var(--transition-normal)] group-hover/trigger:bg-border-input-positive group-focus-within/trigger:bg-border-input-positive`} aria-hidden="true"></div>
+        <!-- Bottom line: red when error, green on hover/focus when no error -->
+        <div class=${`h-[3px] ${greenLineClasses} transition-colors duration-[var(--transition-normal)] ${hasError && !isMobile ? 'bg-[var(--alert-error-border)]' : 'bg-transparent group-hover/trigger:bg-border-input-positive group-focus-within/trigger:bg-border-input-positive'}`} aria-hidden="true"></div>
       </div>
 
-      <!-- Error message (outside trigger to avoid overflow-hidden clipping) -->
+      <!-- Error message (absolute: floats below trigger without affecting layout) -->
       ${!isMobile && hasError && html`
-        <div class="relative">
-          <div class="absolute top-0 min-h-[21px] left-0 flex items-start mt-[4px] font-normal text-sm leading-5 text-[var(--alert-error-icon-bg)]">
-            <svg
-              class="w-4 h-4 mr-1 flex-shrink-0 mt-0.5"
-              fill="currentColor"
-              viewBox="0 0 20 20"
-              aria-hidden="true"
-            >
-              <circle cx="10" cy="10" r="9" fill="currentColor" />
-              <text x="10" y="14" text-anchor="middle" fill="white" font-size="12" font-weight="bold">i</text>
-            </svg>
-            <span>${i18n['bookingBox.labels.requiredField'] || 'This field is required'}</span>
-          </div>
+        <div class="absolute top-full left-0 min-h-[21px] flex items-start mt-[4px] font-normal text-sm leading-5 text-[var(--alert-error-icon-bg)]">
+          <svg
+            class="w-4 h-4 mr-1 flex-shrink-0 mt-0.5"
+            fill="currentColor"
+            viewBox="0 0 20 20"
+            aria-hidden="true"
+          >
+            <circle cx="10" cy="10" r="9" fill="currentColor" />
+            <text x="10" y="14" text-anchor="middle" fill="white" font-size="12" font-weight="bold">i</text>
+          </svg>
+          <span>${i18n['bookingBox.labels.requiredField'] || 'This field is required'}</span>
         </div>
       `}
+      </div>
+      <!-- End Trigger + Error wrapper -->
 
       <!-- Desktop Popup (sin input de búsqueda - ya está en trigger) -->
       ${isOpen && !isMobile && html`
         <div
-          class=${`absolute ${positionDropdownStyles} px-4 py-6 pr-0  bg-background-card-lighter rounded-[24px] shadow-[0px_2px_20px_2px_rgba(73,73,73,0.25)] max-h-[376px] min-h-[376px] max-w-[${DROPDOWN_MAX_WIDTH}] min-w-[${DROPDOWN_MAX_WIDTH}] overflow-hidden z-50 flex flex-col`}
+          class=${`absolute ${positionDropdownStyles} px-4 py-6 pr-0  bg-background-card-lighter rounded-[24px]  max-h-[376px] min-h-[376px] max-w-[${DROPDOWN_MAX_WIDTH}] min-w-[${DROPDOWN_MAX_WIDTH}] overflow-hidden z-50 flex flex-col`}
           ref=${dropdownRef}
           role="listbox"
           aria-label=${label || 'Lista de ciudades'}
