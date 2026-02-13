@@ -425,10 +425,7 @@ export default async function decorate(block) {
   // Register all cards data in the store
   // Check if already registered to prevent duplicates on re-decoration
   const store = getMosaicStore();
-  if (store.hasGroup(groupId)) {
-    // eslint-disable-next-line no-console
-    console.log(`[MOSAIC] Group "${groupId}" already registered, skipping re-registration`);
-  } else {
+  if (!store.hasGroup(groupId)) {
     registerMosaicGroup(groupId, allCardsData, {
       autoplay,
       autoplaySpeed,

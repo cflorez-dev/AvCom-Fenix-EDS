@@ -44,6 +44,9 @@ export const LinkCardHorizontal = ({
 }) => {
   const [isHovered, setIsHovered] = useState(false);
 
+  // Detect if this is a "photographic card" (pure image, no text/CTA)
+  const isPhotographicCard = !title && !description && !linkText;
+
   // Card is only clickable if href exists AND clickBehavior is 'fullCard'
   const isClickable = !!(href && clickBehavior === 'fullCard');
 
@@ -200,6 +203,66 @@ export const LinkCardHorizontal = ({
   `;
 
   const finalClasses = `${baseClasses} ${customClassName}`.trim();
+
+  // For photographic cards, render simplified content directly
+  if (isPhotographicCard) {
+    const finalImageDesktop = imageDesktop || image;
+    const finalImageMobile = imageMobile || imageDesktop || image;
+    const finalImageDesktopAlt = imageDesktopAlt || imageAlt;
+
+    if (isClickable) {
+      const Tag = href ? 'a' : 'button';
+      const targetAttr = (href && linkOpensIn === 'newTab') ? { target: '_blank', rel: 'noopener noreferrer' } : {};
+      const elementProps = href
+        ? { href, ...targetAttr, ...rest }
+        : { type: 'button', ...rest };
+
+      return html`
+        <${Tag}
+          class=${finalClasses}
+          data-name="linkCardHorizontal"
+          onClick=${handleCardClick}
+          onKeyDown=${handleKeyDown}
+          onMouseEnter=${() => setIsHovered(true)}
+          onMouseLeave=${() => setIsHovered(false)}
+          ...${elementProps}
+        >
+          <picture class="w-full h-full absolute inset-0 p-[16px] md:p-[16px]">
+            ${finalImageMobile && finalImageMobile !== finalImageDesktop ? html`
+              <source media="(max-width: 767px)" srcset=${finalImageMobile} />
+            ` : null}
+            <img
+              src=${finalImageDesktop}
+              alt=${finalImageDesktopAlt}
+              class="inset-0 object-cover object-center pointer-events-none !w-full !h-full rounded-[24px]"
+            />
+          </picture>
+        </${Tag}>
+      `;
+    }
+
+    return html`
+      <div
+        class=${finalClasses}
+        data-name="linkCardHorizontal"
+        tabIndex=${0}
+        onMouseEnter=${() => setIsHovered(true)}
+        onMouseLeave=${() => setIsHovered(false)}
+        ...${rest}
+      >
+        <picture class="w-full h-full absolute inset-0 p-[16px] md:p-[16px]">
+          ${finalImageMobile && finalImageMobile !== finalImageDesktop ? html`
+            <source media="(max-width: 767px)" srcset=${finalImageMobile} />
+          ` : null}
+          <img
+            src=${finalImageDesktop}
+            alt=${finalImageDesktopAlt}
+            class="inset-0 object-cover object-center pointer-events-none !w-full !h-full rounded-[24px]"
+          />
+        </picture>
+      </div>
+    `;
+  }
 
   // If clickable, render as button or a
   if (isClickable) {

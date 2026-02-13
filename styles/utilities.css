@@ -207,7 +207,13 @@
 /* Scroll Snap Utilities - For carousel snap behavior */
 .scroll-snap-type-x-mandatory {
   scroll-snap-type: x mandatory;
-  scroll-padding-inline: 1rem; /* Add padding for better alignment */
+  scroll-padding-left: 1rem;
+}
+
+@media (min-width: 480px) {
+  .scroll-snap-type-x-mandatory {
+    scroll-padding-left: 2rem;
+  }
 }
 
 .scroll-snap-align-center {
