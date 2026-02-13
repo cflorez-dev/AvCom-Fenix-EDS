@@ -44,14 +44,14 @@ export const Button = ({
     primary: {
       basesClases: `
         ${disabled ? 'bg-background-brand-primary-disable' : 'bg-background-brand-primary-default'}
-        ${disabled ? 'border-border-brand-primary-disable' : 'border-border-brand-primary-default'}
+        border-transparent
       `,
       basesClaesIneractions: `
         ${disabled === false && `
           hover:bg-background-brand-primary-hover
-          hover:border-border-brand-primary-hover
+          hover:border-transparent
           active:bg-background-brand-primary-active
-          active:!border-border-brand-primary-active
+          active:border-transparent
         `}
       `,
       basesClasesChild: `${disabled ? 'text-text-brand-disable' : 'text-text-brand-primary'}`,
@@ -76,14 +76,14 @@ export const Button = ({
     tertiary: {
       basesClases: `
         ${disabled ? 'bg-background-brand-secondary-disable' : 'bg-background-brand-secondary-default'}
-        ${disabled ? 'border-background-brand-secondary-disable' : 'border-background-brand-secondary-default'}
+        border-transparent
       `,
       basesClaesIneractions: `
         ${disabled === false && `
           hover:bg-background-brand-secondary-hover
-          hover:border-background-brand-secondary-hover
+          hover:border-transparent
           active:bg-background-brand-secondary-active
-          active:!border-border-brand-secondary-active
+          active:border-transparent
         `}
       `,
       basesClasesChild: `${disabled ? 'text-text-brand-disable' : 'text-text-brand-secondary'}`,
@@ -92,14 +92,14 @@ export const Button = ({
     danger: {
       basesClases: `
         ${disabled ? 'bg-background-brand-primary-disable' : 'bg-background-brand-highlight-default'}
-        ${disabled ? 'border-border-brand-primary-disable' : 'border-border-brand-highlight-default'}
+        border-transparent
       `,
       basesClaesIneractions: `
         ${disabled === false && `
           hover:bg-background-brand-highlight-hover
-          hover:border-border-brand-highlight-hover
+          hover:border-transparent
           active:bg-background-brand-highlight-active
-          active:!border-border-brand-highlight-active
+          active:border-transparent
         `}
       `,
       basesClasesChild: `${disabled ? 'text-text-brand-disable' : 'text-text-brand-primary'}`,
@@ -188,10 +188,15 @@ export const Button = ({
       ${chosenSizeStyles.height}
       ${choosenVariantStyles.basesClases}
       ${iconOnly ? `${chosenSizeStyles.widthIconOnly} 'w-full'` : ''}
+      outline-none
+      focus:outline-none
       focus-visible:outline-none
       focus-visible:ring-0
       focus-visible:ring-offset-0
       focus-visible:shadow-none
+      active:outline-none
+      active:ring-0
+      active:shadow-none
       `;
 
   const basesClaesIneractions = `
@@ -214,6 +219,10 @@ export const Button = ({
 
   const buttonRef = useRef(null);
 
+  // Variants that should NOT have visible borders (transparent border)
+  const noBorderVariants = ['primary', 'tertiary', 'danger', 'transparent'];
+  const shouldHaveTransparentBorder = noBorderVariants.includes(variant);
+
   // Build CSS custom properties object for dynamic border colors
   const customStyles = {};
   if (borderActiveColor && !disabled) {
@@ -223,6 +232,9 @@ export const Button = ({
         ? `var(${borderActiveColor})`
         : `var(--${borderActiveColor})`;
     customStyles['--button-border-active'] = cssVarName;
+  } else if (shouldHaveTransparentBorder && !disabled) {
+    // Set transparent border for variants that shouldn't have visible borders
+    customStyles['--button-border-active'] = 'transparent';
   }
   if (borderFocusColor && !disabled) {
     const cssVarName = borderFocusColor.startsWith('var(')
@@ -231,6 +243,9 @@ export const Button = ({
         ? `var(${borderFocusColor})`
         : `var(--${borderFocusColor})`;
     customStyles['--button-border-focus'] = cssVarName;
+  } else if (shouldHaveTransparentBorder && !disabled) {
+    // Set transparent border for variants that shouldn't have visible borders
+    customStyles['--button-border-focus'] = 'transparent';
   }
 
   const outlineClasses = `

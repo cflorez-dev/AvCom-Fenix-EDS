@@ -102,8 +102,6 @@ class MosaicCardsV2Store {
    */
   getCards(groupId) {
     const group = this.getGroup(groupId);
-    // eslint-disable-next-line no-console
-    console.log(`[STORE] getCards("${groupId}") returning ${group ? group.cards.length : 0} cards (internal array)`);
     // ALWAYS return a deep copy to prevent mutations
     return group ? group.cards.map(card => ({ ...card })) : [];
   }

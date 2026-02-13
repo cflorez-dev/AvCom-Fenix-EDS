@@ -164,8 +164,8 @@ export const Carousel = ({
 
   const loopCopies = loop ? 3 : 1;
   // Build item container classes: always include shrink-0, optionally add custom classes
-  // Add scroll snap alignment for mobile/tablet
-  const scrollSnapItemClass = (isMobile || isTablet) ? 'scroll-snap-align-center' : '';
+  // Add scroll snap alignment for mobile/tablet - use 'start' to align cards to the left
+  const scrollSnapItemClass = (isMobile || isTablet) ? 'scroll-snap-align-start' : '';
   const itemContainerClasses = itemContainerClassName
     ? `shrink-0 ${scrollSnapItemClass} ${itemContainerClassName}`.trim()
     : `shrink-0 ${scrollSnapItemClass}`.trim();
@@ -294,7 +294,6 @@ export const Carousel = ({
 
   /**
    * Initialize scroll position for loop mode
-   * Accounts for scroll-snap centering offset on mobile/tablet
    */
   useEffect(() => {
     if (!scrollContainerRef.current || !itemStride || totalItems === 0 || !loop) return;
@@ -303,22 +302,9 @@ export const Carousel = ({
     const container = scrollContainerRef.current;
     const totalLoopWidth = itemStride * totalItems;
 
-    // Calculate initial scroll position
-    let initialScroll = totalLoopWidth;
-    
-    // Adjust for centered scroll snap on mobile/tablet
-    const isScrollSnapActive = isMobile || isTablet;
-    if (isScrollSnapActive) {
-      const containerWidth = container.clientWidth;
-      const firstChild = container.children[0];
-      const itemWidth = firstChild ? firstChild.getBoundingClientRect().width : 0;
-      const centerOffset = (containerWidth - itemWidth) / 2;
-      initialScroll = initialScroll - centerOffset;
-    }
-
     // Set initial position instantly without animation
     isScrollingProgrammatically.current = true;
-    container.scrollLeft = initialScroll;
+    container.scrollLeft = totalLoopWidth;
     isInitialized.current = true;
 
     // Reset flag after a small delay
@@ -329,7 +315,6 @@ export const Carousel = ({
 
   /**
    * Get current scroll index based on scroll position
-   * When scroll-snap is active (mobile/tablet), we need to account for centering offset
    */
   const getCurrentScrollIndex = () => {
     if (!scrollContainerRef.current || !itemStrideRef.current || totalItems === 0) return 0;
@@ -337,23 +322,10 @@ export const Carousel = ({
     const container = scrollContainerRef.current;
     const totalLoopWidth = itemStrideRef.current * totalItems;
 
-    // Calculate offset for centered scroll snap on mobile/tablet
-    let scrollOffset = container.scrollLeft;
-    const isScrollSnapActive = isMobile || isTablet;
-
-    if (isScrollSnapActive) {
-      // When using scroll-snap-align: center, add half of container width
-      const containerWidth = container.clientWidth;
-      const firstChild = container.children[0];
-      const itemWidth = firstChild ? firstChild.getBoundingClientRect().width : 0;
-      const centerOffset = (containerWidth - itemWidth) / 2;
-      scrollOffset = scrollOffset + centerOffset;
-    }
-
     if (loop) {
       // Calculate position relative to middle copy
-      const offset = scrollOffset - totalLoopWidth;
-      const normalized = ((offset % totalLoopWidth) + totalLoopWidth) % totalLoopWidth;
+      const scrollOffset = container.scrollLeft - totalLoopWidth;
+      const normalized = ((scrollOffset % totalLoopWidth) + totalLoopWidth) % totalLoopWidth;
       // Use threshold-based snapping instead of simple rounding
       const rawIndex = normalized / itemStrideRef.current;
       const threshold = 0.4; // Snap when 40% into next item
@@ -362,12 +334,10 @@ export const Carousel = ({
       return calculatedIndex;
     }
 
-    const rawIndex = scrollOffset / itemStrideRef.current;
+    const rawIndex = container.scrollLeft / itemStrideRef.current;
     const calculatedIndex = Math.floor(rawIndex + 0.4);
     return Math.max(0, Math.min(maxStartIndex, calculatedIndex));
-  };
-
-  /**
+  };  /**
    * Scroll to specific item index within the loop
    * Always navigates forward (to the right) in loop mode for dots
    * Accounts for scroll-snap centering offset on mobile/tablet
@@ -389,16 +359,6 @@ export const Carousel = ({
       scrollAmount = totalLoopWidth + (targetIndex * itemStrideRef.current);
     } else {
       scrollAmount = targetIndex * itemStrideRef.current;
-    }
-
-    // Adjust scroll amount for centered scroll snap on mobile/tablet
-    const isScrollSnapActive = isMobile || isTablet;
-    if (isScrollSnapActive) {
-      const containerWidth = container.clientWidth;
-      const firstChild = container.children[0];
-      const itemWidth = firstChild ? firstChild.getBoundingClientRect().width : 0;
-      const centerOffset = (containerWidth - itemWidth) / 2;
-      scrollAmount = scrollAmount - centerOffset;
     }
 
     container.scrollTo({
@@ -491,18 +451,7 @@ export const Carousel = ({
           const currentScrollIndex = getCurrentScrollIndex();
 
           // Snap to middle copy instantly
-          let newScrollLeft = totalLoopWidth + (currentScrollIndex * itemStrideRef.current);
-
-          // Adjust for scroll-snap centering offset
-          const isScrollSnapActive = isMobile || isTablet;
-          if (isScrollSnapActive) {
-            const containerWidth = container.clientWidth;
-            const firstChild = container.children[0];
-            const itemWidth = firstChild ? firstChild.getBoundingClientRect().width : 0;
-            const centerOffset = (containerWidth - itemWidth) / 2;
-            newScrollLeft = newScrollLeft - centerOffset;
-          }
-
+          const newScrollLeft = totalLoopWidth + (currentScrollIndex * itemStrideRef.current);
           container.scrollLeft = newScrollLeft;
 
           setTimeout(() => {

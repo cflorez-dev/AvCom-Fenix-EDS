@@ -194,14 +194,15 @@
         left: 0;
         right: 0;
         bottom: 0;
+        z-index: 99;
         pointer-events: none;
         background: linear-gradient(
             to right,
             #fff 0%,
-            #fff calc(var(--main-section-div-padding, 16px) - 2px),
-            transparent calc(var(--main-section-div-padding, 16px) - 2px),
-            transparent calc(100% - var(--main-section-div-padding, 16px) + 2px),
-            #fff calc(100% - var(--main-section-div-padding, 16px) + 2px),
+            #fff calc(var(--main-section-div-padding, 16px) - 16px),
+            transparent calc(var(--main-section-div-padding, 16px) - 16px),
+            transparent calc(100% - var(--main-section-div-padding, 16px) + 16px),
+            #fff calc(100% - var(--main-section-div-padding, 16px) + 16px),
             #fff 100%
         );
     }
