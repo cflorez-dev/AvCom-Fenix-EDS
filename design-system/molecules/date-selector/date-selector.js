@@ -521,9 +521,17 @@ export const DateSelector = ({
   const monthsToRender = useMemo(() => {
     let months = getMonthsToRender();
 
-    // If RESTRICT_RETURN_START_MONTH=true and in return mode with startMonth/startYear,
-    // filter months to start from startMonth
-    if (RESTRICT_RETURN_START_MONTH && mode === 'return' && startMonth !== null && startYear !== null) {
+    // Mobile: If startMonth/startYear provided, filter to start from that month
+    // This ensures correct month renders on initial open without flicker
+    if (isMobile && startMonth !== null && startYear !== null) {
+      months = months.filter(({ year, month }) => {
+        if (year < startYear) return false;
+        if (year === startYear && month < startMonth) return false;
+        return true;
+      });
+    } else if (RESTRICT_RETURN_START_MONTH && mode === 'return' && startMonth !== null && startYear !== null) {
+      // Desktop: If RESTRICT_RETURN_START_MONTH=true and in return mode with startMonth/startYear,
+      // filter months to start from startMonth
       months = months.filter(({ year, month }) => {
         if (year < startYear) return false;
         if (year === startYear && month < startMonth) return false;
@@ -532,7 +540,7 @@ export const DateSelector = ({
     }
 
     return months;
-  }, [mode, startMonth, startYear]);
+  }, [isMobile, mode, startMonth, startYear]);
 
   // Check if there's pricing data available
   const hasPricingData = useMemo(
@@ -708,7 +716,8 @@ export const DateSelector = ({
                   variant="grouped-left"
                   containerRelative=${false}
                   active=${mode === 'departure'}
-                  hasError=${mode === 'departure' ? departureHasError : false}
+                  hasError=${false}
+                  showErrorMessage=${showErrorMessage}
                   i18n=${i18n}
                 />
 
@@ -721,7 +730,8 @@ export const DateSelector = ({
                   variant="grouped-right"
                   containerRelative=${false}
                   active=${mode === 'return'}
-                  hasError=${returnHasError}
+                  hasError=${false}
+                  showErrorMessage=${showErrorMessage}
                   i18n=${i18n}
                 />
               </div>
@@ -733,7 +743,8 @@ export const DateSelector = ({
                 variant="standalone"
                 containerRelative=${false}
                 active=${true}
-                hasError=${departureHasError}
+                hasError=${false}
+                showErrorMessage=${showErrorMessage}
                 active=${isOpen}
                 i18n=${i18n}
               />

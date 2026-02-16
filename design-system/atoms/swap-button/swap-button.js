@@ -105,7 +105,7 @@ export const SwapButton = ({
   const baseClasses = useMemo(
     () => `${size} ${padding} rounded-[22px] border border-solid flex items-center justify-center transition-all duration-200 outline-none ${
       disabled
-        ? 'bg-[#f5f5f5] border-[#d9d9d9] cursor-not-allowed'
+        ? 'bg-[#f5f5f5] border-[#d9d9d9]'
         : 'bg-white border-[#949494] cursor-pointer'
     } ${customClassName}`,
     [size, disabled, customClassName],

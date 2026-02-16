@@ -92,7 +92,7 @@ export const Incrementer = ({
       <button
         type="button"
         class="flex items-center transition-opacity duration-200 rounded-full
-            ${isDecrementDisabled ? 'cursor-not-allowed text-border-default' : 'cursor-pointer text-[var(--text-normal-primary)] hover:text-[var(--color-border-input-positive)]'}
+            ${isDecrementDisabled ? 'text-border-default' : 'cursor-pointer text-[var(--text-normal-primary)] hover:text-[var(--color-border-input-positive)]'}
             focus-visible:outline-border-stroke-focus focus-visible:text-[var(--color-border-input-positive)]
           "
         onClick=${handleDecrement}
@@ -116,7 +116,7 @@ export const Incrementer = ({
       <button
         type="button"
         class="flex items-center transition-opacity duration-200 rounded-full
-              ${isIncrementDisabled ? 'cursor-not-allowed text-[#969696]' : 'cursor-pointer text-[var(--text-normal-primary)] hover:text-[var(--color-border-input-positive)]'}
+              ${isIncrementDisabled ? 'text-[#969696]' : 'cursor-pointer text-[var(--text-normal-primary)] hover:text-[var(--color-border-input-positive)]'}
               focus-visible:outline-border-stroke-focus focus-visible:text-[var(--color-border-input-positive)]
               "
         onClick=${handleIncrement}

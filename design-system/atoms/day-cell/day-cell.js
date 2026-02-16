@@ -226,12 +226,12 @@ export const DayCell = ({
 
     // Disabled + Today: show today border even when disabled
     if (isDisabled && isToday) {
-      return `${base} cursor-not-allowed border-2 border-[var(--brand-primary)] text-[var(--text-normal-secondary)] bg-background-card-lighter`;
+      return `${base} border-2 border-[var(--brand-primary)] text-[var(--text-normal-secondary)] bg-background-card-lighter`;
     }
 
     // Disabled state
     if (isDisabled) {
-      return `${base} cursor-not-allowed text-[var(--text-normal-secondary)]`;
+      return `${base} text-[var(--text-normal-secondary)] bg-background-card-lighter`;
     }
 
     // Selected (departure or return) - black bg, white text
@@ -268,7 +268,7 @@ export const DayCell = ({
     }
 
     // Default: black text, no bg
-    return `${base} cursor-pointer text-[var(--text-normal-primary)]`;
+    return `${base} cursor-pointer bg-background-card-lighter text-[var(--text-normal-primary)]`;
   }, [isDisabled, isSelected, isInRange,
     isRangeStart, isRangeEnd, isHoverEnd, isToday, isHovered, pricingCategory]);
 

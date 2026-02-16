@@ -239,6 +239,14 @@
             "value": "layout-1-2-992"
           },
           {
+            "name": "no-padding-top",
+            "value": "no-padding-top"
+          },
+          {
+            "name": "text-center",
+            "value": "text-center"
+          },
+          {
             "name": "Accordion Item",
             "value": "accordion-item"
           },
