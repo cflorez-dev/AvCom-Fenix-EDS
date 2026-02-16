@@ -360,7 +360,11 @@ export const PassengerSelector = ({
     const processed = processContentHTML(
       i18n['bookingBox.labels.groupTravelLink'] || '',
       'informative',
-      { linkButtonOptions: { customClassName: '!text-[14px]' } },
+      {
+        linkButtonOptions: {
+          customClassName: '!text-[14px] !font-normal hover:!text-[13.5px] hover:!font-bold',
+        },
+      },
     );
     // Normalize link text size: replace 16px with 14px (LinkButton default can be 16px)
     return processed

@@ -213,6 +213,10 @@ main .section.center-content > div {
   flex-direction: column;
 }
 
+.section.no-padding-top {
+  padding-top: 0;
+}
+
 /* Desktop >= 992px */
 @media (min-width: 992px) {
   .section.layout-1-2-992 {
