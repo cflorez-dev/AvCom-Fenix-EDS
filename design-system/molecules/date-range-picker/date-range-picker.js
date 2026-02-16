@@ -277,7 +277,7 @@ export const DateRangePicker = ({
   // Container with Tailwind classes
   const containerClasses = useMemo(
     () => (isRange
-      ? `flex items-center outline outline-1 outline-neutral-400 rounded-[8px] bg-background-input-default overflow-hidden ${customClassName}`.trim()
+      ? `flex items-center outline outline-1 outline-[var(--color-border-default)] rounded-[8px] bg-background-input-default overflow-hidden ${customClassName}`.trim()
       : customClassName),
     [isRange, customClassName],
   );
