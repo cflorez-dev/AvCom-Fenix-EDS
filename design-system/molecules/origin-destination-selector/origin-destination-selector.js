@@ -336,7 +336,7 @@ export const OriginDestinationSelector = ({
         </div>
 
         <!-- Swap Button - Desktop (center between Origin and Destination) -->
-        <div class="hidden md:flex items-center justify-center absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-10">
+        <div class="hidden md:flex items-center justify-center absolute left-1/2 top-[26.5px] -translate-x-1/2 -translate-y-1/2 z-10">
           <${SwapButton}
             onClick=${handleSwap}
             disabled=${isSwapDisabled}

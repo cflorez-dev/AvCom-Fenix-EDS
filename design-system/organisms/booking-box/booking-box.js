@@ -596,7 +596,7 @@ export const BookingBox = ({
   );
 
   const layout = useMemo(
-    () => (showConfirmModal && isMobile ? '' : 'shadow-[0px_2px_20px_2px_rgba(73,73,73,0.25)]'),
+    () => (showConfirmModal && isMobile ? '' : 'shadow-[0px_0px_6px_0px_rgba(90,90,90,0.20)]'),
     [showConfirmModal, isMobile],
   );
 

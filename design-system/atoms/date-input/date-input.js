@@ -170,7 +170,7 @@ export const DateInput = ({
       ${borderRadiusClass}
       transition-all duration-[var(--transition-normal)]
       ${outlineClass}
-      ${isInteractive ? 'cursor-pointer' : 'cursor-not-allowed'}
+      ${isInteractive ? 'cursor-pointer' : ''}
     `.trim();
   }, [actualState, isInteractive, variant, hasError, active]);
 
@@ -203,7 +203,7 @@ export const DateInput = ({
     w-full bg-transparent !border-0 !outline-none p-0 cursor-pointer
     !text-base leading-5
     ${shouldFloat ? 'relative top-[10px] !font-[var(--font-weight-bold)] h-[20px]' : 'absolute inset-0 opacity-0 cursor-pointer'}
-    ${actualState === 'disabled' ? 'text-text-input-disabled cursor-not-allowed' : 'text-text-normal-primary'}
+    ${actualState === 'disabled' ? 'text-text-input-disabled' : 'text-text-normal-primary'}
   `.trim(), [shouldFloat, actualState]);
 
   // ========== RENDER ==========

@@ -330,7 +330,7 @@ export const PassengerSelector = ({
 
   // Calculate trigger text (memoized)
   const getDisplayText = useMemo(() => {
-    const total = passengers.adults + passengers.youth + passengers.children + passengers.infants;
+    const total = passengers.adults + passengers.youth + passengers.children;
 
     // Desktop: Solo mostrar el número total
     if (!isMobile) {

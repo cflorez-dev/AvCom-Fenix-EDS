@@ -358,7 +358,7 @@ export const DateRangePicker = ({
         `}
       </div>
       ${isRange && (departureHasError || returnHasError) && html`
-        <div class="mt-[4px] hidden md:flex">
+        <div class="mt-[4px] flex">
           <div class="flex-1 min-h-[21px]">
             ${departureHasError && html`
               <div class="flex items-start font-normal text-sm leading-5 text-[var(--alert-error-icon-bg)]">
@@ -390,6 +390,24 @@ export const DateRangePicker = ({
                 <span>${i18n['bookingBox.labels.requiredField'] || 'This field is required'}</span>
               </div>
             `}
+          </div>
+        </div>
+      `}
+      ${!isRange && departureHasError && html`
+        <div class="mt-[4px] flex">
+          <div class="flex-1 min-h-[21px]">
+            <div class="flex items-start font-normal text-sm leading-5 text-[var(--alert-error-icon-bg)]">
+              <svg
+                class="w-4 h-4 mr-1 flex-shrink-0 mt-0.5"
+                fill="currentColor"
+                viewBox="0 0 20 20"
+                aria-hidden="true"
+              >
+                <circle cx="10" cy="10" r="9" fill="currentColor" />
+                <text x="10" y="14" text-anchor="middle" fill="white" font-size="12" font-weight="bold">i</text>
+              </svg>
+              <span>${i18n['bookingBox.labels.requiredField'] || 'This field is required'}</span>
+            </div>
           </div>
         </div>
       `}
