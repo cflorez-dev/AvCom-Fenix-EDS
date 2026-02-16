@@ -149,6 +149,10 @@ export const DayCell = ({
 }) => {
   // ========== STATE ==========
   const [isHovered, setIsHovered] = useState(false);
+  const supportsHover = useMemo(() => {
+    if (typeof window === 'undefined' || !window.matchMedia) return false;
+    return window.matchMedia('(hover: hover) and (pointer: fine)').matches;
+  }, []);
 
   // ========== EVENT HANDLERS ==========
   const handleClick = useCallback(() => {
@@ -158,21 +162,31 @@ export const DayCell = ({
     }
   }, [isDisabled, date, onClick]);
 
-  const handleMouseEnter = useCallback(() => {
-    if (!isDisabled) {
-      setIsHovered(true);
-      if (onHover) {
-        onHover(date);
-      }
+  const handlePointerEnter = useCallback((e) => {
+    if (!supportsHover || e.pointerType !== 'mouse' || isDisabled) return;
+    setIsHovered(true);
+    if (onHover) {
+      onHover(date);
     }
-  }, [isDisabled, onHover, date]);
+  }, [supportsHover, isDisabled, onHover, date]);
 
-  const handleMouseLeave = useCallback(() => {
+  const handlePointerLeave = useCallback((e) => {
+    if (!supportsHover || e.pointerType !== 'mouse') return;
     setIsHovered(false);
     if (onHover) {
       onHover(null);
     }
-  }, [onHover]);
+  }, [supportsHover, onHover]);
+
+  const handleTouchStart = useCallback(() => {
+    // Ensure no residual hover state is kept on touch interactions.
+    if (isHovered) {
+      setIsHovered(false);
+    }
+    if (onHover) {
+      onHover(null);
+    }
+  }, [isHovered, onHover]);
 
   const handleKeyDown = useCallback((e) => {
     if ((e.key === 'Enter' || e.key === ' ') && !isDisabled) {
@@ -288,8 +302,9 @@ export const DayCell = ({
           data-name="dayCell"
           data-date=${date.toISOString()}
           onClick=${handleClick}
-          onMouseEnter=${handleMouseEnter}
-          onMouseLeave=${handleMouseLeave}
+          onPointerEnter=${handlePointerEnter}
+          onPointerLeave=${handlePointerLeave}
+          onTouchStart=${handleTouchStart}
           onKeyDown=${handleKeyDown}
           disabled=${isDisabled}
           aria-label=${ariaLabel}

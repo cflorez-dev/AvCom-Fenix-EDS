@@ -41,6 +41,7 @@
   --color-text-normal-primary: #1B1B1B;
   --color-text-disabled: #6d6d6d;
   --color-text-normal-secondary: #5A5A5A;
+  --color-text-normal-tertiary: #969696;
   --color-text-normal-lighter: #FFFFFF;
   --color-icon-brand-primary: #FFFFFF;
   --color-icon-link-default: #177f8c;
@@ -182,6 +183,9 @@
   --color-warning: #f59e0b;
   --color-error: #ef4444;
   --color-info: #3b82f6;
+  
+  /* Text color utilities */
+  --color-normal-tertiary: #969696;
   
   /* Breakpoints - Based on Figma Design System */
   --breakpoint-sm: 480px;   /* Mobile large / phablets */

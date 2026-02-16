@@ -31,8 +31,8 @@ const BreadcrumbItem = ({
 
   const baseClasses = 'justify-start text-base';
   const stateClasses = isActive
-    ? 'text-zinc-900 font-bold'
-    : 'text-neutral-400 font-normal hover:underline hover:text-zinc-900 active:text-zinc-900 active:underline focus:outline focus:outline-1 focus:outline-offset-[-1px] focus:outline-sky-500 transition-colors duration-200';
+    ? 'text-[var(--color-text-normal-primary)] font-bold'
+    : 'text-normal-tertiary font-normal hover:underline hover:text-[var(--color-text-normal-primary)] active:text-[var(--color-text-normal-primary)] active:underline focus-visible:outline focus-visible:outline-1 focus-visible:outline-offset-[-1px] focus-visible:outline-[var(--color-border-stroke-focus)] transition-colors duration-200';
 
   const itemClasses = 'whitespace-nowrap flex-shrink-0';
 
@@ -40,7 +40,7 @@ const BreadcrumbItem = ({
     return html`
       <a
         href=${url}
-        class="flex justify-start items-center gap-[6px] text-neutral-400 hover:text-zinc-900 active:text-zinc-900 focus:outline focus:outline-1 focus:outline-offset-[-1px] focus:outline-sky-500 transition-colors duration-200 ${isActive ? 'pointer-events-none' : ''}"
+        class="flex justify-start items-center gap-[6px] text-normal-tertiary hover:text-[var(--color-text-normal-primary)] active:text-[var(--color-text-normal-primary)] focus-visible:outline focus-visible:outline-1 focus-visible:outline-offset-[-1px] focus-visible:outline-[var(--color-border-stroke-focus)] transition-colors duration-200 ${isActive ? 'pointer-events-none' : ''}"
         onClick=${handleClick}
         aria-current=${isActive ? 'page' : undefined}
         aria-label=${homeLabel || 'Inicio'}
@@ -48,7 +48,7 @@ const BreadcrumbItem = ({
         <div class="w-[1.125rem] h-[1.125rem] flex items-center justify-center flex-shrink-0">
           <${Icon} icon="app/home" customSize=${true} color="currentColor" aria-hidden="true" />
         </div>
-        <span class="hidden md:inline ${baseClasses} font-normal text-neutral-400 hover:text-zinc-900 hover:underline active:text-zinc-900 active:underline" aria-hidden="true">
+        <span class="hidden md:inline ${baseClasses} font-normal text-normal-tertiary hover:text-[var(--color-text-normal-primary)] hover:underline active:text-[var(--color-text-normal-primary)] active:underline" aria-hidden="true">
           ${homeLabel || 'Inicio'}
         </span>
       </a>
@@ -132,7 +132,7 @@ const Breadcrumb = ({
           />
         `}
         ${mobileItems.length > 1 && html`
-          <div class="w-6 h-6 relative flex items-center justify-center text-neutral-400 flex-shrink-0" aria-hidden="true">
+          <div class="w-6 h-6 relative flex items-center justify-center text-normal-tertiary flex-shrink-0" aria-hidden="true">
             <${Icon} icon="navigation/chevron-right" customSize=${true} color="currentColor" />
           </div>
           <div class="flex items-center gap-2 overflow-x-auto breadcrumb-scroll-area flex-1 min-w-0 scroll-smooth">
@@ -144,7 +144,7 @@ const Breadcrumb = ({
                 homeLabel=${homeLabel}
               />
               ${index < mobileItems.length - 2 && html`
-                <div class="w-6 h-6 relative flex items-center justify-center text-neutral-400 flex-shrink-0" aria-hidden="true">
+                <div class="w-6 h-6 relative flex items-center justify-center text-normal-tertiary flex-shrink-0" aria-hidden="true">
                   <${Icon} icon="navigation/chevron-right" customSize=${true} color="currentColor" />
                 </div>
               `}
@@ -166,7 +166,7 @@ const Breadcrumb = ({
             homeLabel=${homeLabel}
           />
           ${index < desktopItems.length - 1 && html`
-            <div class="w-6 h-6 relative flex items-center justify-center text-neutral-400 flex-shrink-0" aria-hidden="true">
+            <div class="w-6 h-6 relative flex items-center justify-center text-normal-tertiary flex-shrink-0" aria-hidden="true">
               <${Icon} icon="navigation/chevron-right" customSize=${true} color="currentColor" />
             </div>
           `}

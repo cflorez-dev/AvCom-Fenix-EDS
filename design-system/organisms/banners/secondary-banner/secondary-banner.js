@@ -194,7 +194,7 @@ export const SecondaryBanner = ({
             path.setAttribute('style', `fill: ${solidColor};`);
           });
         }
-        bgSVG.setAttribute('class', 'absolute top-0 right-0 min-[1024px]:right-[85px] min-[1024px]:h-[243px] min-[1024px]:w-auto');
+        bgSVG.setAttribute('class', 'absolute top-0 right-0 min-[1024px]:right-[89px] min-[1024px]:h-[243px] min-[1024px]:w-auto');
         setCondorBgSVG(bgSVG);
 
         const vectorSVG = await loadSVGIcon(vectorPath);
@@ -228,7 +228,8 @@ export const SecondaryBanner = ({
     return html`
       <span
         dangerouslySetInnerHTML=${{ __html: svgElement.outerHTML }}
-        class="inline-block right-0"
+        class="block right-0 overflow-hidden"
+        style=${{ lineHeight: 0 }}
       />
     `;
   };
@@ -353,7 +354,7 @@ export const SecondaryBanner = ({
       </div>
 
         <!-- Right image section - Desktop (>= 1024px) -->
-      <div class="hidden lg:block  max-w-[646px] absolute left-0 ml-[600px] top-0 h-[243px] w-[646px] z-1 overflow-hidden">
+      <div class="hidden lg:block  max-w-[651px] absolute left-0 ml-[597px] top-0 h-[243px] w-[651px] z-1 overflow-hidden">
         <div ref=${desktopPictureRef} class="w-full h-full relative">
           ${pictureDesktop?.pictureElement ? '' : buildDesktopPicture()}
         </div>
