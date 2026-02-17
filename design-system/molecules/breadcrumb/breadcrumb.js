@@ -40,7 +40,7 @@ const BreadcrumbItem = ({
     return html`
       <a
         href=${url}
-        class="flex justify-start items-center gap-[6px] text-normal-tertiary hover:text-[var(--color-text-normal-primary)] active:text-[var(--color-text-normal-primary)] focus-visible:outline focus-visible:outline-1 focus-visible:outline-offset-[-1px] focus-visible:outline-[var(--color-border-stroke-focus)] transition-colors duration-200 ${isActive ? 'pointer-events-none' : ''}"
+        class="flex justify-start items-center gap-[6px] text-normal-tertiary hover:text-[var(--color-text-normal-primary)] hover:underline active:text-[var(--color-text-normal-primary)] active:underline focus-visible:outline focus-visible:outline-1 focus-visible:outline-offset-[-1px] focus-visible:outline-[var(--color-border-stroke-focus)] transition-colors duration-200 ${isActive ? 'pointer-events-none' : ''}"
         onClick=${handleClick}
         aria-current=${isActive ? 'page' : undefined}
         aria-label=${homeLabel || 'Inicio'}
@@ -48,7 +48,7 @@ const BreadcrumbItem = ({
         <div class="w-[1.125rem] h-[1.125rem] flex items-center justify-center flex-shrink-0">
           <${Icon} icon="app/home" customSize=${true} color="currentColor" aria-hidden="true" />
         </div>
-        <span class="hidden md:inline ${baseClasses} font-normal text-normal-tertiary hover:text-[var(--color-text-normal-primary)] hover:underline active:text-[var(--color-text-normal-primary)] active:underline" aria-hidden="true">
+        <span class="hidden md:inline ${baseClasses} font-normal" aria-hidden="true">
           ${homeLabel || 'Inicio'}
         </span>
       </a>

@@ -287,6 +287,27 @@
     "id": "section",
     "fields": [
       {
+        "component": "select",
+        "name": "section-type",
+        "label": "Section Type",
+        "description": "Select the type of section to configure different fields.",
+        "value": "default",
+        "options": [
+          {
+            "name": "Default",
+            "value": "default"
+          },
+          {
+            "name": "Hero Destinations",
+            "value": "hero-destinations"
+          },
+          {
+            "name": "Hero Destinations Detail",
+            "value": "hero-destinations-detail"
+          }
+        ]
+      },
+      {
         "component": "text",
         "name": "name",
         "label": "Section Name",
@@ -339,19 +360,43 @@
             "name": "MultiTab Item",
             "value": "multitab-item"
           }
-        ]
+        ],
+        "condition": {
+          "===": [
+            {
+              "var": "section-type"
+            },
+            "default"
+          ]
+        }
       },
       {
         "component": "text",
         "name": "accordion-group",
         "label": "Accordion Group ID",
-        "description": "Links this section to an Accordion Group block. Must match the Group ID of the Accordion Group controller."
+        "description": "Links this section to an Accordion Group block. Must match the Group ID of the Accordion Group controller.",
+        "condition": {
+          "===": [
+            {
+              "var": "section-type"
+            },
+            "default"
+          ]
+        }
       },
       {
         "component": "text",
         "name": "accordion-label",
         "label": "Accordion Label",
-        "description": "The clickable title shown in the accordion header when this section is an accordion item."
+        "description": "The clickable title shown in the accordion header when this section is an accordion item.",
+        "condition": {
+          "===": [
+            {
+              "var": "section-type"
+            },
+            "default"
+          ]
+        }
       },
       {
         "component": "select",
@@ -371,37 +416,85 @@
             "name": "H4",
             "value": "4"
           }
-        ]
+        ],
+        "condition": {
+          "===": [
+            {
+              "var": "section-type"
+            },
+            "default"
+          ]
+        }
       },
       {
         "component": "boolean",
         "name": "accordion-default-open",
         "label": "Accordion Default Open",
-        "description": "Whether this accordion item should be expanded by default when the page loads."
+        "description": "Whether this accordion item should be expanded by default when the page loads.",
+        "condition": {
+          "===": [
+            {
+              "var": "section-type"
+            },
+            "default"
+          ]
+        }
       },
       {
         "component": "text",
         "name": "multitab-group",
         "label": "MultiTab Group ID",
-        "description": "Links this section to a MultiTab block. Must match the Group ID of the MultiTab controller."
+        "description": "Links this section to a MultiTab block. Must match the Group ID of the MultiTab controller.",
+        "condition": {
+          "===": [
+            {
+              "var": "section-type"
+            },
+            "default"
+          ]
+        }
       },
       {
         "component": "text",
         "name": "multitab-label",
         "label": "Tab Label (Primary)",
-        "description": "The primary text shown in the tab button for this content."
+        "description": "The primary text shown in the tab button for this content.",
+        "condition": {
+          "===": [
+            {
+              "var": "section-type"
+            },
+            "default"
+          ]
+        }
       },
       {
         "component": "text",
         "name": "multitab-secondary-label",
         "label": "Tab Label (Secondary)",
-        "description": "Optional secondary text shown below the primary label in the tab button."
+        "description": "Optional secondary text shown below the primary label in the tab button.",
+        "condition": {
+          "===": [
+            {
+              "var": "section-type"
+            },
+            "default"
+          ]
+        }
       },
       {
         "component": "text",
         "name": "multitab-icon",
         "label": "Tab Icon",
-        "description": "Optional icon path for the tab (e.g., 'action/check', 'alert/info'). Leave empty for no icon."
+        "description": "Optional icon path for the tab (e.g., 'action/check', 'alert/info'). Leave empty for no icon.",
+        "condition": {
+          "===": [
+            {
+              "var": "section-type"
+            },
+            "default"
+          ]
+        }
       },
       {
         "component": "select",
@@ -417,25 +510,72 @@
             "name": "After",
             "value": "after"
           }
-        ]
+        ],
+        "condition": {
+          "===": [
+            {
+              "var": "section-type"
+            },
+            "default"
+          ]
+        }
       },
       {
         "component": "boolean",
         "name": "multitab-default-open",
         "label": "Default Tab",
-        "description": "Whether this tab should be active by default when the page loads."
+        "description": "Whether this tab should be active by default when the page loads.",
+        "condition": {
+          "===": [
+            {
+              "var": "section-type"
+            },
+            "default"
+          ]
+        }
       },
       {
         "component": "text",
         "name": "mosaic-v2-group",
         "label": "Mosaic V2 Group ID",
-        "description": "Links this section to a Mosaic Cards V2 block. Must match the Group ID of the controller."
+        "description": "Links this section to a Mosaic Cards V2 block. Must match the Group ID of the controller.",
+        "condition": {
+          "===": [
+            {
+              "var": "section-type"
+            },
+            "default"
+          ]
+        }
       },
       {
         "component": "text",
         "name": "mosaic-label",
         "label": "Mosaic Phase Label",
-        "description": "Optional label for this mosaic phase (used for dot indicators or debugging)."
+        "description": "Optional label for this mosaic phase (used for dot indicators or debugging).",
+        "condition": {
+          "===": [
+            {
+              "var": "section-type"
+            },
+            "default"
+          ]
+        }
+      },
+      {
+        "component": "boolean",
+        "name": "rounded-image",
+        "label": "Rounded Image",
+        "description": "Enable rounded corners for images in this hero destinations section.",
+        "value": false,
+        "condition": {
+          "===": [
+            {
+              "var": "section-type"
+            },
+            "hero-destinations"
+          ]
+        }
       }
     ]
   },
