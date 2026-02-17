@@ -226,7 +226,7 @@ export const NavbarDropdown = ({
       tabindex="0"
       ...${rest}
     >
-    <div class="absolute transition-all ${isScrolled ? 'top-0 h-full' : 'top-[-3px] h-[calc(100%+8px)]'} left-0 right-0 w-full hidden group-focus-visible:block pointer-events-none z-1"></div>
+    <div class="absolute transition-all ${isScrolled ? 'top-0 h-full' : 'top-[-3px] h-[calc(100%+8px)]'} left-0 right-0 w-full border-2 border-transparent group-focus-visible:border-[var(--color-border-stroke-focus)] hidden group-focus-visible:block pointer-events-none z-1"></div>
       <button
         class="bg-transparent border-none p-0 cursor-pointer w-full"
         type="button"
