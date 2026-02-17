@@ -310,7 +310,7 @@ export const LanguageSearch = ({
 
       // Create overlay directly in main (or body if main doesn't exist)
       const overlay = document.createElement('div');
-      overlay.className = 'language-search-overlay fixed inset-0 bg-[rgba(27,27,27,0.70)] z-[98] cursor-pointer';
+      overlay.className = 'language-search-overlay fixed inset-0 bg-[rgba(27,27,27,0.70)] z-[800] cursor-pointer';
       overlay.addEventListener('click', () => {
         setIsDropdownOpen(false);
         setIsFocused(false);
