@@ -20,7 +20,7 @@ const buildRelAttribute = (targetAttribute, relAttribute) => {
     // Default security attributes for external links
     return 'noopener noreferrer';
   }
-  
+
   // If target is not _blank, return the rel attribute as-is (or null)
   return relAttribute;
 };
@@ -42,7 +42,6 @@ const processDetailsContent = (htmlContent) => {
     (match, attributes = '') => {
       // Check if class attribute already exists
       const classMatch = attributes.match(/class\s*=\s*["']([^"']*)["']/i);
-      
       if (classMatch) {
         // If class exists, check if m-0 is already present
         const existingClasses = classMatch[1];
@@ -155,7 +154,7 @@ export const InformativePhotoCard = ({
   } : null}
     >
         <div class="self-stretch h-44 bg-background-card-lighter rounded-tl-2xl rounded-tr-2xl inline-flex justify-center items-center overflow-hidden">
-            <img class="flex-1 self-stretch" src="${image}" alt="${imageAlt}" loading="${loading}" />
+            <img class="flex-1 object-cover object-top" src="${image}" alt="${imageAlt}" loading="${loading}" />
         </div>
         <div class="self-stretch min-h-[149px] bg-background-card-lighter rounded-bl-2xl rounded-br-2xl flex flex-col justify-start items-start gap-2.5">
             <div class="self-stretch min-w-0 p-6 flex flex-col justify-center items-center gap-3">

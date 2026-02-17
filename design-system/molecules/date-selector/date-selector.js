@@ -238,6 +238,21 @@ export const DateSelector = ({
     };
   }, []);
 
+  // Mobile: Auto-scroll to startMonth when calendar opens
+  useEffect(() => {
+    if (!isMobile || !isOpen || startMonth === null || startYear === null) return;
+
+    // Use setTimeout to ensure DOM is fully rendered
+    const timer = setTimeout(() => {
+      const monthElement = monthRefs.current[`${startYear}-${startMonth}`];
+      if (monthElement) {
+        monthElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    }, 100);
+
+    return () => clearTimeout(timer);
+  }, [isMobile, isOpen, startMonth, startYear]);
+
   // Fetch pricing for a specific month
   const fetchPricingForMonth = useCallback(async (year, month) => {
     if (!origin || !destination) return;
@@ -521,17 +536,10 @@ export const DateSelector = ({
   const monthsToRender = useMemo(() => {
     let months = getMonthsToRender();
 
-    // Mobile: If startMonth/startYear provided, filter to start from that month
-    // This ensures correct month renders on initial open without flicker
-    if (isMobile && startMonth !== null && startYear !== null) {
-      months = months.filter(({ year, month }) => {
-        if (year < startYear) return false;
-        if (year === startYear && month < startMonth) return false;
-        return true;
-      });
-    } else if (RESTRICT_RETURN_START_MONTH && mode === 'return' && startMonth !== null && startYear !== null) {
-      // Desktop: If RESTRICT_RETURN_START_MONTH=true and in return mode with startMonth/startYear,
-      // filter months to start from startMonth
+    // Desktop only: If RESTRICT_RETURN_START_MONTH=true and in return mode with startMonth/startYear,
+    // filter months to start from startMonth
+    // Mobile: Render all months but auto-scroll to startMonth (controlled via useEffect above)
+    if (RESTRICT_RETURN_START_MONTH && !isMobile && mode === 'return' && startMonth !== null && startYear !== null) {
       months = months.filter(({ year, month }) => {
         if (year < startYear) return false;
         if (year === startYear && month < startMonth) return false;
