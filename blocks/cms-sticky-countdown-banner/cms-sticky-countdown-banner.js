@@ -113,7 +113,7 @@ export default async function decorate(block) {
   if (isAuthorEnv) {
     container.className = 'w-full';
   } else {
-    container.className = 'fixed bottom-0 left-0 right-0 w-full z-[400] md:bottom-[48px] md:left-1/2 md:right-auto md:-translate-x-1/2 md:max-w-[1140px]';
+    container.className = 'fixed bottom-0 left-0 right-0 w-full z-[400] md:bottom-[48px] md:left-1/2 md:right-auto md:-translate-x-1/2 md:max-w-[1140px] md:px-8 xl:px-0';
   }
 
   // Render Preact component

@@ -318,9 +318,10 @@ export default async function decorate(block) {
         <${LinkButton}
           size="medium"
           href=${buttonUrl}
+          customClassName="group hover:!font-bold"
         >
           ${buttonText}
-          <${ArrowRightIcon} />
+          <${ArrowRightIcon} customClassName="group-hover:scale-110" />
         </${LinkButton}>
       `,
       buttonContainer,

@@ -356,8 +356,8 @@ export const BookingBox = ({
       nn: passengers.children,
       ni: passengers.infants,
       jn: passengers.youth,
-      lan: getStoredLanguage() || 'es',
-      Pais: getStoredCountry() || 'CO',
+      lan: (getStoredLanguage() || 'es').toUpperCase(),
+      Pais: (getStoredCountry() || 'CO').toUpperCase(),
       SistemaOrigen: 'AH',
       Device: 'Web',
     };

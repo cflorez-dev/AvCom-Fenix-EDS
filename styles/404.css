@@ -43,9 +43,29 @@
   margin-bottom: 24px;
 }
 
+.section.cms-button-container {
+  flex-direction: column;
+}
+
+.section.cms-button-container .cms-button-wrapper {
+  width: 100%;
+}
+
+.section.cms-button-container .cms-button-wrapper button{
+  width: 100%;
+}
+
 @media (width >= 480px) {
     :root {
         --padding-x-section: 0;
+    }
+
+    .section.cms-button-container {
+      flex-direction: row;
+    }
+
+    .section.cms-button-container .cms-button-wrapper {
+      width: auto;
     }
 }
  

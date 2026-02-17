@@ -343,6 +343,11 @@ export default function decorate(block) {
   config.targetPageTypes = config.targetPageTypes || config.targetpagetypes || config['target page types'] || '';
 
   if (!shouldShowMarquesina(config)) {
+    // Add p-0 class to parent section container
+    const sectionContainer = block.closest('.section.marquesina-container');
+    if (sectionContainer) {
+      sectionContainer.classList.add('!p-0');
+    }
     block.remove();
     return;
   }
