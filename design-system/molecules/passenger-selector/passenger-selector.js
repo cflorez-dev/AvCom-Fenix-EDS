@@ -372,6 +372,26 @@ export const PassengerSelector = ({
       .replace(/\b!?text-\[1rem\]/g, 'text-[14px]');
   }, [i18n['bookingBox.labels.groupTravelLink']]);
 
+  const youthPolicyLearnProcessed = useMemo(() => {
+    const processed = processContentHTML(
+      i18n['bookingBox.labels.youthPolicyLearn'] || '',
+      'informative',
+      {
+        pClassName: 'text-[14px] leading-[21px]',
+        strongClassName: 'font-bold',
+        processRelAttributes: true,
+        linkButtonOptions: {
+          customClassName: '!text-[14px] !leading-[21px] py-0',
+          linkTarget: 'self',
+        },
+      },
+    );
+
+    return processed
+      .replace(/\b!?text-\[16px\]/g, 'text-[14px]')
+      .replace(/\b!?text-\[1rem\]/g, 'text-[14px]');
+  }, [i18n['bookingBox.labels.youthPolicyLearn']]);
+
   // Performance: Radio Button Component optimizado
   const RadioButton = ({ label, checked, onClick }) => {
     // Performance: Pre-calculate classes
@@ -566,10 +586,11 @@ export const PassengerSelector = ({
             ${showInfoBanner && html`
               <${Alert}
                 variant="informative"
-                contentHTML=${i18n['bookingBox.labels.youthPolicyLearn'] || ''}
+                contentHTML=${youthPolicyLearnProcessed}
                 dismissible=${true}
                 onDismiss=${() => setShowInfoBanner(false)}
                 marqueeMode=${false}
+                preserveRawHTML=${true}
               />
             `}
 
@@ -691,12 +712,13 @@ export const PassengerSelector = ({
           ${showInfoBanner && html`
             <${Alert}
               variant="informative"
-              contentHTML=${i18n['bookingBox.labels.youthPolicyLearn'] || ''}
+              contentHTML=${youthPolicyLearnProcessed}
               dismissible=${true}
               onDismiss=${() => setShowInfoBanner(false)}
               marqueeMode=${false}
               isRounded=${true}
               customClassName="rounded-[8px] border-none !p-[16px] !leading-[21px]"
+              preserveRawHTML=${true}
             />
           `}
 

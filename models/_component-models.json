@@ -243,6 +243,10 @@
             "value": "no-padding-top"
           },
           {
+            "name": "padding-title",
+            "value": "padding-title"
+          },
+          {
             "name": "text-center",
             "value": "text-center"
           },

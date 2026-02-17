@@ -213,6 +213,13 @@ main .section.center-content > div {
   flex-direction: column;
 }
 
+main div.section.padding-title {
+  padding: 0 16px;
+  h1,h2,h3,h4,h5,h6 {
+    margin: 0;
+  }
+}
+
 .section.no-padding-top {
   padding-top: 0;
 }

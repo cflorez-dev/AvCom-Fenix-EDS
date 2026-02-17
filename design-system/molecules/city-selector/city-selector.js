@@ -202,17 +202,22 @@ export const CitySelector = ({
       window.removeEventListener('resize', checkMobile, { passive: true });
     };
   }, []);
+
+  const normalizeText = useCallback((text = '') => text
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, ''), []);
   // Filter cities basándose en searchQuery (memoized)
   const filteredCities = useMemo(() => {
-    const query = searchQuery.toLowerCase().trim();
+    const query = normalizeText(searchQuery).trim();
     if (!query) return cities || [];
 
     return (cities || []).filter((city) => (
-      city.name.toLowerCase().includes(query)
-      || city.iataCityCode.toLowerCase().includes(query)
-      || city.country.toLowerCase().includes(query)
+      normalizeText(city.name).includes(query)
+      || normalizeText(city.iataCityCode).includes(query)
+      || normalizeText(city.country).includes(query)
     ));
-  }, [cities, searchQuery]);
+  }, [cities, searchQuery, normalizeText]);
 
   // Handlers (useCallback para estabilidad)
   const handleBack = useCallback(() => {
@@ -484,8 +489,8 @@ export const CitySelector = ({
 
   // Determine if label should float
   const shouldFloat = useMemo(
-    () => value || isOpen || searchQuery,
-    [value, isOpen, searchQuery],
+    () => value || isOpen,
+    [value, isOpen],
   );
 
   // Determine actual state (similar to Input component)
