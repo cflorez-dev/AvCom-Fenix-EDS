@@ -147,7 +147,7 @@ export const StickyCountdownBanner = ({
         <div class="self-stretch md:self-auto md:order-2 inline-flex justify-end items-center md:items-start gap-2.5">
           <button
             type="button"
-            class="w-6 h-6 cursor-pointer bg-transparent border-0 p-0 focus:outline focus:outline-2 focus:outline-[var(--border-stroke-focus)] focus:outline-offset-2 rounded flex items-center justify-center"
+            class="w-6 h-6 cursor-pointer bg-transparent border-0 p-0 focus-visible:outline focus-visible:outline-2 focus:outline-[var(--border-stroke-focus)] focus:outline-offset-2 rounded flex items-center justify-center"
             onClick=${handleDismiss}
             onKeyDown=${handleKeyDown}
             aria-label="Cerrar banner"
