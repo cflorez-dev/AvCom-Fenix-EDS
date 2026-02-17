@@ -241,6 +241,18 @@ export const Alert = ({
       + 'font-[var(--paragraph-p200-weight,400)] '
       + 'leading-[var(--line-height-150,1.5)]'
     : 'px-4 py-4 border-none';
+  
+  // Add outline for success and error variants (doesn't affect box size)
+  const getOutlineClasses = () => {
+    if (normalizedVariant === 'success') {
+      return 'outline outline-[1px] outline-[var(--color-alert-success-border)]';
+    }
+    if (normalizedVariant === 'error') {
+      return 'outline outline-[1px] outline-[var(--color-alert-error-border)]';
+    }
+    return '';
+  };
+
   const containerClasses = `
     flex 
     w-full
@@ -255,6 +267,7 @@ export const Alert = ({
     ${!fullWidth ? 'font-normal' : ''}
     ${!fullWidth ? 'leading-auto' : ''}
     ${!fullWidth ? 'border' : ''}
+    ${getOutlineClasses()}
     ${heightClasses ? `${heightClasses} overflow-y-auto` : ''}
     ${!fullWidth ? `${currentVariantClasses.bg} ${currentVariantClasses.text} ${currentVariantClasses.border}` : ''}
     ${customClassName}

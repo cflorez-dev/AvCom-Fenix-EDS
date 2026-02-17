@@ -164,6 +164,12 @@ export const CitySelector = ({
   const [isMobile, setIsMobile] = useState(false);
   const [desktopListHasScrollbar, setDesktopListHasScrollbar] = useState(false);
 
+  // Reactive state: true si hay al menos 1 carácter en búsqueda
+  const isSearching = useMemo(
+    () => searchQuery.trim().length > 0,
+    [searchQuery],
+  );
+
   const containerRef = useRef(null);
   const inputRef = useRef(null);
   const dropdownRef = useRef(null);
@@ -673,7 +679,7 @@ export const CitySelector = ({
           aria-label=${label || 'Lista de ciudades'}
         >
         ${filteredCities.length > 0 && !isLoading ? html`
-          <div class="self-stretch justify-start text-text-normal-secondary text-base font-bold">${i18n['bookingBox.labels.results'] || 'Resultados'}</div>
+          <div class="self-stretch justify-start text-text-normal-secondary text-base font-bold">${isSearching ? (i18n['bookingBox.labels.results'] || 'Resultados') : (i18n['bookingBox.stepTitles.allAirports'] || 'Todos los aeropuertos')}</div>
         ` : ''}
           <!-- Cities List -->
           <div ref=${desktopListRef} class=${`flex-1 overflow-y-auto ${desktopListHasScrollbar ? 'pr-[4px]' : 'pr-4'}`}>
@@ -710,7 +716,7 @@ export const CitySelector = ({
             <h2
               class="!text-[18px] font-bold text-[var(--color-text-normal-primary)] min-h-[24px]"
             >
-              ${actualStepTitle}
+              ${isSearching ? (i18n['bookingBox.labels.results'] || 'Resultados') : (i18n['bookingBox.stepTitles.allAirports'] || actualStepTitle)}
             </h2>
 
             <!-- Close Button -->
@@ -798,7 +804,7 @@ export const CitySelector = ({
           </div>
 
           ${filteredCities.length > 0 && !isLoading ? html`
-            <div class="self-stretch justify-start text-text-normal-secondary text-base font-bold mt-[16px]">${i18n['bookingBox.labels.results'] || 'Resultados'}</div>
+            <div class="self-stretch justify-start text-text-normal-secondary text-base font-bold mt-[16px]">${isSearching ? (i18n['bookingBox.labels.results'] || 'Resultados') : (i18n['bookingBox.stepTitles.allAirports'] || 'Todos los aeropuertos')}</div>
           ` : ''}
           ${filteredCities.length > 0 && !isLoading ? html`
             <div class="overflow-y-auto">
