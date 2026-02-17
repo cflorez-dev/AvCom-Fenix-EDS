@@ -65,26 +65,36 @@ const getPageTitle = async (url) => {
  * @returns {Promise<Array>} Array of breadcrumb items
  */
 const buildBreadcrumbItems = async (pathname, customSlug = '') => {
+  // Remove first and last slash
+  const cleanPath = pathname.replace(/^\/|\/$/g, '');
+  const pathSegments = cleanPath.split('/').filter((seg) => seg.length > 0);
+
+  // Extract language from first segment (es, en, pt, etc.)
+  const language = pathSegments.length > 0 ? pathSegments[0] : 'es';
+  const homeUrl = `${window.location.origin}/${language}/`;
+
+  // Home item always points to /{lang}/
   const items = [
     {
       label: 'Home',
-      url: window.location.origin,
+      url: homeUrl,
       isHome: true,
-      isActive: pathname === '/' || pathname === '',
+      isActive: pathSegments.length <= 1, // Active if only language in path
     },
   ];
 
-  if (pathname === '/' || pathname === '') {
+  // If only language in path (e.g., /es/ or /es), we're at home
+  if (pathSegments.length <= 1) {
     return items;
   }
 
-  // Remove first and last slash, split path
-  const pathsList = pathname.replace(/^\/|\/$/g, '').split('/');
+  // Process path segments after language
+  const contentSegments = pathSegments.slice(1);
 
-  for (let i = 0; i < pathsList.length - 1; i += 1) {
-    const pathPart = pathsList[i];
+  for (let i = 0; i < contentSegments.length - 1; i += 1) {
+    const pathPart = contentSegments[i];
     const prevPath = items[i].url.replace(window.location.origin, '');
-    const path = `${prevPath}/${pathPart}`;
+    const path = `${prevPath}${pathPart}`;
     const url = `${window.location.origin}${path}`;
 
     /* eslint-disable-next-line no-await-in-loop */
@@ -98,8 +108,9 @@ const buildBreadcrumbItems = async (pathname, customSlug = '') => {
     });
   }
 
+  // Add current page (last segment)
   const titleElement = document.querySelector('title');
-  if (titleElement && pathsList.length > 0) {
+  if (titleElement && contentSegments.length > 0) {
     const label = customSlug && customSlug.trim() !== '' ? customSlug : titleElement.innerText;
 
     items.push({

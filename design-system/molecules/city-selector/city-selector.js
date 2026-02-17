@@ -214,7 +214,7 @@ export const CitySelector = ({
 
     return (cities || []).filter((city) => (
       normalizeText(city.name).includes(query)
-      || normalizeText(city.iataCityCode).includes(query)
+      || normalizeText(city.iataTerminal).includes(query)
       || normalizeText(city.country).includes(query)
     ));
   }, [cities, searchQuery, normalizeText]);
@@ -469,7 +469,7 @@ export const CitySelector = ({
               ${searchQuery ? highlightMatch(`${city.name}, ${city.country}`, searchQuery) : `${city.name}, ${city.country}`}
             </div>
             <div class="text-sm leading-5 text-text-normal-primary group-active:text-text-normal-lighter">
-              ${searchQuery ? highlightMatch(city.iataCityCode, searchQuery) : city.iataCityCode}
+              ${searchQuery ? highlightMatch(city.iataTerminal, searchQuery) : city.iataTerminal}
             </div>
           </div>
           <!-- Segunda fila: Terminal -->
