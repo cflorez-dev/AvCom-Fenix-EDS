@@ -169,6 +169,7 @@ export const PosForm = ({
           <!-- Country/Region Select -->
           <div class=${responsiveMode ? 'flex-1' : ''}>
             <${Select}
+              customDropdownClassName="mt-[4px]"
               label=${finalCountryLabel}
               labelClassName="left-[1rem] top-[0.625rem] leading-[1.125rem]"
               placeholder=${countryPlaceholder}
@@ -187,6 +188,7 @@ export const PosForm = ({
           <!-- Language Select -->
           <div class=${responsiveMode ? 'flex-1' : ''}>
             <${Select}
+              customDropdownClassName="mt-[4px]"
               label=${finalLanguageLabel}
               labelClassName="left-[1rem] top-[0.625rem] leading-[1.125rem]"
               placeholder=${languagePlaceholder}

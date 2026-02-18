@@ -44,6 +44,7 @@ export const Select = ({
   hasPrefixIcon,
   dropdownMaxHeight,
   labelClassName = '',
+  customDropdownClassName = '',
   customClassName = '',
   id,
   name,
@@ -124,6 +125,11 @@ export const Select = ({
     }
   };
 
+  const getOptionElements = () => {
+    if (!dropdownRef.current) return [];
+    return Array.from(dropdownRef.current.querySelectorAll('[role="option"]'));
+  };
+
   // Select option
   const selectOption = (option) => {
     if (isInteractive) {
@@ -170,33 +176,42 @@ export const Select = ({
         break;
       case 'Tab':
         if (isOpen) {
-          e.preventDefault();
+          // Ignore bubbled Tab events from option elements.
+          if (e.target !== e.currentTarget) {
+            break;
+          }
+
+          const optionElements = getOptionElements();
+          const hasOptions = optionElements.length > 0;
+          if (!hasOptions) {
+            setIsOpen(false);
+            setFocusedIndex(-1);
+            break;
+          }
+
           // Move focus to first option if none focused, or move to next option
           if (focusedIndex < 0) {
+            e.preventDefault();
             setFocusedIndex(0);
             // Focus the first option element
             setTimeout(() => {
-              if (dropdownRef.current && dropdownRef.current.children[0]) {
-                dropdownRef.current.children[0].focus();
-              }
+              optionElements[0]?.focus();
             }, 0);
           } else if (!e.shiftKey && focusedIndex < options.length - 1) {
             // Tab forward: move to next option
+            e.preventDefault();
             const nextIndex = focusedIndex + 1;
             setFocusedIndex(nextIndex);
             setTimeout(() => {
-              if (dropdownRef.current && dropdownRef.current.children[nextIndex]) {
-                dropdownRef.current.children[nextIndex].focus();
-              }
+              optionElements[nextIndex]?.focus();
             }, 0);
           } else if (e.shiftKey && focusedIndex > 0) {
             // Shift+Tab: move to previous option
+            e.preventDefault();
             const prevIndex = focusedIndex - 1;
             setFocusedIndex(prevIndex);
             setTimeout(() => {
-              if (dropdownRef.current && dropdownRef.current.children[prevIndex]) {
-                dropdownRef.current.children[prevIndex].focus();
-              }
+              optionElements[prevIndex]?.focus();
             }, 0);
           } else if (!e.shiftKey && focusedIndex === options.length - 1) {
             // Last option with Tab: close dropdown and allow default Tab behavior
@@ -240,7 +255,8 @@ export const Select = ({
   // Scroll focused item into view
   useEffect(() => {
     if (isOpen && focusedIndex >= 0 && dropdownRef.current) {
-      const focusedElement = dropdownRef.current.children[focusedIndex];
+      const optionElements = getOptionElements();
+      const focusedElement = optionElements[focusedIndex];
       if (focusedElement) {
         focusedElement.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
       }
@@ -386,33 +402,41 @@ export const Select = ({
             bg-white
             rounded-[var(--border-radius-large)]
             shadow-[0_2px_20px_2px_rgba(73,73,73,0.25)]
+            ${customDropdownClassName}
           `}
         ><div class="max-h-[12.813rem] overflow-y-auto">
           ${options.map((option, index) => {
             const handleOptionKeyDown = (e) => {
               if (e.key === 'Tab') {
-                e.preventDefault();
-                if (!e.shiftKey && index < options.length - 1) {
+                e.stopPropagation();
+                const optionElements = getOptionElements();
+                const currentIndex = optionElements.indexOf(e.currentTarget);
+                if (currentIndex === -1) {
+                  return;
+                }
+
+                if (!e.shiftKey && currentIndex < options.length - 1) {
+                  e.preventDefault();
                   // Tab forward: move to next option
-                  setFocusedIndex(index + 1);
+                  const nextIndex = currentIndex + 1;
+                  setFocusedIndex(nextIndex);
                   setTimeout(() => {
-                    if (dropdownRef.current && dropdownRef.current.children[index + 1]) {
-                      dropdownRef.current.children[index + 1].focus();
-                    }
+                    optionElements[nextIndex]?.focus();
                   }, 0);
-                } else if (e.shiftKey && index > 0) {
+                } else if (e.shiftKey && currentIndex > 0) {
+                  e.preventDefault();
                   // Shift+Tab: move to previous option
-                  setFocusedIndex(index - 1);
+                  const prevIndex = currentIndex - 1;
+                  setFocusedIndex(prevIndex);
                   setTimeout(() => {
-                    if (dropdownRef.current && dropdownRef.current.children[index - 1]) {
-                      dropdownRef.current.children[index - 1].focus();
-                    }
+                    optionElements[prevIndex]?.focus();
                   }, 0);
-                } else if (!e.shiftKey && index === options.length - 1) {
+                } else if (!e.shiftKey && currentIndex === options.length - 1) {
                   // Last option with Tab: close dropdown
                   setIsOpen(false);
                   setFocusedIndex(-1);
-                } else if (e.shiftKey && index === 0) {
+                } else if (e.shiftKey && currentIndex === 0) {
+                  e.preventDefault();
                   // First option with Shift+Tab: return focus to select input
                   setIsOpen(false);
                   setFocusedIndex(-1);
@@ -427,9 +451,11 @@ export const Select = ({
                 }
               } else if (e.key === 'Enter' || e.key === ' ') {
                 e.preventDefault();
+                e.stopPropagation();
                 selectOption(option);
               } else if (e.key === 'Escape') {
                 e.preventDefault();
+                e.stopPropagation();
                 setIsOpen(false);
                 setFocusedIndex(-1);
                 setTimeout(() => {

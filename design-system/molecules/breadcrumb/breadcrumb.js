@@ -5,6 +5,55 @@ import { Icon } from '../../atoms/icon/icon.js';
 const html = htm.bind(h);
 
 /**
+ * Renders one structured breadcrumb item.
+ * @param {Object} item
+ * @param {number} index
+ * @returns {import('preact').ComponentChild}
+ */
+const renderStructuredItem = (item, index) => {
+  const itemMarkup = item.isActive
+    ? html`
+      <span itemprop="name">${item.label}</span>
+      <meta itemprop="item" content=${item.url} />
+    `
+    : html`
+      <a href=${item.url} itemprop="item">
+        <span itemprop="name">${item.label}</span>
+      </a>
+    `;
+
+  return html`
+    <li
+      key=${`structured-${index}`}
+      itemprop="itemListElement"
+      itemscope
+      itemtype="https://schema.org/ListItem"
+    >
+      ${itemMarkup}
+      <meta itemprop="position" content=${String(index + 1)} />
+    </li>
+  `;
+};
+
+/**
+ * Semantic breadcrumb markup for search engines.
+ * Rendered as visually hidden to avoid changing validated UI.
+ * @param {Object} props
+ * @param {Array} props.items
+ */
+const StructuredBreadcrumb = ({ items = [] }) => {
+  if (!items.length) return null;
+
+  return html`
+    <nav class="sr-only" aria-label="Breadcrumb structured data" data-name="breadcrumb-structured">
+      <ol itemscope itemtype="https://schema.org/BreadcrumbList">
+        ${items.map((item, index) => renderStructuredItem(item, index))}
+      </ol>
+    </nav>
+  `;
+};
+
+/**
  * BreadcrumbItem component
  * @param {Object} props - Component props
  * @param {string} props.label - Item label
@@ -118,6 +167,7 @@ const Breadcrumb = ({
 
   return html`
     <div>
+      <${StructuredBreadcrumb} items=${items} />
       <nav 
         class="flex md:hidden justify-start items-center gap-2 ${customClassName}"
         aria-label="Breadcrumb"

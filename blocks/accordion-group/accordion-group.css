@@ -158,14 +158,16 @@
 /* Inner wrapper holds the visual card styles */
 .section.accordion-group-item .accordion-group-item-inner {
     background: var(--color-background-brand-primary-lighter, #fff);
-    border: 1px solid #e5e5e5;
+    border: 1px solid var(--color-border-brand-secondary-disable);
     box-sizing: border-box;
 }
 
-/* Hover state: shadow from Figma specs */
-.section.accordion-group-item .accordion-group-item-inner:hover,
-.section.accordion-group-item .accordion-group-item-inner:has(.accordion-group-trigger:hover) {
-    box-shadow: 0 2px 20px 2px rgb(73 73 73 / 25%);
+/* Hover state: shadow from Figma specs (desktop only) */
+@media (width >= 900px) {
+    .section.accordion-group-item .accordion-group-item-inner:hover,
+    .section.accordion-group-item .accordion-group-item-inner:has(.accordion-group-trigger:hover) {
+        box-shadow: 0 2px 20px 2px rgb(73 73 73 / 25%);
+    }
 }
 
 /* Transition for border color and shadow */
