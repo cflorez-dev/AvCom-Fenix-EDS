@@ -59,6 +59,60 @@ const getPageTitle = async (url) => {
 };
 
 /**
+ * Returns absolute URL without query/hash.
+ * @param {string} url - URL to normalize
+ * @returns {string} Canonical absolute URL
+ */
+function getCanonicalUrl(url) {
+  try {
+    const parsed = new URL(url, window.location.origin);
+    parsed.search = '';
+    parsed.hash = '';
+    return parsed.href;
+  } catch (error) {
+    return url;
+  }
+}
+
+/**
+ * Builds BreadcrumbList JSON-LD object.
+ * @param {Array} items - Breadcrumb items
+ * @returns {Object|null} JSON-LD object
+ */
+function buildBreadcrumbJsonLd(items) {
+  if (!Array.isArray(items) || items.length === 0) return null;
+
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: items.map((item, index) => ({
+      '@type': 'ListItem',
+      position: index + 1,
+      name: item.label,
+      item: getCanonicalUrl(item.url),
+    })),
+  };
+}
+
+/**
+ * Injects breadcrumb JSON-LD script in head.
+ * @param {Array} items - Breadcrumb items
+ */
+function upsertBreadcrumbJsonLd(items) {
+  const jsonLd = buildBreadcrumbJsonLd(items);
+  if (!jsonLd) return;
+
+  const oldScript = document.querySelector('script[data-breadcrumb-json-ld="true"]');
+  if (oldScript) oldScript.remove();
+
+  const script = document.createElement('script');
+  script.type = 'application/ld+json';
+  script.setAttribute('data-breadcrumb-json-ld', 'true');
+  script.textContent = JSON.stringify(jsonLd);
+  document.head.appendChild(script);
+}
+
+/**
  * Builds breadcrumb items from current path
  * @param {string} pathname - Current pathname
  * @param {string} customSlug - Optional custom text for last item
@@ -93,9 +147,8 @@ const buildBreadcrumbItems = async (pathname, customSlug = '') => {
 
   for (let i = 0; i < contentSegments.length - 1; i += 1) {
     const pathPart = contentSegments[i];
-    const prevPath = items[i].url.replace(window.location.origin, '');
-    const path = `${prevPath}${pathPart}`;
-    const url = `${window.location.origin}${path}`;
+    const parentPath = contentSegments.slice(0, i + 1).join('/');
+    const url = `${window.location.origin}/${language}/${parentPath}`;
 
     /* eslint-disable-next-line no-await-in-loop */
     const name = await getPageTitle(url);
@@ -115,7 +168,7 @@ const buildBreadcrumbItems = async (pathname, customSlug = '') => {
 
     items.push({
       label,
-      url: window.location.href,
+      url: getCanonicalUrl(window.location.href),
       isHome: false,
       isActive: true,
     });
@@ -159,6 +212,9 @@ export default async function decorate(block) {
     console.warn('No breadcrumb items to display');
     return;
   }
+
+  items[0].label = homeLabel;
+  upsertBreadcrumbJsonLd(items);
 
   const handleItemClick = (url) => {
     window.location.href = url;

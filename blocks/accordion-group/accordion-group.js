@@ -224,7 +224,7 @@ function transformSectionToAccordionItem(section, index, config, openItems) {
   panel.setAttribute('aria-labelledby', headerId);
 
   const itemInner = document.createElement('div');
-  itemInner.className = 'accordion-group-item-inner flex flex-col overflow-hidden bg-[var(--color-background-brand-primary-lighter,#fff)] rounded-[var(--border-radius-medium,12px)] border border-[#e5e5e5] shadow-[0_1px_2px_0_rgb(0_0_0_/_2%)] w-full max-w-[var(--accordion-max-width,1248px)] transition-[border-color,box-shadow] duration-[var(--transition-fast,150ms)] ease-[var(--ease-in-out,ease-in-out)]';
+  itemInner.className = 'accordion-group-item-inner flex flex-col overflow-hidden bg-[var(--color-background-brand-primary-lighter,#fff)] rounded-[var(--border-radius-medium,12px)] border border-border-brand-secondary-disable shadow-[0_1px_2px_0_rgb(0_0_0_/_2%)] w-full max-w-[var(--accordion-max-width,1248px)] transition-[border-color,box-shadow] duration-[var(--transition-fast,150ms)] ease-[var(--ease-in-out,ease-in-out)]';
 
   if (!isOpen) {
     panel.setAttribute('hidden', '');

@@ -372,7 +372,7 @@ export const Alert = ({
     >
     <div class="max-w-[var(--max-width-content,1248px)] flex flex-row !items-start w-full  mx-auto ${marqueeMode ? 'gap-[12px]' : 'gap-2'} px-0 md:px-0 !m-0 ${marqueeMode ? 'items-center' : 'items-start'}">
         ${showIcon && iconData.icon && iconData.icon !== 'none' && html`
-          <div class="${iconContainerClasses}${currentVariantClasses.iconBg ? ' rounded-full w-5 h-5 flex items-center justify-items-start' : ''}" aria-hidden="true">
+          <div class="${iconContainerClasses}${currentVariantClasses.iconBg ? ' rounded-full w-5 h-5 flex items-center justify-items-start' : ''} ${marqueeMode ? 'self-center' : ''}" aria-hidden="true">
             <${Icon} icon=${customIcon || iconData.icon} size="m" color=${customIconColor || iconData.color} />
           </div>
         `}
@@ -394,7 +394,7 @@ export const Alert = ({
             variant="transparent" 
             size="xxs" 
             iconOnly=${true}
-            customClassName="!h-5 !w-5 !min-h-5 !min-w-5 !p-0 !gap-0 !rounded-full flex items-center justify-center hover:!bg-alert-dismiss-hover active:!bg-alert-dismiss-active ${dismissButtonClassName}"
+            customClassName="${marqueeMode ? 'self-center' : ''} !h-5 !w-5 !min-h-5 !min-w-5 !p-0 !gap-0 !rounded-full flex items-center justify-center hover:!bg-alert-dismiss-hover active:!bg-alert-dismiss-active ${dismissButtonClassName}"
           >
             ${dismissIconHTML ? html`<span dangerouslySetInnerHTML=${{ __html: dismissIconHTML }} />` : html`
               <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" fill="none" class="block">
