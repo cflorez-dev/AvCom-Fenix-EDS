@@ -47,7 +47,11 @@
   --color-icon-link-default: #177f8c;
   --color-icon-link-active: #0e4c54;
   --color-background-brand-primary-lighter: #FFFFFF;
-  
+  --color-border-Borders-and-dividers-mail-border-default: #D9D9D9;
+  --color-background-mail-background-default-lighter: #FFFFFF;
+  --color-background-mail-background-default-light: #FAFAFA;
+  --color-text-cyan-600: #0190A0;
+
   /* Banner mode text colors */
   --color-text-banner-light: #1B1B1B;
   --color-text-banner-dark: #FFFFFF;
