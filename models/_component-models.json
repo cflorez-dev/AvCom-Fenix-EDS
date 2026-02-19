@@ -4698,6 +4698,29 @@
         ]
       }
     ]
+  },
+  {
+    "id": "tables",
+    "fields": [
+      {
+        "component": "aem-content-fragment",
+        "name": "picker",
+        "label": "Content Fragment Picker",
+        "valueType": "string",
+        "validation": {
+          "rootPath": "/content"
+        },
+        "description": "Select a Content Fragment that contains a table. Use ONLY this field OR the Rich Text field below, not both. If both are filled, only the Content Fragment will be displayed."
+      },
+      {
+        "component": "richtext",
+        "name": "rte",
+        "label": "Rich Text",
+        "valueType": "string",
+        "description": "Create a table using HTML code. Click the 'Code' option in the rich text editor to write HTML table markup. Use ONLY this field OR the Content Fragment Picker above, not both. This field is ignored if a Content Fragment is selected."
+      }
+    ]
   }
 
 ]
+

@@ -62,7 +62,7 @@ export const ActionButton = ({
 
   // Variant-specific classes
   const variantClasses = variant === 'iconRight'
-    ? 'self-stretch px-3 active:bg-[var(--state-disabled-gray)]'
+    ? 'self-stretch px-3 active:bg-background-brand-secondary-active'
     : 'pl-2 pr-3 active:bg-[var(--state-disabled)]';
 
   const baseClasses = `${commonClasses} ${variantClasses} ${customClassName}`;

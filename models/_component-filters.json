@@ -49,6 +49,7 @@
       "booking-box",
       "accordion-group",
       "tips-cards",
+      "tables",
       "cms-interactive-banner"
     ]
   },
@@ -144,5 +145,9 @@
     "components": [
       "cms-interactive-banner-item"
     ]
+  },
+  {
+    "id": "tables",
+    "components": []
   }
 ]
