@@ -4720,7 +4720,48 @@
         "description": "Create a table using HTML code. Click the 'Code' option in the rich text editor to write HTML table markup. Use ONLY this field OR the Content Fragment Picker above, not both. This field is ignored if a Content Fragment is selected."
       }
     ]
+  },
+  {
+    "id": "html-embed",
+    "fields": [
+      {
+        "component": "richtext",
+        "name": "htmlContent",
+        "label": "HTML Content",
+        "valueType": "string",
+        "value": "",
+        "description": "Insert your HTML code here (including scripts and iframes). Use the 'Code' or 'Source' button (<>) in the editor toolbar to paste raw HTML. HTML is injected without sanitization - only use trusted sources."
+      },
+      {
+        "component": "text",
+        "valueType": "string",
+        "name": "display",
+        "label": "Display Style",
+        "value": "block",
+        "description": "CSS display property for the container (default: block). Options: block, inline-block, flex, grid, none, etc."
+      }
+    ]
+  },
+  {
+    "id": "destination-details",
+    "fields": [
+      {
+        "component": "text",
+        "valueType": "string",
+        "name": "iata",
+        "label": "IATA Code",
+        "value": "AXM",
+        "description": "3-letter IATA airport code for the destination (e.g., AXM for Armenia, BOG for Bogotá, MDE for Medellín)"
+      },
+      {
+        "component": "text",
+        "valueType": "string",
+        "name": "display",
+        "label": "Display Style",
+        "value": "block",
+        "description": "CSS display property for the container (default: block)"
+      }
+    ]
   }
-
 ]
 
