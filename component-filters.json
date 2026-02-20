@@ -50,7 +50,9 @@
       "accordion-group",
       "tips-cards",
       "tables",
-      "cms-interactive-banner"
+      "cms-interactive-banner",
+      "html-embed",
+      "destination-details"
     ]
   },
   {

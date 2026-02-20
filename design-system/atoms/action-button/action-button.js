@@ -58,7 +58,7 @@ export const ActionButton = ({
   const isLink = !!href;
 
   // Common CSS classes for all variants
-  const commonClasses = 'inline-flex justify-start min-h-[48px] items-center gap-2 py-2 bg-[var(--bg-card-lighter)] rounded-4xl shadow-[0px_0px_6px_0px_rgba(90,90,90,0.2)] hover:shadow-[0px_2px_20px_2px_rgba(73,73,73,0.25)] active:shadow-[0px_2px_20px_2px_rgba(73,73,73,0.25)] !no-underline transition-[background-color,transform] duration-[var(--transition-normal)] cursor-pointer focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--focus-primary)]';
+  const commonClasses = 'inline-flex justify-start min-h-[48px] items-center gap-2 py-2 bg-[var(--bg-card-lighter)] rounded-4xl shadow-[0px_0px_6px_0px_rgba(90,90,90,0.2)] hover:shadow-[0px_2px_20px_2px_rgba(73,73,73,0.25)] box:active:shadow-[0px_2px_20px_2px_rgba(73,73,73,0.25)] !no-underline transition-[background-color,transform] duration-[var(--transition-normal)] cursor-pointer focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--focus-primary)]';
 
   // Variant-specific classes
   const variantClasses = variant === 'iconRight'
