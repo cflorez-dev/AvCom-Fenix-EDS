@@ -2,9 +2,42 @@ import { h } from '@dropins/tools/preact.js';
 import { useState, useEffect } from '@dropins/tools/preact-hooks.js';
 import htm from 'htm';
 import { resolveLocale } from '../../../scripts/utils/locale.js';
+import { fetchAEMData } from '../../../scripts/utils/aem-data.js';
+import { BookingBox } from '../booking-box/booking-box.js';
 
 const html = htm.bind(h);
 
+/**
+ * Extrae el slug del destino desde la URL actual
+ * @returns {string|null} Slug del destino o null
+ */
+/**
+ * Extrae el nombre del destino desde la URL actual, quitando el preSlug dinámico
+ * @param {string} preSlug - Prefijo de la URL (ej: 'destinos/que-hacer-en')
+ * @returns {string|null} Slug limpio del destino o null
+ */
+function getDestinationSlugFromUrl(preSlug = '') {
+  try {
+    const path = window.location.pathname;
+    const cleanPath = path.endsWith('/') ? path.slice(0, -1) : path;
+    // Busca el preSlug en la ruta y extrae lo que sigue
+    const idx = cleanPath.indexOf(preSlug);
+    if (idx !== -1) {
+      // Lo que sigue después del preSlug (puede tener / o -)
+      let after = cleanPath.slice(idx + preSlug.length);
+      // Quita / o - inicial si existe
+      after = after.replace(/^[-/]+/, '');
+      return after || null;
+    }
+    // Fallback: último segmento
+    const segments = cleanPath.split('/');
+    return segments[segments.length - 1] || null;
+  } catch (error) {
+    // eslint-disable-next-line no-console
+    console.error('Error extracting slug from URL:', error);
+    return null;
+  }
+}
 /**
  * Fetch content fragments from Adobe I/O Runtime API
  * @param {string} apiUrl - The Adobe I/O Runtime API URL
@@ -191,7 +224,7 @@ const InteractiveTabs = ({ destinationData, language = 'es' }) => {
               </h3>
               
               <div 
-                class="airport text-[16px] text-[var(--color-text-normal-primary)] prose max-w-none [&_hr]:my-4 [&_.dynamic-information-list]:flex [&_.dynamic-information-list]:flex-wrap [&_.dynamic-information-list]:gap-4 [&_.dynamic-information_item]:flex-[0_0_100%] md:[&_.dynamic-information_item]:flex-[0_0_calc(25%-12px)] [&_.dynamic-information_item]:min-w-0 [&_p]:text-[16px] [&_li_strong]:text-[16px] md:[&_li_strong]:text-[18px]"
+                class="airport text-[16px] text-[var(--color-text-normal-primary)] prose max-w-none [&_hr]:my-4 [&_.dynamic-information-list]:flex [&_.dynamic-information-list]:flex-wrap [&_.dynamic-information-list]:gap-4 [&_.dynamic-information_item]:flex-[0_0_100%] md:[&_.dynamic-information_item]:flex-[0_0_calc(25%-12px)] [&_.dynamic-information_item]:min-w-0 [&_p]:text-[16px] [&_li_strong]:text-[16px] md:[&_li_strong]:text-[18px] [&_a]:underline [&_a]:text-[var(--color-icon-link-default)]"
                 dangerouslySetInnerHTML=${{ __html: getLocalizedField('airportAndTransport')?.html || getLocalizedField('airportAndTransport')?.plaintext || 'No transport information available' }}
               />
             </div>
@@ -242,10 +275,17 @@ const InteractiveTabs = ({ destinationData, language = 'es' }) => {
     return html`
       <button
         key=${index}
-        class="flex flex-col w-auto md:flex-1 md:basis-[33.333%] py-[28px] px-[var(--x-x-large,32px)] gap-[var(--tiny,4px)] items-center justify-center shrink-0 relative isolate transition-all duration-200 hover:bg-gray-50 md:min-w-0"
+        class="flex flex-col w-auto md:flex-1 md:basis-[33.333%] py-[28px] px-[var(--x-x-large,32px)] gap-[var(--tiny,4px)] items-center justify-center shrink-0 relative isolate transition-all duration-200 hover:bg-gray-50 md:min-w-0 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-border-stroke-focus)]"
         role="tab"
         aria-selected=${isActive}
+        aria-label=${tab.label}
+        tabIndex="0"
         onClick=${() => setActiveTab(index)}
+        onKeyDown=${(e) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      setActiveTab(index);
+    }
+  }}
       >
         <div class="flex gap-[4px] items-center justify-center relative w-full z-[4]">
           <span class=${`text-[16px] leading-[20px] md:text-[18px] md:leading-[24px] overflow-hidden text-ellipsis ${
@@ -274,53 +314,93 @@ const InteractiveTabs = ({ destinationData, language = 'es' }) => {
 /**
  * Destinations - Main organism component
  * @param {Object} props - Component props
- * @param {string} props.iata - IATA code for the destination
  * @param {string} props.apiUrl - API URL for fetching data
  * @param {string} props.customClassName - Additional CSS classes
  */
 export const Destinations = ({
-  iata = 'AXM',
   apiUrl = 'https://73963-aemintegrations-development.adobeioruntime.net/api/v1/web/avianca-appbuilder/avianca',
   customClassName = '',
+  preSlug = '', // Nuevo prop para el preSlug dinámico
+  i18n = {}, // Opcional: para obtener preSlug si no se pasa
   ...rest
 }) => {
   const [destinationData, setDestinationData] = useState(null);
+  // Obtiene solo el site desde la config de AEM (igual a getEnvironmentConfig pero solo site)
+  let cachedSite = null;
+  async function getSiteFromAEMConfig() {
+    if (cachedSite) return cachedSite;
+    const config = await fetchAEMData('environment');
+    cachedSite = config?.data?.find((item) => item.Key === 'AV_NAME_SITE')?.Text;
+    return cachedSite;
+  }
   const [loading, setLoading] = useState(true);
   const [language, setLanguage] = useState('es');
+  const [slug, setSlug] = useState(null);
+  const [, setResolvedPreSlug] = useState('');
 
-  // Detect current language on mount
+  // Detect current language and resolved preSlug on mount
   useEffect(() => {
-    const detectLanguage = async () => {
+    const detectLanguageAndPreSlug = async () => {
+      let lang = 'es';
       try {
         const locale = await resolveLocale();
-        setLanguage(locale.language || 'es');
+        lang = locale.language || 'es';
+        setLanguage(lang);
       } catch (error) {
         // eslint-disable-next-line no-console
         console.warn('[Destinations] Failed to detect language, using default: es', error);
         setLanguage('es');
       }
+      // Obtener preSlug desde prop o i18n
+      let pre = preSlug;
+      if (!pre) {
+        pre = i18n['hubDestinations.urlPreSlug'] || 'destinos/que-hacer-en';
+        // Si el preSlug es por idioma, puede ser un objeto
+        if (typeof pre === 'object' && pre[lang]) {
+          pre = pre[lang];
+        }
+      }
+      setResolvedPreSlug(pre);
+      const urlSlug = getDestinationSlugFromUrl(pre);
+      setSlug(urlSlug);
     };
-    
-    detectLanguage();
-  }, []);
+    detectLanguageAndPreSlug();
+  }, [preSlug, i18n]);
 
+  // Fetch destination data when slug or language changes
   useEffect(() => {
+    if (!slug || !language) return;
     const loadDestination = async () => {
       setLoading(true);
+      // Determinar variable y query según idioma
+      let slugVar = 'slug_es';
+      let queryName = 'GetDestinationBySlugES';
+      if (language === 'en') {
+        slugVar = 'slug_en';
+        queryName = 'GetDestinationBySlugEN';
+      } else if (language === 'fr') {
+        slugVar = 'slug_fr';
+        queryName = 'GetDestinationBySlugFR';
+      } else if (language === 'pt') {
+        slugVar = 'slug_pt';
+        queryName = 'GetDestinationBySlugPT';
+      }
+      const variables = {};
+      variables[slugVar] = slug;
+      const site = await getSiteFromAEMConfig();
       const data = await fetchContentFragments(
         apiUrl,
         'getContentFragments',
-        'Avianca-home-site',
-        'destinationByIata',
-        { iata },
+        site,
+        queryName,
+        variables,
         true,
       );
       setDestinationData(data);
       setLoading(false);
     };
-
     loadDestination();
-  }, [iata, apiUrl]);
+  }, [slug, language, apiUrl]);
 
   // Load Smartvel boot script
   useEffect(() => {
@@ -349,8 +429,84 @@ export const Destinations = ({
     `;
   }
 
+  // Get destination info for hero section
+  const destination = destinationData?.data?.data?.destinationList?.items?.[0];
+  const getLocalizedField = (fieldName) => {
+    if (!destination) return null;
+    const localizedKey = `${fieldName}_${language}`;
+    return destination[localizedKey] || destination[`${fieldName}_es`] || null;
+  };
+
+  const cityName = getLocalizedField('cityName') || 'Destination';
+  const countryName = getLocalizedField('countryName') || '';
+  // eslint-disable-next-line dot-notation
+  const bannerImageUrl = destination?.heroImage?.['_publishUrl'];
+
   return html`
     <div class=${`${baseClasses} ${customClassName}`} data-name="destinations" ...${rest}>
+      <!-- Hero Section -->
+      <section 
+        class="section cms-rich-text-container hero-destinations-detail mb-6 md:mb-8" 
+        data-section-status="loaded" 
+        data-section-type="hero-destinations-detail" 
+        data-rounded-image="false"
+      >
+        <div class="cms-rich-text-wrapper">
+          <div class="cms-rich-text block cms-rich-text-container" data-block-name="cms-rich-text" data-block-status="loaded">
+            <div class="cms-rich-text-content">
+              <div>
+                <div>
+                  <h1 id=${cityName.toLowerCase().replace(/\s+/g, '-')}> 
+                    <strong>${cityName}</strong>
+                  </h1>
+                  <p>${countryName ? `(${countryName})` : ''}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        ${bannerImageUrl ? html`
+          <div class="default-content-wrapper">
+            <p>
+              <picture>
+                <source 
+                  type="image/webp" 
+                  srcset="${bannerImageUrl}?width=2000&format=webply&optimize=medium" 
+                  media="(min-width: 600px)"
+                />
+                <source 
+                  type="image/webp" 
+                  srcset="${bannerImageUrl}?width=750&format=webply&optimize=medium"
+                />
+                <source 
+                  type="image/png" 
+                  srcset="${bannerImageUrl}?width=2000&format=png&optimize=medium" 
+                  media="(min-width: 600px)"
+                />
+                <img 
+                  loading="eager" 
+                  alt="${cityName} hero banner" 
+                  src="${bannerImageUrl}?width=750&format=png&optimize=medium"
+                  width="772" 
+                  height="254"
+                  class="object-cover rounded-[24px] md:h-[254px]"
+                />
+              </picture>
+            </p>
+          </div>
+        ` : ''}
+      </section>
+
+      <!-- BookingBox Section -->
+      <section class="booking-box-section mb-8 md:mb-12">
+        <div class="max-w-7xl mx-auto">
+          <${BookingBox}
+            defaultDestination=${{ iataCode: destination?.iataCode || '' }}
+          />
+        </div>
+      </section>
+
       <${InteractiveTabs} destinationData=${destinationData} language=${language} />
       
       <!-- Smartvel Component -->
@@ -359,7 +515,7 @@ export const Destinations = ({
         <smartvelcomponent
           data-apikey="b149658a-d07a-45ba-a2df-815bfbdb7631"
           data-lang=${language}
-          data-destination=${iata}
+          data-destination=${destination?.iataCode || ''}
         ></smartvelcomponent>
         <script src="https://cdn.smartvel.com/scripts/boot.min.js"></script>
       </div>

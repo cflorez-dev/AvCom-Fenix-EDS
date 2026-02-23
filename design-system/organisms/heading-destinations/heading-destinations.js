@@ -1,0 +1,78 @@
+import { h } from '@dropins/tools/preact.js';
+import htm from 'htm';
+import { Input } from '../../atoms/inputs/input/input.js';
+import { Select } from '../../atoms/inputs/select/select.js';
+import { HeadingDropdownSelector } from '../../molecules/heading-dropdown-selector/heading-dropdown-selector.js';
+
+const html = htm.bind(h);
+
+/**
+ * HeadingDestinations - Presentation organism for destination hub heading controls.
+ *
+ * ## Props
+ * - `headingText`: `string` – Heading template already resolved.
+ * - `selectedOriginLabel`: `string` – Current selected origin label.
+ * - `originOptions`: `Array<string>` – Origin labels for dropdown.
+ * - `onOriginChange`: `(label: string) => void` – Origin change callback.
+ * - `searchTerm`: `string` – Current search value.
+ * - `searchPlaceholder`: `string` – Search placeholder text.
+ * - `onSearchChange`: `(value: string) => void` – Search change callback.
+ * - `geographicAreaOptions`: `Array<{value:string,label:string}>` – Area options.
+ * - `selectedGeographicArea`: `string` – Selected area value.
+ * - `onGeographicAreaChange`: `(value: string) => void` – Area change callback.
+ * - `geographicAreaPlaceholder`: `string` – Placeholder for area select.
+ * - `customClassName`: `string` – Extra classes.
+ */
+export const HeadingDestinations = ({
+  headingText = '',
+  selectedOriginLabel = '',
+  originOptions = [],
+  onOriginChange,
+  searchTerm = '',
+  searchPlaceholder = '',
+  onSearchChange,
+  geographicAreaOptions = [],
+  selectedGeographicArea = '',
+  onGeographicAreaChange,
+  geographicAreaPlaceholder = '',
+  customClassName = '',
+  ...rest
+}) => {
+  return html`
+    <div
+      data-name="headingDestinations"
+      class="max-w-[1248px] px-[16px] min-[480px]:px-[32px] min-[1248]:px-0 self-center w-full flex flex-col gap-3 min-[1248px]:flex-row min-[1248px]:items-center min-[1248px]:justify-between ${customClassName}"
+      ...${rest}
+    >
+      <${HeadingDropdownSelector}
+        label=${headingText}
+        value=${selectedOriginLabel}
+        options=${originOptions}
+        onChange=${onOriginChange}
+        customClassName="!justify-start !h-auto !self-auto w-auto"
+      />
+
+      <div class="w-full flex flex-col md:flex-row gap-3 min-[1248px]:w-[696px]">
+        <${Input}
+          id="hub-destinations-search"
+          label=${searchPlaceholder}
+          value=${searchTerm}
+          onChange=${onSearchChange}
+          prefixIconName="action/search"
+          customClassName="w-full min-[1248px]:!w-[390px]"
+        />
+
+        <${Select}
+          label=${geographicAreaPlaceholder}
+          options=${geographicAreaOptions}
+          value=${selectedGeographicArea}
+          onChange=${onGeographicAreaChange}
+          hasPrefixIcon=${false}
+          customClassName="w-full min-[1248px]:!w-[390px]"
+        />
+      </div>
+    </div>
+  `;
+};
+
+export default HeadingDestinations;

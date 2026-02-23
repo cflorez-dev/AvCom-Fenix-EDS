@@ -25,6 +25,7 @@ export const DestinationCard = ({
   href,
   onClick,
   customClassName = '',
+  iataCityCode,
   ...rest
 }) => {
   const Tag = href ? 'a' : 'div';
@@ -33,11 +34,12 @@ export const DestinationCard = ({
   return html`
     <${Tag}
       data-name="destinationCard"
-      class="group relative w-[240px] h-[240px] p-[12px] rounded-3xl overflow-hidden cursor-pointer block focus:outline-none focus-visible:ring-2 focus-visible:ring-border-stroke-focus focus-visible:ring-offset-2 ${customClassName}"
+      class="group relative w-[240px] h-[240px] p-[12px] rounded-3xl overflow-hidden cursor-pointer block focus:outline-none focus-visible:outline-none    ${customClassName}"
       onClick=${onClick}
       ...${linkProps}
       ...${rest}
     >
+    <div class="absolute rounded-3xl top-0 h-[240px] transition-all left-0 right-0 w-full border-2 border-transparent group-focus-visible:border-[var(--color-border-stroke-focus)] hidden group-focus-visible:block pointer-events-none z-1"></div>
       <div class="absolute inset-0 w-full h-full transition-transform duration-300 ease-out group-hover:scale-110">
         <img
           src="${imageUrl}"

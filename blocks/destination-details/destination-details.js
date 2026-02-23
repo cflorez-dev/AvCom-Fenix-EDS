@@ -7,6 +7,10 @@ const html = htm.bind(h);
 
 /**
  * Decorate destination-details block to render the Destinations organism component
+ *
+ * NOTE: The IATA code is now primarily read from the 'destination-detail-iata' cookie.
+ * The block config/content IATA is used as a fallback if the cookie is not present.
+ *
  * @param {Element} block - The destination-details block element
  */
 export default function decorate(block) {
