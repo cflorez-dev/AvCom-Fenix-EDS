@@ -127,6 +127,8 @@ export default function decorate(block) {
   }
 
   // 6. Render Alert components with Preact
+  const wrapper = block.parentNode;
+
   alerts.forEach((alertData) => {
     const alertElement = document.createElement('div');
     alertElement.className = 'cms-alert-item';
@@ -141,6 +143,13 @@ export default function decorate(block) {
           isRounded=${true}
           showIcon=${true}
           marqueeMode=${false}
+          onDismiss=${() => {
+  alertElement.remove();
+  if (container.children.length === 0) {
+    container.remove();
+    wrapper?.remove();
+    }
+   }}
         />
       `,
       alertElement,

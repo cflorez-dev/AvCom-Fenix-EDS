@@ -8,33 +8,50 @@ import { BookingBox } from '../booking-box/booking-box.js';
 const html = htm.bind(h);
 
 /**
- * Extrae el slug del destino desde la URL actual
- * @returns {string|null} Slug del destino o null
+ * Obtiene el preSlug dinámico desde el archivo de idioma JSON del sitio
+ * @param {string} lang - Código de idioma (ej: 'es', 'en', 'fr', 'pt')
+ * @returns {Promise<string|null>} preSlug o null
  */
 /**
- * Extrae el nombre del destino desde la URL actual, quitando el preSlug dinámico
+ * @param {string} lang - Código de idioma (ej: 'es', 'en', 'fr', 'pt')
+ * @returns {Promise<string|null>} preSlug o null
+ */
+async function fetchPreSlugFromLangFile(lang = 'es') {
+  try {
+    const { origin } = window.location;
+    // Soporta es, en, fr, pt
+    const langPrefix = ['es', 'en', 'fr', 'pt'].includes(lang) ? lang : 'es';
+    const langJsonUrl = `${origin}/${langPrefix}.json`;
+    const res = await fetch(langJsonUrl);
+    if (!res.ok) return null;
+    const json = await res.json();
+    const preSlugEntry = json.data?.find((item) => item.Key === 'hubDestinations.urlPreSlug');
+    return preSlugEntry ? preSlugEntry.Text : null;
+  } catch (error) {
+    // eslint-disable-next-line no-console
+    console.error('[Destinations] Error fetching preSlug from lang file:', error);
+    return null;
+  }
+}
+
+/**
+ * Extrae el slug del destino desde la URL actual usando el preSlug
  * @param {string} preSlug - Prefijo de la URL (ej: 'destinos/que-hacer-en')
  * @returns {string|null} Slug limpio del destino o null
  */
-function getDestinationSlugFromUrl(preSlug = '') {
+function extractSlugFromUrl(preSlug = '') {
   try {
     const path = window.location.pathname;
-    const cleanPath = path.endsWith('/') ? path.slice(0, -1) : path;
-    // Busca el preSlug en la ruta y extrae lo que sigue
-    const idx = cleanPath.indexOf(preSlug);
+    const idx = path.indexOf(preSlug);
     if (idx !== -1) {
-      // Lo que sigue después del preSlug (puede tener / o -)
-      let after = cleanPath.slice(idx + preSlug.length);
-      // Quita / o - inicial si existe
+      let after = path.slice(idx + preSlug.length);
       after = after.replace(/^[-/]+/, '');
       return after || null;
     }
-    // Fallback: último segmento
-    const segments = cleanPath.split('/');
-    return segments[segments.length - 1] || null;
+    return null;
   } catch (error) {
     // eslint-disable-next-line no-console
-    console.error('Error extracting slug from URL:', error);
+    console.error('[Destinations] Error extracting slug from URL:', error);
     return null;
   }
 }
@@ -320,12 +337,11 @@ const InteractiveTabs = ({ destinationData, language = 'es' }) => {
 export const Destinations = ({
   apiUrl = 'https://73963-aemintegrations-development.adobeioruntime.net/api/v1/web/avianca-appbuilder/avianca',
   customClassName = '',
-  preSlug = '', // Nuevo prop para el preSlug dinámico
-  i18n = {}, // Opcional: para obtener preSlug si no se pasa
+  preSlug = '',
+  i18n = {},
   ...rest
 }) => {
   const [destinationData, setDestinationData] = useState(null);
-  // Obtiene solo el site desde la config de AEM (igual a getEnvironmentConfig pero solo site)
   let cachedSite = null;
   async function getSiteFromAEMConfig() {
     if (cachedSite) return cachedSite;
@@ -336,11 +352,11 @@ export const Destinations = ({
   const [loading, setLoading] = useState(true);
   const [language, setLanguage] = useState('es');
   const [slug, setSlug] = useState(null);
-  const [, setResolvedPreSlug] = useState('');
+  // Eliminado resolvedPreSlug, ya no se usa
 
-  // Detect current language and resolved preSlug on mount
+  // Detect language and fetch preSlug from lang file, then extract slug
   useEffect(() => {
-    const detectLanguageAndPreSlug = async () => {
+    const detectLangAndPreSlug = async () => {
       let lang = 'es';
       try {
         const locale = await resolveLocale();
@@ -351,20 +367,18 @@ export const Destinations = ({
         console.warn('[Destinations] Failed to detect language, using default: es', error);
         setLanguage('es');
       }
-      // Obtener preSlug desde prop o i18n
       let pre = preSlug;
       if (!pre) {
-        pre = i18n['hubDestinations.urlPreSlug'] || 'destinos/que-hacer-en';
-        // Si el preSlug es por idioma, puede ser un objeto
-        if (typeof pre === 'object' && pre[lang]) {
-          pre = pre[lang];
-        }
+        pre = i18n['hubDestinations.urlPreSlug'];
       }
-      setResolvedPreSlug(pre);
-      const urlSlug = getDestinationSlugFromUrl(pre);
+      if (!pre) {
+        pre = await fetchPreSlugFromLangFile(lang);
+      }
+      // 2. Extraer slug de la URL usando el preSlug
+      const urlSlug = extractSlugFromUrl(pre);
       setSlug(urlSlug);
     };
-    detectLanguageAndPreSlug();
+    detectLangAndPreSlug();
   }, [preSlug, i18n]);
 
   // Fetch destination data when slug or language changes

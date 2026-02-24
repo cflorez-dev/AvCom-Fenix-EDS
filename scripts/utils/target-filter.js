@@ -35,6 +35,37 @@ const COUNTRY_CODE_TO_ISO = {
 };
 
 /**
+ * Detect if running in Universal Editor / Author environment
+ * In author mode, targeting rules should be bypassed so content authors
+ * can see and edit all components regardless of their targeting configuration.
+ * @returns {boolean} True if in author/editor environment
+ */
+function isAuthorEnvironment() {
+  try {
+    // Primary: xwalk author environment flag (used by most blocks)
+    if (window.xwalk?.isAuthorEnv) {
+      return true;
+    }
+    // Secondary: hlx AUE flag
+    if (window.hlx?.aue) {
+      return true;
+    }
+    // URL-based detection: author hostname (e.g., author-p34631-e1321407.adobeaemcloud.com)
+    if (window.location.hostname.includes('author-')
+        || window.location.hostname.includes('adobeaemcloud.com')) {
+      return true;
+    }
+    // Fallback: AEM connection meta tag
+    if (document.querySelector('meta[name="urn:auecon:aemconnection"]')) {
+      return true;
+    }
+    return false;
+  } catch (error) {
+    return false;
+  }
+}
+
+/**
  * Parse target values from config (supports both array and comma-separated string formats)
  * @param {string|Array<string>} targetValue - Target value from block config
  * @returns {Array<string>} Array of lowercase, trimmed target values
@@ -70,11 +101,11 @@ function getCurrentCountry() {
     if (!cookieCountry) {
       return '';
     }
-    
+
     // Convert cookie format (col, arg, mex) to ISO format (co, ar, mx)
     const countryLower = cookieCountry.toLowerCase();
     const isoCode = COUNTRY_CODE_TO_ISO[countryLower];
-    
+
     return isoCode || countryLower; // Fallback to original if not in map
   } catch (error) {
     // eslint-disable-next-line no-console
@@ -113,6 +144,11 @@ function getCurrentLanguage() {
  * @returns {boolean} True if content should be shown, false if hidden
  */
 export function shouldShowByTargeting(targetCountries, targetLanguages) {
+  // In author mode, always show content so editors can manage all components
+  if (isAuthorEnvironment()) {
+    return true;
+  }
+
   const countries = parseTargetValues(targetCountries);
   const languages = parseTargetValues(targetLanguages);
 
@@ -155,6 +191,11 @@ export function filterItemsByTargeting(
 ) {
   if (!Array.isArray(items)) {
     return [];
+  }
+
+  // In author mode, return all items without filtering
+  if (isAuthorEnvironment()) {
+    return items;
   }
 
   return items.filter((item) => {

@@ -91,14 +91,15 @@ export const FormHeaderBanner = ({
     <div class="w-full py-8 relative inline-flex flex-col justify-center items-center gap-14">
       <div class="self-stretch xl:px-8 flex flex-col justify-start items-center gap-9">
           <div data-alert="true" data-device="mob" data-form="true" class="w-full max-w-[1248px] rounded-[24px] shadow-[0px_2px_20px_2px_rgba(73,73,73,0.25)] flex flex-col min-[1024px]:flex-row justify-center items-start overflow-hidden">
-              <div class="self-stretch h-[180px] min-[1024px]:h-auto">
+              <div class="relative self-stretch h-[180px] min-[1024px]:h-auto min-[1024px]:flex-1 overflow-hidden">
                 ${imageData?.src ? html`
-                  <picture class="w-full h-full">
+                  <picture class="absolute inset-0 block w-full h-full">
                     <img ...${imgAttributes} />
                   </picture>
                 ` : null}
               </div>
-              <div class="self-stretch p-4 min-[1024px]:p-8 bg-background-card-lighter flex flex-col justify-start items-start gap-6 w-[100%] min-[1024px]:min-w-[690px] min-[1248px]:max-w-[848px]">
+
+              <div class="self-stretch p-4 min-[1024px]:p-8 bg-background-card-lighter flex flex-col justify-start items-start gap-6 w-[100%] min-[1024px]:min-w-[660px] min-[1024px]:w-[660px] min-[1248px]:max-w-[848px] min-[1248px]:w-[848px]">
                   <div class="self-stretch flex flex-col justify-start items-start gap-[4px]">
                       <${titleLevel} class="!m-0 self-stretch justify-start text-text-normal-primary !text-[24px] min-[1024px]:!text-[32px] font-bold">${titleText}</${titleLevel}>
                       <${subtitleLevel} class="!m-0 self-stretch justify-start text-text-normal-primary !font-normal !text-[16px] min-[1024px]:!text-[20px] leading-[30px]">${subtitleText}</${subtitleLevel}>

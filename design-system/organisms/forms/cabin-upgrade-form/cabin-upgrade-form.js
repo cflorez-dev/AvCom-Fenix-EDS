@@ -251,6 +251,7 @@ export const CabinUpgradeForm = ({
               aria-required="true"
               aria-invalid=${errors.pnrCode ? 'true' : 'false'}
               aria-describedby=${errors.pnrCode ? 'pnr-error' : undefined}
+              customClassName=${`[&_label]:!text-[var(--color-text-normal-primary)] [&>div]:!outline-[var(${errors.pnrCode ? '--color-alert-error-icon-bg' : '--color-border-default'})]`}
             />
           </div>
 
@@ -270,6 +271,7 @@ export const CabinUpgradeForm = ({
               aria-required="true"
               aria-invalid=${errors.lastName ? 'true' : 'false'}
               aria-describedby=${errors.lastName ? 'lastname-error' : undefined}
+              customClassName=${`[&_label]:!text-[var(--color-text-normal-primary)] [&>div]:!outline-[var(${errors.lastName ? '--color-alert-error-icon-bg' : '--color-border-default'})]`}
             />
           </div>
         </div>
