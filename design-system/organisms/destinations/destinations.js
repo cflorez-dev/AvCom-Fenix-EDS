@@ -438,7 +438,6 @@ export const Destinations = ({
   };
 
   const cityName = getLocalizedField('cityName') || 'Destination';
-  const countryName = getLocalizedField('countryName') || '';
   // eslint-disable-next-line dot-notation
   const bannerImageUrl = destination?.heroImage?.['_publishUrl'];
 
@@ -459,7 +458,7 @@ export const Destinations = ({
                   <h1 id=${cityName.toLowerCase().replace(/\s+/g, '-')}> 
                     <strong>${cityName}</strong>
                   </h1>
-                  <p>${countryName ? `(${countryName})` : ''}</p>
+                  <p>${destination?.iata ? `(${destination?.iata})` : ''}</p>
                 </div>
               </div>
             </div>
@@ -515,7 +514,7 @@ export const Destinations = ({
         <smartvelcomponent
           data-apikey="b149658a-d07a-45ba-a2df-815bfbdb7631"
           data-lang=${language}
-          data-destination=${destination?.iataCode || ''}
+          data-destination=${destination?.iata || ''}
         ></smartvelcomponent>
         <script src="https://cdn.smartvel.com/scripts/boot.min.js"></script>
       </div>
