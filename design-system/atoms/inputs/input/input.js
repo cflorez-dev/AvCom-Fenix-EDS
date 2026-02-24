@@ -78,7 +78,7 @@ export const Input = ({
   const labelStateClasses = {
     normal: 'text-text-normal-secondary',
     success: 'text-border-input-positive',
-    error: 'text-red-700',
+    error: 'text-[var(--color-alert-error-icon-bg)]',
     disabled: 'text-[#C4C8C5]',
     readonly: 'text-text-normal-secondary',
   };
@@ -86,7 +86,7 @@ export const Input = ({
   const helperStateClasses = {
     normal: 'text-text-normal-secondary',
     success: 'text-border-input-positive',
-    error: 'text-red-700',
+    error: 'text-[var(--color-alert-error-icon-bg)]',
     disabled: 'text-text-normal-secondary',
     readonly: 'text-text-normal-secondary',
   };
@@ -235,8 +235,9 @@ export const Input = ({
               onFocus=${handleFocus}
               onBlur=${handleBlur}
               class=${`
+                bg-white
                 w-full relative -bottom-2 left-[2px] bg-transparent border-0 outline-none p-0
-                text-base font-bold font-['Red_Hat_Display'] leading-normal
+                !text-base font-bold font-['Red_Hat_Display'] leading-normal
                 ${actualState === 'disabled' ? 'text-[#C4C8C5] cursor-not-allowed' : actualState === 'readonly' ? 'text-text-normal-secondary cursor-default' : 'text-text-normal-primary'}
                 placeholder:text-text-normal-secondary placeholder:font-normal
               `}
@@ -245,7 +246,7 @@ export const Input = ({
 
           <!-- Cursor placeholder when active but empty -->
           ${!shouldFloat && isFocused && !inputValue && html`
-            <div class="text-base font-bold font-['Red_Hat_Display'] text-text-normal-primary">|</div>
+            <div class="!text-base font-bold font-['Red_Hat_Display'] text-text-normal-primary">|</div>
           `}
 
           <!-- Hidden input for when not floating -->
@@ -263,6 +264,7 @@ export const Input = ({
             onFocus=${handleFocus}
             onBlur=${handleBlur}
             class=${`
+              bg-white
               ${shouldFloat ? 'sr-only' : 'absolute inset-0 w-full h-full opacity-0 cursor-pointer'}
             `}
           />

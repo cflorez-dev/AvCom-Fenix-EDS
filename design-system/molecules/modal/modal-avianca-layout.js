@@ -108,10 +108,10 @@ export const ModalAviancaLayout = ({
 
         ${description && html`
           <div class="">
-            <div 
-              class="text-text-normal-secondary !text-lg text-center leading-[27px] break-words font-normal max-h-[81px] overflow-y-auto"
-              dangerouslySetInnerHTML=${{ __html: description }}
-            />
+            <div
+              class="text-text-normal-secondary !text-lg text-center leading-[27px] break-words font-normal max-h-[81px] overflow-y-auto pr-[20px]">
+              <span dangerouslySetInnerHTML=${{ __html: description }}></span>
+            </div>
           </div>
         `}
       </section>

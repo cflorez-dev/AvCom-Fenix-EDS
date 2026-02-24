@@ -213,7 +213,8 @@ function getRegionsForCity(city, language, originData, destinationsByRegionsData
       destinations,
     };
   }).filter((region) => region.destinations.length > 0);
-  return mappedRegions;
+  const sortedMeppedRegions = mappedRegions.sort((a, b) => b.destinations.length - a.destinations.length);
+  return sortedMeppedRegions;
 }
 
 export const mapHubDestinationsData = async (i18n) => {

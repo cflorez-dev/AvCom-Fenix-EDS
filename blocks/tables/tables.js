@@ -1,4 +1,5 @@
 import { fetchAEMData } from '../../scripts/utils/aem-data.js';
+import { shouldShowByTargeting, hideBlockWithSection } from '../../scripts/utils/target-filter.js';
 
 let environmentConfig = null;
 const DEFAULT_CONFIG = {
@@ -31,6 +32,166 @@ async function getEnvironmentConfig() {
  */
 function isAuthorEnvironment() {
   return !!(window.hlx?.aue || document.querySelector('meta[name="urn:auecon:aemconnection"]'));
+}
+
+/**
+ * Extract targeting and content data from block structure
+ * @param {HTMLElement} block - The tables block element
+ * @returns {Object} Object with targetCountries, targetLanguages, contentFragmentDiv,
+ * richTextDiv, headerBgColor, contentBgColor, enableZebraRows, zebraRowColor
+ */
+function extractTableData(block) {
+  const allDivs = block.querySelectorAll(':scope > div');
+
+  let targetCountries = null;
+  let targetLanguages = null;
+  let contentFragmentDiv;
+  let richTextDiv;
+  let headerBgColor = null;
+  let contentBgColor = null;
+  let enableZebraRows = false;
+  let zebraRowColor = null;
+
+  if (allDivs.length === 8) {
+    // Full structure: targeting + content + colors + zebra
+    const [
+      countriesDiv, languagesDiv, contentDiv, richTextDivElement,
+      headerColorDiv, contentColorDiv, zebraEnabledDiv, zebraColorDiv,
+    ] = allDivs;
+
+    // Extract targeting values
+    const countriesCell = countriesDiv?.querySelector('div');
+    if (countriesCell) {
+      const p = countriesCell.querySelector('p');
+      targetCountries = p ? p.textContent.trim() : countriesCell.textContent.trim();
+    }
+
+    const languagesCell = languagesDiv?.querySelector('div');
+    if (languagesCell) {
+      const p = languagesCell.querySelector('p');
+      targetLanguages = p ? p.textContent.trim() : languagesCell.textContent.trim();
+    }
+
+    // Extract content divs
+    contentFragmentDiv = contentDiv;
+    richTextDiv = richTextDivElement;
+
+    // Extract color values
+    const headerColorCell = headerColorDiv?.querySelector('div');
+    if (headerColorCell) {
+      const p = headerColorCell.querySelector('p');
+      const colorValue = p ? p.textContent.trim() : headerColorCell.textContent.trim();
+      if (colorValue && colorValue !== '' && !colorValue.startsWith('/content')) {
+        headerBgColor = colorValue;
+      }
+    }
+
+    const contentColorCell = contentColorDiv?.querySelector('div');
+    if (contentColorCell) {
+      const p = contentColorCell.querySelector('p');
+      const colorValue = p ? p.textContent.trim() : contentColorCell.textContent.trim();
+      if (colorValue && colorValue !== '' && !colorValue.startsWith('/content')) {
+        contentBgColor = colorValue;
+      }
+    }
+
+    // Extract zebra rows configuration
+    const zebraEnabledCell = zebraEnabledDiv?.querySelector('div');
+    if (zebraEnabledCell) {
+      const p = zebraEnabledCell.querySelector('p');
+      const zebraValue = p
+        ? p.textContent.trim().toLowerCase()
+        : zebraEnabledCell.textContent.trim().toLowerCase();
+      enableZebraRows = zebraValue === 'true';
+    }
+
+    const zebraColorCell = zebraColorDiv?.querySelector('div');
+    if (zebraColorCell && enableZebraRows) {
+      const p = zebraColorCell.querySelector('p');
+      const colorValue = p ? p.textContent.trim() : zebraColorCell.textContent.trim();
+      if (colorValue && colorValue !== '' && !colorValue.startsWith('/content')) {
+        zebraRowColor = colorValue;
+      }
+    }
+  } else if (allDivs.length === 6) {
+    // Full structure: targeting + content + colors
+    const [
+      countriesDiv, languagesDiv, contentDiv,
+      richTextDivElement, headerColorDiv, contentColorDiv,
+    ] = allDivs;
+
+    // Extract targeting values
+    const countriesCell = countriesDiv?.querySelector('div');
+    if (countriesCell) {
+      const p = countriesCell.querySelector('p');
+      targetCountries = p ? p.textContent.trim() : countriesCell.textContent.trim();
+    }
+
+    const languagesCell = languagesDiv?.querySelector('div');
+    if (languagesCell) {
+      const p = languagesCell.querySelector('p');
+      targetLanguages = p ? p.textContent.trim() : languagesCell.textContent.trim();
+    }
+
+    // Extract content divs
+    contentFragmentDiv = contentDiv;
+    richTextDiv = richTextDivElement;
+
+    // Extract color values
+    const headerColorCell = headerColorDiv?.querySelector('div');
+    if (headerColorCell) {
+      const p = headerColorCell.querySelector('p');
+      const colorValue = p ? p.textContent.trim() : headerColorCell.textContent.trim();
+      if (colorValue && colorValue !== '' && !colorValue.startsWith('/content')) {
+        headerBgColor = colorValue;
+      }
+    }
+
+    const contentColorCell = contentColorDiv?.querySelector('div');
+    if (contentColorCell) {
+      const p = contentColorCell.querySelector('p');
+      const colorValue = p ? p.textContent.trim() : contentColorCell.textContent.trim();
+      if (colorValue && colorValue !== '' && !colorValue.startsWith('/content')) {
+        contentBgColor = colorValue;
+      }
+    }
+  } else if (allDivs.length === 4) {
+    // Targeting only: [targetCountries, targetLanguages, contentFragment, richText]
+    const [countriesDiv, languagesDiv, contentDiv, richTextDivElement] = allDivs;
+
+    // Extract targeting values
+    const countriesCell = countriesDiv?.querySelector('div');
+    if (countriesCell) {
+      const p = countriesCell.querySelector('p');
+      targetCountries = p ? p.textContent.trim() : countriesCell.textContent.trim();
+    }
+
+    const languagesCell = languagesDiv?.querySelector('div');
+    if (languagesCell) {
+      const p = languagesCell.querySelector('p');
+      targetLanguages = p ? p.textContent.trim() : languagesCell.textContent.trim();
+    }
+
+    // Extract content divs
+    contentFragmentDiv = contentDiv;
+    richTextDiv = richTextDivElement;
+  } else if (allDivs.length === 2) {
+    // Content only: [contentFragment, richText]
+    const [contentDiv, richTextDivElement] = allDivs;
+    contentFragmentDiv = contentDiv;
+    richTextDiv = richTextDivElement;
+  }
+
+  return {
+    targetCountries,
+    targetLanguages,
+    contentFragmentDiv,
+    richTextDiv,
+    headerBgColor,
+    contentBgColor,
+    enableZebraRows,
+    zebraRowColor,
+  };
 }
 
 /**
@@ -680,26 +841,97 @@ function markLastColumnCells(table) {
 }
 
 /**
+ * Apply zebra rows styling to table
+ * @param {HTMLTableElement} table - The table element
+ * @param {string} zebraColor - Background color for even rows
+ */
+function applyZebraRows(table, zebraColor) {
+  if (!table || !zebraColor) return;
+
+  const rows = table.querySelectorAll('tbody tr');
+  rows.forEach((row, index) => {
+    // Apply color to even rows (index 1, 3, 5, etc.)
+    if ((index + 1) % 2 === 0) {
+      const cells = row.querySelectorAll('td');
+      cells.forEach((td) => {
+        const currentStyle = td.getAttribute('style') || '';
+        const newStyle = currentStyle ? `${currentStyle}; background-color: ${zebraColor};` : `background-color: ${zebraColor};`;
+        td.setAttribute('style', newStyle);
+      });
+    }
+  });
+}
+
+/**
+ * Apply custom background colors to table cells
+ * @param {HTMLTableElement} table - The table element
+ * @param {string|null} headerBgColor - Background color for header cells (th)
+ * @param {string|null} contentBgColor - Background color for content cells (td)
+ * @param {boolean} enableZebra - Whether to enable zebra rows
+ * @param {string|null} zebraColor - Background color for zebra rows
+ */
+function applyCustomColors(table, headerBgColor, contentBgColor, enableZebra, zebraColor) {
+  if (!table) return;
+
+  // Apply header background color to all th elements
+  if (headerBgColor) {
+    table.querySelectorAll('th').forEach((th) => {
+      const currentStyle = th.getAttribute('style') || '';
+      const newStyle = currentStyle ? `${currentStyle}; background-color: ${headerBgColor};` : `background-color: ${headerBgColor};`;
+      th.setAttribute('style', newStyle);
+    });
+  }
+
+  // Apply content background color to all td elements (base color)
+  if (contentBgColor && !enableZebra) {
+    table.querySelectorAll('td').forEach((td) => {
+      const currentStyle = td.getAttribute('style') || '';
+      const newStyle = currentStyle ? `${currentStyle}; background-color: ${contentBgColor};` : `background-color: ${contentBgColor};`;
+      td.setAttribute('style', newStyle);
+    });
+  }
+
+  // Apply zebra rows if enabled
+  if (enableZebra && zebraColor) {
+    applyZebraRows(table, zebraColor);
+  }
+}
+
+/**
  * Render table in the block
  * @param {HTMLElement} block - The block element
  * @param {HTMLTableElement} table - The table to render
+ * @param {string|null} headerBgColor - Background color for header cells
+ * @param {string|null} contentBgColor - Background color for content cells
+ * @param {boolean} enableZebra - Whether to enable zebra rows
+ * @param {string|null} zebraColor - Background color for zebra rows
  */
-function renderTable(block, table) {
+function renderTable(
+  block,
+  table,
+  headerBgColor = null,
+  contentBgColor = null,
+  enableZebra = false,
+  zebraColor = null,
+) {
   block.innerHTML = '';
   if (table) {
     // Clone table for desktop version
     const desktopTable = table.cloneNode(true);
     desktopTable.classList.add('table-desktop');
+    applyCustomColors(desktopTable, headerBgColor, contentBgColor, enableZebra, zebraColor);
     enhanceTableAccessibility(desktopTable, 'desktop');
     markLastColumnCells(desktopTable);
     // Create tablet version with 2 columns per record
     const tabletTable = transformTableForTablet(table.cloneNode(true));
     tabletTable.classList.add('table-tablet');
+    applyCustomColors(tabletTable, headerBgColor, contentBgColor, enableZebra, zebraColor);
     enhanceTableAccessibility(tabletTable, 'tablet');
     markLastColumnCells(tabletTable);
     // Create mobile version with 1 column, vertical layout
     const mobileTable = buildTableForMobile(table.cloneNode(true));
     mobileTable.classList.add('table-mobile');
+    applyCustomColors(mobileTable, headerBgColor, contentBgColor, enableZebra, zebraColor);
     enhanceTableAccessibility(mobileTable, 'mobile');
 
     block.appendChild(desktopTable);
@@ -711,8 +943,23 @@ function renderTable(block, table) {
 }
 
 export default async function decorate(block) {
-  const contentFragmentDiv = block.querySelector(':scope > div:nth-child(1)');
-  const richTextDiv = block.querySelector(':scope > div:nth-child(2)');
+  // Extract targeting and content data from block structure
+  const {
+    targetCountries,
+    targetLanguages,
+    contentFragmentDiv,
+    richTextDiv,
+    headerBgColor,
+    contentBgColor,
+    enableZebraRows,
+    zebraRowColor,
+  } = extractTableData(block);
+
+  // Check targeting (country/language filtering)
+  if (!shouldShowByTargeting(targetCountries, targetLanguages)) {
+    hideBlockWithSection(block);
+    return;
+  }
 
   let table = null;
 
@@ -751,5 +998,5 @@ export default async function decorate(block) {
   } else {
     table = extractTableFromRichText(richTextDiv);
   }
-  renderTable(block, table);
+  renderTable(block, table, headerBgColor, contentBgColor, enableZebraRows, zebraRowColor);
 }

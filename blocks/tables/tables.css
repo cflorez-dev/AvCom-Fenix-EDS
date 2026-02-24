@@ -48,6 +48,8 @@
   border-bottom: 1px dashed var(--color-border-Borders-and-dividers-mail-border-default);
   border-top: none;
   border-left: none;
+  width: auto;
+  box-sizing: border-box;
 }
 
 .tables th[data-last-column],
@@ -59,11 +61,13 @@
   border-bottom: none;
 }
 
-.tables td:has(img) {
-  display: flex;
+.tables th:has(img) > *,
+.tables td:has(img) > * {
+  display: inline-flex;
   align-items: center;
   justify-content: center;
-  flex-wrap: nowrap;
+  gap: 8px;
+  vertical-align: middle;
 }
 
 .tables th img, .tables td img {
