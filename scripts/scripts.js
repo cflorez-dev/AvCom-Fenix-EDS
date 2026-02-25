@@ -13,6 +13,7 @@ import {
   loadCSS,
 } from './aem.js';
 import { initLocaleGlobals, resolveLocale } from './utils/locale.js';
+import { mapCountryToPos } from './utils/pos-mapping.js';
 import { showLoader } from './services/loader/loader.service.js';
 import gtmMartech from './gtm-martech.js';
 import {
@@ -183,7 +184,7 @@ async function pageViewEventData() {
     page_title: document.title,
     language: navigator.language,
     screen_resolution: `${screen.width}x${screen.height}`,
-    country_pos: locale.country,
+    country_pos: mapCountryToPos(locale.country),
     language_nav: document.documentElement.lang || locale.language,
     time_zone: getTimezoneGMTOffset(),
     user_hour: getCurrentTimeFormatted(),

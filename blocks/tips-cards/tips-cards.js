@@ -2,6 +2,7 @@ import { h, render } from '@dropins/tools/preact.js';
 import htm from 'htm';
 import { extractTipsCardsProps, extractTipsCards } from './tips-cards-helper.js';
 import TipsCards from '../../design-system/organisms/tips-cards/tips-cards.js';
+import { shouldShowByTargeting, hideBlockWithSection } from '../../scripts/utils/target-filter.js';
 
 const html = htm.bind(h);
 
@@ -13,6 +14,13 @@ const html = htm.bind(h);
 export default function decorate(block) {
   // Extract configuration and cards using helper
   const config = extractTipsCardsProps(block);
+
+  // Parent-level targeting: hide entire block if targeting doesn't match
+  if (!shouldShowByTargeting(config.targetCountries, config.targetLanguages)) {
+    hideBlockWithSection(block);
+    return;
+  }
+
   const cards = extractTipsCards(block);
   const loadingMode = config.loading || 'lazy';
 

@@ -178,6 +178,6 @@ export function extractCarouselCards(block) {
     cards.push(card);
   });
 
-  // Filter cards by targeting
-  return filterItemsByTargeting(cards);
+  // Filter cards by targeting (use kebab-case field names matching card keys)
+  return filterItemsByTargeting(cards, 'target-countries', 'target-languages');
 }

@@ -483,7 +483,7 @@ export const CitySelector = ({
 
   // Display value
   const displayValue = useMemo(
-    () => (value ? `${value.name} (${value.iataCityCode})` : ''),
+    () => (value ? `${value.name} (${value.iataTerminal})` : ''),
     [value],
   );
 

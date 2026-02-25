@@ -18,6 +18,7 @@ import { DateRangePicker } from '../../molecules/date-range-picker/date-range-pi
 import { PassengerSelector } from '../../molecules/passenger-selector/passenger-selector.js';
 import { Icon } from '../../atoms/icon/icon.js';
 import { getStoredLanguage, getStoredCountry } from '../../../scripts/services/header/language-country-selector.js';
+import { mapCountryToPos } from '../../../scripts/utils/pos-mapping.js';
 import { fetchAEMData } from '../../../scripts/utils/aem-data.js';
 import gtmMartech from '../../../scripts/gtm-martech.js';
 
@@ -357,7 +358,7 @@ export const BookingBox = ({
       ni: passengers.infants,
       jn: passengers.youth,
       lan: (getStoredLanguage() || 'es').toUpperCase(),
-      Pais: (getStoredCountry() || 'CO').toUpperCase(),
+      Pais: mapCountryToPos(getStoredCountry()),
       SistemaOrigen: 'AH',
       Device: 'Web',
     };

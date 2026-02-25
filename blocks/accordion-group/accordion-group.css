@@ -162,7 +162,6 @@
     box-sizing: border-box;
 }
 
-/* Hover state: shadow from Figma specs (desktop only) */
 @media (width >= 900px) {
     .section.accordion-group-item .accordion-group-item-inner:hover,
     .section.accordion-group-item .accordion-group-item-inner:has(.accordion-group-trigger:hover) {
