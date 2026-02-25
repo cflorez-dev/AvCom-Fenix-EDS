@@ -265,7 +265,7 @@ export const Input = ({
             onBlur=${handleBlur}
             class=${`
               bg-white
-              ${shouldFloat ? 'sr-only' : 'absolute inset-0 w-full h-full opacity-0 cursor-pointer'}
+              ${shouldFloat ? 'sr-only' : `absolute inset-0 w-full h-full opacity-0 cursor-pointer font-['Red_Hat_Display']!`}
             `}
           />
         </div>

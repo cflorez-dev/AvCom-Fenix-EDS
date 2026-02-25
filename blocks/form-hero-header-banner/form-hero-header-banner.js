@@ -2,6 +2,7 @@
 import { h, render } from '@dropins/tools/preact.js';
 import htm from 'htm';
 import { FormHeroHeaderBanner } from '../../design-system/organisms/banners/form-hero-header-banner/form-hero-header-banner.js';
+import { shouldShowByTargeting, hideBlockWithSection } from '../../scripts/utils/target-filter.js';
 
 const html = htm.bind(h);
 
@@ -36,6 +37,8 @@ function mapBlockOptions(block) {
     alertType: 'info', // default according to model
     alertDismissible: true, // default according to model
     alertContent: '',
+    targetCountries: '',
+    targetLanguages: '',
   };
 
   let currentIndex = 0;
@@ -122,11 +125,32 @@ function mapBlockOptions(block) {
           currentIndex += 1;
           return;
         }
+
+        // 11. targetCountries (comma-separated country codes)
+        if (currentIndex === 10) {
+          mappedOptions.targetCountries = textContent;
+          currentIndex += 1;
+          return;
+        }
+
+        // 12. targetLanguages (comma-separated language codes)
+        if (currentIndex === 11) {
+          mappedOptions.targetLanguages = textContent;
+          currentIndex += 1;
+          return;
+        }
       }
 
-      // 10. alertContent (richtext HTML) - last row with complex HTML
-      if (currentIndex === 9 && innerHTML && innerHTML.includes('<')) {
-        mappedOptions.alertContent = innerHTML;
+      // 10. alertContent (richtext HTML) - always advance past index 9
+      // Must advance even if empty, otherwise targeting values at indices 10-11
+      // get misinterpreted as alertContent (their <p>text</p> contains '<').
+      if (currentIndex === 9) {
+        const isRichContent = innerHTML
+          && innerHTML.includes('<')
+          && innerHTML !== `<p>${textContent}</p>`;
+        if (isRichContent) {
+          mappedOptions.alertContent = innerHTML;
+        }
         currentIndex += 1;
       }
     });
@@ -145,6 +169,12 @@ export default function decorate(block) {
 
   // 2. Map block options from HTML
   const mappedOptions = mapBlockOptions(block);
+
+  // Targeting: hide banner if it doesn't match the user's market/language
+  if (!shouldShowByTargeting(mappedOptions.targetCountries, mappedOptions.targetLanguages)) {
+    hideBlockWithSection(block);
+    return;
+  }
 
   // Use mapped values, with fallback to config and then to defaults
   const loadingMode = mappedOptions.loading || 'eager';

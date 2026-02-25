@@ -1,33 +1,50 @@
-import { readBlockConfig } from '../../scripts/aem.js';
+import { filterItemsByTargeting } from '../../scripts/utils/target-filter.js';
 
 /**
  * Extracts props from a Tips Cards block.
- * Extracts loading mode from the parent block configuration.
+ * Parent model fields (loading, target-countries, target-languages) are rendered
+ * by AEM as leading single-cell rows (one row per field, positional order).
  *
  * @param {Element} block - The Tips Cards block element
- * @returns {Object} Configuration object with loading mode
+ * @returns {Object} Configuration object with loading mode and targeting
  */
 export function extractTipsCardsProps(block) {
   const defaultProps = {
-    loading: 'lazy', // Default to lazy loading
+    loading: 'lazy',
+    targetCountries: '',
+    targetLanguages: '',
   };
 
   if (!block) {
     return defaultProps;
   }
 
-  // Extract configuration from block metadata using readBlockConfig
-  const config = readBlockConfig(block);
-  const loading = config.loading || defaultProps.loading;
+  const rows = Array.from(block.children);
+
+  // Parent config rows are leading rows with exactly 1 cell (single value, no key-value).
+  // Model field order: loading (row 0), target-countries (row 1), target-languages (row 2).
+  // Backward compatible: old content may have only 1 parent row (loading).
+  const parentValues = [];
+  for (let i = 0; i < rows.length; i += 1) {
+    const cells = Array.from(rows[i].children);
+    if (cells.length === 1) {
+      parentValues.push(cells[0]?.textContent?.trim() || '');
+    } else {
+      break; // Card items start here
+    }
+  }
 
   return {
-    loading,
+    loading: parentValues[0] || defaultProps.loading,
+    targetCountries: parentValues[1] || '',
+    targetLanguages: parentValues[2] || '',
   };
 }
 
 /**
  * Extracts card data from child rows of the tips cards block.
  * Each child row represents one tip card item with icon, title, and description.
+ * Leading single-cell rows (parent config) are automatically skipped.
  *
  * @param {Element} block - The Tips Cards block element
  * @returns {Array<Object>} Array of tip card objects with extracted data
@@ -41,28 +58,31 @@ export function extractTipsCards(block) {
 
   const rows = Array.from(block.children);
 
-  // Skip the first row (index 0) - it contains parent configuration (loading mode)
-  // Start from index 1 for child items (tip cards)
-  const cardRows = rows.slice(1);
+  // Skip all leading single-cell rows (parent config: loading, target-countries, target-languages).
+  // Card item rows always have >= 3 cells.
+  const cardRows = rows.filter((row) => Array.from(row.children).length >= 3);
 
   // Each row is a child item (tips-card-item)
   // According to component-models.json structure:
   // 0: icon (reference/image in <picture> or <img>)
   // 1: iconAlt (text in <p>) - OPTIONAL
   // 2: title (text in <p>) - OPTIONAL
-  // 3: description (text in <p>) - REQUIRED
+  // 3: description (text in <p>) - OPTIONAL
   // NOTE: Supports legacy 3-cell format (icon, title, description) for backwards compatibility
 
   cardRows.forEach((row, index) => {
     const cells = Array.from(row.children);
 
     // Support both 3-cell (legacy) and 4-cell (new) formats
-    const isLegacyFormat = cells.length === 3;
-    const hasNewFormat = cells.length === 4;
+    // With targeting fields appended: 5-cell (legacy+targeting) and 6-cell (new+targeting)
+    const cellCount = cells.length;
+    const isLegacyFormat = cellCount === 3 || cellCount === 5;
+    const hasNewFormat = cellCount === 4 || cellCount === 6;
+    const hasTargeting = cellCount === 5 || cellCount === 6;
 
     if (!isLegacyFormat && !hasNewFormat) {
       // eslint-disable-next-line no-console
-      console.warn(`Tips Cards: Row ${index + 1} has invalid cell count (${cells.length}). Expected 3 or 4 cells. Skipping.`);
+      console.warn(`Tips Cards: Row ${index + 1} has invalid cell count (${cellCount}). Expected 3-6 cells. Skipping.`);
       return;
     }
 
@@ -87,33 +107,27 @@ export function extractTipsCards(block) {
       description = cells[3]?.textContent?.trim() || '';
     }
 
-    // Debug data extraction (disabled in production)
-    // console.log(`💡 Tips Card ${index + 1} extracted data:`, {
-    //   icon,
-    //   iconAlt,
-    //   title,
-    //   description: `${description.substring(0, 50)}...`,
-    // });
-
-    // Validate required fields - only description is mandatory
-    if (!description) {
-      // eslint-disable-next-line no-console
-      console.warn(`Tips Cards: Row ${index + 1} missing description. Skipping card.`);
-      return;
+    // Extract targeting fields from last 2 cells when present
+    let targetCountries = '';
+    let targetLanguages = '';
+    if (hasTargeting) {
+      targetCountries = cells[cellCount - 2]?.textContent?.trim() || '';
+      targetLanguages = cells[cellCount - 1]?.textContent?.trim() || '';
     }
 
-    // Icon and title are optional - card can work without them
-
-    // Create card object
+    // Create card object (all fields optional except icon)
     const card = {
       icon,
       iconAlt,
       title,
       description,
+      'target-countries': targetCountries,
+      'target-languages': targetLanguages,
     };
 
     cards.push(card);
   });
 
-  return cards;
+  // Filter cards by targeting (country/language)
+  return filterItemsByTargeting(cards, 'target-countries', 'target-languages');
 }

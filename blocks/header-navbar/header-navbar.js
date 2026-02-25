@@ -44,17 +44,17 @@ export default function decorate(block) {
 
   // 1.1 Targeting check - hide if not matching current POS
   const config = readBlockConfig(block);
-  
+
   // Leer targeting desde config (formato estándar: target-countries | co)
   let targetCountries = config['target-countries'] || '';
   let targetLanguages = config['target-languages'] || '';
-  
+
   // Fallback: Si no hay config con nombre, leer de las primeras dos filas simples
   // SOLO si el contenido parece ser un código de país/idioma válido
   if (!targetCountries && !targetLanguages) {
     const validCountries = ['co', 'ar', 'mx', 'pe', 'ec', 'sv', 'cr', 'br', 'bo', 'cl', 'ca', 'gt', 'hn', 'ni', 'pa', 'py', 'do', 'eu', 'gb', 'uy', 'ot', 'us'];
     const validLanguages = ['es', 'en', 'pt', 'fr'];
-    
+
     const rows = block.querySelectorAll(':scope > div');
     if (rows.length >= 2) {
       const firstRowValue = rows[0]?.children[0]?.textContent?.trim().toLowerCase();
@@ -62,7 +62,7 @@ export default function decorate(block) {
       if (firstRowValue && (validCountries.includes(firstRowValue) || firstRowValue.split(',').every((c) => validCountries.includes(c.trim())))) {
         targetCountries = firstRowValue;
       }
-      
+
       const secondRowValue = rows[1]?.children[0]?.textContent?.trim().toLowerCase();
       // Solo usar si es un código de idioma válido o lista separada por comas
       if (secondRowValue && (validLanguages.includes(secondRowValue) || secondRowValue.split(',').every((l) => validLanguages.includes(l.trim())))) {
@@ -78,7 +78,12 @@ export default function decorate(block) {
 
   // 2. Extraer datos del bloque usando el helper
   const navbarData = extractHeaderNavbarData(block);
-  
+
+  // Filter individual menu items by their own targeting (per-item POS/language)
+  navbarData.items = navbarData.items.filter(
+    (item) => shouldShowByTargeting(item['target-countries'], item['target-languages']),
+  );
+
   // Validar que se extrajeron los datos correctamente
   const validation = validateHeaderNavbarData(navbarData);
   if (!validation.isValid) {
@@ -113,7 +118,7 @@ export default function decorate(block) {
     // Check if containers already have content (another navbar block already rendered)
     const mobileHasContent = mobile && mobile.children.length > 0;
     const desktopHasContent = desktop && desktop.children.length > 0;
-    
+
     if (mobileHasContent && desktopHasContent) {
       // Another navbar block already rendered - skip this one (first matching wins)
       block.style.display = 'none';

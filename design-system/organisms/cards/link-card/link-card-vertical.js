@@ -1,9 +1,38 @@
 import { h } from '@dropins/tools/preact.js';
-import { useState } from '@dropins/tools/preact-hooks.js';
+import { useState, useEffect } from '@dropins/tools/preact-hooks.js';
 import htm from 'htm';
 import { LinkButton } from '../../../atoms/link-button/link-button.js';
 
 const html = htm.bind(h);
+
+/**
+ * SvgIcon - Fetches an SVG file and injects it inline so it responds to CSS color/fill via currentColor.
+ * Tailwind classes for size, transition and group-hover scale are applied on the wrapper span.
+ */
+const SvgIcon = ({ src, customClass = '' }) => {
+  const [svgMarkup, setSvgMarkup] = useState('');
+
+  useEffect(() => {
+    if (!src) return;
+    fetch(src)
+      .then((r) => r.text())
+      .then((text) => {
+        const processed = text
+          .replace(/fill="(?!none|currentColor)[^"]*"/g, 'fill="currentColor"')
+          .replace(/stroke="(?!none|currentColor)[^"]*"/g, 'stroke="currentColor"')
+          .replace(/<svg\b/, '<svg aria-hidden="true" focusable="false" style="color:inherit;width:100%;height:100%"');
+        setSvgMarkup(processed);
+      })
+      .catch(() => setSvgMarkup(''));
+  }, [src]);
+
+  if (!svgMarkup) return null;
+  return html`<span
+    class=${`inline-flex items-center justify-center w-[16px] h-[16px] shrink-0 group-hover:scale-125 ${customClass}`}
+    dangerouslySetInnerHTML=${{ __html: svgMarkup }}
+    aria-hidden="true"
+  />`;
+};
 
 /**
  * LinkCardVertical - Card component with vertical layout
@@ -192,27 +221,18 @@ export const LinkCardVertical = ({
       <!-- Link button container -->
       <div class="flex items-end justify-end relative shrink-0 w-full min-w-0 max-h-[21px]">
         <${LinkButton}
-          href=${href}
+          href=${href || '#'}
           title=${linkText}
           ariaLabel=${linkAlt}
           onClick=${handleLinkClick}
           size="default"
           target=${linkOpensIn === 'newTab' ? '_blank' : undefined}
           rel=${linkOpensIn === 'newTab' ? 'noopener noreferrer' : undefined}
+          customClassName="group hover:font-bold active:font-bold"
         >
-          ${iconBeforeSrc ? html`<img
-            src=${iconBeforeSrc}
-            alt=""
-            class=${`block max-w-none w-[16px] h-[16px] shrink-0 ${ctaIconBefore === 'arrow-left' ? 'rotate-180' : ''}`}
-            aria-hidden="true"
-          />` : null}
+          ${iconBeforeSrc ? html`<${SvgIcon} src=${iconBeforeSrc} customClass=${ctaIconBefore === 'arrow-left' ? 'rotate-180' : ''} />` : null}
           ${linkText}
-          ${iconAfterSrc ? html`<img
-            src=${iconAfterSrc}
-            alt=""
-            class=${`block max-w-none w-[16px] h-[16px] shrink-0 ${ctaIconAfter === 'arrow-left' ? 'rotate-180' : ''}`}
-            aria-hidden="true"
-          />` : null}
+          ${iconAfterSrc ? html`<${SvgIcon} src=${iconAfterSrc} customClass=${ctaIconAfter === 'arrow-left' ? 'rotate-180' : ''} />` : null}
         </${LinkButton}>
       </div>
     </div>

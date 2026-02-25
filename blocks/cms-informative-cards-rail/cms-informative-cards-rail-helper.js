@@ -137,6 +137,7 @@ function readParentConfig(block) {
 
   let foundVariant = false;
   let foundLoading = false;
+  let countryLangIndex = 0; // Track position of country/lang values (0 = countries, 1 = languages)
 
   // Iterate through rows and detect config values semantically
   for (let i = 0; i < rows.length; i += 1) {
@@ -145,7 +146,11 @@ function readParentConfig(block) {
     const value = cell?.textContent?.trim().toLowerCase() || '';
 
     if (!value) {
-      // Empty row might be end of config, but continue checking
+      // Empty row in targeting section - increment position tracker
+      if (!foundVariant && !foundLoading && countryLangIndex < 2) {
+        countryLangIndex += 1;
+        config.configRowCount = i + 1;
+      }
       // eslint-disable-next-line no-continue
       continue;
     }
@@ -187,14 +192,15 @@ function readParentConfig(block) {
     const isCountryOrLangFormat = /^[a-z]{2}(,[a-z]{2})*$/i.test(value);
 
     if (isCountryOrLangFormat) {
-      // First occurrence: target countries
-      // Second occurrence: target languages
-      if (!config.targetCountries) {
+      // Use position-based assignment: position 0 = countries, position 1 = languages
+      if (countryLangIndex === 0) {
         config.targetCountries = value;
         config.configRowCount = i + 1;
-      } else if (!config.targetLanguages) {
+        countryLangIndex = 1;
+      } else if (countryLangIndex === 1) {
         config.targetLanguages = value;
         config.configRowCount = i + 1;
+        countryLangIndex = 2;
       }
     }
   }
@@ -253,8 +259,8 @@ export function extractCmsInformativeCardsRailProps(block) {
     }
   }
 
-  // Filter cards by country/language targeting
-  props.cards = filterItemsByTargeting(props.cards);
+  // Filter cards by country/language targeting (use kebab-case field names)
+  props.cards = filterItemsByTargeting(props.cards, 'target-countries', 'target-languages');
 
   return props;
 }

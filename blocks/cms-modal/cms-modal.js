@@ -3,6 +3,7 @@ import { useState } from '@dropins/tools/preact-hooks.js';
 import htm from 'htm';
 import { ModalAviancaLayout } from '../../design-system/molecules/modal/modal-avianca-layout.js';
 import { Button } from '../../design-system/atoms/button/button.js';
+import { shouldShowByTargeting, hideBlockWithSection } from '../../scripts/utils/target-filter.js';
 
 const html = htm.bind(h);
 
@@ -143,6 +144,12 @@ function extractCmsModalData(block) {
     }
   }
 
+  // Col 12: Target Countries (market targeting)
+  const targetCountries = cols[12]?.textContent?.trim() || '';
+
+  // Col 13: Target Languages (language targeting)
+  const targetLanguages = cols[13]?.textContent?.trim() || '';
+
   return {
     title,
     description,
@@ -156,6 +163,8 @@ function extractCmsModalData(block) {
     icon,
     iconImage,
     coverImage,
+    targetCountries,
+    targetLanguages,
     // Default values for optional fields
     autoOpen: false,
     variant: 'center',
@@ -199,6 +208,12 @@ export default function decorate(block) {
 
   // Extract data from block structure
   const config = extractCmsModalData(block);
+
+  // Targeting: hide modal if it doesn't match the user's market/language
+  if (!shouldShowByTargeting(config.targetCountries, config.targetLanguages)) {
+    hideBlockWithSection(block);
+    return;
+  }
   const {
     autoOpen,
     variant = 'center',

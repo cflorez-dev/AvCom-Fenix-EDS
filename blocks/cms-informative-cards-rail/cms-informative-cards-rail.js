@@ -53,7 +53,8 @@ export default function decorate(block) {
   const props = extractCmsInformativeCardsRailProps(block);
 
   // Country/Language filtering
-  if (!shouldShowByTargeting(props.targetCountries, props.targetLanguages)) {
+  const shouldShow = shouldShowByTargeting(props.targetCountries, props.targetLanguages);
+  if (!shouldShow) {
     hideBlockWithSection(block);
     return;
   }
