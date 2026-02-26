@@ -42,7 +42,7 @@ export const PromotionalCardCarrousel = ({
   // Detect mobile viewport (< 1024px)
   useEffect(() => {
     const checkMobile = () => {
-      setIsMobile(window.innerWidth <= 1024);
+      setIsMobile(window.innerWidth <= 768);
     };
 
     checkMobile();
@@ -89,7 +89,7 @@ export const PromotionalCardCarrousel = ({
 
   // Responsive classes for mobile
   const cardClasses = isMobile
-    ? 'w-96 max-w-96 min-w-96 shadow-[0px_2px_20px_2px_rgba(73,73,73,0.25)]'
+    ? 'w-96 max-w-96 min-w-96'
     : flexClass;
 
   const imageClasses = isMobile

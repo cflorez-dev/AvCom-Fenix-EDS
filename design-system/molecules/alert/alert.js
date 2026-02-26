@@ -351,7 +351,7 @@ export const Alert = ({
   const processedContentHTML = preserveRawHTML
     ? contentHTML
     : processContentHTML(contentHTML, normalizedVariant, {
-      pClassName: 'text-sm leading-[21px]',
+      pClassName: `text-sm ${marqueeMode ? 'leading-6' : 'leading-[21px]'}`,
       strongClassName: 'font-bold',
       processRelAttributes: true,
       linkButtonOptions: {

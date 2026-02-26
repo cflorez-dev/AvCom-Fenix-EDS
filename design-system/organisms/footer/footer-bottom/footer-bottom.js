@@ -8,7 +8,8 @@ const html = htm.bind(h);
  * app stores y copyright
  *
  * ## Props
- * - `theme`: `"light" | "dark"` – Tema del footer (por defecto: `"light"`)
+ * - `theme`: `"light" | "dark" | "white"` – Tema del footer (por defecto: `"light"`).
+ *   `"white"` es igual a `"light"` pero con fondo `--color-background-brand-primary-lighter` (#FFFFFF)
  * - `showAppStoreButtons`: `boolean` – Mostrar botones de app stores
  *   (por defecto: `false`)
  * - `appStoreUrl`: `string` – URL del App Store (por defecto: `''`)
@@ -37,6 +38,7 @@ export const FooterBottom = ({
   socialLinks = [],
   copyrightText = '',
   customClassName = '',
+  i18n = {},
   ...rest
 }) => {
   // Filtrar social links que tienen URL válida
@@ -49,7 +51,9 @@ export const FooterBottom = ({
       return copyrightText.replace(/{year}/g, currentYear.toString());
     }
     const currentYear = new Date().getFullYear();
-    return `Copyright © Avianca ${currentYear}`;
+    const defaultText = i18n['footer.bottom.copyrights'] || 'Copyright © Avianca [XXXX]';
+    const finallText = defaultText.replace('[XXXX]', currentYear.toString());
+    return finallText;
   };
 
   // Obtener la imagen correcta según el tema para una red social
@@ -57,7 +61,7 @@ export const FooterBottom = ({
     if (theme === 'dark' && social.iconDark) {
       return social.iconDark;
     }
-    if (theme === 'light' && social.iconLight) {
+    if ((theme === 'light' || theme === 'white') && social.iconLight) {
       return social.iconLight;
     }
     // Fallback: usar la que esté disponible
@@ -146,22 +150,23 @@ export const FooterBottom = ({
   };
 
   // Clases base del contenedor
-  const containerClasses = `footer-bottom-container flex flex-col items-center justify-center w-full py-[16px] px-[24px] ${
-    theme === 'dark' ? 'bg-[var(--brand-primary)]' : 'bg-[var(--bg-page-light)]'
-  } ${customClassName}`;
+  const bgClass = theme === 'dark'
+    ? 'bg-[var(--brand-primary)]'
+    : theme === 'white'
+      ? 'bg-[var(--color-background-brand-primary-lighter)]'
+      : 'bg-[var(--bg-page-light)]';
+  const containerClasses = `footer-bottom-container flex flex-col items-center justify-center w-full py-[16px] px-[24px] ${bgClass} ${customClassName} ${theme === 'white' ? 'h-[54px]' : ''}`;
 
   // Color del copyright según el tema
-  // Light: --brand-primary, Dark: --logo-avianca-light
-  const copyrightColor = theme === 'light' ? 'var(--brand-primary)' : 'var(--logo-avianca-light)';
-  const copyrightClass = theme === 'light'
-    ? 'text-sm !text-[var(--brand-primary)] !m-0'
-    : 'text-sm !text-[var(--logo-avianca-light)] !m-0';
+  // Light / White: --brand-primary, Dark: --logo-avianca-light
+  const copyrightColor = theme === 'dark' ? 'var(--logo-avianca-light)' : 'var(--brand-primary)';
+  const copyrightClass = theme === 'dark'
+    ? 'text-sm !text-[var(--logo-avianca-light)] !m-0'
+    : 'text-sm !text-[var(--brand-primary)] !m-0';
 
   // Si no hay contenido, no renderizar
   // Nota: Siempre mostramos el copyright (con texto por defecto si no viene uno)
-  if (validSocialLinks.length === 0 && !showAppStoreButtons) {
-    return null;
-  }
+  
 
   return html`
     <div

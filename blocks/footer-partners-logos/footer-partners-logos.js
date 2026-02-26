@@ -162,6 +162,7 @@ export default function decorate(block) {
         return true;
       }
       footerWrapper.appendChild(container);
+      footerWrapper.classList.remove('hidden');
       return true;
     }
     return false;

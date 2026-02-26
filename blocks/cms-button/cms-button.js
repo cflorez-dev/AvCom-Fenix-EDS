@@ -438,7 +438,7 @@ export default function decorate(block) {
 
   render(
     html`
-    <div class="cms-button-container w-full my-2">
+    <div class="cms-button-container w-full">
       <${ButtonComponent} ...${buttonProps} customClassName="group/cms-button ">
         <div class="flex items-center justify-center gap-[12px]">
           ${renderChildren()}

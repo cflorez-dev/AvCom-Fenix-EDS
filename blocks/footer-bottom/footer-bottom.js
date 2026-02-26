@@ -3,6 +3,8 @@ import htm from 'htm';
 import { FooterBottom } from '../../design-system/organisms/footer/footer-bottom/footer-bottom.js';
 import { readBlockConfig } from '../../scripts/aem.js';
 import { shouldShowByTargeting } from '../../scripts/utils/target-filter.js';
+import { fetchAEMData } from '../../scripts/utils/aem-data.js';
+import { resolveLocale } from '../../scripts/utils/locale.js';
 
 const html = htm.bind(h);
 
@@ -90,7 +92,8 @@ function mapFooterBottomData(block) {
   
   const data = {};
   const themeText = (children[startIndex + 0]?.textContent || '').trim().toLowerCase();
-  data.theme = themeText === 'dark' ? 'dark' : 'light';
+  // eslint-disable-next-line no-nested-ternary
+  data.theme = themeText === 'dark' ? 'dark' : themeText === 'white' ? 'white' : 'light';
 
   data['show-app-store-buttons'] = extractBoolean(children[startIndex + 1]);
   data['app-store-imagen-dark'] = extractImageSrc(children[startIndex + 2]);
@@ -156,7 +159,7 @@ function groupFooterBottomData(flatData) {
  * Decorates the Footer Bottom block (Copyright & Social Media)
  * @param {Element} block The footer-bottom block element
  */
-export default function decorate(block) {
+export default async function decorate(block) {
   const flatData = mapFooterBottomData(block);
   const mappedData = groupFooterBottomData(flatData);
 
@@ -231,6 +234,12 @@ export default function decorate(block) {
     };
   });
 
+  const locale = await resolveLocale();
+  const language = locale.language || 'es';
+  const configData= await fetchAEMData(language);
+  const i18Data = Object.fromEntries(
+  configData.data.map(({ Key, Text }) => [Key, Text]),);
+
   render(
     html`<${FooterBottom}
       theme=${mappedData.theme}
@@ -241,6 +250,7 @@ export default function decorate(block) {
       googlePlayUrl=${mappedData.googleplay.url}
       socialLinks=${socialLinks}
       data=${mappedData}
+      i18n=${i18Data}
     />`,
     container,
   );
@@ -256,6 +266,7 @@ export default function decorate(block) {
         return true;
       }
       footerWrapper.appendChild(container);
+      footerWrapper.classList.remove('hidden');
       return true;
     }
     return false;
