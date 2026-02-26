@@ -43,6 +43,9 @@ export const FormHeaderBanner = ({
   alertDismissible = true,
   alertContent = '',
   onFormSubmit = () => {},
+  modalDescription,
+  modalImageData,
+  modalImageAlt,
   customClassName = '',
   ...rest
 }) => {
@@ -60,7 +63,11 @@ export const FormHeaderBanner = ({
   // Render form based on formType
   const renderForm = () => {
     if (formType === 'cabin-upgrade') {
-      return html`<${CabinUpgradeForm} onSubmit=${onFormSubmit} />`;
+      return html`<${CabinUpgradeForm} 
+      modalDescription=${modalDescription}
+      modalImageData=${modalImageData}
+      modalImageAlt=${modalImageAlt} 
+      onSubmit=${onFormSubmit} />`;
     }
     // if (formType === 'otro-formulario') {
     //   return html`<${OtroFormulario} onSubmit=${onFormSubmit} />`;

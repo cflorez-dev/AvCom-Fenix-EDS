@@ -78,15 +78,22 @@ async function loadFonts() {
 function buildAutoBlocks(main) {
   try {
     // auto block `*/fragments/*` references
-    const fragments = main.querySelectorAll('a[href*="/fragments/"]');
-    if (fragments.length > 0) {
+    // IMPORTANT: Exclude links inside .fragment blocks — those are handled
+    // by the fragment block decorator (blocks/fragment/fragment.js)
+    const allFragmentLinks = main.querySelectorAll('a[href*="/fragments/"]');
+    const inlineFragments = [...allFragmentLinks].filter(
+      (a) => !a.closest('.fragment'),
+    );
+    if (inlineFragments.length > 0) {
       // eslint-disable-next-line import/no-cycle
       import('../blocks/fragment/fragment.js').then(({ loadFragment }) => {
-        fragments.forEach(async (fragment) => {
+        inlineFragments.forEach(async (fragment) => {
           try {
             const { pathname } = new URL(fragment.href);
             const frag = await loadFragment(pathname);
-            fragment.parentElement.replaceWith(frag.firstElementChild);
+            if (frag) {
+              fragment.parentElement.replaceWith(...frag.childNodes);
+            }
           } catch (error) {
             // eslint-disable-next-line no-console
             console.error('Fragment loading failed', error);
@@ -438,6 +445,16 @@ async function loadLazy(doc) {
         }, 2000);
       }
     });
+  }
+
+  // If on a destinations detail page, wait for Smartvel content before hiding the loader.
+  // window.__smartvelLoadedPromise is set at module level in destinations.js and is only
+  // present when the Destinations organism is on the page. A 15s timeout acts as safety net.
+  if (window.__smartvelLoadedPromise) {
+    await Promise.race([
+      window.__smartvelLoadedPromise,
+      new Promise((resolve) => setTimeout(resolve, 15000)),
+    ]);
   }
 
   // Now hide the loader after everything is loaded (sections + header + footer + header children)

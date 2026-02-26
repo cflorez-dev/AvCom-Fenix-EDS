@@ -135,9 +135,20 @@ export default async function decorate(block) {
   }
   
   if (fragment) {
-    const fragmentSection = fragment.querySelector(':scope .section');
-    if (fragmentSection) {
-      block.closest('.section').classList.add(...fragmentSection.classList);
+    // Find the first VISIBLE section (not hidden by targeting)
+    // Fallback to first section if none are visible
+    const allSections = [...fragment.querySelectorAll(':scope .section')];
+    const visibleSection = allSections.find(
+      (s) => !s.classList.contains('!h-0') && s.style.display !== 'none',
+    ) || allSections[0];
+
+    if (visibleSection) {
+      // Filter out hiding utility classes that hideBlockWithSection may have added
+      const hidingClasses = ['!p-0', '!m-0', '!h-0', '!overflow-hidden'];
+      const safeClasses = [...visibleSection.classList].filter(
+        (c) => !hidingClasses.includes(c),
+      );
+      block.closest('.section').classList.add(...safeClasses);
       block.closest('.fragment').replaceWith(...fragment.childNodes);
     }
   }

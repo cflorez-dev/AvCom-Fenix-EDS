@@ -22,6 +22,8 @@ const html = htm.bind(h);
  * 11. alertType (text: info/success/warning/error)
  * 12. alertDismissible (text: true/false)
  * 13. alertContent (richtext HTML)
+ * 14. modalImage (picture/img)
+ * 15. modalDescription (richtext HTML)
  *
  * @param {Element} block The form-header-banner block element
  * @returns {Object} Object with options mapped according to the model
@@ -41,6 +43,9 @@ function mapBlockOptions(block) {
     alertType: 'info', // default according to model
     alertDismissible: true, // default according to model
     alertContent: '',
+    modalImage: null,
+    modalImageAlt: '',
+    modalDescription: '',
     'target-countries': '',
     'target-languages': '',
   };
@@ -162,6 +167,31 @@ function mapBlockOptions(block) {
       if (currentIndex === 12 && innerHTML && innerHTML.includes('<')) {
         mappedOptions.alertContent = innerHTML;
         currentIndex += 1;
+        return;
+      }
+
+      // 14. modalImage (picture/img)
+      if (currentIndex === 13) {
+        const modalPicture = cell.querySelector('picture');
+        const modalImg = cell.querySelector('img');
+        if (modalPicture || modalImg) {
+          const modalImageElement = modalImg || modalPicture?.querySelector('img');
+          if (modalImageElement) {
+            mappedOptions.modalImage = {
+              src: modalImageElement.src,
+              alt: modalImageElement.alt || '',
+            };
+            mappedOptions.modalImageAlt = modalImageElement.alt || '';
+            currentIndex += 1;
+            return;
+          }
+        }
+      }
+
+      // 15. modalDescription (richtext HTML)
+      if (currentIndex === 14 && innerHTML && innerHTML.includes('<')) {
+        mappedOptions.modalDescription = innerHTML;
+        currentIndex += 1;
       }
     });
   });
@@ -219,6 +249,10 @@ export default function decorate(block) {
   const titleText = mappedOptions.titleText || '';
   const subtitleText = mappedOptions.subtitleText || '';
   const alertContent = mappedOptions.alertContent || '';
+  const modalImageData = mappedOptions.modalImage;
+  const modalImageAlt = mappedOptions.modalImageAlt || '';
+  // const modalDescription = mappedOptions.modalDescription || '';
+  const modalDescription = null;
 
   // 4. Prepare props for the component
   const componentProps = {
@@ -234,6 +268,9 @@ export default function decorate(block) {
     alertType,
     alertDismissible,
     alertContent,
+    modalImageData,
+    modalImageAlt,
+    modalDescription,
   };
 
   // 5. Hide & Render Sibling Pattern

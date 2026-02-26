@@ -90,7 +90,16 @@ export const ModalAviancaLayout = ({
           />
         `}
         ${!coverImage && !image && icon && html`
-          <${Icon} icon=${icon} customSize=${80} customClassName="w-[80px] h-[80px] text-[var(--text-normal-primary)]" />
+          ${icon.startsWith('http') ? html`
+            <img
+              src=${icon}
+              alt=${imageAlt || title || ''}
+              class="w-[80px] h-[80px] object-contain"
+              loading="lazy"
+            />
+          ` : html`
+            <${Icon} icon=${icon} customSize=${80} customClassName="w-[80px] h-[80px] text-[var(--text-normal-primary)]" />
+          `}
         `}
       </div>
     `}

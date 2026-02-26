@@ -75,6 +75,9 @@ export const LinkCardHorizontal = ({
 
   // Detect if this is a "photographic card" (pure image, no text/CTA)
   const isPhotographicCard = !title && !description && !linkText;
+  // Always apply border (even for photographic cards)
+  const borderClasses = 'border border-solid border-[var(--border-stroke-default)]';
+  const focusBorderClasses = 'focus-visible:!border-[var(--focus-primary)]';
 
   // Card is only clickable if href exists AND clickBehavior is 'fullCard'
   const isClickable = !!(href && clickBehavior === 'fullCard');
@@ -84,10 +87,10 @@ export const LinkCardHorizontal = ({
   const baseClasses = '!p-0 box-border relative rounded-[24px] '
     + 'w-full h-full no-underline '
     + 'overflow-hidden transition-all bg-[var(--bg-card-lighter)] '
-    + 'border border-solid border-[var(--border-stroke-default)] '
+    + `${borderClasses} `
     + 'flex flex-col md:flex-row items-start md:items-center justify-center '
     + 'hover:shadow-[0_2px_20px_2px_rgba(73,73,73,0.25)] '
-    + 'focus-visible:!border-[var(--focus-primary)] focus-visible:shadow-[0_2px_20px_2px_rgba(73,73,73,0.25)] '
+    + `${focusBorderClasses} focus-visible:shadow-[0_2px_20px_2px_rgba(73,73,73,0.25)] `
     + 'focus-visible:outline focus-visible:outline-2 focus-visible:outline-[var(--focus-primary)] focus-visible:outline-offset-2 '
     + '';
 
@@ -247,7 +250,7 @@ export const LinkCardHorizontal = ({
           onMouseLeave=${() => setIsHovered(false)}
           ...${elementProps}
         >
-          <picture class="w-full h-full absolute inset-0 p-[16px] md:p-[16px]">
+          <picture class="w-full h-full absolute inset-0">
             ${finalImageMobile && finalImageMobile !== finalImageDesktop ? html`
               <source media="(max-width: 767px)" srcset=${finalImageMobile} />
             ` : null}
@@ -270,7 +273,7 @@ export const LinkCardHorizontal = ({
         onMouseLeave=${() => setIsHovered(false)}
         ...${rest}
       >
-        <picture class="w-full h-full absolute inset-0 p-[16px] md:p-[16px]">
+        <picture class="w-full h-full absolute inset-0">
           ${finalImageMobile && finalImageMobile !== finalImageDesktop ? html`
             <source media="(max-width: 767px)" srcset=${finalImageMobile} />
           ` : null}

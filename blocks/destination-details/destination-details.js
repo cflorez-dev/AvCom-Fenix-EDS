@@ -2,6 +2,8 @@ import { h, render } from '@dropins/tools/preact.js';
 import htm from 'htm';
 import { readBlockConfig } from '../../scripts/aem.js';
 import { Destinations } from '../../design-system/organisms/destinations/destinations.js';
+import { fetchAEMData } from '../../scripts/utils/aem-data.js';
+import { resolveLocale } from '../../scripts/utils/locale.js';
 
 const html = htm.bind(h);
 
@@ -13,7 +15,7 @@ const html = htm.bind(h);
  *
  * @param {Element} block - The destination-details block element
  */
-export default function decorate(block) {
+export default async function decorate(block) {
   const config = readBlockConfig(block);
 
   // Get IATA code from config or content
@@ -35,8 +37,16 @@ export default function decorate(block) {
   wrapper.setAttribute('data-name', 'destination-details');
   wrapper.style.display = display;
 
+  const locale = await resolveLocale();
+    const language = locale.language || 'es';
+    const configData = await fetchAEMData(language);
+  
+    const i18Data = Object.fromEntries(
+      configData.data.map(({ Key, Text }) => [Key, Text]),
+    );
+
   // Render Destinations organism using Preact
-  render(html`<${Destinations} iata=${iata} />`, wrapper);
+  render(html`<${Destinations} i18n=${i18Data} iata=${iata} />`, wrapper);
 
   block.appendChild(wrapper);
 }
