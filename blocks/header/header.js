@@ -1,5 +1,5 @@
 import { getMetadata } from '../../scripts/aem.js';
-import { getLocalizedPaths } from '../../scripts/utils/locale.js';
+import { getLocalizedPathsForErrorPage } from '../../scripts/utils/locale.js';
 import { loadFragment } from '../fragment/fragment.js';
 
 const isMobileNavbar = window.matchMedia('(max-width: 1247px)');
@@ -51,7 +51,7 @@ export default async function decorate(block) {
   // Now containers exist in DOM so header-navbar can find them during decoration
   const navMeta = getMetadata('nav');
   const customPath = navMeta ? new URL(navMeta, window.location).pathname : null;
-  const navPaths = await getLocalizedPaths('nav', customPath);
+  const navPaths = await getLocalizedPathsForErrorPage('nav', customPath);
   // Try to load in priority order
   let fragment = null;
   for (const navPath of navPaths) {

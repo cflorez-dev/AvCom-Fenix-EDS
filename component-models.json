@@ -2642,6 +2642,10 @@
           {
             "name": "Dark",
             "value": "dark"
+          },
+          {
+            "name": "White",
+            "value": "white"
           }
         ],
         "value": "light",

@@ -1,5 +1,9 @@
 /* 404 Error Page Styling */
 
+body {
+  background-color: var(--color-background-mail-background-default-light);
+}
+
 .section.fragment-container {
   margin-top: var(--margin-y-section, 9.253rem) !important;
   margin-bottom: var(--margin-y-section, 9.253rem) !important;

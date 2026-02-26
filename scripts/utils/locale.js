@@ -259,3 +259,56 @@ export async function cacheResolvedPath(type, successfulPath) {
 export function cacheFailedPath(path) {
   failedPathCache.add(path);
 }
+
+// ============================================
+// Error Page Path Resolution
+// ============================================
+
+/**
+ * Get localized paths for error pages with optional error-specific override.
+ * When on an error page (window.isErrorPage === true), prepends error-specific
+ * paths from /errors/ folder before the standard localized paths.
+ *
+ * Error content follows the same suffix convention as 404 pages:
+ * - Spanish (default): /errors/{type}        (e.g., /errors/nav, /errors/footer)
+ * - Other languages:   /errors/{type}-{lang}  (e.g., /errors/nav-en, /errors/footer-pt)
+ *
+ * Fallback chain example (English, type='nav'):
+ *   1. /errors/nav-en   ← error-specific override (optional)
+ *   2. /en/nav           ← standard localized (current behavior)
+ *   3. /nav              ← global fallback (current behavior)
+ *
+ * If no error-specific content exists in AEM, the path silently 404s,
+ * gets cached in failedPathCache, and the standard paths are used.
+ *
+ * @param {string} type Resource type ('nav', 'footer', etc.)
+ * @param {string} customPath Optional custom path from metadata override
+ * @returns {Array<string>} Paths to try in priority order
+ */
+export async function getLocalizedPathsForErrorPage(type, customPath = null) {
+  // If not an error page or there's a custom metadata override, use standard resolution
+  if (!window.isErrorPage || customPath) {
+    return getLocalizedPaths(type, customPath);
+  }
+
+  // Determine language: prefer errorPageLang (set in 404.html), fallback to resolveLocale
+  const locale = await resolveLocale();
+  const lang = window.errorPageLang || locale.language || 'es';
+  const suffixLangs = ['en', 'pt', 'fr'];
+
+  // Build error-specific path following 404 convention: ES = no suffix, others = -{lang}
+  const errorPath = suffixLangs.includes(lang)
+    ? `/errors/${type}-${lang}`
+    : `/errors/${type}`;
+
+  // Get standard localized paths (e.g., ['/es/nav', '/nav'])
+  const standardPaths = await getLocalizedPaths(type);
+
+  // Prepend error path if it hasn't previously failed
+  if (!failedPathCache.has(errorPath)) {
+    return [errorPath, ...standardPaths];
+  }
+
+  // Error path already failed, skip it and use standard paths
+  return standardPaths;
+}
