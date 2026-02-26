@@ -1,7 +1,6 @@
 import processRichTextContent from './cms-rich-text-helper.js';
 import { getLinkButtonStyles } from '../../design-system/atoms/link-button/link-button.js';
 import loadSVGIcon from '../../scripts/utils/svg.helper.js';
-import { readBlockConfig } from '../../scripts/aem.js';
 import { shouldShowByTargeting, hideBlockWithSection } from '../../scripts/utils/target-filter.js';
 
 /**
@@ -165,11 +164,19 @@ export default function decorate(block) {
   }
 
   // 2. Check targeting (country/language filtering)
-  const config = readBlockConfig(block);
-  if (!shouldShowByTargeting(config['target-countries'], config['target-languages'])) {
+  // Model field order: 0=text, 1=target-countries, 2=target-languages
+  const rows = [...block.children];
+  const targetCountries = rows[1]?.children[0]?.textContent?.trim() || '';
+  const targetLanguages = rows[2]?.children[0]?.textContent?.trim() || '';
+
+  if (!shouldShowByTargeting(targetCountries, targetLanguages)) {
     hideBlockWithSection(block);
     return;
   }
+
+  // Remove targeting rows from DOM (they shouldn't be rendered)
+  if (rows[2]) rows[2].remove();
+  if (rows[1]) rows[1].remove();
 
   // 3. Process and transform content (map code tags to HTML)
   processRichTextContent(block);

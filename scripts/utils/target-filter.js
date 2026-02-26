@@ -206,8 +206,9 @@ export function filterItemsByTargeting(
 }
 
 /**
- * Hide a block and collapse its parent section
- * Removes block from DOM and applies collapsing styles to parent section
+ * Hide a block and collapse its wrapper to avoid empty spaces
+ * Only collapses the immediate wrapper, not the entire section
+ * This prevents hiding other blocks that should be visible
  * @param {Element} block - The block element to hide
  */
 export function hideBlockWithSection(block) {
@@ -215,26 +216,32 @@ export function hideBlockWithSection(block) {
     return;
   }
 
-  // Find parent section
-  const section = block.closest('.section');
+  // Hide the block itself
+  block.classList.add('hidden');
+  block.style.display = 'none';
 
-  // Apply collapsing styles to section
-  if (section) {
-    section.classList.add('!p-0', '!m-0', '!h-0', '!overflow-hidden');
-    section.style.display = 'none';
+  // Collapse the immediate parent wrapper (usually div.block-wrapper or similar)
+  const wrapper = block.parentElement;
+  if (wrapper && wrapper !== document.body && !wrapper.classList.contains('section')) {
+    wrapper.style.display = 'none';
+    wrapper.style.padding = '0';
+    wrapper.style.margin = '0';
+    wrapper.style.height = '0';
+    wrapper.style.overflow = 'hidden';
   }
 
-  // Add hidden class to block before removing
-  block.classList.add('hidden');
-
-  // Remove block from DOM
-  try {
-    block.remove();
-  } catch (error) {
-    // Fallback to display none if remove fails
-    block.style.display = 'none';
-    // eslint-disable-next-line no-console
-    console.error('[target-filter] Error removing block:', error);
+  // Check if section should be collapsed (only if all blocks are hidden)
+  const section = block.closest('.section');
+  if (section) {
+    const visibleBlocks = section.querySelectorAll('.block:not(.hidden)');
+    if (visibleBlocks.length === 0) {
+      // All blocks in section are hidden, collapse the section
+      section.style.display = 'none';
+      section.style.padding = '0';
+      section.style.margin = '0';
+      section.style.height = '0';
+      section.style.overflow = 'hidden';
+    }
   }
 }
 

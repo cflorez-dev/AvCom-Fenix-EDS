@@ -14,3 +14,10 @@ main > .section.fragment-container {
   margin-right: auto;
   padding: 32px var(--main-section-div-padding, 16px);
 }
+
+/* Sections that contain ONLY a picture (e.g. 1px-tall SVG dividers)
+   should have no vertical padding so they render as subtle lines. */
+.fragment-wrapper > div:has(> .default-content-wrapper:only-child > picture:only-child) {
+  padding-top: 0;
+  padding-bottom: 0;
+}
