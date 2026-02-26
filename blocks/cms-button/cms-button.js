@@ -1,6 +1,5 @@
 import { h, render } from '@dropins/tools/preact.js';
 import htm from 'htm';
-import { readBlockConfig } from '../../scripts/aem.js';
 import { Button } from '../../design-system/atoms/button/button.js';
 import { LinkButton } from '../../design-system/atoms/link-button/link-button.js';
 import { Icon } from '../../design-system/atoms/icon/icon.js';
@@ -194,30 +193,34 @@ export default function decorate(block) {
 
   // 2. Production Mode: Map block data
   const mappedData = mapBlockData(block);
-  // Fallback to readBlockConfig if available
-  const config = readBlockConfig(block);
+
+  // Extract targeting from positional rows
+  // Model field order: 0-9 = button fields, 10=target-countries, 11=target-languages
+  const divs = Array.from(block.querySelectorAll(':scope > div'));
+  const targetCountries = divs[10]?.children[0]?.textContent?.trim() || '';
+  const targetLanguages = divs[11]?.children[0]?.textContent?.trim() || '';
 
   // Check targeting (country/language filtering)
-  if (!shouldShowByTargeting(config['target-countries'], config['target-languages'])) {
+  if (!shouldShowByTargeting(targetCountries, targetLanguages)) {
     hideBlockWithSection(block);
     return;
   }
 
-  // Extract configuration with default values, prioritizing mappedData
-  const text = mappedData.text || config.text || '';
-  const variant = mappedData.variant || config.variant || 'primary';
+  // Extract configuration with default values
+  const text = mappedData.text || '';
+  const variant = mappedData.variant || 'primary';
   // Icon is now a simple text field - use value as-is (empty string = no icon)
-  const icon = mappedData.icon || config.icon || '';
-  const iconPosition = mappedData.iconPosition || config.iconPosition || 'prefix';
-  const linkType = mappedData.linkType || config.linkType || 'internal';
-  const href = mappedData.href || config.href || '';
-  const target = (mappedData.target && mappedData.target.trim()) || (config.target && config.target.trim()) || '_self';
-  const tooltip = mappedData.tooltip || config.tooltip || '';
-  const title = mappedData.title || config.title || '';
+  const icon = mappedData.icon || '';
+  const iconPosition = mappedData.iconPosition || 'prefix';
+  const linkType = mappedData.linkType || 'internal';
+  const href = mappedData.href || '';
+  const target = (mappedData.target && mappedData.target.trim()) || '_self';
+  const tooltip = mappedData.tooltip || '';
+  const title = mappedData.title || '';
 
   // Parse custom attributes
   let customAttrs = {};
-  const customAttributesValue = mappedData.customAttributes || config.customAttributes || '';
+  const customAttributesValue = mappedData.customAttributes || '';
 
   if (customAttributesValue) {
     if (typeof customAttributesValue === 'object') {

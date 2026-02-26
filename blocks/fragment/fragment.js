@@ -135,10 +135,9 @@ export default async function decorate(block) {
   }
   
   if (fragment) {
-    const fragmentSection = fragment.querySelector(':scope .section');
-    if (fragmentSection) {
-      block.closest('.section').classList.add(...fragmentSection.classList);
-      block.closest('.fragment').replaceWith(...fragment.childNodes);
-    }
+    // Replace the fragment block with the fragment's child nodes.
+    // No class propagation needed — fragment.css makes the outer section
+    // transparent and gives inner sections proper main > .section styling.
+    block.closest('.fragment').replaceWith(...fragment.childNodes);
   }
 }

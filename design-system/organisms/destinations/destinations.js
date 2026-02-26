@@ -7,6 +7,19 @@ import { BookingBox } from '../booking-box/booking-box.js';
 
 const html = htm.bind(h);
 
+// Register a global promise so scripts.js knows to wait for Smartvel before hiding the loader.
+// This runs when the Destinations module is first imported (i.e. only on destinations detail pages).
+window.__smartvelLoadedPromise = new Promise((resolve) => {
+  window.__resolveSmartvelLoaded = resolve;
+});
+// Safety: resolve after 15s in case Smartvel never populates (error, empty destination, etc.)
+setTimeout(() => {
+  if (window.__resolveSmartvelLoaded) {
+    window.__resolveSmartvelLoaded();
+    window.__resolveSmartvelLoaded = null;
+  }
+}, 15000);
+
 /**
  * Obtiene el preSlug dinámico desde el archivo de idioma JSON del sitio
  * @param {string} lang - Código de idioma (ej: 'es', 'en', 'fr', 'pt')
@@ -431,6 +444,56 @@ export const Destinations = ({
     };
   }, []);
 
+  // If data finished loading but there is no valid destination, unblock the loader immediately
+  useEffect(() => {
+    if (!loading && !destinationData?.data?.data?.destinationList?.items?.[0]) {
+      if (window.__resolveSmartvelLoaded) {
+        window.__resolveSmartvelLoaded();
+        window.__resolveSmartvelLoaded = null;
+      }
+    }
+  }, [loading, destinationData]);
+
+  // DEBUG: Detect when Smartvel component has finished loading its content
+  useEffect(() => {
+    const smartvelEl = document.querySelector('smartvelcomponent');
+    if (!smartvelEl) return undefined;
+
+    const observer = new MutationObserver((mutations) => {
+      const hasContent = smartvelEl.shadowRoot
+        ? smartvelEl.shadowRoot.children.length > 0
+        : smartvelEl.children.length > 0 || smartvelEl.textContent.trim().length > 0;
+
+      if (hasContent) {
+        // eslint-disable-next-line no-console
+        console.log('[Smartvel] Component loaded with content:', {
+          element: smartvelEl,
+          shadowRoot: smartvelEl.shadowRoot,
+          children: smartvelEl.children,
+          innerHTML: smartvelEl.innerHTML,
+          mutations,
+        });
+
+        // Signal the page loader that Smartvel is ready
+        if (window.__resolveSmartvelLoaded) {
+          window.__resolveSmartvelLoaded();
+          window.__resolveSmartvelLoaded = null;
+        }
+        window.dispatchEvent(new CustomEvent('smartvel:loaded'));
+
+        observer.disconnect();
+      }
+    });
+
+    observer.observe(smartvelEl, {
+      childList: true,
+      subtree: true,
+      attributes: true,
+    });
+
+    return () => observer.disconnect();
+  }, [loading]);
+
   const baseClasses = 'destinations-organism';
 
   if (loading) {
@@ -516,6 +579,7 @@ export const Destinations = ({
         <div class="max-w-7xl mx-auto">
           <${BookingBox}
             defaultDestination=${{ iataCode: destination?.iataCode || '' }}
+            i18n=${i18n}
           />
         </div>
       </section>

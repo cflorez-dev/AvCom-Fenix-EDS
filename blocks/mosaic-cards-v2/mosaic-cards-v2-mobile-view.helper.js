@@ -542,19 +542,17 @@ function showDesktopView(mosaicSections, container) {
     desktopContainer.classList.remove('hidden', '!p-0', '!m-0', '!h-0', '!overflow-hidden');
   }
 
-  // Show each mosaic section AND their rendered content
+  // Keep original mosaic sections hidden in desktop to avoid duplicated content.
   mosaicSections.forEach((mosaicData) => {
-    // Show the original section
     if (mosaicData.section) {
-      mosaicData.section.style.display = '';
-      mosaicData.section.classList.remove('hidden');
+      mosaicData.section.style.display = 'none';
+      mosaicData.section.classList.add('hidden');
     }
 
-    // Also show the cms-mosaic-cards rendered content
     if (mosaicData.block) {
       const renderedContent = mosaicData.block.nextElementSibling;
       if (renderedContent && renderedContent.classList.contains('cms-mosaic-cards-rendered')) {
-        renderedContent.style.display = '';
+        renderedContent.style.display = 'none';
       }
     }
   });
@@ -629,6 +627,58 @@ async function showMobileView(mosaicSections, container, groupId, config = {}) {
 }
 
 /**
+ * Show stacked mobile/tablet view (one fold below another)
+ * @param {Array} mosaicSections - Array of mosaic section data
+ * @param {HTMLElement} container - Container element to render into
+ */
+function showMobileStackedView(mosaicSections, container) {
+  // Hide original mosaic sections in stacked mode as well.
+  // We render a controlled stacked layout inside mobileContainer to keep
+  // spacing consistent with mobile carousel view.
+  mosaicSections.forEach((mosaicData) => {
+    if (mosaicData.section) {
+      mosaicData.section.style.display = 'none';
+      mosaicData.section.classList.add('hidden');
+    }
+    if (mosaicData.block) {
+      mosaicData.block.style.display = 'none';
+      const renderedContent = mosaicData.block.nextElementSibling;
+      if (renderedContent && renderedContent.classList.contains('cms-mosaic-cards-rendered')) {
+        renderedContent.style.display = 'none';
+      }
+    }
+  });
+
+  // Hide desktop carousel container
+  const desktopContainer = document.querySelector('.mosaic-v2-container.section');
+  if (desktopContainer) {
+    desktopContainer.style.display = 'none';
+    desktopContainer.classList.add('hidden', '!p-0', '!m-0', '!h-0', '!overflow-hidden');
+  }
+
+  // Build stacked content with mobile-like side padding and vertical spacing
+  const stackedWrapper = document.createElement('div');
+  stackedWrapper.className = 'mosaic-v2-mobile-stacked px-4 pb-4 flex flex-col gap-4';
+
+  mosaicSections.forEach((mosaicData) => {
+    if (mosaicData.block) {
+      const renderedContent = mosaicData.block.nextElementSibling;
+      if (renderedContent && renderedContent.classList.contains('cms-mosaic-cards-rendered')) {
+        const clonedContent = renderedContent.cloneNode(true);
+        clonedContent.style.display = '';
+        clonedContent.classList.remove('hidden', '!p-0', '!m-0', '!h-0', '!overflow-hidden');
+        stackedWrapper.appendChild(clonedContent);
+      }
+    }
+  });
+
+  container.innerHTML = '';
+  container.appendChild(stackedWrapper);
+  container.style.display = 'block';
+  container.classList.remove('hidden', '!p-0', '!m-0', '!h-0', '!overflow-hidden');
+}
+
+/**
  * Initialize responsive view handler for mosaic cards v2
  * Switches between desktop (cms-mosaic-cards) and mobile (carousel) views
  *
@@ -639,7 +689,15 @@ async function showMobileView(mosaicSections, container, groupId, config = {}) {
  * @returns {Object} Control object with destroy method
  */
 export function initMobileViewHelper(config) {
-  const { mosaicSections, groupId, container, autoplay = false, autoplaySpeed = 3000, showArrows = false } = config;
+  const {
+    mosaicSections,
+    groupId,
+    container,
+    autoplay = false,
+    autoplaySpeed = 3000,
+    showArrows = false,
+    show = true,
+  } = config;
 
   if (!mosaicSections || !groupId || !container) {
     // eslint-disable-next-line no-console
@@ -648,12 +706,14 @@ export function initMobileViewHelper(config) {
   }
 
   // Track current view state to avoid unnecessary re-renders
-  let currentView = null; // 'mobile' or 'desktop'
+  let currentView = null; // 'mobile-carousel' | 'mobile-stacked' | 'desktop'
 
   // Initial render based on viewport
   async function handleResize() {
     const isMobile = isMobileViewport();
-    const targetView = isMobile ? 'mobile' : 'desktop';
+    const targetView = isMobile
+      ? (show ? 'mobile-carousel' : 'mobile-stacked')
+      : 'desktop';
 
     // Only switch views if we're changing between mobile and desktop
     if (currentView === targetView) {
@@ -664,8 +724,10 @@ export function initMobileViewHelper(config) {
     console.log(`[${groupId}] Switching from ${currentView} to ${targetView}`);
     currentView = targetView;
 
-    if (isMobile) {
+    if (targetView === 'mobile-carousel') {
       await showMobileView(mosaicSections, container, groupId, { autoplay, autoplaySpeed, showArrows });
+    } else if (targetView === 'mobile-stacked') {
+      showMobileStackedView(mosaicSections, container);
     } else {
       showDesktopView(mosaicSections, container);
     }

@@ -105,15 +105,10 @@ export default async function decorate(block) {
     return;
   }
 
-  // Check feature flags
-  if (!show) {
-    const section = block.closest('.section');
-    if (section) {
-      section.classList.add('!p-0', '!m-0', '!h-0', '!overflow-hidden');
-    }
-    block.style.display = 'none';
-    return;
-  }
+  // `show` controls mobile/tablet behavior in helper:
+  // true => mobile/tablet carousel
+  // false => mobile/tablet stacked view
+  // Desktop is always carousel.
 
   if (enableFrom && now < enableFrom) {
     const section = block.closest('.section');
@@ -459,14 +454,10 @@ export default async function decorate(block) {
     const renderedContent = renderedContentMap.get(mosaicData.id);
 
     if (renderedContent) {
-      if (isOriginal) {
-        // Move original content for first occurrence
-        slide.appendChild(renderedContent);
-      } else {
-        // Clone for duplicate slide (second occurrence)
-        const clonedContent = renderedContent.cloneNode(true);
-        slide.appendChild(clonedContent);
-      }
+      // Always clone into the desktop carousel.
+      // This preserves original rendered content for mobile/tablet stacked mode.
+      const clonedContent = renderedContent.cloneNode(true);
+      slide.appendChild(clonedContent);
 
       // Hide the original cms-mosaic-cards block structure
       if (mosaicData.block) {
@@ -552,6 +543,7 @@ export default async function decorate(block) {
     autoplay,
     autoplaySpeed,
     showArrows,
+    show,
   });
 
   // Animation control (works for both autoplay and manual navigation)

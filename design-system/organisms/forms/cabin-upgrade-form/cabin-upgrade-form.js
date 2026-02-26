@@ -74,6 +74,9 @@ function getI18nLabel(key, fallback = '') {
 export const CabinUpgradeForm = ({
   onSubmit = () => {},
   onError = () => {},
+  modalDescription,
+  modalImageData,
+  modalImageAlt,
   customClassName = '',
   ...rest
 }) => {
@@ -224,6 +227,9 @@ export const CabinUpgradeForm = ({
 
   const containerClasses = `cabin-upgrade-form w-full ${customClassName}`.trim();
 
+  const modalIcon = modalImageData?.src || 'modals/upgrade-not-available';
+  const modalDescriptionText = modalDescription || labels.modalErrorDescription;
+
   return html`
     <form
       class=${containerClasses}
@@ -296,8 +302,8 @@ export const CabinUpgradeForm = ({
       isOpen=${showErrorModal}
       onClose=${() => setShowErrorModal(false)}
       title=${labels.modalErrorTitle}
-      description=${labels.modalErrorDescription}
-      icon="modals/upgrade-not-available"
+      description=${modalDescriptionText}
+      icon="${modalIcon}"
       primaryButtonLabel=${labels.modalErrorButtonText}
       onPrimaryClick=${() => setShowErrorModal(false)}
     />

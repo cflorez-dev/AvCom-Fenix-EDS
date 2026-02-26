@@ -44,6 +44,12 @@
     justify-content: center;
 }
 
+/* Ensure cloned CMS mosaic wrappers fill the slide width (especially image-only cards). */
+.mosaic-v2-slide > .cms-mosaic-cards-rendered {
+    width: 100%;
+    min-width: 100%;
+}
+
 /* Arrow buttons responsive visibility */
 @media (max-width: 767px) {
     .mosaic-v2-prev,

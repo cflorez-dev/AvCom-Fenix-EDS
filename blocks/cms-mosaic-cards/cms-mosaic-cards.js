@@ -8,13 +8,14 @@
  *
  * @param {string} template - Template variant (template-1 to template-7)
  * @param {number} cardIndex - Card index (0-based)
+ * @param {number} totalCards - Total number of cards
  * @returns {string} Tailwind classes applied to the card wrapper
  */
 
 import { getMosaicStore } from '../mosaic-cards-v2/mosaic-cards-v2.store.js';
 import { shouldShowByTargeting, hideBlockWithSection, filterItemsByTargeting } from '../../scripts/utils/target-filter.js';
 
-function getCardClasses(template, cardIndex) {
+function getCardClasses(template, cardIndex, totalCards) {
   // Desktop classes (≥768px) - grid 3x3
   const templates = {
     'template-1': [
@@ -60,16 +61,44 @@ function getCardClasses(template, cardIndex) {
 
   const desktopClasses = templates[template]?.[cardIndex] || '';
 
-  // Tablet classes (480-767px): 2x2 grid, equal proportions
-  const tabletPosition = [
-    'sm:col-start-1 sm:row-start-1', // Card 1: top-left
-    'sm:col-start-2 sm:row-start-1', // Card 2: top-right
-    'sm:col-start-1 sm:row-start-2', // Card 3: bottom-left
-    'sm:col-start-2 sm:row-start-2', // Card 4: bottom-right
-  ];
+  // Tablet classes (480-767px)
+  // Special case for 3 cards: the third card spans full width on row 2
+  const tabletPosition = totalCards === 3
+    ? [
+      'sm:col-start-1 sm:row-start-1', // Card 1: top-left
+      'sm:col-start-2 sm:row-start-1', // Card 2: top-right
+      'sm:col-span-2 sm:col-start-1 sm:row-start-2', // Card 3: full-width bottom
+    ]
+    : [
+      'sm:col-start-1 sm:row-start-1', // Card 1: top-left
+      'sm:col-start-2 sm:row-start-1', // Card 2: top-right
+      'sm:col-start-1 sm:row-start-2', // Card 3: bottom-left
+      'sm:col-start-2 sm:row-start-2', // Card 4: bottom-right
+    ];
   const tabletClasses = tabletPosition[cardIndex] || '';
 
   return `${desktopClasses} ${tabletClasses}`;
+}
+
+/**
+ * Maximum cards supported by each template.
+ * Templates 1-4 support 4 cards, templates 5-7 support 3 cards.
+ *
+ * @param {string} template - Template variant
+ * @returns {number} Max cards allowed for the selected template
+ */
+function getTemplateMaxCards(template) {
+  const maxByTemplate = {
+    'template-1': 4,
+    'template-2': 4,
+    'template-3': 4,
+    'template-4': 4,
+    'template-5': 3,
+    'template-6': 3,
+    'template-7': 3,
+  };
+
+  return maxByTemplate[template] || 4;
 }
 
 /**
@@ -128,19 +157,22 @@ function createCMSMosaicCards(deps) {
 
     return html`
       <div 
-        class="parent-cms-mosaic grid w-full gap-4 grid-cols-[repeat(3,minmax(0,1fr))] md:grid-cols-[repeat(3,minmax(0,1fr))] md:grid-rows-[auto_auto_auto] sm:min-h-[31.25rem] sm:grid-cols-2 sm:grid-rows-2 sm:max-h-none max-[480px]:inline-flex max-[480px]:flex-col max-[480px]:gap-0 max-[480px]:max-h-none pt-[5px]" 
+        class="parent-cms-mosaic grid w-full gap-4 grid-cols-[repeat(3,minmax(0,1fr))] md:grid-cols-[repeat(3,minmax(0,1fr))] md:grid-rows-[repeat(3,minmax(0,1fr))] sm:min-h-[31.25rem] sm:grid-cols-2 sm:grid-rows-2 sm:max-h-none max-[480px]:inline-flex max-[480px]:flex-col max-[480px]:gap-0 max-[480px]:max-h-none pt-[5px]" 
         data-name="cmsMosaicCards"
         data-template=${template}
       >
-        <div class="md:contents sm:contents max-[480px]:flex max-[480px]:flex-col max-[480px]:gap-3 max-[480px]:items-start max-[480px]:w-full">
+        <div class="md:contents sm:contents max-[480px]:flex max-[480px]:flex-col max-[480px]:gap-4 max-[480px]:items-start max-[480px]:w-full">
           ${cards.map((card, index) => {
-    const cardClasses = getCardClasses(template, index);
+    const cardClasses = getCardClasses(template, index, cards.length);
     const { columns, rows } = getCardDimensions(cardClasses);
+
+    const isPhotographicCard = !card.title && !card.description && !card.ctaLabel;
+    const mobileHeightClass = isPhotographicCard ? 'max-[480px]:h-[326px]' : '';
 
     return html`
           <div 
             key=${index} 
-            class=${`child-cms-mosaic flex flex-col justify-center items-start self-stretch justify-self-stretch ${cardClasses} sm:col-span-1 sm:row-span-1 max-[768px]:min-h-[326px] max-[480px]:w-full max-[480px]:shrink-0`}
+            class=${`child-cms-mosaic flex flex-col justify-center items-start self-stretch justify-self-stretch ${cardClasses} max-[768px]:min-h-[326px] max-[480px]:w-full max-[480px]:shrink-0 ${mobileHeightClass}`}
             data-card=${index + 1}
           >
             <${LinkCard}
@@ -440,6 +472,7 @@ export default async function decorate(block) {
     };
 
     const template = layoutToTemplate[config.layout] || 'template-1';
+    const maxTemplateCards = getTemplateMaxCards(template);
 
     const childItems = [];
 
@@ -461,11 +494,16 @@ export default async function decorate(block) {
 
     // Filter cards by targeting
     const filteredItems = filterItemsByTargeting(childItems);
+    const visibleItems = filteredItems.slice(0, maxTemplateCards);
 
-    if (filteredItems.length === 0) {
+    if (visibleItems.length === 0) {
       console.warn('No link-card children found after filtering in cms-mosaic-cards block');
       hideBlockWithSection(block);
       return;
+    }
+
+    if (filteredItems.length > visibleItems.length) {
+      console.warn(`cms-mosaic-cards: template "${template}" supports max ${maxTemplateCards} cards. Ignoring ${filteredItems.length - visibleItems.length} extra card(s).`);
     }
 
     // Hide original block content but keep it in DOM for Universal Editor
@@ -480,7 +518,7 @@ export default async function decorate(block) {
     render(
       html`
         <${CMSMosaicCards} 
-          cards=${filteredItems} 
+          cards=${visibleItems} 
           template=${template}
         />
       `,
@@ -501,7 +539,7 @@ export default async function decorate(block) {
         const existingGroup = store.getGroup(groupId) || { cards: [], metadata: {} };
         
         // Transform childItems to store format with DOM elements
-        const cardsWithElements = childItems.map((card, index) => {
+        const cardsWithElements = visibleItems.map((card, index) => {
           // Find the corresponding DOM element
           const cardElement = container.querySelector(`[data-card="${index + 1}"]`);
           
