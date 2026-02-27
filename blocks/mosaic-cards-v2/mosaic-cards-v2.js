@@ -552,6 +552,7 @@ export default async function decorate(block) {
     let position = 0;
     let isPaused = !autoplay; // Start paused if autoplay is off
     let manualControl = false; // Track if user is manually controlling
+    const originalSlidesCount = mosaicSections.length;
 
     // Store state per carousel using groupId (not global)
     if (!window.mosaicCarouselStates) {
@@ -561,6 +562,41 @@ export default async function decorate(block) {
       position: 0,
       isPaused: !autoplay,
       manualControl: false,
+    };
+
+    const getTrackGap = () => {
+      const styles = window.getComputedStyle(carouselTrack);
+      const columnGap = parseFloat(styles.columnGap);
+      if (Number.isFinite(columnGap)) return columnGap;
+      const gap = parseFloat(styles.gap);
+      if (Number.isFinite(gap)) return gap;
+      return 0;
+    };
+    const getOriginalSlideOffsets = () => Array.from(
+      carouselTrack.querySelectorAll('.mosaic-v2-slide[data-original="true"]'),
+    ).map((slide) => slide.offsetLeft);
+    const getCurrentSlideIndex = () => {
+      const currentPosition = Math.abs(window.mosaicCarouselStates[groupId].position || 0);
+      const offsets = getOriginalSlideOffsets();
+      if (!offsets.length) return 0;
+      let nearestIndex = 0;
+      let minDistance = Math.abs(currentPosition - offsets[0]);
+      offsets.forEach((offset, index) => {
+        const distance = Math.abs(currentPosition - offset);
+        if (distance < minDistance) {
+          minDistance = distance;
+          nearestIndex = index;
+        }
+      });
+      return nearestIndex;
+    };
+    const goToSlide = (slideIndex) => {
+      const offsets = getOriginalSlideOffsets();
+      const targetOffset = offsets[slideIndex] ?? 0;
+      const newPosition = -targetOffset;
+      carouselTrack.style.transform = `translateX(${newPosition}px)`;
+      window.mosaicCarouselStates[groupId].position = newPosition;
+      position = newPosition;
     };
 
     // Convert autoplay-speed (ms) to scroll speed (pixels per frame)
@@ -578,11 +614,8 @@ export default async function decorate(block) {
         position -= scrollSpeed;
 
         // Calculate total width including gaps
+        const gapWidth = getTrackGap();
         const slideWidth = carouselContainer.offsetWidth;
-        const isMobile = window.innerWidth < 768;
-        const gapWidth = isMobile ? 0 : 16; // No gap in mobile, gap-4 in desktop
-        // Total width is now HALF of all slides (since we duplicated)
-        const originalSlidesCount = mosaicSections.length;
         const totalOriginalWidth = (slideWidth * originalSlidesCount) + (gapWidth * (originalSlidesCount - 1));
 
         // Seamless infinite loop: reset position when reaching end of FIRST set of slides
@@ -606,6 +639,19 @@ export default async function decorate(block) {
       animate();
     }, 100);
 
+    // Re-align to the nearest fold after viewport changes (prevents partial slides).
+    let resizeTimeout;
+    const handleResize = () => {
+      if (window.innerWidth < 768) return;
+      const targetIndex = getCurrentSlideIndex();
+      goToSlide(targetIndex);
+    };
+    const debouncedResize = () => {
+      clearTimeout(resizeTimeout);
+      resizeTimeout = setTimeout(handleResize, 120);
+    };
+    window.addEventListener('resize', debouncedResize);
+
     // Arrow click handlers (navigate by LinkCard width)
     if (showArrows) {
       const prevButton = carouselContainer.querySelector('.mosaic-v2-prev');
@@ -616,82 +662,16 @@ export default async function decorate(block) {
           // Pause animation and enable manual control (only for THIS carousel)
           window.mosaicCarouselStates[groupId].isPaused = true;
           window.mosaicCarouselStates[groupId].manualControl = true;
-
-          // Get all cards and calculate total width of original cards only
-          const allCards = carouselTrack.querySelectorAll('.child-cms-mosaic');
-          if (!allCards || allCards.length === 0) return;
-
-          // Calculate total width of original LinkCards (first half)
-          const halfCards = allCards.length / 2;
-          let totalOriginalCardsWidth = 0;
-          for (let i = 0; i < halfCards; i += 1) {
-            totalOriginalCardsWidth += allCards[i].offsetWidth + 16; // gap-4
-          }
-
-          // Use stored position from state, defaulting to 0 if undefined
-          const currentPosition = window.mosaicCarouselStates[groupId].position ?? 0;
-          const currentScroll = Math.abs(currentPosition);
-
-          // Get viewport width directly from container (already includes padding via CSS)
-          const viewportWidth = carouselContainer.offsetWidth;
-
-          // Calculate safe zone for wrap: ensure full layout visible
-          const safetyMargin = 100;
-          const safeEndPosition = totalOriginalCardsWidth - viewportWidth - safetyMargin;
-
-          let newPosition;
-
-          // Check if we're at the beginning (wrap to end)
-          if (currentScroll <= 10) {
-            // Find the last card that fits completely in viewport when going backwards
-            // We need to find the rightmost card position that still shows a complete layout
-            let bestPosition = 0;
-            let cumulativeOffset = 0;
-
-            for (let i = 0; i < halfCards; i += 1) {
-              const card = allCards[i];
-              const cardWidth = card.offsetWidth;
-              const gapWidth = 16; // gap-4
-              
-              // Check if scrolling to this position would show content beyond our safe zone
-              if (cumulativeOffset + viewportWidth <= totalOriginalCardsWidth) {
-                bestPosition = cumulativeOffset;
-              }
-              
-              cumulativeOffset += cardWidth + gapWidth;
-            }
-
-            newPosition = -bestPosition;
+          const currentIndex = getCurrentSlideIndex();
+          let targetIndex;
+          if (currentIndex > 0) {
+            targetIndex = currentIndex - 1;
+          } else if (loop) {
+            targetIndex = originalSlidesCount - 1;
           } else {
-            // Find previous card by going backwards
-            let targetPosition = 0;
-            let previousCardPosition = 0;
-            let cumulativeOffset = 0;
-
-            for (let i = 0; i < allCards.length; i += 1) {
-              const card = allCards[i];
-              const cardWidth = card.offsetWidth;
-              const gapWidth = 16; // gap-4
-
-              // Store the position of cards we've passed
-              if (cumulativeOffset < currentScroll - 10) {
-                previousCardPosition = cumulativeOffset;
-              } else {
-                // Found the current card, use the previous position
-                targetPosition = previousCardPosition;
-                break;
-              }
-
-              cumulativeOffset += cardWidth + gapWidth;
-            }
-
-            newPosition = -targetPosition;
+            targetIndex = 0;
           }
-
-          // Update both the visual position and the state
-          carouselTrack.style.transform = `translateX(${newPosition}px)`;
-          window.mosaicCarouselStates[groupId].position = newPosition;
-          position = newPosition; // Sync local variable with new position
+          goToSlide(targetIndex);
 
           // Resume animation after delay if autoplay is on (only for THIS carousel)
           if (autoplay) {
@@ -708,61 +688,16 @@ export default async function decorate(block) {
           // Pause animation and enable manual control (only for THIS carousel)
           window.mosaicCarouselStates[groupId].isPaused = true;
           window.mosaicCarouselStates[groupId].manualControl = true;
-
-          // Get all cards and calculate total width of original cards only
-          const allCards = carouselTrack.querySelectorAll('.child-cms-mosaic');
-          if (!allCards || allCards.length === 0) return;
-
-          // Calculate total width of original LinkCards (first half)
-          const halfCards = allCards.length / 2;
-          let totalOriginalCardsWidth = 0;
-          for (let i = 0; i < halfCards; i += 1) {
-            totalOriginalCardsWidth += allCards[i].offsetWidth + 16; // gap-4
+          const currentIndex = getCurrentSlideIndex();
+          let targetIndex;
+          if (currentIndex < originalSlidesCount - 1) {
+            targetIndex = currentIndex + 1;
+          } else if (loop) {
+            targetIndex = 0;
+          } else {
+            targetIndex = originalSlidesCount - 1;
           }
-
-          const currentPosition = window.mosaicCarouselStates[groupId].position || 0;
-          const currentScroll = Math.abs(currentPosition);
-
-          // Get viewport width directly from container (already includes padding via CSS)
-          const viewportWidth = carouselContainer.offsetWidth;
-
-          // Calculate safe zone: need at least viewport width remaining to show full layout
-          const safetyMargin = 100;
-          const safeZoneThreshold = totalOriginalCardsWidth - viewportWidth - safetyMargin;
-
-          // Find next card and check if it would show duplicate content
-          let targetPosition = 0;
-          let cumulativeOffset = 0;
-          let foundNext = false;
-
-          for (let i = 0; i < allCards.length; i += 1) {
-            const card = allCards[i];
-            const cardWidth = card.offsetWidth;
-            const gapWidth = 16; // gap-4
-
-            // If this card starts after current scroll, navigate to it
-            if (cumulativeOffset > currentScroll + 10) {
-              targetPosition = cumulativeOffset;
-              foundNext = true;
-
-              // Check if target position would go beyond safe zone
-              // Reset to beginning to maintain full grid visible
-              if (targetPosition >= safeZoneThreshold) {
-                position = 0;
-                foundNext = false;
-              }
-              break;
-            }
-
-            cumulativeOffset += cardWidth + gapWidth;
-          }
-
-          if (foundNext) {
-            position = -targetPosition;
-          }
-
-          carouselTrack.style.transform = `translateX(${position}px)`;
-          window.mosaicCarouselStates[groupId].position = position;
+          goToSlide(targetIndex);
 
           // Resume animation after delay if autoplay is on (only for THIS carousel)
           if (autoplay) {
@@ -780,6 +715,8 @@ export default async function decorate(block) {
       if (animationId) {
         cancelAnimationFrame(animationId);
       }
+      window.removeEventListener('resize', debouncedResize);
+      clearTimeout(resizeTimeout);
     });
   }
 
