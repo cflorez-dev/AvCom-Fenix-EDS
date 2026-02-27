@@ -154,6 +154,8 @@ export default function decorate(block) {
   }
 
   if (totalCards === 0) {
+    // Hide the block if there are no cards
+    block.style.display = 'none';
     return;
   }
 

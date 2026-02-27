@@ -3,25 +3,10 @@ import { h, render } from '@dropins/tools/preact.js';
 import { HubDestinations } from '../../design-system/templates/hub-destinations/hub-destinations.js';
 import { fetchAEMData } from '../../scripts/utils/aem-data.js';
 import { resolveLocale } from '../../scripts/utils/locale.js';
+import { getStoredLanguage } from '../../scripts/services/header/language-country-selector.js';
 import { mapHubDestinationsData } from './hub-destinations.helper.js';
 
 const html = htm.bind(h);
-
-/**
- * Reads the selected-language cookie
- * @returns {string|null} Language code or null
- */
-function getLanguageFromCookie() {
-  try {
-    const match = document.cookie.match(/selected-language=([^;]+)/);
-    if (match) {
-      return decodeURIComponent(match[1]).toLowerCase().trim();
-    }
-  } catch (e) {
-    // Cookie reading failed
-  }
-  return null;
-}
 
 /**
  * Decorates the Hub Destinations block
@@ -43,7 +28,7 @@ export default async function decorate(block) {
   const container = document.createElement('div');
 
   // Priority: Cookie first, then URL, then default
-  const cookieLanguage = getLanguageFromCookie();
+  const cookieLanguage = getStoredLanguage();
   const locale = await resolveLocale();
   const language = cookieLanguage || locale.language || 'es';
 
@@ -52,7 +37,7 @@ export default async function decorate(block) {
   const i18n = Object.fromEntries(
     (config?.data || []).map(({ Key, Text }) => [Key, Text]),
   );
-  
+
   const destinationsData = await mapHubDestinationsData(i18n);
 
   const origins = Array.isArray(destinationsData?.origins)

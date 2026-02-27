@@ -5,7 +5,7 @@ import { CITY_FROM_ORIGIN_DROPDOWN_EVENT } from '../../scripts/utils/event-const
 import { ArrowRightIcon } from '../../design-system/atoms/icons/arrow-right-icon.js';
 import { LinkButton } from '../../design-system/atoms/link-button/link-button.js';
 import { PromotionCard } from '../../design-system/organisms/cards/promotion-card/promotion-card.js';
-import { getStoredCurrency, getMainCityForCurrentPos } from '../../scripts/services/header/language-country-selector.js';
+import { getStoredCurrency, getStoredLanguage, getMainCityForCurrentPos } from '../../scripts/services/header/language-country-selector.js';
 import {
   extractCmsPromotionalCardsRailProps,
   buildIataImageUrl,
@@ -17,25 +17,6 @@ const html = htm.bind(h);
 let briefofertasCache = null;
 let iataCache = null;
 let i18Cache = null;
-
-/**
- * Gets language from 'selected-language' cookie
- * @returns {string} Language code ('es' or 'en'), default 'es'
- */
-function getLanguageFromCookie() {
-  try {
-    const value = `; ${document.cookie}`;
-    const parts = value.split('; selected-language=');
-    if (parts.length === 2) {
-      const language = parts.pop().split(';').shift();
-      return language || 'es';
-    }
-  } catch (error) {
-    // eslint-disable-next-line no-console
-    console.error('Error reading selected-language cookie:', error);
-  }
-  return 'es';
-}
 
 /**
  * Gets currency code from 'selected-currency' cookie
@@ -115,7 +96,7 @@ async function mapOfertaToCardProps(oferta, blockConfig) {
     discountChipVariant,
   } = blockConfig;
 
-  const language = getLanguageFromCookie();
+  const language = getStoredLanguage() || 'es';
   const columnLocale = getColumnLocale(language);
 
   // Get currency from cookie (cop, usd, mxn, pen, clp, eur, gbp, cad, brl, ars)
@@ -229,7 +210,7 @@ function renderAuthorMode(block) {
  * Initializes data caches
  */
 async function initializeDataCaches() {
-  const language = getLanguageFromCookie();
+  const language = getStoredLanguage() || 'es';
 
   if (!briefofertasCache) {
     const briefofertasData = await fetchAEMData('briefofertas');

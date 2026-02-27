@@ -5,6 +5,7 @@ import { Input } from '../../../atoms/inputs/input/input.js';
 import { Button } from '../../../atoms/button/button.js';
 import { ModalAviancaLayout } from '../../../molecules/modal/modal-avianca-layout.js';
 import { fetchAEMData } from '../../../../scripts/utils/aem-data.js';
+import { getStoredLanguage } from '../../../../scripts/services/header/language-country-selector.js';
 
 const html = htm.bind(h);
 
@@ -28,25 +29,6 @@ async function getEnvironmentConfig() {
     apiKey: config.data.find((item) => item.Key === 'AV_CABIN_UPGRADE_API_KEY')?.Text ?? DEFAULT_CONFIG.apiKey,
   };
   return environmentConfig;
-}
-
-/**
- * Gets language from 'selected-language' cookie
- * @returns {string} Language code from cookie, default 'es'
- */
-function getLanguageFromCookie() {
-  try {
-    const value = `; ${document.cookie}`;
-    const parts = value.split('; selected-language=');
-    if (parts.length === 2) {
-      const language = parts.pop().split(';').shift();
-      return language || 'es';
-    }
-  } catch (error) {
-    // eslint-disable-next-line no-console
-    console.error('Error reading selected-language cookie:', error);
-  }
-  return 'es';
 }
 
 /**
@@ -100,7 +82,7 @@ export const CabinUpgradeForm = ({
   useEffect(() => {
     const loadLabels = async () => {
       if (!i18Cache) {
-        const cookieLanguage = getLanguageFromCookie();
+        const cookieLanguage = getStoredLanguage() || 'es';
         const i18Data = await fetchAEMData(`${cookieLanguage}`);
         i18Cache = i18Data?.data || [];
       }
@@ -188,7 +170,7 @@ export const CabinUpgradeForm = ({
           pnr: pnrCode,
           lastName,
           apiKey: envConfig.apiKey,
-          language: getLanguageFromCookie(),
+          language: getStoredLanguage() || 'es',
         };
 
         const response = await fetch(envConfig.apiUrl, {
