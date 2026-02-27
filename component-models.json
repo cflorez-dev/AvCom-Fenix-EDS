@@ -489,6 +489,162 @@
           {
             "name": "MultiTab Item",
             "value": "multitab-item"
+          },
+          {
+            "name": "Grid 12",
+            "value": "grid-12"
+          },
+          {
+            "name": "Grid 6/6",
+            "value": "grid-6-6"
+          },
+          {
+            "name": "Grid 4/8",
+            "value": "grid-4-8"
+          },
+          {
+            "name": "Grid 8/4",
+            "value": "grid-8-4"
+          },
+          {
+            "name": "Grid 3/9",
+            "value": "grid-3-9"
+          },
+          {
+            "name": "Grid 9/3",
+            "value": "grid-9-3"
+          },
+          {
+            "name": "Grid 5/7",
+            "value": "grid-5-7"
+          },
+          {
+            "name": "Grid 7/5",
+            "value": "grid-7-5"
+          },
+          {
+            "name": "Grid 2/10",
+            "value": "grid-2-10"
+          },
+          {
+            "name": "Grid 10/2",
+            "value": "grid-10-2"
+          },
+          {
+            "name": "Grid 1/11",
+            "value": "grid-1-11"
+          },
+          {
+            "name": "Grid 11/1",
+            "value": "grid-11-1"
+          },
+          {
+            "name": "Grid 4/4/4",
+            "value": "grid-4-4-4"
+          },
+          {
+            "name": "Grid 3/3/6",
+            "value": "grid-3-3-6"
+          },
+          {
+            "name": "Grid 3/6/3",
+            "value": "grid-3-6-3"
+          },
+          {
+            "name": "Grid 6/3/3",
+            "value": "grid-6-3-3"
+          },
+          {
+            "name": "Grid 2/5/5",
+            "value": "grid-2-5-5"
+          },
+          {
+            "name": "Grid 5/2/5",
+            "value": "grid-5-2-5"
+          },
+          {
+            "name": "Grid 5/5/2",
+            "value": "grid-5-5-2"
+          },
+          {
+            "name": "Grid Gap None",
+            "value": "grid-gap-none"
+          },
+          {
+            "name": "Grid Gap S",
+            "value": "grid-gap-sm"
+          },
+          {
+            "name": "Grid Gap M",
+            "value": "grid-gap-md"
+          },
+          {
+            "name": "Grid Gap L",
+            "value": "grid-gap-lg"
+          },
+          {
+            "name": "Grid Gap XL",
+            "value": "grid-gap-xl"
+          },
+          {
+            "name": "Grid Align Items Start",
+            "value": "grid-items-start"
+          },
+          {
+            "name": "Grid Align Items Center",
+            "value": "grid-items-center"
+          },
+          {
+            "name": "Grid Align Items End",
+            "value": "grid-items-end"
+          },
+          {
+            "name": "Grid Align Items Stretch",
+            "value": "grid-items-stretch"
+          },
+          {
+            "name": "Grid Justify Items Start",
+            "value": "grid-justify-start"
+          },
+          {
+            "name": "Grid Justify Items Center",
+            "value": "grid-justify-center"
+          },
+          {
+            "name": "Grid Justify Items End",
+            "value": "grid-justify-end"
+          },
+          {
+            "name": "Grid Justify Items Stretch",
+            "value": "grid-justify-stretch"
+          },
+          {
+            "name": "Grid Column Padding S",
+            "value": "grid-col-pad-sm"
+          },
+          {
+            "name": "Grid Column Padding M",
+            "value": "grid-col-pad-md"
+          },
+          {
+            "name": "Grid Column Padding L",
+            "value": "grid-col-pad-lg"
+          },
+          {
+            "name": "Grid Column Content Top",
+            "value": "grid-col-content-start"
+          },
+          {
+            "name": "Grid Column Content Middle",
+            "value": "grid-col-content-center"
+          },
+          {
+            "name": "Grid Column Content Bottom",
+            "value": "grid-col-content-end"
+          },
+          {
+            "name": "Grid Mobile Reverse",
+            "value": "grid-mobile-reverse"
           }
         ],
         "condition": {

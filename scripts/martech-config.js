@@ -27,6 +27,24 @@ export function isTrackingDisabled() {
   return window.location.search.includes('martech=off');
 }
 
+/**
+ * Detect if the page is running in AEM author mode / Universal Editor.
+ * @returns {boolean}
+ */
+export function isAuthorMode() {
+  try {
+    return !!(
+      window.xwalk?.isAuthorEnv
+      || window.hlx?.aue
+      || document.querySelector('meta[name="urn:auecon:aemconnection"]')
+      || window.location.hostname.includes('author-')
+      || window.location.hostname.includes('adobeaemcloud.com')
+    );
+  } catch (e) {
+    return false;
+  }
+}
+
 // Adobe Launch URLs per environment
 export const ADOBE_LAUNCH_URLS = {
   development: 'https://assets.adobedtm.com/6ac3e976c146/4026528cdd43/launch-ENf32bf57525554e6f8b6d31b098cb7d66-development.min.js',

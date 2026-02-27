@@ -18,6 +18,7 @@ import { showLoader } from './services/loader/loader.service.js';
 import gtmMartech from './gtm-martech.js';
 import {
   getEnvironment,
+  isAuthorMode,
   isTrackingDisabled,
   ADOBE_LAUNCH_URLS,
   ONETRUST_CONFIG,
@@ -28,7 +29,7 @@ import {
  * Must load early to capture consent before other scripts
  */
 function loadOneTrust() {
-  if (isTrackingDisabled()) return;
+  if (isTrackingDisabled() || isAuthorMode()) return;
 
   // Load OneTrust SDK
   const script = document.createElement('script');
@@ -50,7 +51,7 @@ function loadOneTrust() {
  * Load Adobe Launch script based on environment
  */
 function loadAdobeLaunch() {
-  if (isTrackingDisabled()) return;
+  if (isTrackingDisabled() || isAuthorMode()) return;
 
   const env = getEnvironment();
   const script = document.createElement('script');
@@ -77,6 +78,20 @@ async function loadFonts() {
  */
 function buildAutoBlocks(main) {
   try {
+    const isAuthorEnv = !!(
+      window.xwalk?.isAuthorEnv
+      || window.hlx?.aue
+      || document.querySelector('meta[name="urn:auecon:aemconnection"]')
+      || (
+        window.location.hostname.includes('author-')
+        && window.location.pathname.startsWith('/content/')
+      )
+    );
+
+    if (isAuthorEnv) {
+      return;
+    }
+
     // auto block `*/fragments/*` references
     // IMPORTANT: Exclude links inside .fragment blocks — those are handled
     // by the fragment block decorator (blocks/fragment/fragment.js)
@@ -378,8 +393,10 @@ async function loadEager(doc) {
     await loadSection(main.querySelector('.section'), waitForFirstImage);
   }
 
-  // Initialize GTM Martech eager phase
-  await gtmMartech.eager();
+  // Initialize GTM Martech eager phase (disabled in author mode)
+  if (!isAuthorMode()) {
+    await gtmMartech.eager();
+  }
 
   try {
     /* if desktop (proxy for fast connection) or fonts already loaded, load fonts.css */
@@ -460,18 +477,20 @@ async function loadLazy(doc) {
   // Now hide the loader after everything is loaded (sections + header + footer + header children)
   showLoader(false);
 
-  // Initialize GTM Martech lazy phase - loads GTM containers
-  await gtmMartech.lazy();
+  if (!isAuthorMode()) {
+    // Initialize GTM Martech lazy phase - loads GTM containers
+    await gtmMartech.lazy();
 
-  // Push page_view event to dataLayer after GTM initialization
-  const pageViewData = await pageViewEventData();
-  gtmMartech.pushToDataLayer({
-    event: 'page_view',
-    ...pageViewData,
-  });
+    // Push page_view event to dataLayer after GTM initialization
+    const pageViewData = await pageViewEventData();
+    gtmMartech.pushToDataLayer({
+      event: 'page_view',
+      ...pageViewData,
+    });
 
-  // Load Adobe Launch based on environment (avianca.com = PROD, else DEV)
-  loadAdobeLaunch();
+    // Load Adobe Launch based on environment (avianca.com = PROD, else DEV)
+    loadAdobeLaunch();
+  }
 
   loadCSS(`${window.hlx.codeBasePath}/styles/lazy-styles.css`);
   loadFonts();
@@ -482,6 +501,10 @@ async function loadLazy(doc) {
  * without impacting the user experience.
  */
 function loadDelayed() {
+  if (isAuthorMode()) {
+    return;
+  }
+
   // eslint-disable-next-line import/no-cycle
   window.setTimeout(() => import('./delayed.js'), 3000);
   // load anything that can be postponed to the latest here
