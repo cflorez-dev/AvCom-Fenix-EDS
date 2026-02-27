@@ -74,11 +74,11 @@ export default function decorate(block) {
   }
 
   // Validate props in development
-  if (typeof console !== 'undefined') {
-    const validation = validateCmsInformativeCardsRailProps(props);
-    if (!validation.isValid) {
-      return;
-    }
+  const validation = validateCmsInformativeCardsRailProps(props);
+  if (!validation.isValid) {
+    // Hide the block if validation fails
+    block.style.display = 'none';
+    return;
   }
 
   // Create container for the rail

@@ -5,6 +5,7 @@ import { getStoredCountry, getStoredLanguage } from '../../scripts/services/head
 import { loadBlock } from '../../scripts/aem.js';
 import { registerMosaicGroup, getMosaicStore } from './mosaic-cards-v2.store.js';
 import { initMobileViewHelper } from './mosaic-cards-v2-mobile-view.helper.js';
+import { shouldShowByTargeting } from '../../scripts/utils/target-filter.js';
 
 const html = htm.bind(h);
 
@@ -132,9 +133,9 @@ export default async function decorate(block) {
   if (targetCountries.length > 0 && currentCountry && !targetCountries.includes(currentCountry)) {
     const section = block.closest('.section');
     if (section) {
-      section.classList.add('!p-0', '!m-0', '!h-0', '!overflow-hidden');
+      section.classList.add('!p-0', '!m-0', '!h-0', '!overflow-hidden', 'no-section-display');
     }
-    block.style.display = 'none';
+    block.innerHTML = '';
     return;
   }
 
@@ -142,9 +143,9 @@ export default async function decorate(block) {
   if (targetLanguages.length > 0 && currentLang && !targetLanguages.includes(currentLang)) {
     const section = block.closest('.section');
     if (section) {
-      section.classList.add('!p-0', '!m-0', '!h-0', '!overflow-hidden');
+      section.classList.add('!p-0', '!m-0', '!h-0', '!overflow-hidden', 'no-section-display');
     }
-    block.style.display = 'none';
+    block.innerHTML = '';
     return;
   }
 
@@ -177,6 +178,24 @@ export default async function decorate(block) {
       console.warn(`Mosaic Cards V2: Section with mosaic-v2-group="${groupId}" at index ${i} does not contain a cms-mosaic-cards block. Skipping this section.`);
       // eslint-disable-next-line no-continue
       continue; // Skip this section, don't add it to carousel
+    }
+
+    const blockRows = [...mosaicBlock.children];
+    const getBlockRowValue = (rowIndex) => {
+      const row = blockRows[rowIndex];
+      if (!row || row.children.length !== 1) return '';
+      return row.children[0].textContent.trim();
+    };
+
+    // Read targeting config from cms-mosaic-cards block rows
+    // Row 2: target-countries, Row 3: target-languages
+    const sectionTargetCountries = getBlockRowValue(2);
+    const sectionTargetLanguages = getBlockRowValue(3);
+
+    if (!shouldShowByTargeting(sectionTargetCountries, sectionTargetLanguages)) {
+      mosaicSection.setAttribute('aria-hidden', 'true');
+      // eslint-disable-next-line no-continue
+      continue;
     }
 
     const mosaicId = `mosaic-${groupId}-${mosaicSections.length}`;
@@ -282,7 +301,6 @@ export default async function decorate(block) {
             description: '',
             ctaLabel: '',
             supportIcon: '',
-            badges: [],
             linkUrl: '',
             linkAlt: '',
             linkOpensIn: 'sameTab',
@@ -294,66 +312,51 @@ export default async function decorate(block) {
           let cellIndex = 0;
 
           // Cell 0: imageDesktop
+          // AEM fusiona imageDesktopAlt en esta celda: el alt queda embebido en <picture><img alt="">
           if (cells[cellIndex]) {
             const img = cells[cellIndex].querySelector('img');
             if (img) {
               cardData.imageDesktop = img.src;
+              cardData.imageDesktopAlt = img.alt || '';
             }
             cellIndex += 1;
           }
 
-          // Cell 1: imageDesktopAlt
+          // Cell 1: imageMobile (OPCIONAL)
           if (cells[cellIndex]) {
-            cardData.imageDesktopAlt = cells[cellIndex].textContent.trim();
-            cellIndex += 1;
-          }
-
-          // Cell 2: imageMobile (OPTIONAL)
-          if (cells[cellIndex] && cells[cellIndex].querySelector('img')) {
-            cardData.imageMobile = cells[cellIndex].querySelector('img').src;
-            cellIndex += 1;
-
-            // Cell 3: imageMobileAlt
-            if (cells[cellIndex]) {
-              cardData.imageMobileAlt = cells[cellIndex].textContent.trim();
-              cellIndex += 1;
+            const mobileImg = cells[cellIndex].querySelector('img');
+            if (mobileImg) {
+              cardData.imageMobile = mobileImg.src;
+              cardData.imageMobileAlt = mobileImg.alt || '';
             }
+            cellIndex += 1;
           }
 
-          // Cell N: title
+          // Cell 2: title
           if (cells[cellIndex]) {
             cardData.title = cells[cellIndex].textContent.trim();
             cellIndex += 1;
           }
 
-          // Cell N+1: description
+          // Cell 3: description
           if (cells[cellIndex]) {
             cardData.description = cells[cellIndex].textContent.trim();
             cellIndex += 1;
           }
 
-          // Cell N+2: ctaLabel
+          // Cell 4: ctaLabel
           if (cells[cellIndex]) {
             cardData.ctaLabel = cells[cellIndex].textContent.trim();
             cellIndex += 1;
           }
 
-          // Cell N+3: supportIcon
+          // Cell 5: supportIcon
           if (cells[cellIndex]) {
             cardData.supportIcon = cells[cellIndex].textContent.trim();
             cellIndex += 1;
           }
 
-          // Cell N+4: badges
-          if (cells[cellIndex]) {
-            const badgesText = cells[cellIndex].textContent.trim();
-            if (badgesText) {
-              cardData.badges = badgesText.split(',').map((b) => b.trim()).filter(Boolean);
-            }
-            cellIndex += 1;
-          }
-
-          // Cell N+5: linkUrl
+          // Cell 6: linkUrl
           if (cells[cellIndex]) {
             const link = cells[cellIndex].querySelector('a');
             let linkUrl = link ? link.href : cells[cellIndex].textContent.trim();
@@ -364,13 +367,13 @@ export default async function decorate(block) {
             cellIndex += 1;
           }
 
-          // Cell N+6: linkAlt
+          // Cell 7: linkAlt
           if (cells[cellIndex]) {
             cardData.linkAlt = cells[cellIndex].textContent.trim();
             cellIndex += 1;
           }
 
-          // Cell N+7: linkOpensIn
+          // Cell 8: linkOpensIn
           if (cells[cellIndex]) {
             const opensIn = cells[cellIndex].textContent.trim();
             if (opensIn === 'sameTab' || opensIn === 'newTab') {
@@ -379,7 +382,7 @@ export default async function decorate(block) {
             cellIndex += 1;
           }
 
-          // Cell N+8: ctaIconBefore
+          // Cell 9: ctaIconBefore
           if (cells[cellIndex]) {
             const iconBefore = cells[cellIndex].textContent.trim();
             if (iconBefore) {
@@ -388,7 +391,7 @@ export default async function decorate(block) {
             cellIndex += 1;
           }
 
-          // Cell N+9: ctaIconAfter
+          // Cell 10: ctaIconAfter
           if (cells[cellIndex]) {
             const iconAfter = cells[cellIndex].textContent.trim();
             if (iconAfter) {
@@ -397,7 +400,7 @@ export default async function decorate(block) {
             cellIndex += 1;
           }
 
-          // Cell N+10: clickBehavior
+          // Cell 11: clickBehavior
           if (cells[cellIndex]) {
             const behavior = cells[cellIndex].textContent.trim();
             if (behavior === 'ctaOnly' || behavior === 'fullCard') {

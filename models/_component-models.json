@@ -2455,20 +2455,6 @@
         "description": "Optional decorative icon name (e.g., airplane, calendar, gift)"
       },
       {
-        "component": "multiselect",
-        "name": "badges",
-        "label": "Badges",
-        "options": [
-          { "name": "New", "value": "new" },
-          { "name": "Popular", "value": "popular" },
-          { "name": "Offer", "value": "offer" },
-          { "name": "Limited Time", "value": "limited-time" },
-          { "name": "Exclusive", "value": "exclusive" },
-          { "name": "Recommended", "value": "recommended" }
-        ],
-        "description": "Optional badges to display on the card (multilanguage)"
-      },
-      {
         "component": "text",
         "valueType": "string",
         "name": "linkUrl",

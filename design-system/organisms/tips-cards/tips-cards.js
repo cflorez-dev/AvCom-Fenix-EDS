@@ -31,7 +31,7 @@ const TipsCards = ({
       <div class="self-stretch flex flex-col lg:inline-flex lg:flex-row justify-start items-start gap-6">
         ${cards.map((card, index) => html`
           ${index > 0 && html`
-            <div class="self-stretch h-0 lg:h-auto lg:w-0 lg:self-stretch outline outline-border-stroke-default"></div>
+            <div class="self-stretch border-t border-border-stroke-default lg:border-t-0 lg:border-l lg:self-stretch"></div>
           `}
           <div data-size=${size} class="self-stretch lg:flex-1 inline-flex justify-start items-start gap-3">
             ${card.icon && html`
