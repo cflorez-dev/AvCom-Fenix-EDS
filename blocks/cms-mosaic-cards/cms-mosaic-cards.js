@@ -192,7 +192,6 @@ function createCMSMosaicCards(deps) {
               ctaIconAfter=${card.ctaIconAfter}
               clickBehavior=${card.clickBehavior}
               supportIcon=${card.supportIcon}
-              badges=${card.badges}
               columns=${columns}
               rows=${rows}
             />
@@ -279,47 +278,40 @@ function parseCardDataFromItem(item) {
     description: '',
     ctaLabel: '',
     supportIcon: '',
-    badges: [],
     linkUrl: '',
     linkAlt: '',
     linkOpensIn: 'sameTab',
     ctaIconBefore: 'none',
     ctaIconAfter: 'none',
     clickBehavior: 'fullCard',
+    targetCountries: '',
+    targetLanguages: '',
   };
 
   let cellIndex = 0;
 
-  // Cell 0: imageDesktop (picture/img)
+  // Cell 0: imageDesktop
   if (cells[cellIndex]) {
     const img = cells[cellIndex].querySelector('img');
     if (img) {
       cardData.imageDesktop = img.src;
+      cardData.imageDesktopAlt = img.alt || '';
     }
     cellIndex += 1;
   }
 
-  // Cell 1: imageDesktopAlt
+  // Cell 1: imageMobile (OPCIONAL)
   if (cells[cellIndex]) {
-    cardData.imageDesktopAlt = cells[cellIndex].textContent.trim();
-    cellIndex += 1;
-  }
-
-  // Cell 2: imageMobile (picture/img) - OPTIONAL
-  // Check if this cell has an image, if not, skip it
-  if (cells[cellIndex] && cells[cellIndex].querySelector('img')) {
-    cardData.imageMobile = cells[cellIndex].querySelector('img').src;
-    cellIndex += 1;
-
-    // Cell 3: imageMobileAlt - only if imageMobile exists
-    if (cells[cellIndex]) {
-      cardData.imageMobileAlt = cells[cellIndex].textContent.trim();
-      cellIndex += 1;
+    const mobileImg = cells[cellIndex].querySelector('img');
+    if (mobileImg) {
+      cardData.imageMobile = mobileImg.src;
+      cardData.imageMobileAlt = mobileImg.alt || '';
     }
+    cellIndex += 1;
   }
 
   // Now continue with text fields
-  // Cell N: title
+  // Cell 2: title
   if (cells[cellIndex]) {
     cardData.title = cells[cellIndex].textContent.trim();
     cellIndex += 1;
@@ -343,16 +335,7 @@ function parseCardDataFromItem(item) {
     cellIndex += 1;
   }
 
-  // Cell N+4: badges (comma-separated)
-  if (cells[cellIndex]) {
-    const badgesText = cells[cellIndex].textContent.trim();
-    if (badgesText) {
-      cardData.badges = badgesText.split(',').map((b) => b.trim()).filter(Boolean);
-    }
-    cellIndex += 1;
-  }
-
-  // Cell N+5: linkUrl (has button-container or link)
+  // Cell N+4: linkUrl (has button-container or link)
   if (cells[cellIndex]) {
     const link = cells[cellIndex].querySelector('a');
     let linkUrl = link ? link.href : cells[cellIndex].textContent.trim();
@@ -372,13 +355,13 @@ function parseCardDataFromItem(item) {
     cellIndex += 1;
   }
 
-  // Cell N+6: linkAlt
+  // Cell N+5: linkAlt
   if (cells[cellIndex]) {
     cardData.linkAlt = cells[cellIndex].textContent.trim();
     cellIndex += 1;
   }
 
-  // Cell N+7: linkOpensIn
+  // Cell N+6: linkOpensIn
   if (cells[cellIndex]) {
     const opensIn = cells[cellIndex].textContent.trim();
     if (opensIn === 'sameTab' || opensIn === 'newTab') {
@@ -387,7 +370,7 @@ function parseCardDataFromItem(item) {
     cellIndex += 1;
   }
 
-  // Cell N+8: ctaIconBefore
+  // Cell N+7: ctaIconBefore
   if (cells[cellIndex]) {
     const iconBefore = cells[cellIndex].textContent.trim();
     if (iconBefore) {
@@ -396,7 +379,7 @@ function parseCardDataFromItem(item) {
     cellIndex += 1;
   }
 
-  // Cell N+9: ctaIconAfter
+  // Cell N+8: ctaIconAfter
   if (cells[cellIndex]) {
     const iconAfter = cells[cellIndex].textContent.trim();
     if (iconAfter) {
@@ -405,7 +388,7 @@ function parseCardDataFromItem(item) {
     cellIndex += 1;
   }
 
-  // Cell N+10: clickBehavior
+  // Cell N+9: clickBehavior
   if (cells[cellIndex]) {
     const behavior = cells[cellIndex].textContent.trim();
     if (behavior === 'ctaOnly' || behavior === 'fullCard') {
@@ -414,15 +397,15 @@ function parseCardDataFromItem(item) {
     cellIndex += 1;
   }
 
-  // Cell N+11: target-countries (multiselect, comma-separated)
+  // Cell N+10: target-countries (multiselect, comma-separated)
   if (cells[cellIndex]) {
-    cardData['target-countries'] = cells[cellIndex].textContent.trim();
+    cardData.targetCountries = cells[cellIndex].textContent.trim();
     cellIndex += 1;
   }
 
-  // Cell N+12: target-languages (multiselect, comma-separated)
+  // Cell N+11: target-languages (multiselect, comma-separated)
   if (cells[cellIndex]) {
-    cardData['target-languages'] = cells[cellIndex].textContent.trim();
+    cardData.targetLanguages = cells[cellIndex].textContent.trim();
   }
 
   return cardData;
@@ -434,6 +417,22 @@ function parseCardDataFromItem(item) {
  */
 export default async function decorate(block) {
   try {
+    const section = block.closest('.section');
+    const sectionId = section?.dataset?.mosaicV2Group || '';
+    const noDisplaySection = document.querySelector('.no-section-display');
+
+    if (sectionId && noDisplaySection && noDisplaySection?.dataset?.mosaicV2Group === sectionId) {
+      hideBlockWithSection(block);
+      return;
+    }
+
+    const config = parseParentConfig(block);
+
+    // Country and language filtering (PARENT level)
+    if (!shouldShowByTargeting(config.targetCountries, config.targetLanguages)) {
+      hideBlockWithSection(block);
+      return;
+    }
     // Load dependencies dynamically using importmap aliases and codeBasePath
     const [preactModule, htmModule, linkCardModule] = await Promise.all([
       import('@dropins/tools/preact.js'),
@@ -450,15 +449,6 @@ export default async function decorate(block) {
     const CMSMosaicCards = createCMSMosaicCards({ h, html, LinkCard });
 
     const allRows = [...block.children];
-
-    // Parse parent config from block (first rows)
-    const config = parseParentConfig(block);
-
-    // Country and language filtering (PARENT level)
-    if (!shouldShowByTargeting(config.targetCountries, config.targetLanguages)) {
-      hideBlockWithSection(block);
-      return;
-    }
 
     // Map layout values to template numbers
     const layoutToTemplate = {
@@ -530,19 +520,19 @@ export default async function decorate(block) {
       // Check if this block is inside a mosaic-cards-v2 container
       const section = block.closest('.section');
       const groupId = section?.dataset?.mosaicV2Group;
-      
+
       if (groupId) {
         // This mosaic is part of a mosaic-cards-v2 group
         const store = getMosaicStore();
-        
+
         // Get existing group data or create new one
         const existingGroup = store.getGroup(groupId) || { cards: [], metadata: {} };
-        
+
         // Transform childItems to store format with DOM elements
         const cardsWithElements = visibleItems.map((card, index) => {
           // Find the corresponding DOM element
           const cardElement = container.querySelector(`[data-card="${index + 1}"]`);
-          
+
           return {
             index: existingGroup.cards.length + index,
             element: cardElement,
@@ -560,17 +550,16 @@ export default async function decorate(block) {
               mobile: card.imageMobile,
               mobileAlt: card.imageMobileAlt,
             } : null,
-            badges: card.badges,
             supportIcon: card.supportIcon,
             clickBehavior: card.clickBehavior,
             ctaIconBefore: card.ctaIconBefore,
             ctaIconAfter: card.ctaIconAfter,
           };
         });
-        
+
         // Merge with existing cards (for multiple mosaics in same group)
         const allCards = [...existingGroup.cards, ...cardsWithElements];
-        
+
         // Register or update group
         store.registerGroup(groupId, {
           cards: allCards,

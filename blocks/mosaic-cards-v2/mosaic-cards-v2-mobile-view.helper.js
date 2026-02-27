@@ -86,7 +86,6 @@ async function createMobileCarousel(allCards, groupId, config = {}) {
       ctaIconAfter: cardData.ctaIconAfter || '',
       clickBehavior: cardData.clickBehavior || '',
       supportIcon: cardData.supportIcon || '',
-      badges: cardData.badges || [],
       columns: 1,
       rows: 1,
     };
@@ -110,7 +109,6 @@ async function createMobileCarousel(allCards, groupId, config = {}) {
         ctaIconAfter=${props.ctaIconAfter}
         clickBehavior=${props.clickBehavior}
         supportIcon=${props.supportIcon}
-        badges=${props.badges}
         columns=${props.columns}
         rows=${props.rows}
       />

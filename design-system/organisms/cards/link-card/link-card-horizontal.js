@@ -67,8 +67,6 @@ export const LinkCardHorizontal = ({
   ctaIconAfter = 'arrow',
   clickBehavior = 'fullCard',
   linkOpensIn = 'sameTab',
-  supportIcon = '',
-  badges = [],
   ...rest
 }) => {
   const [isHovered, setIsHovered] = useState(false);

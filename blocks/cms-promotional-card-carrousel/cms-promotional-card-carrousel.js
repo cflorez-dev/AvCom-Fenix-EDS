@@ -160,6 +160,8 @@ export default function decorate(block) {
   const loadingMode = props.loading || 'lazy';
 
   if (totalCards === 0) {
+    // Hide the block if there are no cards
+    block.style.display = 'none';
     return;
   }
 
