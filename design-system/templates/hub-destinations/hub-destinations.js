@@ -113,11 +113,32 @@ const getRegionDestinations = (region) => {
   return [];
 };
 
+const normalizeCountryDestinations = (countriesDestination = []) => countriesDestination
+  .map((country, idx) => ({
+    id: country.countryCode || `country-${idx}`,
+    name: country.countryName || '',
+    countryCode: country.countryCode || '',
+    destinations: (country.destinations || [])
+      .map((dest, dIdx) => ({
+        id: dest.iataCityCode || `${country.countryCode}-${dIdx}`,
+        destinationName: dest.destinationName || dest.Name || '',
+        countryName: dest.countryName || country.countryName || '',
+        imageUrl: dest.imageUrl || dest.image || '',
+        imageAlt: dest.imageAlt || dest.destinationName || '',
+        href: dest.href || dest.url || '',
+        iataCityCode: dest.iataCityCode || dest.iata || '',
+        complementaryText: dest.complementaryText || '',
+        onClick: dest.onClick,
+      }))
+      .filter((d) => d.destinationName && d.imageUrl),
+  }))
+  .filter((c) => c.destinations.length > 0);
+
 const toNormalizedOrigins = (origins = []) => origins
   .map((origin, originIndex) => {
     const code = toOriginCode(origin, originIndex);
     const label = toOriginLabel(origin, code);
-    const posibleDestinations = origin.posibleDestinations
+    const posibleDestinations = origin.posibleDestinations;
     const rawRegions = getOriginRegions(origin);
 
     const regions = rawRegions
@@ -158,14 +179,19 @@ const toNormalizedOrigins = (origins = []) => origins
       })
       .filter((region) => region.destinations.length > 0);
 
+    const countriesDestination = normalizeCountryDestinations(origin.countriesDestination);
+    const filtersByRegions = origin.filtersByRegions || [];
+
     return {
       code,
       label,
       posibleDestinations,
       regions,
+      countriesDestination,
+      filtersByRegions,
     };
   })
-  .filter((origin) => origin.regions.length > 0);
+  .filter((origin) => origin.countriesDestination.length > 0 || origin.regions.length > 0);
 
 const getInitialOriginCode = (origins, defaultOriginCode) => {
   if (!origins.length) return '';
@@ -260,27 +286,11 @@ export const HubDestinations = ({
   const allAreasLabel = i18n['hubDestinations.filters.allGeographicAreas'] || 'Todas las zonas geográficas';
 
   const geographicAreaOptions = useMemo(() => {
-    const regionBuckets = new Map();
-
-    (selectedOrigin?.regions || []).forEach((region) => {
-      const current = regionBuckets.get(region.zoneValue) || {
-        value: region.zoneValue,
-        label: region.zoneLabel,
-        count: 0,
-      };
-
-      current.count += region.destinations.length;
-      regionBuckets.set(region.zoneValue, current);
-    });
-
-    const dynamicOptions = Array.from(regionBuckets.values())
-      .sort((a, b) => sortByLabel(a.label, b.label, locale))
-      .map((option) => ({
-        value: option.value,
-        label: `${option.label} (${option.count})`,
-      }));
-
-    return dynamicOptions;
+    const filters = selectedOrigin?.filtersByRegions || [];
+    return filters.map((filter) => ({
+      value: filter.Regions,
+      label: `${filter.Regions} (${filter.destinationsCount})`,
+    })).sort((a, b) => sortByLabel(a.label, b.label, locale));
   }, [selectedOrigin, locale]);
 
   useEffect(() => {
@@ -297,43 +307,44 @@ export const HubDestinations = ({
   const normalizedSearchTerm = normalizeText(searchTerm);
   const hasActiveSearch = normalizedSearchTerm.length > 0;
 
-  const visibleRegions = useMemo(() => {
+  const visibleCountries = useMemo(() => {
     if (!selectedOrigin) return [];
 
-    const filteredByArea = selectedArea === ALL_AREAS_VALUE
-      ? selectedOrigin.regions
-      : selectedOrigin.regions.filter((region) => region.zoneValue === selectedArea);
+    let countries = selectedOrigin.countriesDestination || [];
 
-    const processedRegions = filteredByArea
-      .map((region) => {
-        const filteredDestinations = region.destinations
-          .filter((destination) => {
-            if (!hasActiveSearch) return true;
-
-            const searchable = normalizeText(
-              `${destination.destinationName} ${destination.countryName}`,
-            );
-            return searchable.includes(normalizedSearchTerm);
-          })
-          .sort((a, b) => sortByLabel(a.destinationName, b.destinationName, locale));
-
-        return {
-          ...region,
-          destinations: filteredDestinations,
-        };
-      })
-      .filter((region) => region.destinations.length > 0);
-
-    if (!hasActiveSearch) {
-      return processedRegions.sort((a, b) => a.order - b.order);
+    // Filtrar por región seleccionada
+    if (selectedArea !== ALL_AREAS_VALUE) {
+      const regionFilter = (selectedOrigin.filtersByRegions || [])
+        .find((f) => f.Regions === selectedArea);
+      if (regionFilter) {
+        countries = countries.filter((c) => regionFilter.CountryCode.includes(c.countryCode));
+      }
     }
 
-    return processedRegions.sort((a, b) => {
-      if (a.destinations.length !== b.destinations.length) {
-        return b.destinations.length - a.destinations.length;
-      }
-      return sortByLabel(a.name, b.name, locale);
-    });
+    // Filtrar por búsqueda y ordenar destinos
+    const processed = countries
+      .map((country) => ({
+        ...country,
+        destinations: country.destinations
+          .filter((dest) => {
+            if (!hasActiveSearch) return true;
+            const searchable = normalizeText(`${dest.destinationName} ${dest.countryName}`);
+            return searchable.includes(normalizedSearchTerm);
+          })
+          .sort((a, b) => sortByLabel(a.destinationName, b.destinationName, locale)),
+      }))
+      .filter((c) => c.destinations.length > 0);
+
+    if (hasActiveSearch) {
+      return processed.sort((a, b) => {
+        if (a.destinations.length !== b.destinations.length) {
+          return b.destinations.length - a.destinations.length;
+        }
+        return sortByLabel(a.name, b.name, locale);
+      });
+    }
+
+    return processed;
   }, [
     selectedOrigin,
     selectedArea,
@@ -345,7 +356,7 @@ export const HubDestinations = ({
   const totalDestinationsFromOrigin = useMemo(() => {
     if (!selectedOrigin) return 0;
 
-    const visibleUniqueCount = getUniqueVisibleDestinationCount(visibleRegions);
+    const visibleUniqueCount = getUniqueVisibleDestinationCount(visibleCountries);
     const rawPossibleDestinations = Number(selectedOrigin.posibleDestinations);
     const hasPossibleDestinations = Number.isFinite(rawPossibleDestinations) && rawPossibleDestinations >= 0;
 
@@ -354,7 +365,7 @@ export const HubDestinations = ({
     }
 
     return visibleUniqueCount;
-  }, [selectedOrigin, visibleRegions, hasActiveSearch, selectedArea]);
+  }, [selectedOrigin, visibleCountries, hasActiveSearch, selectedArea]);
 
   const headingTemplate = i18n['hubDestinations.heading.template'] || 'Te llevamos a [XX] destinos desde [YYYY]';
   const headingLabel = replaceTemplateTokens(headingTemplate, {
@@ -450,14 +461,14 @@ export const HubDestinations = ({
         geographicAreaPlaceholder=${allAreasLabel}
       />
 
-      ${visibleRegions.length > 0 ? html`
+      ${visibleCountries.length > 0 ? html`
         <div class="w-full flex flex-col gap-8">
-          ${visibleRegions.map((region) => html`
+          ${visibleCountries.map((country) => html`
             <${CarouselDestinations}
-              key=${region.id}
-              title=${getRegionTitle(region.name)}
-              totalCount=${getRegionCountLabel(region.destinations.length)}
-              destinations=${region.destinations}
+              key=${country.id}
+              title=${getRegionTitle(country.name)}
+              totalCount=${getRegionCountLabel(country.destinations.length)}
+              destinations=${country.destinations}
               loop=${false}
               itemsPerView=${5}
             />

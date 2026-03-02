@@ -3,6 +3,7 @@ import {
   fetchRegions,
   fetchDestinationsByRegions,
   fetchAllDestinationsGraphQL,
+  fetchDestinationCountries,
   getCitiesByPos
 } from '../../scripts/services/hub-destination/hub-destination.service.js';
 import { getMainCityForCurrentPos, getStoredLanguage, getStoredCountry } from '../../scripts/services/header/language-country-selector.js';
@@ -145,7 +146,88 @@ function resolveDefaultOriginCode(mergedCities, mainCityCode) {
   return null;
 }
 
-function getRegionsForCity(city, language, originData, destinationsByRegionsData, regionsData, i18n, allCitiesData) {
+function getCountriesGropsByRegion(destinationCountriesData, language, rawRegions, mainCityCode) {
+  const rawRegionsWithoutMainCity = rawRegions.filter(region => region.IataCityCode?.trim().toUpperCase() !== mainCityCode?.trim().toUpperCase());
+  const countryGroups = destinationCountriesData.map((country) => {
+    const availableDestinations = rawRegionsWithoutMainCity.filter((region) => region.CountryCode === country.CountryCode);
+    const mergeDestinations = availableDestinations.reduce((acc, dest) => {
+      const existing = acc.find((item) => normalizeText(item.Name) === normalizeText(dest.Name));
+      if (existing) {
+        if (!existing.Regions.includes(dest.Regions)) {
+          existing.Regions.push(dest.Regions);
+        }
+      } else {
+        acc.push({
+          ...dest,
+          Regions: [dest.Regions],
+        });
+      }
+      return acc;
+    }, []);
+    return {
+      countryCode: country.CountryCode,
+      countryName: country[`CountryName${language.toUpperCase()}`] || country.Country,
+      destinations: mergeDestinations,
+    };
+  }).filter((group) => group.destinations.length > 0).sort((a, b) => b.destinations.length - a.destinations.length);
+  return countryGroups;
+}
+
+function getFiltersByRegion(destinationCountriesData, rawRegions, mainCityCode, countryGroups) {
+  const rawRegionsWithoutMainCity = rawRegions.filter((region) => region.IataCityCode?.trim().toUpperCase() !== mainCityCode?.trim().toUpperCase());
+
+  const regionGroups = rawRegionsWithoutMainCity.reduce((acc, dest) => {
+    const existing = acc.find((item) => item.Regions === dest.Regions);
+    if (existing) {
+      if (!existing.CountryCode.includes(dest.CountryCode)) {
+        existing.CountryCode.push(dest.CountryCode);
+      }
+    } else {
+      acc.push({
+        Regions: dest.Regions,
+        CountryCode: [dest.CountryCode],
+      });
+    }
+    return acc;
+  }, []);
+
+  return regionGroups.map((group) => {
+    const destinationsCount = countryGroups
+      .filter((c) => group.CountryCode.includes(c.countryCode))
+      .reduce((sum, c) => sum + c.destinations.length, 0);
+    return { ...group, destinationsCount };
+  });
+}
+
+function getDestinationsByCountrie(country, language, i18n, allCitiesData) {
+   const seenNames = new Set();
+  const destinationsMapped = country.destinations.reduce((acc, dest) => {
+    const preSlug = i18n['hubDestinations.urlPreSlug'] ?? 'destinos/que-hacer-en';
+    const cityData = allCitiesData.find((city) => city.iata === dest.IataCityCode);
+    const destinationName = cityData && cityData[`cityName_${language}`] ? cityData[`cityName_${language}`] : dest.Name;
+    const nameKey = normalizeText(destinationName || '');
+    if (!nameKey || seenNames.has(nameKey)) return acc;
+    seenNames.add(nameKey);
+    const imageUrl = cityData?.cardImage?._publishUrl || DEFAULT_DESTINATION_IMAGE;
+    const iataCityCode = dest.IataCityCode?.trim().toUpperCase() || '';
+    acc.push({
+      destinationName: destinationName || '',
+      countryName: country.countryName,
+      regions: dest.Regions,
+      imageUrl,
+      iataCityCode,
+      href: `/${language}/${preSlug}-${toSlug(destinationName || '')}`,
+      onClick: () => {
+        setCookie(DESTINATION_IATA_COOKIE, iataCityCode, DESTINATION_IATA_COOKIE_DAYS);
+        window.location.href = `/${language}/${preSlug}-${toSlug(destinationName || '')}`;
+      },
+    });
+    return acc;
+  }, []);
+  return {...country, destinations: destinationsMapped };
+}
+
+function getRegionsForCity(city, language, originData, destinationsByRegionsData, regionsData, i18n, allCitiesData, destinationCountriesData, mainCityCode) {
   const posibleDestinations = originData.filter((origin) => city.allCodes.includes(origin.Origin));
   const destinationCodes = new Set(
     posibleDestinations
@@ -168,6 +250,13 @@ function getRegionsForCity(city, language, originData, destinationsByRegionsData
     seenRawRegions.add(dedupeKey);
     return true;
   });
+  const rawCountriesgroup = getCountriesGropsByRegion(destinationCountriesData, language, rawRegions, mainCityCode);
+  const filtersByRegions = getFiltersByRegion(destinationCountriesData, rawRegions, mainCityCode, rawCountriesgroup);
+  const countriesDestination = rawCountriesgroup.map((country) => {
+    const destinationsByCountry = getDestinationsByCountrie(country, language, i18n, allCitiesData )
+    return destinationsByCountry
+  });
+  
 
   const mappedRegions = regionsData.map((regionItem) => {
     const destinationsByregion = rawRegions.filter((dest) => dest.Regions === regionItem.Region);
@@ -186,7 +275,7 @@ function getRegionsForCity(city, language, originData, destinationsByRegionsData
     };
   }).filter((region) => region.destinations.length > 0);
   const sortedMeppedRegions = mappedRegions.sort((a, b) => b.destinations.length - a.destinations.length);
-  return sortedMeppedRegions;
+  return {sortedMeppedRegions, filtersByRegions, countriesDestination};
 }
 
 export const mapHubDestinationsData = async (i18n) => {
@@ -202,6 +291,7 @@ export const mapHubDestinationsData = async (i18n) => {
       destinationsByRegionsData,
       mainCityCode,
       allCitiesData,
+      destinationCountriesData,
       citiesByPosData
     ] = await Promise.all([
       fetchDestinationsByOrigin(),
@@ -209,6 +299,7 @@ export const mapHubDestinationsData = async (i18n) => {
       fetchDestinationsByRegions(),
       getMainCityForCurrentPos(),
       fetchAllDestinationsGraphQL(),
+      fetchDestinationCountries(),
       getCitiesByPos(country)
     ]);
     if (!citiesByPosData || citiesByPosData.length === 0) return { origins: [], defaultOriginCode: '' };
@@ -224,16 +315,18 @@ export const mapHubDestinationsData = async (i18n) => {
     const mergedCities = mergeCitiesByLabel(citiesData);
 
     mergedCities.forEach((city) => {
-      const mappedRegions = getRegionsForCity(
+      const reggionsMapped  = getRegionsForCity(
         city,
         language,
         originData,
         destinationsByRegionsData,
         regionsData,
         i18n,
-        allCitiesData
+        allCitiesData,
+        destinationCountriesData,
+        mainCityCode
       );
-
+     const mappedRegions = reggionsMapped.sortedMeppedRegions;
       destinationData.push({
         code: city.value,
         label: city.label,
@@ -244,6 +337,8 @@ export const mapHubDestinationsData = async (i18n) => {
             .filter(Boolean),
         ).size,
         regions: mappedRegions,
+        filtersByRegions: reggionsMapped.filtersByRegions,
+        countriesDestination: reggionsMapped.countriesDestination,
       });
     });
 

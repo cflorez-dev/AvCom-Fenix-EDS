@@ -169,10 +169,10 @@ const InteractiveBanner = ({
               class="w-8 h-8 relative flex items-center justify-center flex-shrink-0 self-center cursor-pointer max-[1248px]:flex hidden"
             >
               <!-- Mobile: rotate-90 (abajo), Desktop tablet: rotate-0 (derecha) -->
-              <div class="absolute inset-0 flex items-center justify-center max-[1023px]:rotate-90 min-[1024px]:max-[1248px]:rotate-0 transition-all duration-200 ease-out ${isActive ? 'opacity-0' : 'opacity-100'}">
+              <div class="absolute inset-0 flex items-center justify-center max-[1024px]:rotate-90 min-[1024px]:max-[1248px]:rotate-0 transition-all duration-200 ease-out ${isActive ? 'opacity-0' : 'opacity-100'}">
                 <${Icon} icon="navigation/chevron-right" customSize=${true} color="var(--icon-normal-light)" />
               </div>
-              <div class="absolute inset-0 flex items-center justify-center max-[1023px]:-rotate-90 min-[1024px]:max-[1248px]:rotate-180 transition-all duration-200 ease-out ${isActive ? 'opacity-100' : 'opacity-0'}">
+              <div class="absolute inset-0 flex items-center justify-center max-[1024px]:-rotate-90 min-[1024px]:max-[1248px]:rotate-180 transition-all duration-200 ease-out ${isActive ? 'opacity-100' : 'opacity-0'}">
                 <${Icon} icon="navigation/chevron-right" customSize=${true} color="var(--icon-normal-light)" />
               </div>
             </div>
@@ -193,7 +193,7 @@ const InteractiveBanner = ({
           ></div>
           <div class="self-stretch w-full h-full relative inline-flex flex-col justify-end items-end gap-2.5 overflow-hidden lg:px-8 lg:pb-6">
             <div class="w-full h-full absolute inset-0"></div>
-            <div class="self-stretch p-4 rounded-tl-2xl rounded-tr-2xl backdrop-blur-sm flex flex-col justify-end items-end gap-4 lg:rounded-2xl min-[1024px]:max-[1247px]:flex-col min-[1024px]:max-[1247px]:items-end lg:flex-row lg:items-center lg:justify-center" style="background: ${overlayBackground};">
+            <div class="self-stretch p-4 rounded-tl-2xl rounded-tr-2xl backdrop-blur-[4px] flex flex-col justify-end items-end gap-4 lg:rounded-2xl min-[1024px]:max-[1247px]:flex-col min-[1024px]:max-[1247px]:items-end lg:flex-row lg:items-center lg:justify-center" style="background: ${overlayBackground};">
               ${panelData.interactiveDescription && html`
                 <div
                   class="self-stretch text-text-normal-lighter text-sm font-normal leading-[1.5] min-[1024px]:max-[1247px]:text-left lg:flex-1 lg:text-left"
