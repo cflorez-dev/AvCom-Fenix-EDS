@@ -2,29 +2,11 @@ import { h, render } from '@dropins/tools/preact.js';
 import htm from 'htm';
 import Breadcrumb from '../../design-system/molecules/breadcrumb/breadcrumb.js';
 import { fetchAEMData } from '../../scripts/utils/aem-data.js';
+import { getStoredLanguage } from '../../scripts/services/header/language-country-selector.js';
 
 const html = htm.bind(h);
 
 let i18Cache = null;
-
-/**
- * Gets language from 'selected-language' cookie
- * @returns {string} Language code from cookie, default 'es'
- */
-function getLanguageFromCookie() {
-  try {
-    const value = `; ${document.cookie}`;
-    const parts = value.split('; selected-language=');
-    if (parts.length === 2) {
-      const language = parts.pop().split(';').shift();
-      return language || 'es';
-    }
-  } catch (error) {
-    // eslint-disable-next-line no-console
-    console.error('Error reading selected-language cookie:', error);
-  }
-  return 'es';
-}
 
 /**
  * Gets i18n label from cache
@@ -190,7 +172,7 @@ export default async function decorate(block) {
 
   block.textContent = '';
 
-  const language = getLanguageFromCookie();
+  const language = getStoredLanguage() || 'es';
   if (!i18Cache) {
     const i18Data = await fetchAEMData(`${language}`);
     i18Cache = i18Data?.data || [];

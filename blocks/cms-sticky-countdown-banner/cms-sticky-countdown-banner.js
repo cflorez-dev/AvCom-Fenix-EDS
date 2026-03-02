@@ -7,6 +7,7 @@ import {
 } from './cms-sticky-countdown-banner-helper.js';
 import { StickyCountdownBanner } from '../../design-system/molecules/sticky-countdown-banner/sticky-countdown-banner.js';
 import { shouldShowByTargeting, hideBlockWithSection } from '../../scripts/utils/target-filter.js';
+import { getStoredLanguage } from '../../scripts/services/header/language-country-selector.js';
 
 const html = htm.bind(h);
 
@@ -18,25 +19,6 @@ let i18Cache = null;
  */
 function getColombiaTime() {
   return new Date(new Date().toLocaleString('en-US', { timeZone: 'America/Bogota' }));
-}
-
-/**
- * Gets language from 'selected-language' cookie
- * @returns {string} Language code from cookie, default 'es'
- */
-function getLanguageFromCookie() {
-  try {
-    const value = `; ${document.cookie}`;
-    const parts = value.split('; selected-language=');
-    if (parts.length === 2) {
-      const language = parts.pop().split(';').shift();
-      return language || 'es';
-    }
-  } catch (error) {
-    // eslint-disable-next-line no-console
-    console.error('Error reading selected-language cookie:', error);
-  }
-  return 'es';
 }
 
 /**
@@ -71,7 +53,7 @@ export default async function decorate(block) {
 
   // Load i18n cache
   if (!i18Cache) {
-    const language = getLanguageFromCookie();
+    const language = getStoredLanguage() || 'es';
     const i18Data = await fetchAEMData(`${language}`);
     i18Cache = i18Data?.data || [];
   }

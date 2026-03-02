@@ -5,7 +5,7 @@ import {
   fetchAllDestinationsGraphQL,
   getCitiesByPos
 } from '../../scripts/services/hub-destination/hub-destination.service.js';
-import { getMainCityForCurrentPos } from '../../scripts/services/header/language-country-selector.js';
+import { getMainCityForCurrentPos, getStoredLanguage, getStoredCountry } from '../../scripts/services/header/language-country-selector.js';
 
 /**
  * Hub Destinations Helper
@@ -70,34 +70,6 @@ function getCityNameFromIata(iataCode) {
   return cityData?.ciudad || iataCode;
 }
 
-function getLanguageFromCookie() {
-  try {
-    const cookies = document.cookie.split(';');
-    const languageCookie = cookies.find((cookie) => cookie.trim().startsWith('selected-language='));
-    if (languageCookie) {
-      return safeLocale(decodeURIComponent(languageCookie.split('=')[1]));
-    }
-  } catch (error) {
-    // eslint-disable-next-line no-console
-    console.warn('[hub-destinations.helper] Error reading language cookie:', error);
-  }
-  return DEFAULT_LANGUAGE;
-}
-
-function getCountryFromCookie() {
-  try {
-    const cookies = document.cookie.split(';');
-    const countryCookie = cookies.find((cookie) => cookie.trim().startsWith('selected-country='));
-    if (countryCookie) {
-      return countryCookie.split('=')[1].trim().toLowerCase();
-    }
-  } catch (error) {
-    // eslint-disable-next-line no-console
-    console.warn('[hub-destinations.helper] Error reading country cookie:', error);
-  }
-  return DEFAULT_COUNTRY;
-}
-
 function setCookie(name, value, days, path = '/') {
   if (!name) return;
   const encodedValue = encodeURIComponent(value || '');
@@ -109,7 +81,7 @@ function setCookie(name, value, days, path = '/') {
     cookie += `; expires=${expiresDate.toUTCString()}`;
   }
 
-  cookie += `; path=${path}`;
+  cookie += `; path=${path}; Secure; SameSite=Lax`;
   document.cookie = cookie;
 }
 
@@ -219,8 +191,8 @@ function getRegionsForCity(city, language, originData, destinationsByRegionsData
 
 export const mapHubDestinationsData = async (i18n) => {
   try {
-    const country = getCountryFromCookie();
-    const language = getLanguageFromCookie();
+    const country = getStoredCountry() || DEFAULT_COUNTRY;
+    const language = safeLocale(getStoredLanguage()) || DEFAULT_LANGUAGE;
 
     const destinationData = [];
 

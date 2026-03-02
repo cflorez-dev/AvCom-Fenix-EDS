@@ -221,7 +221,8 @@ function getCookie(name) {
 function setCookie(name, value) {
   try {
     // Set cookie without expiration (session cookie)
-    document.cookie = `${name}=${value}; path=/`;
+    // Secure: only sent over HTTPS; SameSite=Lax: prevents CSRF while allowing top-level navigation
+    document.cookie = `${name}=${value}; path=/; Secure; SameSite=Lax`;
   } catch (error) {
     // eslint-disable-next-line no-console
     console.error(`Error setting cookie ${name}:`, error);
