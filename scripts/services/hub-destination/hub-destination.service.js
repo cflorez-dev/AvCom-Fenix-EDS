@@ -123,6 +123,7 @@ const buildEndpointUrl = (dataType) => {
     regions: `${baseUrl}/regions.json`,
     destinationbyregions: `/destinationbyregions.json`,
     destinationsbyorigin: `${baseUrl}/destinationsbyorigin.json`,
+    destinationcountries: `/destinationcountries.json`,
     iata: '/iata.json',
   };
   return endpoints[dataType] || '';
@@ -217,6 +218,16 @@ data.data.push({
  */
 export const fetchDestinationsByOrigin = async (useCache = USE_CACHE) => {
   const data = await fetchHubDestinationsData('destinationsbyorigin', useCache);
+  return data.data || [];
+};
+
+/**
+ * Obtener países de destino
+ * @param {boolean} useCache - Usar cache si está disponible
+ * @returns {Promise<Array>} - Lista de países de destino
+ */
+export const fetchDestinationCountries = async (useCache = USE_CACHE) => {
+  const data = await fetchHubDestinationsData('destinationcountries', useCache);
   return data.data || [];
 };
 

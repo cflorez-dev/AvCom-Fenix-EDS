@@ -124,7 +124,7 @@ export const FooterColumns = ({
     >
       <!-- Desktop View: CSS Grid with 5 equal columns -->
       <!-- Visible only when width is greater than 1156px -->
-      <div class="footer-columns-desktop max-w-xl w-full hidden min-[1157px]:grid grid-cols-5 gap-[1.5rem]">
+      <div class="footer-columns-desktop max-w-xl w-full hidden min-[1157px]:flex justify-between gap-[1.5rem] ">
         ${displayColumns.map((column) => renderDesktopColumn(column))}
       </div>
 
