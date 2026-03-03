@@ -246,7 +246,7 @@ export default async function decorate(block) {
   // Hidden in mobile (<768px), visible in desktop (≥768px)
   // Mobile view is handled by mosaic-cards-v2-mobile-view.helper.js
   const carouselContainer = document.createElement('div');
-  carouselContainer.className = 'mosaic-v2-container section hidden md:block';
+  carouselContainer.className = `mosaic-v2-container section hidden md:block${autoplay ? ' is-autoplay' : ''}`;
   carouselContainer.setAttribute('data-group-id', groupId);
   carouselContainer.setAttribute('data-section-status', 'loaded');
 
@@ -255,15 +255,23 @@ export default async function decorate(block) {
 
   if (enableCarouselMode) {
     // Horizontal carousel mode with marquee effect + gap between phases
-    carouselTrack.className = 'mosaic-v2-track flex gap-4';
+    carouselTrack.className = 'mosaic-v2-track flex gap-4 xl:gap-0';
   } else {
     // Single mosaic: adjust to container width (no carousel)
     carouselTrack.className = 'mosaic-v2-track w-full';
   }
 
-  // For infinite loop: duplicate mosaicSections array so we process each mosaic twice
+  // For infinite loop: prepend a clone of the LAST slide + append all slides again.
+  // Structure: [C(pre-clone), A, B, C, A(post-clone), B(post-clone), C(post-clone)]
+  // This allows smooth CSS-transition animation in BOTH directions:
+  //   next wrap: animate to A(post-clone) then silent snap to A
+  //   prev wrap: animate to C(pre-clone) then silent snap to C
   const sectionsToRender = enableCarouselMode
-    ? [...mosaicSections, ...mosaicSections] // Double the sections for seamless loop
+    ? [
+        mosaicSections[mosaicSections.length - 1], // pre-clone of last slide
+        ...mosaicSections,                          // originals
+        ...mosaicSections,                          // post-clones
+      ]
     : mosaicSections;
 
   // Store references to rendered content BEFORE moving them
@@ -447,10 +455,15 @@ export default async function decorate(block) {
       slide.className = 'mosaic-v2-slide w-full';
     }
 
-    const isOriginal = index < mosaicSections.length;
+    // With pre-clone structure: [pre-clone(0), originals(1..N), post-clones(N+1..2N)]
+    const isPreClone = enableCarouselMode && index === 0;
+    const isOriginal = enableCarouselMode
+      ? index >= 1 && index <= mosaicSections.length
+      : true;
     slide.setAttribute('data-slide-index', index);
     slide.setAttribute('data-slide-id', mosaicData.id);
     slide.setAttribute('data-original', isOriginal ? 'true' : 'false');
+    if (isPreClone) slide.setAttribute('data-clone-position', 'pre');
     slide.setAttribute('aria-label', mosaicData.label);
 
     // Get rendered content from our stored map
@@ -552,7 +565,12 @@ export default async function decorate(block) {
   // Animation control (works for both autoplay and manual navigation)
   if (enableCarouselMode) {
     let animationId;
-    let position = 0;
+    let position = 0;         // Will be corrected to skip pre-clone after DOM is ready
+    let originalStartPosition = 0; // Position of first original slide (after pre-clone)
+    // True loop period = offsetLeft(post_clone_0) - offsetLeft(original_0).
+    // Measured from the DOM to avoid the off-by-one-gap error in formula-based approaches.
+    // Reset: position += loopPeriod  (modular arithmetic — works from any starting position).
+    let loopPeriod = 0;
     let isPaused = !autoplay; // Start paused if autoplay is off
     let manualControl = false; // Track if user is manually controlling
     const originalSlidesCount = mosaicSections.length;
@@ -593,13 +611,47 @@ export default async function decorate(block) {
       });
       return nearestIndex;
     };
-    const goToSlide = (slideIndex) => {
+    // Derive slide transition duration from autoplaySpeed (bounded 300ms–800ms)
+    // Used only for arrow-click navigation on desktop (≥768px)
+    const transitionDuration = Math.max(300, Math.min(autoplaySpeed / 4, 800));
+
+    // Guard flags to prevent race conditions with rapid arrow clicks
+    let isWrapping = false;      // true while animateWrap CSS transition is in flight
+    let resumeTimeoutId = null;  // tracks pending resume timeout (cancelable)
+    let clearTransitionFn = null; // current transitionend cleanup fn (to remove before new one)
+
+    // No-op default; real implementation assigned inside if(showArrows) below.
+    // Allows the setTimeout init block to call it before showArrows block executes.
+    let updateArrowVisibility = () => {};
+
+    const goToSlide = (slideIndex, animated = false) => {
       const offsets = getOriginalSlideOffsets();
       const targetOffset = offsets[slideIndex] ?? 0;
       const newPosition = -targetOffset;
+
+      // Remove any stale transitionend listener before starting a new transition
+      if (clearTransitionFn) {
+        carouselTrack.removeEventListener('transitionend', clearTransitionFn);
+        clearTransitionFn = null;
+      }
+
+      if (animated && window.innerWidth >= 768) {
+        carouselTrack.style.transition = `transform ${transitionDuration}ms ease-in-out`;
+      } else {
+        carouselTrack.style.transition = 'none';
+      }
+
       carouselTrack.style.transform = `translateX(${newPosition}px)`;
       window.mosaicCarouselStates[groupId].position = newPosition;
       position = newPosition;
+
+      // Clean up transition property after animation ends
+      clearTransitionFn = () => {
+        carouselTrack.style.transition = '';
+        carouselTrack.removeEventListener('transitionend', clearTransitionFn);
+        clearTransitionFn = null;
+      };
+      carouselTrack.addEventListener('transitionend', clearTransitionFn);
     };
 
     // Convert autoplay-speed (ms) to scroll speed (pixels per frame)
@@ -616,15 +668,13 @@ export default async function decorate(block) {
       if (!isPaused && !manualControl && autoplay) {
         position -= scrollSpeed;
 
-        // Calculate total width including gaps
-        const gapWidth = getTrackGap();
-        const slideWidth = carouselContainer.offsetWidth;
-        const totalOriginalWidth = (slideWidth * originalSlidesCount) + (gapWidth * (originalSlidesCount - 1));
-
-        // Seamless infinite loop: reset position when reaching end of FIRST set of slides
-        // This happens before the user sees the duplicate slides
-        if (Math.abs(position) >= totalOriginalWidth) {
-          position = 0; // Reset to start (second set of slides continues seamlessly)
+        // Seamless infinite loop using modular-arithmetic period reset.
+        // Fires when the track has scrolled exactly one period past originalStartPosition,
+        // i.e. when post_clone_0 is fully aligned with where original_0 was.
+        // Using position += loopPeriod (not = originalStartPosition) so the reset
+        // is always correct regardless of which slide the user last navigated to.
+        if (loopPeriod > 0 && position <= originalStartPosition - loopPeriod) {
+          position += loopPeriod;
         }
 
         carouselTrack.style.transform = `translateX(${position}px)`;
@@ -637,9 +687,30 @@ export default async function decorate(block) {
       animationId = requestAnimationFrame(animate);
     };
 
-    // Start animation loop after DOM is ready
+    // Start animation loop after DOM is ready.
+    // Step 1: correct initial position to skip the pre-clone and show original_0.
+    // Step 2: measure the true loop period from DOM positions (post_clone_0 - original_0).
     setTimeout(() => {
+      const allSlideEls = Array.from(carouselTrack.querySelectorAll('.mosaic-v2-slide'));
+      // original slides start at index 1 (pre-clone is index 0)
+      const firstOriginalSlide = allSlideEls[1];
+      // first post-clone is at index 1 + originalSlidesCount
+      const firstPostClone = allSlideEls[1 + originalSlidesCount];
+      if (firstOriginalSlide) {
+        originalStartPosition = -firstOriginalSlide.offsetLeft;
+        position = originalStartPosition;
+        carouselTrack.style.transition = 'none';
+        carouselTrack.style.transform = `translateX(${position}px)`;
+        window.mosaicCarouselStates[groupId].position = position;
+      }
+      if (firstOriginalSlide && firstPostClone) {
+        // Period = exact pixel distance between the two identical visual positions.
+        // This naturally includes all gaps, so no formula rounding error.
+        loopPeriod = firstPostClone.offsetLeft - firstOriginalSlide.offsetLeft;
+      }
       animate();
+      // Initial arrow state (always starts at slide 0)
+      updateArrowVisibility(0);
     }, 100);
 
     // Re-align to the nearest fold after viewport changes (prevents partial slides).
@@ -660,55 +731,135 @@ export default async function decorate(block) {
       const prevButton = carouselContainer.querySelector('.mosaic-v2-prev');
       const nextButton = carouselContainer.querySelector('.mosaic-v2-next');
 
+      // Show/hide nav arrow buttons at the edges when loop is disabled.
+      // Uses visibility+opacity so arrow space is preserved (no layout shift).
+      updateArrowVisibility = (index) => {
+        if (loop) return;
+        const navLeft = carouselContainer.querySelector('.mosaic-v2-nav-left');
+        const navRight = carouselContainer.querySelector('.mosaic-v2-nav-right');
+        if (navLeft) navLeft.classList.toggle('is-nav-disabled', index === 0);
+        if (navRight) navRight.classList.toggle('is-nav-disabled', index === originalSlidesCount - 1);
+      };
+
+      // Helper: resume autoplay after user interaction.
+      // Cancels any pending resume before scheduling a new one (rapid clicks safe).
+      // Waits autoplaySpeed * 2 so the user has enough time to read the slide they chose,
+      // but at minimum transitionDuration + 100 so no ongoing CSS animation is interrupted.
+      const resumeAfterInteraction = () => {
+        if (!autoplay) return;
+        // Cancel any previous pending resume to avoid premature state reset
+        if (resumeTimeoutId) {
+          clearTimeout(resumeTimeoutId);
+          resumeTimeoutId = null;
+        }
+        const resumeDelay = Math.max(transitionDuration + 100, autoplaySpeed * 2);
+        resumeTimeoutId = setTimeout(() => {
+          resumeTimeoutId = null;
+          // Only resume if no wrap animation is still in flight
+          if (!isWrapping) {
+            carouselTrack.style.transition = '';
+            window.mosaicCarouselStates[groupId].isPaused = false;
+            window.mosaicCarouselStates[groupId].manualControl = false;
+          }
+        }, resumeDelay);
+      };
+
+      // Helper: animate wrap by sliding to a clone, then silently snapping to real slide.
+      // direction 'prev': animate to pre-clone (C_pre), snap to original C
+      // direction 'next': animate to post-clone of first (A'), snap to original A
+      // Guard: if already wrapping, ignore the call (prevents re-entrant wrap stacking).
+      const animateWrap = (direction) => {
+        if (isWrapping) return;
+        isWrapping = true;
+
+        const state = window.mosaicCarouselStates[groupId];
+        const allSlideEls = Array.from(carouselTrack.querySelectorAll('.mosaic-v2-slide'));
+
+        let cloneEl;
+        let snapIndex;
+        if (direction === 'prev') {
+          // Animate backward to pre-clone (index 0 in allSlideEls)
+          cloneEl = allSlideEls[0];
+          snapIndex = originalSlidesCount - 1; // snap to original last slide after
+        } else {
+          // Animate forward to post-clone of first original (index 1 + N = N+1 in allSlideEls)
+          cloneEl = allSlideEls[1 + originalSlidesCount];
+          snapIndex = 0; // snap to original first slide after
+        }
+
+        if (!cloneEl || window.innerWidth < 768) {
+          // Fallback: instant jump (mobile or clone missing)
+          isWrapping = false;
+          goToSlide(snapIndex);
+          resumeAfterInteraction();
+          return;
+        }
+
+        // Cancel stale clearTransitionFn before setting our own below
+        if (clearTransitionFn) {
+          carouselTrack.removeEventListener('transitionend', clearTransitionFn);
+          clearTransitionFn = null;
+        }
+
+        carouselTrack.style.transition = `transform ${transitionDuration}ms ease-in-out`;
+        const targetPos = -cloneEl.offsetLeft;
+        carouselTrack.style.transform = `translateX(${targetPos}px)`;
+        position = targetPos;
+        state.position = targetPos;
+
+        const onEnd = () => {
+          carouselTrack.removeEventListener('transitionend', onEnd);
+          isWrapping = false;
+          // Silent snap to corresponding original slide
+          carouselTrack.style.transition = 'none';
+          const offsets = getOriginalSlideOffsets();
+          position = -offsets[snapIndex];
+          state.position = position;
+          carouselTrack.style.transform = `translateX(${position}px)`;
+          resumeAfterInteraction();
+        };
+        carouselTrack.addEventListener('transitionend', onEnd);
+      };
+
       if (prevButton) {
         prevButton.addEventListener('click', () => {
-          // Pause animation and enable manual control (only for THIS carousel)
-          window.mosaicCarouselStates[groupId].isPaused = true;
-          window.mosaicCarouselStates[groupId].manualControl = true;
+          if (isWrapping) return; // Block clicks during wrap transition
+          const state = window.mosaicCarouselStates[groupId];
+          state.isPaused = true;
+          state.manualControl = true;
           const currentIndex = getCurrentSlideIndex();
-          let targetIndex;
-          if (currentIndex > 0) {
-            targetIndex = currentIndex - 1;
-          } else if (loop) {
-            targetIndex = originalSlidesCount - 1;
-          } else {
-            targetIndex = 0;
-          }
-          goToSlide(targetIndex);
 
-          // Resume animation after delay if autoplay is on (only for THIS carousel)
-          if (autoplay) {
-            setTimeout(() => {
-              window.mosaicCarouselStates[groupId].isPaused = false;
-              window.mosaicCarouselStates[groupId].manualControl = false;
-            }, 2000);
+          if (currentIndex > 0) {
+            // Normal prev: smooth animated slide
+            goToSlide(currentIndex - 1, true);
+            updateArrowVisibility(currentIndex - 1);
+            resumeAfterInteraction();
+          } else if (loop) {
+            // Wrap prev (first → last): animate to pre-clone then snap to last original
+            animateWrap('prev');
           }
+          // else: no loop, already at first — do nothing
         });
       }
 
       if (nextButton) {
         nextButton.addEventListener('click', () => {
-          // Pause animation and enable manual control (only for THIS carousel)
-          window.mosaicCarouselStates[groupId].isPaused = true;
-          window.mosaicCarouselStates[groupId].manualControl = true;
+          if (isWrapping) return; // Block clicks during wrap transition
+          const state = window.mosaicCarouselStates[groupId];
+          state.isPaused = true;
+          state.manualControl = true;
           const currentIndex = getCurrentSlideIndex();
-          let targetIndex;
-          if (currentIndex < originalSlidesCount - 1) {
-            targetIndex = currentIndex + 1;
-          } else if (loop) {
-            targetIndex = 0;
-          } else {
-            targetIndex = originalSlidesCount - 1;
-          }
-          goToSlide(targetIndex);
 
-          // Resume animation after delay if autoplay is on (only for THIS carousel)
-          if (autoplay) {
-            setTimeout(() => {
-              window.mosaicCarouselStates[groupId].isPaused = false;
-              window.mosaicCarouselStates[groupId].manualControl = false;
-            }, 2000);
+          if (currentIndex < originalSlidesCount - 1) {
+            // Normal next: smooth animated slide
+            goToSlide(currentIndex + 1, true);
+            updateArrowVisibility(currentIndex + 1);
+            resumeAfterInteraction();
+          } else if (loop) {
+            // Wrap next (last → first): animate to post-clone of first then snap to first original
+            animateWrap('next');
           }
+          // else: no loop, already at last — do nothing
         });
       }
     }

@@ -575,11 +575,23 @@ function decorateSections(main) {
         }
       });
       sectionMeta.parentNode.remove();
+
+      // Apply targeting logic if target-countries or target-languages are defined
+      const targetCountries = meta['target-countries'] || meta.targetCountries;
+      const targetLanguages = meta['target-languages'] || meta.targetLanguages;
+
+      if (targetCountries || targetLanguages) {
+        // Lazy load targeting utility to avoid circular dependencies
+        import('./utils/target-filter.js').then(({ applySectionTargeting }) => {
+          applySectionTargeting(section, meta);
+        }).catch((error) => {
+          // eslint-disable-next-line no-console
+          console.error('Failed to load targeting utility:', error);
+        });
+      }
     }
   });
-}
-
-/**
+}/**
  * Builds a block DOM Element from a two dimensional array, string, or object
  * @param {string} blockName name of the block
  * @param {*} content two dimensional array or string or object of content
