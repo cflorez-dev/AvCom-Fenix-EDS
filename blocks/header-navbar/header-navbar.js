@@ -2,6 +2,8 @@ import { h, render } from '@dropins/tools/preact.js';
 import htm from 'htm';
 import { extractHeaderNavbarData, validateHeaderNavbarData, convertToNavbarSections } from './header-navbar-helper.js';
 import { Navbar } from '../../design-system/organisms/header/navbar/navbar.js';
+import { readBlockConfig } from '../../scripts/aem.js';
+import { shouldShowByTargeting } from '../../scripts/utils/target-filter.js';
 
 const html = htm.bind(h);
 
@@ -40,8 +42,48 @@ export default function decorate(block) {
     return;
   }
 
+  // 1.1 Targeting check - hide if not matching current POS
+  const config = readBlockConfig(block);
+
+  // Leer targeting desde config (formato estándar: target-countries | co)
+  let targetCountries = config['target-countries'] || '';
+  let targetLanguages = config['target-languages'] || '';
+
+  // Fallback: Si no hay config con nombre, leer de las primeras dos filas simples
+  // SOLO si el contenido parece ser un código de país/idioma válido
+  if (!targetCountries && !targetLanguages) {
+    const validCountries = ['co', 'ar', 'mx', 'pe', 'ec', 'sv', 'cr', 'br', 'bo', 'cl', 'ca', 'gt', 'hn', 'ni', 'pa', 'py', 'do', 'eu', 'gb', 'uy', 'ot', 'us'];
+    const validLanguages = ['es', 'en', 'pt', 'fr'];
+
+    const rows = block.querySelectorAll(':scope > div');
+    if (rows.length >= 2) {
+      const firstRowValue = rows[0]?.children[0]?.textContent?.trim().toLowerCase();
+      // Solo usar si es un código de país válido (2-3 letras) o lista separada por comas
+      if (firstRowValue && (validCountries.includes(firstRowValue) || firstRowValue.split(',').every((c) => validCountries.includes(c.trim())))) {
+        targetCountries = firstRowValue;
+      }
+
+      const secondRowValue = rows[1]?.children[0]?.textContent?.trim().toLowerCase();
+      // Solo usar si es un código de idioma válido o lista separada por comas
+      if (secondRowValue && (validLanguages.includes(secondRowValue) || secondRowValue.split(',').every((l) => validLanguages.includes(l.trim())))) {
+        targetLanguages = secondRowValue;
+      }
+    }
+  }
+
+  if (!shouldShowByTargeting(targetCountries, targetLanguages)) {
+    block.style.display = 'none';
+    return;
+  }
+
   // 2. Extraer datos del bloque usando el helper
   const navbarData = extractHeaderNavbarData(block);
+
+  // Filter individual menu items by their own targeting (per-item POS/language)
+  navbarData.items = navbarData.items.filter(
+    (item) => shouldShowByTargeting(item['target-countries'], item['target-languages']),
+  );
+
   // Validar que se extrajeron los datos correctamente
   const validation = validateHeaderNavbarData(navbarData);
   if (!validation.isValid) {
@@ -69,16 +111,26 @@ export default function decorate(block) {
 
   // 3. Función para renderizar ambos navbars en sus contenedores respectivos
   // La visibilidad será manejada por header.js
+  // IMPORTANT: Skip if container already has content (first matching navbar wins)
   const renderNavbarInContainers = (mobile, desktop) => {
     if (!mobile && !desktop) return;
+
+    // Check if containers already have content (another navbar block already rendered)
+    const mobileHasContent = mobile && mobile.children.length > 0;
+    const desktopHasContent = desktop && desktop.children.length > 0;
+
+    if (mobileHasContent && desktopHasContent) {
+      // Another navbar block already rendered - skip this one (first matching wins)
+      block.style.display = 'none';
+      return;
+    }
 
     // Store container references
     mobileContainer = mobile;
     desktopContainer = desktop;
 
-    // Renderizar navbar mobile en su contenedor
-    if (mobileContainer) {
-      // Clear container before rendering
+    // Renderizar navbar mobile en su contenedor (only if empty)
+    if (mobileContainer && !mobileHasContent) {
       mobileContainer.innerHTML = '';
       render(
         html`<${Navbar} mode="mobile" sections=${sections} />`,
@@ -86,9 +138,8 @@ export default function decorate(block) {
       );
     }
 
-    // Renderizar navbar desktop en su contenedor
-    if (desktopContainer) {
-      // Clear container before rendering
+    // Renderizar navbar desktop en su contenedor (only if empty)
+    if (desktopContainer && !desktopHasContent) {
       desktopContainer.innerHTML = '';
       render(
         html`<${Navbar} mode="desktop" sections=${sections} />`,

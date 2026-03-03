@@ -1,1 +1,26 @@
 /* stylelint-disable no-empty-source */
+
+/* Booking Box Container Padding Bottom When Sticky */
+div.section.booking-box-container.booking-box-next-section {
+  transition: padding-bottom 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+div.section.booking-box-container.booking-box-next-section.booking-box-next-section--sticky {
+  padding-bottom: 206px;
+}
+
+/* Sticky enter: bajar suave desde arriba (desde el header) */
+@keyframes booking-box-sticky-enter {
+  0% {
+    transform: translateY(-80px);
+  }
+  100% {
+    transform: translateY(0);
+  }
+}
+
+@media (min-width: 768px) {
+  .booking-box-sticky-enter {
+    animation: booking-box-sticky-enter 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+  }
+}

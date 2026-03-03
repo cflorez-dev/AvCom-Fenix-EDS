@@ -3,6 +3,7 @@ import htm from 'htm';
 import { readBlockConfig } from '../../scripts/aem.js';
 import { SecondaryBanner } from '../../design-system/organisms/banners/secondary-banner/secondary-banner.js';
 import { mapCmsSecondaryBannerData } from './cms-secondary-banner-helper.js';
+import { shouldShowByTargeting, hideBlockWithSection } from '../../scripts/utils/target-filter.js';
 
 const html = htm.bind(h);
 
@@ -46,7 +47,15 @@ export default function decorate(block) {
     gradientColorEnd: mappedConfig.gradientColorEnd || fallbackConfig.gradientColorEnd || '',
     condorStrokeColor: mappedConfig.condorStrokeColor || fallbackConfig.condorStrokeColor || '',
     loading: mappedConfig.loading || fallbackConfig.loading || 'lazy',
+    targetCountries: mappedConfig.targetCountries || fallbackConfig.targetCountries || '',
+    targetLanguages: mappedConfig.targetLanguages || fallbackConfig.targetLanguages || '',
   };
+
+  // Country and language filtering
+  if (!shouldShowByTargeting(config.targetCountries, config.targetLanguages)) {
+    hideBlockWithSection(block);
+    return;
+  }
 
   // Validate required fields
   if (!config.ctaText || !config.ctaUrl) {

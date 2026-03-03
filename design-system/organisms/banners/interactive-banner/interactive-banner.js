@@ -1,5 +1,5 @@
 import { h } from '@dropins/tools/preact.js';
-import { useState } from '@dropins/tools/preact-hooks.js';
+import { useState, useRef } from '@dropins/tools/preact-hooks.js';
 import htm from 'htm';
 import { Icon } from '../../../atoms/icon/icon.js';
 import { Button } from '../../../atoms/button/button.js';
@@ -34,6 +34,12 @@ const InteractiveBanner = ({
 }) => {
   const [activeState, setActiveState] = useState('default');
   const [isDesktop, setIsDesktop] = useState(false);
+  const prevActiveStateRef = useRef('default');
+
+  const changeActiveState = (newState) => {
+    prevActiveStateRef.current = activeState;
+    setActiveState(newState);
+  };
 
   // Detect desktop viewport (>=1024px)
   useState(() => {
@@ -47,13 +53,13 @@ const InteractiveBanner = ({
 
   const toggleActiveState = (side) => {
     const nextState = activeState === `${side}-active` ? 'default' : `${side}-active`;
-    setActiveState(nextState);
+    changeActiveState(nextState);
   };
 
   const handlePanelInteraction = (side, isEntering) => {
     if (isDesktop) {
       // Desktop: hover behavior
-      setActiveState(isEntering ? `${side}-active` : 'default');
+      changeActiveState(isEntering ? `${side}-active` : 'default');
     }
     // Mobile: click behavior is handled by toggleActiveState
   };
@@ -81,12 +87,17 @@ const InteractiveBanner = ({
     const isPushedOut = (activeState === 'left-active' && !isLeft)
       || (activeState === 'right-active' && isLeft);
     const panelZClass = isPushedOut ? 'z-0' : 'z-10';
+    const panelEasingClass = isDesktop && (activeState === 'right-active' || prevActiveStateRef.current === 'right-active') ? 'ease-[cubic-bezier(0.34,1.56,0.64,1)]' : 'ease-out';
 
     // Interactive panel emerges from the center: down on mobile, right on desktop.
     // Content remains in DOM for SEO crawlability
     const interactiveTranslateClass = isActive
       ? 'translate-y-full opacity-100 lg:translate-y-0 lg:translate-x-full'
       : 'translate-y-1/2 opacity-0 lg:translate-y-0 lg:translate-x-1/2 [&_a]:pointer-events-none [&_button]:pointer-events-none';
+
+      const leftBannerComplementInteractiveClasses = isActive
+      ? 'translate-y-full opacity-100 lg:translate-y-0 lg:translate-x-full'
+      : 'translate-y-1/2 opacity-0 lg:translate-y-0 lg:translate-x-full [&_a]:pointer-events-none [&_button]:pointer-events-none';
 
     // Overlay background with fallback
     const overlayBackground = panelData.interactiveOverlayBackground || 'rgba(27, 27, 27, 0.70)';
@@ -100,7 +111,7 @@ const InteractiveBanner = ({
     return html`
       <div
         data-state=${activeState}
-        class="self-stretch flex-1 flex flex-col justify-end items-start relative min-h-[240px] transition-transform duration-500 ease-out ${panelTranslateClass} ${panelZClass} max-[1247px]:cursor-pointer"
+        class="self-stretch flex-1 flex flex-col justify-end items-start relative min-h-[240px] transition-transform duration-500 ${panelEasingClass} ${panelTranslateClass} ${panelZClass} max-[1247px]:cursor-pointer"
         onMouseEnter=${() => handlePanelInteraction(side, true)}
         onMouseLeave=${() => handlePanelInteraction(side, false)}
         onClick=${() => toggleActiveState(side)}
@@ -118,7 +129,7 @@ const InteractiveBanner = ({
         ></div>
 
         <!-- Content area -->
-        <div class="relative z-10 w-full px-6 pb-8 flex flex-col gap-4">
+        <div class="relative z-10 w-full px-6 pb-8 min-[1248px]:p-8 flex flex-col gap-4">
           ${panelData.defaultTitle && html`
             <div class="self-stretch">
               <div class="text-text-normal-lighter text-xl font-bold leading-auto lg:text-2xl xl:text-[1.75rem]">
@@ -155,13 +166,13 @@ const InteractiveBanner = ({
             `}
             
             <div
-              class="w-8 h-8 relative flex items-center justify-center flex-shrink-0 self-end cursor-pointer max-[1248px]:flex hidden"
+              class="w-8 h-8 relative flex items-center justify-center flex-shrink-0 self-center cursor-pointer max-[1248px]:flex hidden"
             >
               <!-- Mobile: rotate-90 (abajo), Desktop tablet: rotate-0 (derecha) -->
-              <div class="absolute inset-0 flex items-center justify-center max-[1023px]:rotate-90 min-[1024px]:max-[1248px]:rotate-0 transition-all duration-200 ease-out ${isActive ? 'opacity-0' : 'opacity-100'}">
+              <div class="absolute inset-0 flex items-center justify-center max-[1024px]:rotate-90 min-[1024px]:max-[1248px]:rotate-0 transition-all duration-200 ease-out ${isActive ? 'opacity-0' : 'opacity-100'}">
                 <${Icon} icon="navigation/chevron-right" customSize=${true} color="var(--icon-normal-light)" />
               </div>
-              <div class="absolute inset-0 flex items-center justify-center max-[1023px]:-rotate-90 min-[1024px]:max-[1248px]:rotate-180 transition-all duration-200 ease-out ${isActive ? 'opacity-100' : 'opacity-0'}">
+              <div class="absolute inset-0 flex items-center justify-center max-[1024px]:-rotate-90 min-[1024px]:max-[1248px]:rotate-180 transition-all duration-200 ease-out ${isActive ? 'opacity-100' : 'opacity-0'}">
                 <${Icon} icon="navigation/chevron-right" customSize=${true} color="var(--icon-normal-light)" />
               </div>
             </div>
@@ -169,7 +180,7 @@ const InteractiveBanner = ({
         </div>
 
         <!-- Interactive panel container -->
-        <div class="absolute inset-0 z-0 transition-all duration-500 ease-out ${interactiveTranslateClass}">
+        <div class="absolute inset-0 z-0 transition-all duration-500 ease-out ${leftBannerComplementInteractiveClasses}">
           <!-- Interactive background - Mobile -->
           <div
             class="absolute inset-0 bg-cover md:hidden"
@@ -178,14 +189,14 @@ const InteractiveBanner = ({
           <!-- Interactive background - Desktop -->
           <div
             class="absolute inset-0 bg-cover bg-center hidden md:block"
-            style="background: url('${interactiveBg}') lightgray 50% / cover no-repeat;;"
+            style="background: url('${interactiveBg}') lightgray 50% / cover no-repeat;"
           ></div>
           <div class="self-stretch w-full h-full relative inline-flex flex-col justify-end items-end gap-2.5 overflow-hidden lg:px-8 lg:pb-6">
             <div class="w-full h-full absolute inset-0"></div>
-            <div class="self-stretch p-4 rounded-tl-2xl rounded-tr-2xl backdrop-blur-sm flex flex-col justify-end items-end gap-4 lg:rounded-2xl min-[1024px]:max-[1247px]:flex-col min-[1024px]:max-[1247px]:items-end lg:flex-row lg:items-center lg:justify-center" style="background: ${overlayBackground};">
+            <div class="self-stretch p-4 rounded-tl-2xl rounded-tr-2xl backdrop-blur-[4px] flex flex-col justify-end items-end gap-4 lg:rounded-2xl min-[1024px]:max-[1247px]:flex-col min-[1024px]:max-[1247px]:items-end lg:flex-row lg:items-center lg:justify-center" style="background: ${overlayBackground};">
               ${panelData.interactiveDescription && html`
                 <div
-                  class="self-stretch text-text-normal-lighter text-sm leading-[1.5] min-[1024px]:max-[1247px]:text-left lg:flex-1 lg:text-left"
+                  class="self-stretch text-text-normal-lighter text-sm font-normal leading-[1.5] min-[1024px]:max-[1247px]:text-left lg:flex-1 lg:text-left"
                   dangerouslySetInnerHTML=${{ __html: panelData.interactiveDescription }}
                 ></div>
               `}
@@ -216,7 +227,7 @@ const InteractiveBanner = ({
   return html`
     <div
       data-state=${activeState}
-      class="w-full rounded-2xl flex flex-col lg:flex-row overflow-hidden ${customClassName}"
+      class="w-full rounded-2xl lg:rounded-[1.5rem] flex flex-col lg:flex-row overflow-hidden bg-background-brand-primary-default ${customClassName}"
       ...${rest}
     >
       ${renderPanel(leftPanel, 'left')}

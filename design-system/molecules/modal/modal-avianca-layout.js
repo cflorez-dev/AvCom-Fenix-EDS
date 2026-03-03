@@ -90,7 +90,16 @@ export const ModalAviancaLayout = ({
           />
         `}
         ${!coverImage && !image && icon && html`
-          <${Icon} icon=${icon} customSize=${80} customClassName="w-[80px] h-[80px] text-[var(--text-normal-primary)]" />
+          ${icon.startsWith('http') ? html`
+            <img
+              src=${icon}
+              alt=${imageAlt || title || ''}
+              class="w-[80px] h-[80px] object-contain"
+              loading="lazy"
+            />
+          ` : html`
+            <${Icon} icon=${icon} customSize=${80} customClassName="w-[80px] h-[80px] text-[var(--text-normal-primary)]" />
+          `}
         `}
       </div>
     `}
@@ -108,10 +117,10 @@ export const ModalAviancaLayout = ({
 
         ${description && html`
           <div class="">
-            <div 
-              class="text-text-normal-secondary !text-lg text-center leading-[27px] break-words font-normal max-h-[81px] overflow-y-auto"
-              dangerouslySetInnerHTML=${{ __html: description }}
-            />
+            <div
+              class="text-text-normal-secondary !text-lg text-center leading-[27px] break-words font-normal max-h-[81px] overflow-y-auto pr-[20px]">
+              <span dangerouslySetInnerHTML=${{ __html: description }}></span>
+            </div>
           </div>
         `}
       </section>

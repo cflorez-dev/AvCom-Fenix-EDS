@@ -1,24 +1,58 @@
-import { readBlockConfig } from '../../scripts/aem.js';
+import { filterItemsByTargeting } from '../../scripts/utils/target-filter.js';
 
 /**
  * Extracts props from a CMS Informative Cards Carousel block.
- * Extracts loading mode from the parent block configuration.
+ * Extracts loading mode, target countries, and target languages from
+ * the parent block configuration.
+ *
+ * Parent row structure:
+ * - Row 0: loading
+ * - Row 1: target-countries (comma-separated)
+ * - Row 2: target-languages (comma-separated)
+ * - Row 3+: child items (cards)
  *
  * @param {Element} block - The CMS Informative Cards Carousel block element
- * @returns {Object} Configuration object with loading mode
+ * @returns {Object} Configuration object with loading mode and targeting fields
  */
 export function extractCmsInformativeCardsCarouselProps(block) {
   const defaultProps = {
     loading: 'lazy', // Default to lazy loading
+    targetCountries: '',
+    targetLanguages: '',
   };
 
   if (!block) {
     return defaultProps;
   }
 
-  // Extract configuration from block metadata using readBlockConfig
-  const config = readBlockConfig(block);
-  const loading = config.loading || defaultProps.loading;
+  const rows = Array.from(block.children);
+
+  // Row 0: loading field (single-cell row)
+  let { loading } = defaultProps;
+  if (rows[0] && rows[0].children.length === 1) {
+    const loadingValue = rows[0].children[0].textContent.trim();
+    if (loadingValue) {
+      loading = loadingValue;
+    }
+  }
+
+  // Row 1: target-countries field (comma-separated)
+  let { targetCountries } = defaultProps;
+  if (rows[1] && rows[1].children.length === 1) {
+    const countriesValue = rows[1].children[0].textContent.trim();
+    if (countriesValue) {
+      targetCountries = countriesValue;
+    }
+  }
+
+  // Row 2: target-languages field (comma-separated)
+  let { targetLanguages } = defaultProps;
+  if (rows[2] && rows[2].children.length === 1) {
+    const languagesValue = rows[2].children[0].textContent.trim();
+    if (languagesValue) {
+      targetLanguages = languagesValue;
+    }
+  }
 
   // All other carousel behavior is hardcoded according to acceptance criteria:
   // Desktop:
@@ -35,6 +69,8 @@ export function extractCmsInformativeCardsCarouselProps(block) {
 
   return {
     loading,
+    targetCountries,
+    targetLanguages,
   };
 }
 
@@ -54,9 +90,12 @@ export function extractCarouselCards(block) {
 
   const rows = Array.from(block.children);
 
-  // Skip the first row (index 0) - it contains parent configuration (loading mode)
-  // Start from index 1 for child items (cards)
-  const cardRows = rows.slice(1);
+  // Skip the first 3 rows - they contain parent configuration:
+  // Row 0: loading
+  // Row 1: target-countries
+  // Row 2: target-languages
+  // Start from index 3 for child items (cards)
+  const cardRows = rows.slice(3);
 
   // Each row is a child item (cms-informative-cards-carousel-item)
   // According to ACTUAL HTML structure from AEM:
@@ -68,13 +107,10 @@ export function extractCarouselCards(block) {
   // 5: ctaTargetBlank (boolean text in <p>)
   // 6: ctaRel (select text in <p>)
 
-  cardRows.forEach((row, index) => {
+  cardRows.forEach((row) => {
     const cells = Array.from(row.children);
 
-    console.log(`🔍 CMS Informative Cards Carousel - Processing card row ${index + 1}:`, { row, cells, cellsLength: cells.length });
-
     if (cells.length < 7) {
-      console.warn(`CMS Informative Cards Carousel: Row ${index + 1} has insufficient cells (${cells.length}/7). Skipping.`);
       return;
     }
 
@@ -83,53 +119,45 @@ export function extractCarouselCards(block) {
     const imgElement = imageCell?.querySelector('img');
     const image = imgElement?.src || '';
     const imageAlt = imgElement?.alt || '';
-    
+
     // Extract title (cell 1) - from <p> text
     const title = cells[1]?.textContent?.trim() || '';
-    
+
     // Extract details (cell 2) - preserve HTML from <p>
     const details = cells[2]?.innerHTML?.trim() || '';
-    
+
     // Extract ctaText (cell 3) - from <p> text
     const ctaText = cells[3]?.textContent?.trim() || '';
-    
+
     // Extract ctaLink (cell 4) - from button-container <a href="">
     const ctaLinkCell = cells[4];
     const ctaLinkElement = ctaLinkCell?.querySelector('.button-container a') || ctaLinkCell?.querySelector('a');
     const ctaLink = ctaLinkElement?.href || '';
-    
+
     // Extract ctaTargetBlank (cell 5) - boolean from <p> text
     const ctaTargetBlankText = cells[5]?.textContent?.trim().toLowerCase() || 'false';
     const ctaTargetBlank = ctaTargetBlankText === 'true';
-    
+
     // Extract ctaRel (cell 6) - from <p> text (dofollow, nofollow, sponsored)
     const ctaRelRaw = cells[6]?.textContent?.trim().toLowerCase() || 'dofollow';
     const ctaRel = ['dofollow', 'nofollow', 'sponsored'].includes(ctaRelRaw) ? ctaRelRaw : 'dofollow';
 
-    console.log(`🎴 CMS Informative Cards Carousel - Card ${index + 1} extracted data:`, {
-      image,
-      imageAlt,
-      title,
-      details: details.substring(0, 50) + '...',
-      ctaText,
-      ctaLink,
-      ctaTargetBlank,
-      ctaRel,
-    });
+    // Extract target-countries (cell 7) - comma-separated list
+    const targetCountries = cells[7]?.textContent?.trim() || '';
+
+    // Extract target-languages (cell 8) - comma-separated list
+    const targetLanguages = cells[8]?.textContent?.trim() || '';
 
     // Validate required fields
     if (!image) {
-      console.warn(`CMS Informative Cards Carousel: Row ${index + 1} missing image. Skipping card.`);
       return;
     }
 
     if (!title) {
-      console.warn(`CMS Informative Cards Carousel: Row ${index + 1} missing title. Skipping card.`);
       return;
     }
 
     if (!details) {
-      console.warn(`CMS Informative Cards Carousel: Row ${index + 1} missing details. Skipping card.`);
       return;
     }
 
@@ -143,10 +171,13 @@ export function extractCarouselCards(block) {
       ctaLink,
       ctaTargetBlank,
       ctaRel,
+      'target-countries': targetCountries,
+      'target-languages': targetLanguages,
     };
 
     cards.push(card);
   });
 
-  return cards;
+  // Filter cards by targeting (use kebab-case field names matching card keys)
+  return filterItemsByTargeting(cards, 'target-countries', 'target-languages');
 }

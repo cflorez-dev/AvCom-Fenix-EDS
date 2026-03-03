@@ -194,7 +194,7 @@ export const SecondaryBanner = ({
             path.setAttribute('style', `fill: ${solidColor};`);
           });
         }
-        bgSVG.setAttribute('class', 'absolute top-0 right-0 min-[1024px]:right-[85px] min-[1024px]:h-[243px] min-[1024px]:w-auto');
+        bgSVG.setAttribute('class', 'absolute top-0 right-0 min-[1024px]:right-[89px] min-[1024px]:h-[243px] min-[1024px]:w-auto');
         setCondorBgSVG(bgSVG);
 
         const vectorSVG = await loadSVGIcon(vectorPath);
@@ -228,7 +228,8 @@ export const SecondaryBanner = ({
     return html`
       <span
         dangerouslySetInnerHTML=${{ __html: svgElement.outerHTML }}
-        class="inline-block right-0"
+        class="block right-0 overflow-hidden"
+        style=${{ lineHeight: 0 }}
       />
     `;
   };
@@ -284,8 +285,8 @@ export const SecondaryBanner = ({
 
   // Text color classes based on mode
   const textColorClasses = mode === 'dark'
-    ? 'text-[var(--color-text-banner-light)]'
-    : 'text-[var(--color-text-banner-dark)]';
+    ? '!text-[var(--color-text-banner-light)]'
+    : '!text-[var(--color-text-banner-dark)]';
 
   return html`
     <!-- Desktop Version -->
@@ -303,33 +304,41 @@ export const SecondaryBanner = ({
               
             </div>
           <!-- Background condor pattern -->
-          <div class="w-full h-full relative z-20 flex flex-row">
+          <div class="w-full h-full relative z-20 flex flex-row gap-[8px] min-[769px]:gap-0">
               <div class="flex-1 min-w-0 h-[216px] min-[1024px]:h-[243px] flex flex-col justify-between z-10 p-[16px] min-[1024px]:p-[24px]">
                 <div class="z-10 self-stretch flex flex-col justify-center items-start gap-[4px]">
                   <h2 class="line-clamp-2 self-stretch justify-start ${textColorClasses} !text-[20px] min-[1024px]:!text-[32px] font-bold font-['Red_Hat_Display']">
                     ${title}
                   </h2>
-                  <div class="line-clamp-2 self-stretch justify-start ${textColorClasses} text-[16px] min-[1024px]:text-[24px] font-normal font-['Red_Hat_Display']">
+                  <div class="line-clamp-2 self-stretch justify-start ${textColorClasses} leading-[21px] min-[769px]:!leading-[32px] text-[16px] min-[1024px]:text-[24px] font-normal font-['Red_Hat_Display']">
                     ${firstLabel}
                   </div>
-                  <div class="line-clamp-2 self-stretch justify-start ${textColorClasses} text-[12px] min-[1024px]:text-[16px] font-normal font-['Red_Hat_Display'] opacity-90">
+                  <div class="line-clamp-2 self-stretch justify-start ${textColorClasses} leading-[16px] min-[769px]:!leading-[21px] text-[12px] min-[1024px]:text-[16px] font-normal font-['Red_Hat_Display'] opacity-90">
                     ${secondaryLabel}
                   </div>
                 </div>
                 ${ctaText && ctaUrl ? html`
                   <div data-appearance="secondary" data-iconafter="false" data-iconbefore="false" data-icononly="false" data-size="default" data-state="default">
-                    <${Button}
-                      variant=${mode === 'dark' ? 'primary' : 'secondary'}
-                      size=${buttonSize}
+                    <a 
                       href=${ctaUrl}
-                      rel=${ctaLinkType === 'dofollow' ? undefined : ctaLinkType}
+                      target=${(ctaUrl.startsWith('/') || ctaUrl.startsWith('#')) ? '_self' : '_blank'}
+                      rel=${(ctaUrl.startsWith('/') || ctaUrl.startsWith('#'))
+                        ? (ctaLinkType === 'dofollow' ? undefined : ctaLinkType)
+                        : `noopener noreferrer${ctaLinkType !== 'dofollow' ? ` ${ctaLinkType}` : ''}`
+                      }
+                      class="inline-block"
                     >
-                      ${ctaText}
-                    </${Button}>
+                      <${Button}
+                        variant=${mode === 'dark' ? 'primary' : 'secondary'}
+                        size=${buttonSize}
+                      >
+                        ${ctaText}
+                      </${Button}>
+                    </a>
                   </div>
                 ` : ''}
               </div>
-              <div class="spacer w-[181px] lg:w-[277px] shrink-0"></div>
+              <div class="spacer w-[181px] lg:w-[271px] shrink-0"></div>
           </div>
       </div>
 
@@ -345,7 +354,7 @@ export const SecondaryBanner = ({
       </div>
 
         <!-- Right image section - Desktop (>= 1024px) -->
-      <div class="hidden lg:block  max-w-[646px] absolute left-0 ml-[600px] top-0 h-[243px] w-[646px] z-1 overflow-hidden">
+      <div class="hidden lg:block  max-w-[651px] absolute left-0 ml-[597px] top-0 h-[243px] w-[651px] z-1 overflow-hidden">
         <div ref=${desktopPictureRef} class="w-full h-full relative">
           ${pictureDesktop?.pictureElement ? '' : buildDesktopPicture()}
         </div>

@@ -91,8 +91,8 @@ export const Incrementer = ({
       <!-- Decrease Button (Remove icon) -->
       <button
         type="button"
-        class="flex items-center transition-opacity duration-200 rounded-full text-[var(--text-normal-primary)]
-            ${isDecrementDisabled ? 'cursor-not-allowed opacity-50' : 'cursor-pointer hover:text-[var(--color-border-input-positive)]'}
+        class="flex items-center transition-opacity duration-200 rounded-full
+            ${isDecrementDisabled ? 'text-border-default' : 'cursor-pointer text-[var(--text-normal-primary)] hover:text-[var(--color-border-input-positive)]'}
             focus-visible:outline-border-stroke-focus focus-visible:text-[var(--color-border-input-positive)]
           "
         onClick=${handleDecrement}
@@ -115,8 +115,8 @@ export const Incrementer = ({
       <!-- Increase Button (Add icon) -->
       <button
         type="button"
-        class="flex items-center transition-opacity duration-200 rounded-full text-[var(--text-normal-primary)]
-              ${isIncrementDisabled ? 'cursor-not-allowed opacity-50' : 'cursor-pointer hover:text-[var(--color-border-input-positive)]'}
+        class="flex items-center transition-opacity duration-200 rounded-full
+              ${isIncrementDisabled ? 'text-[#969696]' : 'cursor-pointer text-[var(--text-normal-primary)] hover:text-[var(--color-border-input-positive)]'}
               focus-visible:outline-border-stroke-focus focus-visible:text-[var(--color-border-input-positive)]
               "
         onClick=${handleIncrement}

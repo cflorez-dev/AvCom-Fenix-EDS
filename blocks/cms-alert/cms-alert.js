@@ -1,7 +1,7 @@
 import { h, render } from '@dropins/tools/preact.js';
 import htm from 'htm';
-import { readBlockConfig } from '../../scripts/aem.js';
 import { Alert } from '../../design-system/molecules/alert/alert.js';
+import { shouldShowByTargeting, hideBlockWithSection } from '../../scripts/utils/target-filter.js';
 
 const html = htm.bind(h);
 
@@ -39,9 +39,12 @@ function mapAlertData(block) {
 
   // Row 1: Content (innerHTML)
   if (rows[1]) {
-    const contentCell = rows[1].querySelector('div') || rows[1];
+    // Get ALL innerHTML from the content cell without any processing
+    // AEM structure: <div(row)><div(cell)>...content...</div></div>
+    const contentCell = rows[1].children[0];
     if (contentCell) {
-      innercontent = contentCell.innerHTML.trim();
+      // Simply get the innerHTML - preserve everything as-is
+      innercontent = contentCell.innerHTML;
     }
   }
 
@@ -91,18 +94,34 @@ export default function decorate(block) {
     return;
   }
 
-  // 2. Production Mode: Read block configuration
-  const config = readBlockConfig(block);
+  // 2. Production Mode: Extract targeting from positional rows
+  // Model field order: 0=variant, 1=content, 2=dismissible, 3=target-countries, 4=target-languages
+  const rows = [...block.children];
+  const getRowText = (rowIndex) => {
+    const row = rows[rowIndex];
+    if (!row || !row.children.length) return '';
+    // Use children[0] pattern consistent with other EDS blocks
+    return row.children[0]?.textContent?.trim() || '';
+  };
+
+  const targetCountries = getRowText(3);
+  const targetLanguages = getRowText(4);
+
+  // Check targeting (country/language filtering)
+  if (!shouldShowByTargeting(targetCountries, targetLanguages)) {
+    hideBlockWithSection(block);
+    return;
+  }
 
   // 3. Map HTML structure to alert data object
   const mappedData = mapAlertData(block);
 
-  // Use mapped data, fallback to config if needed
-  const variant = mappedData.variant || config.variant || 'informative';
+  // Use mapped data with defaults
+  const variant = mappedData.variant || 'informative';
   const innercontent = mappedData.innercontent || '';
   const showDismissbutton = mappedData.showDismissbutton !== undefined
     ? mappedData.showDismissbutton
-    : (config.dismissible === 'true' || config.dismissible === true);
+    : true;
   const container = document.createElement('div');
   container.className = 'cms-alert-container';
 
@@ -117,6 +136,8 @@ export default function decorate(block) {
   }
 
   // 6. Render Alert components with Preact
+  const wrapper = block.parentNode;
+
   alerts.forEach((alertData) => {
     const alertElement = document.createElement('div');
     alertElement.className = 'cms-alert-item';
@@ -131,6 +152,13 @@ export default function decorate(block) {
           isRounded=${true}
           showIcon=${true}
           marqueeMode=${false}
+          onDismiss=${() => {
+    alertElement.remove();
+    if (container.children.length === 0) {
+      container.remove();
+      wrapper?.remove();
+    }
+  }}
         />
       `,
       alertElement,

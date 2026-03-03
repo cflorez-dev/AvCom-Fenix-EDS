@@ -1,9 +1,38 @@
 import { h } from '@dropins/tools/preact.js';
-import { useState } from '@dropins/tools/preact-hooks.js';
+import { useState, useEffect } from '@dropins/tools/preact-hooks.js';
 import htm from 'htm';
 import { LinkButton } from '../../../atoms/link-button/link-button.js';
 
 const html = htm.bind(h);
+
+/**
+ * SvgIcon - Fetches an SVG file and injects it inline so it responds to CSS color/fill via currentColor.
+ * Tailwind classes for size and group-hover scale are applied on the wrapper span.
+ */
+const SvgIcon = ({ src, customClass = '' }) => {
+  const [svgMarkup, setSvgMarkup] = useState('');
+
+  useEffect(() => {
+    if (!src) return;
+    fetch(src)
+      .then((r) => r.text())
+      .then((text) => {
+        const processed = text
+          .replace(/fill="(?!none|currentColor)[^"]*"/g, 'fill="currentColor"')
+          .replace(/stroke="(?!none|currentColor)[^"]*"/g, 'stroke="currentColor"')
+          .replace(/<svg\b/, '<svg aria-hidden="true" focusable="false" style="color:inherit;width:100%;height:100%"');
+        setSvgMarkup(processed);
+      })
+      .catch(() => setSvgMarkup(''));
+  }, [src]);
+
+  if (!svgMarkup) return null;
+  return html`<span
+    class=${`inline-flex items-center justify-center w-[16px] h-[16px] shrink-0 group-hover:scale-125 ${customClass}`}
+    dangerouslySetInnerHTML=${{ __html: svgMarkup }}
+    aria-hidden="true"
+  />`;
+};
 
 /**
  * LinkCardHorizontal - Card component with horizontal layout
@@ -38,11 +67,15 @@ export const LinkCardHorizontal = ({
   ctaIconAfter = 'arrow',
   clickBehavior = 'fullCard',
   linkOpensIn = 'sameTab',
-  supportIcon = '',
-  badges = [],
   ...rest
 }) => {
   const [isHovered, setIsHovered] = useState(false);
+
+  // Detect if this is a "photographic card" (pure image, no text/CTA)
+  const isPhotographicCard = !title && !description && !linkText;
+  // Always apply border (even for photographic cards)
+  const borderClasses = 'border border-solid border-[var(--border-stroke-default)]';
+  const focusBorderClasses = 'focus-visible:!border-[var(--focus-primary)]';
 
   // Card is only clickable if href exists AND clickBehavior is 'fullCard'
   const isClickable = !!(href && clickBehavior === 'fullCard');
@@ -52,10 +85,10 @@ export const LinkCardHorizontal = ({
   const baseClasses = '!p-0 box-border relative rounded-[24px] '
     + 'w-full h-full no-underline '
     + 'overflow-hidden transition-all bg-[var(--bg-card-lighter)] '
-    + 'border border-solid border-[var(--border-stroke-default)] '
+    + `${borderClasses} `
     + 'flex flex-col md:flex-row items-start md:items-center justify-center '
     + 'hover:shadow-[0_2px_20px_2px_rgba(73,73,73,0.25)] '
-    + 'focus-visible:!border-[var(--focus-primary)] focus-visible:shadow-[0_2px_20px_2px_rgba(73,73,73,0.25)] '
+    + `${focusBorderClasses} focus-visible:shadow-[0_2px_20px_2px_rgba(73,73,73,0.25)] `
     + 'focus-visible:outline focus-visible:outline-2 focus-visible:outline-[var(--focus-primary)] focus-visible:outline-offset-2 '
     + '';
 
@@ -173,33 +206,84 @@ export const LinkCardHorizontal = ({
       <!-- Link button container -->
       <div class="flex items-end justify-end relative shrink-0 w-full min-w-0 max-h-[21px]">
         <${LinkButton}
-          href=${href}
+          href=${href || '#'}
           title=${linkText}
           ariaLabel=${linkAlt}
           onClick=${handleLinkClick}
           size="default"
           target=${linkOpensIn === 'newTab' ? '_blank' : undefined}
           rel=${linkOpensIn === 'newTab' ? 'noopener noreferrer' : undefined}
+          customClassName="group hover:font-bold active:font-bold"
         >
-          ${iconBeforeSrc ? html`<img
-            src=${iconBeforeSrc}
-            alt=""
-            class=${`block max-w-none w-[16px] h-[16px] shrink-0 ${ctaIconBefore === 'arrow-left' ? 'rotate-180' : ''}`}
-            aria-hidden="true"
-          />` : null}
+          ${iconBeforeSrc ? html`<${SvgIcon} src=${iconBeforeSrc} customClass=${ctaIconBefore === 'arrow-left' ? 'rotate-180' : ''} />` : null}
           ${linkText}
-          ${iconAfterSrc ? html`<img
-            src=${iconAfterSrc}
-            alt=""
-            class=${`block max-w-none w-[16px] h-[16px] shrink-0 ${ctaIconAfter === 'arrow-left' ? 'rotate-180' : ''}`}
-            aria-hidden="true"
-          />` : null}
+          ${iconAfterSrc ? html`<${SvgIcon} src=${iconAfterSrc} customClass=${ctaIconAfter === 'arrow-left' ? 'rotate-180' : ''} />` : null}
         </${LinkButton}>
       </div>
     </div>
   `;
 
   const finalClasses = `${baseClasses} ${customClassName}`.trim();
+
+  // For photographic cards, render simplified content directly
+  if (isPhotographicCard) {
+    const finalImageDesktop = imageDesktop || image;
+    const finalImageMobile = imageMobile || imageDesktop || image;
+    const finalImageDesktopAlt = imageDesktopAlt || imageAlt;
+
+    if (isClickable) {
+      const Tag = href ? 'a' : 'button';
+      const targetAttr = (href && linkOpensIn === 'newTab') ? { target: '_blank', rel: 'noopener noreferrer' } : {};
+      const elementProps = href
+        ? { href, ...targetAttr, ...rest }
+        : { type: 'button', ...rest };
+
+      return html`
+        <${Tag}
+          class=${finalClasses}
+          data-name="linkCardHorizontal"
+          onClick=${handleCardClick}
+          onKeyDown=${handleKeyDown}
+          onMouseEnter=${() => setIsHovered(true)}
+          onMouseLeave=${() => setIsHovered(false)}
+          ...${elementProps}
+        >
+          <picture class="w-full h-full absolute inset-0">
+            ${finalImageMobile && finalImageMobile !== finalImageDesktop ? html`
+              <source media="(max-width: 767px)" srcset=${finalImageMobile} />
+            ` : null}
+            <img
+              src=${finalImageDesktop}
+              alt=${finalImageDesktopAlt}
+              class="inset-0 object-cover object-center pointer-events-none !w-full !h-full rounded-[24px]"
+            />
+          </picture>
+        </${Tag}>
+      `;
+    }
+
+    return html`
+      <div
+        class=${finalClasses}
+        data-name="linkCardHorizontal"
+        tabIndex=${0}
+        onMouseEnter=${() => setIsHovered(true)}
+        onMouseLeave=${() => setIsHovered(false)}
+        ...${rest}
+      >
+        <picture class="w-full h-full absolute inset-0">
+          ${finalImageMobile && finalImageMobile !== finalImageDesktop ? html`
+            <source media="(max-width: 767px)" srcset=${finalImageMobile} />
+          ` : null}
+          <img
+            src=${finalImageDesktop}
+            alt=${finalImageDesktopAlt}
+            class="inset-0 object-cover object-center pointer-events-none !w-full !h-full rounded-[24px]"
+          />
+        </picture>
+      </div>
+    `;
+  }
 
   // If clickable, render as button or a
   if (isClickable) {

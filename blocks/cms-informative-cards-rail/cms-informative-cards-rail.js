@@ -2,7 +2,7 @@ import { h, render } from '@dropins/tools/preact.js';
 import htm from 'htm';
 import { InformativeCard } from '../../design-system/organisms/cards/informative-card/informative-card.js';
 import { extractCmsInformativeCardsRailProps, validateCmsInformativeCardsRailProps } from './cms-informative-cards-rail-helper.js';
-import { getStoredCountry, getStoredLanguage } from '../../scripts/services/header/language-country-selector.js';
+import { shouldShowByTargeting, hideBlockWithSection } from '../../scripts/utils/target-filter.js';
 
 const html = htm.bind(h);
 
@@ -53,31 +53,9 @@ export default function decorate(block) {
   const props = extractCmsInformativeCardsRailProps(block);
 
   // Country/Language filtering
-  const targetCountries = props.targetCountries
-    ? props.targetCountries.split(',').map((country) => country.trim().toLowerCase())
-    : [];
-  const targetLanguages = props.targetLanguages
-    ? props.targetLanguages.split(',').map((lang) => lang.trim().toLowerCase())
-    : [];
-
-  const currentCountry = getStoredCountry()?.toLowerCase() || '';
-  const currentLang = getStoredLanguage()?.toLowerCase() || document.documentElement.lang?.toLowerCase() || 'en';
-
-  // Target countries validation: only validate if both config AND cookie exist
-  if (targetCountries.length > 0 && currentCountry && !targetCountries.includes(currentCountry)) {
-    const section = block.closest('.section');
-    if (section) {
-      section.classList.add('!p-0', '!m-0', '!h-0', '!overflow-hidden');
-    }
-    return;
-  }
-
-  // Target languages validation: only validate if config exists
-  if (targetLanguages.length > 0 && currentLang && !targetLanguages.includes(currentLang)) {
-    const section = block.closest('.section');
-    if (section) {
-      section.classList.add('!p-0', '!m-0', '!h-0', '!overflow-hidden');
-    }
+  const shouldShow = shouldShowByTargeting(props.targetCountries, props.targetLanguages);
+  if (!shouldShow) {
+    hideBlockWithSection(block);
     return;
   }
 
@@ -96,11 +74,11 @@ export default function decorate(block) {
   }
 
   // Validate props in development
-  if (typeof console !== 'undefined') {
-    const validation = validateCmsInformativeCardsRailProps(props);
-    if (!validation.isValid) {
-      return;
-    }
+  const validation = validateCmsInformativeCardsRailProps(props);
+  if (!validation.isValid) {
+    // Hide the block if validation fails
+    block.style.display = 'none';
+    return;
   }
 
   // Create container for the rail
@@ -110,7 +88,7 @@ export default function decorate(block) {
   // Render the rail component using Preact
   const RailComponent = () => html`
     <div
-      class="self-stretch inline-flex justify-start items-start gap-4 overflow-hidden mdlg:grid mdlg:w-full mdlg:overflow-visible ${getDesktopGridColumns(props.cards?.length || 0, props.variant)}"
+      class="self-stretch inline-flex justify-start items-start gap-4 overflow-hidden pt-[4px] pb-[4px] pl-[4px] pr-[4px] mdlg:p-0 mdlg:grid mdlg:w-full mdlg:overflow-visible ${getDesktopGridColumns(props.cards?.length || 0, props.variant)}"
       data-variant=${props.variant}
     >
       ${props.cards.map((card, index) => {

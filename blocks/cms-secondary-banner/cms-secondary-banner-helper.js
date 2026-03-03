@@ -1,7 +1,7 @@
 /**
  * Maps block HTML data to a structured configuration object for CMS Secondary Banner
  *
- * Expected structure: 16 divs containing (in order):
+ * Expected structure: 18 divs containing (in order):
  * - Div 0: Title
  * - Div 1: First label
  * - Div 2: Secondary Label
@@ -18,6 +18,8 @@
  * - Div 13: Gradient Color End (link with color value)
  * - Div 14: Condor Stroke Color (link with color value)
  * - Div 15: Loading
+ * - Div 16: Target Countries (comma-separated)
+ * - Div 17: Target Languages (comma-separated)
  *
  * @param {Element} block The cms-secondary-banner block element
  * @returns {Object} Mapped configuration object with all banner properties
@@ -53,6 +55,8 @@ export function mapCmsSecondaryBannerData(block) {
     gradientColorEnd: extractLinkValue(divs[13]) || '',
     condorStrokeColor: extractLinkValue(divs[14]) || '',
     loading: extractTextValue(divs[15]) || pictureDesktop?.loading || pictureMobile?.loading || 'lazy',
+    targetCountries: extractTextValue(divs[16]) || '',
+    targetLanguages: extractTextValue(divs[17]) || '',
   };
 
   return mappedData;
@@ -115,6 +119,7 @@ function extractImageSource(div) {
 /**
  * Extracts link href (for URLs and color values)
  * Handles both URL links and color value links (e.g., "#fffff")
+ * Also handles plain text URLs in <p> elements
  * @param {Element} div The div element containing a link element
  * @returns {string} Extracted URL or color value, or empty string
  */
@@ -134,15 +139,53 @@ function extractLinkValue(div) {
         return linkText;
       }
 
-      // For URLs, use href but clean it up if needed
-      // Remove protocol and domain if it's a relative URL
-      if (href && !href.startsWith('http')) {
-        // Extract path from href (handles cases like "file:///path" or relative paths)
-        const urlMatch = href.match(/(\/[^#]*)/);
-        return urlMatch ? urlMatch[1] : href;
+      // Check if linkText looks like an external URL (www. or has protocol)
+      // Prefer using linkText directly for external URLs to avoid browser's relative path conversion
+      if (linkText.startsWith('www.')) {
+        return `https://${linkText}`;
+      }
+      if (linkText.startsWith('http://') || linkText.startsWith('https://')) {
+        return linkText;
       }
 
-      return href || linkText;
+      // If href exists, try to extract just the path for internal links
+      if (href) {
+        try {
+          const url = new URL(href, window.location.origin);
+          // If same origin or AEM author environment, return just the pathname
+          if (url.origin === window.location.origin
+            || url.hostname.includes('adobeaemcloud.com')
+            || url.hostname.includes('hlx.page')
+            || url.hostname.includes('hlx.live')) {
+            return url.pathname + url.search + url.hash;
+          }
+          // External URL, return full href
+          return href;
+        } catch {
+          // If URL parsing fails, return href as-is
+          return href;
+        }
+      }
+
+      return linkText;
+    }
+
+    // No <a> found - try to get text from <p> element (plain text URL)
+    const paragraph = innerDiv.querySelector('p');
+    if (paragraph) {
+      const text = paragraph.textContent.trim();
+      // Check if it looks like a URL
+      if (text.startsWith('www.')) {
+        return `https://${text}`;
+      }
+      if (text.startsWith('http://') || text.startsWith('https://')) {
+        return text;
+      }
+      if (text.startsWith('/') || text.startsWith('#')) {
+        return text;
+      }
+      // Could be a relative path or other value, return as-is
+      return text;
     }
   }
   return '';

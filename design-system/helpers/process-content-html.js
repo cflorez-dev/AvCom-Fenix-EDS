@@ -176,12 +176,12 @@ const processLinkTags = (htmlString, linkButtonOptions = {}) => {
   });
 
   // Replace border-border-stroke-focus with border-text-normal-primary
-  const processedLinkButtonClasses = linkButtonClasses.replace(
-    'focus-visible:after:border-border-stroke-focus',
-    'focus-visible:after:border-text-normal-primary',
-  ).replace('text-link-informative-active', 'text-link-informative-default')
-    .replace('text-link-promotional-active', 'text-link-promotional-default')
-    .replace('text-link-caution-active', 'text-link-caution-default');
+  const processedLinkButtonClasses = linkButtonClasses
+    .replace('focus-visible:after:border-border-stroke-focus', 'focus-visible:after:border-text-normal-primary')
+    .replace(/hover:text-text-link-\w+-active/g, '')
+    .replace(/active:text-text-link-\w+-active/g, '')
+    .trim()
+    .replace(/\s+/g, ' ');
 
   // Process <a> tags including their content to handle <u> tags inside
   const linkRegex = /<a(\s+[^>]*)?>([\s\S]*?)<\/a>/gi;
@@ -191,34 +191,8 @@ const processLinkTags = (htmlString, linkButtonOptions = {}) => {
       let processedAttributes = attributes;
       let processedContent = content;
 
-      // Process <u> tags inside this specific <a> to add group-hover/link,
-      // group-active/link, and group-focus-visible/link:font-[700]
-      // Using named group to ensure only hover/active/focus-visible
-      // on this specific <a> triggers the effect
-      const uRegex = /<u(\s+[^>]*)?>/gi;
-      processedContent = processedContent.replace(
-        uRegex,
-        (uMatch, uAttributes = '') => {
-          const uClassMatch = uAttributes.match(/class=["']([^"']*)["']/i);
-          const uClassesToAdd = [
-            'group-hover/link:font-[700]',
-            'group-active/link:font-[700]',
-            'group-focus-visible/link:font-[700]',
-          ];
-          if (uClassMatch) {
-            const existingUClasses = uClassMatch[1];
-            const existingUClassesArray = existingUClasses.split(/\s+/);
-            const mergedUClasses = [...new Set([...existingUClassesArray, ...uClassesToAdd])]
-              .filter(Boolean)
-              .join(' ');
-            return uMatch.replace(
-              /class=["']([^"']*)["']/i,
-              `class="${mergedUClasses}"`,
-            );
-          }
-          return `<u class="${uClassesToAdd.join(' ')}"${uAttributes}>`;
-        },
-      );
+      // No need to process <u> or <strong> tags inside links anymore
+      // The hover:font-bold class on the <a> tag already handles the bold effect for all content
 
       // Process rel attributes if enabled
       const shouldProcessRel = linkButtonOptions.processRelAttributes
@@ -293,7 +267,9 @@ const processLinkTags = (htmlString, linkButtonOptions = {}) => {
         // Split classes to avoid duplicates
         const existingClassesArray = existingClasses.split(/\s+/);
         const linkButtonClassesArray = processedLinkButtonClasses.split(/\s+/);
-        const mergedClasses = [...new Set([...existingClassesArray, ...linkButtonClassesArray, 'p-[2px]', 'group/link'])]
+        // Add hover, active, focus, and focus-visible font-bold states
+        // Override focus border inset to 0px (right at the edge, not outside or too inside)
+        const mergedClasses = [...new Set([...existingClassesArray, 'p-[2px]', 'group/link', 'hover:font-bold', 'active:font-bold', 'focus:font-bold', 'focus-visible:font-bold', 'focus-visible:after:!inset-[0px]', ...linkButtonClassesArray])]
           .filter(Boolean)
           .join(' ');
         return `<a${processedAttributes.replace(
@@ -302,7 +278,9 @@ const processLinkTags = (htmlString, linkButtonOptions = {}) => {
         )}>${processedContent}</a>`;
       }
       // No class attribute, add LinkButton classes with padding
-      return `<a class="${processedLinkButtonClasses} p-[2px] group/link"${processedAttributes}>${processedContent}</a>`;
+      // Add hover, active, focus, and focus-visible font-bold states
+      // Override focus border inset to 0px (right at the edge, not outside or too inside)
+      return `<a class="p-[2px] group/link hover:font-bold active:font-bold focus:font-bold focus-visible:font-bold focus-visible:after:!inset-[0px] ${processedLinkButtonClasses}"${processedAttributes}>${processedContent}</a>`;
     },
   );
 };
@@ -337,8 +315,8 @@ export const processContentHTML = (htmlString, variant, options = {}) => {
 
   let processedHTML = htmlString;
 
-  // Process <p> tags - add className and remove margins with !important
-  processedHTML = addClassToTag(processedHTML, 'p', [pClassName, '!m-0']);
+  // Process <p> tags - add className with zero vertical padding
+  processedHTML = addClassToTag(processedHTML, 'p', [pClassName, 'pt-0', 'pb-0', '!m-0']);
 
   // Process <strong> tags
   processedHTML = addClassToTag(processedHTML, 'strong', strongClassName);

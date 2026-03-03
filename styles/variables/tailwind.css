@@ -41,12 +41,17 @@
   --color-text-normal-primary: #1B1B1B;
   --color-text-disabled: #6d6d6d;
   --color-text-normal-secondary: #5A5A5A;
+  --color-text-normal-tertiary: #969696;
   --color-text-normal-lighter: #FFFFFF;
   --color-icon-brand-primary: #FFFFFF;
   --color-icon-link-default: #177f8c;
   --color-icon-link-active: #0e4c54;
   --color-background-brand-primary-lighter: #FFFFFF;
-  
+  --color-border-Borders-and-dividers-mail-border-default: #D9D9D9;
+  --color-background-mail-background-default-lighter: #FFFFFF;
+  --color-background-mail-background-default-light: #FAFAFA;
+  --color-text-cyan-600: #0190A0;
+
   /* Banner mode text colors */
   --color-text-banner-light: #1B1B1B;
   --color-text-banner-dark: #FFFFFF;
@@ -183,6 +188,9 @@
   --color-error: #ef4444;
   --color-info: #3b82f6;
   
+  /* Text color utilities */
+  --color-normal-tertiary: #969696;
+  
   /* Breakpoints - Based on Figma Design System */
   --breakpoint-sm: 480px;   /* Mobile large / phablets */
   --breakpoint-md: 768px;   /* Tablets */
@@ -264,7 +272,7 @@
   --line-height-loose: 2;
   
   /* Marquee Animation */
-  --animate-alert-marquee: alert-marquee 30s linear infinite;
+  --animate-alert-marquee: alert-marquee 60s linear infinite;
 }
 
 @utility leading-auto {

@@ -140,6 +140,7 @@ export const CitySelector = ({
   customClassName = '',
   disabled = false,
   hasError = false,
+  showErrorMessage = true,
   iconInputName = 'action/plane',
   positionDropdownStyles = 'top-full left-0 right-0',
   containerRelative = true,
@@ -161,12 +162,20 @@ export const CitySelector = ({
   const [searchQuery, setSearchQuery] = useState('');
   const [focusedIndex, setFocusedIndex] = useState(-1);
   const [isMobile, setIsMobile] = useState(false);
+  const [desktopListHasScrollbar, setDesktopListHasScrollbar] = useState(false);
+
+  // Reactive state: true si hay al menos 1 carácter en búsqueda
+  const isSearching = useMemo(
+    () => searchQuery.trim().length > 0,
+    [searchQuery],
+  );
 
   const containerRef = useRef(null);
   const inputRef = useRef(null);
   const dropdownRef = useRef(null);
   const triggerRef = useRef(null);
   const tabKeyPressedRef = useRef(false);
+  const desktopListRef = useRef(null);
 
   // Helper para cambiar estado de isOpen (controlado o no controlado)
   const setIsOpenState = useCallback((newIsOpen) => {
@@ -179,7 +188,6 @@ export const CitySelector = ({
   // Pre-renderizar iconos para usar en portal
   const arrowBackIconRef = usePrerenderedIcon('navigation/arrow-back', 'sm');
   const closeIconRef = usePrerenderedIcon('navigation/close', 'sm');
-  const inputIconRef = usePrerenderedIcon(iconInputName, 'm');
 
   // Detectar viewport mobile
   useEffect(() => {
@@ -195,17 +203,21 @@ export const CitySelector = ({
     };
   }, []);
 
+  const normalizeText = useCallback((text = '') => text
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, ''), []);
   // Filter cities basándose en searchQuery (memoized)
   const filteredCities = useMemo(() => {
-    const query = searchQuery.toLowerCase().trim();
+    const query = normalizeText(searchQuery).trim();
     if (!query) return cities || [];
 
     return (cities || []).filter((city) => (
-      city.name.toLowerCase().includes(query)
-      || city.iataCityCode.toLowerCase().includes(query)
-      || city.country.toLowerCase().includes(query)
+      normalizeText(city.name).includes(query)
+      || normalizeText(city.iataTerminal).includes(query)
+      || normalizeText(city.country).includes(query)
     ));
-  }, [cities, searchQuery]);
+  }, [cities, searchQuery, normalizeText]);
 
   // Handlers (useCallback para estabilidad)
   const handleBack = useCallback(() => {
@@ -276,6 +288,22 @@ export const CitySelector = ({
       inputRef.current.focus();
     }
   }, [isOpen]);
+
+  // Detectar si la lista desktop tiene scrollbar (pr-4 cuando no hay scroll, pr-[4px] cuando hay scroll)
+  useEffect(() => {
+    if (!isOpen || isMobile || !desktopListRef.current || filteredCities.length === 0) {
+      setDesktopListHasScrollbar(false);
+      return () => {};
+    }
+    const el = desktopListRef.current;
+    const checkScrollbar = () => {
+      setDesktopListHasScrollbar(el.scrollHeight > el.clientHeight);
+    };
+    checkScrollbar();
+    const ro = new ResizeObserver(checkScrollbar);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [isOpen, isMobile, filteredCities.length]);
 
   // Handlers (useCallback para estabilidad)
   const handleToggle = useCallback(() => {
@@ -418,12 +446,13 @@ export const CitySelector = ({
         type="button"
         class="
           w-full p-4 text-left cursor-pointer transition-[background-color]
+          min-h-[81px]
           ${isItemFocused ? 'bg-background-card-lighter' : 'bg-background-brand-secondary-default'}
           ${isSelected ? 'bg-background-brand-primary-lighter relative' : ''}
           hover:bg-[var(--bg-hover-light)] group
           focus-visible:border-[var(--color-border-stroke-focus)] focus-visible:outline-none focus-visible:border-2
           active:bg-[var(--state-hover-darken)] active:text-[var(--text-brand-light)]
-          border-b border-border-stroke-default last:border-b-0
+          border-b border-border-stroke-default
         "
         onClick=${() => handleCitySelect(city)}
         onKeyDown=${handleKeyDown}
@@ -440,7 +469,7 @@ export const CitySelector = ({
               ${searchQuery ? highlightMatch(`${city.name}, ${city.country}`, searchQuery) : `${city.name}, ${city.country}`}
             </div>
             <div class="text-sm leading-5 text-text-normal-primary group-active:text-text-normal-lighter">
-              ${searchQuery ? highlightMatch(city.iataCityCode, searchQuery) : city.iataCityCode}
+              ${searchQuery ? highlightMatch(city.iataTerminal, searchQuery) : city.iataTerminal}
             </div>
           </div>
           <!-- Segunda fila: Terminal -->
@@ -454,14 +483,14 @@ export const CitySelector = ({
 
   // Display value
   const displayValue = useMemo(
-    () => (value ? `${value.name} (${value.iataCityCode})` : ''),
+    () => (value ? `${value.name} (${value.iataTerminal})` : ''),
     [value],
   );
 
   // Determine if label should float
   const shouldFloat = useMemo(
-    () => value || isOpen || searchQuery,
-    [value, isOpen, searchQuery],
+    () => value || isOpen,
+    [value, isOpen],
   );
 
   // Determine actual state (similar to Input component)
@@ -487,147 +516,178 @@ export const CitySelector = ({
   // Pre-calculated container classes (memoized)
   const containerClasses = useMemo(() => {
     // Border radius según variant
+    // Para grouped: solo redondear esquinas SUPERIORES para que la línea verde
+    // al fondo no se recorte por overflow-hidden + border-radius inferior
     let borderRadiusClass = 'rounded-lg';
     if (variant === 'grouped-first') {
       borderRadiusClass = 'rounded-t-lg rounded-b-none';
     } else if (variant === 'grouped-last') {
-      borderRadiusClass = 'rounded-t-none rounded-b-lg';
+      borderRadiusClass = 'rounded-none';
     } else if (variant === 'grouped-left') {
-      borderRadiusClass = 'rounded-l-lg rounded-r-none';
+      borderRadiusClass = 'rounded-tl-lg';
     } else if (variant === 'grouped-right') {
-      borderRadiusClass = 'rounded-l-none rounded-r-lg';
+      borderRadiusClass = 'rounded-tr-lg';
     }
 
     // Solo aplicar outline cuando es standalone (grouped ya tiene outline en contenedor padre)
     const outlineClass = variant === 'standalone' ? stateClasses[actualState] : '';
 
+    // En grouped mode, el padre ya tiene bg-background-input-default,
+    // así el trigger puede ser transparente y no se escapa fondo por las esquinas
+    const isGrouped = variant !== 'standalone';
+    const bgClass = isGrouped ? '' : 'bg-background-input-default';
+
     return `
-      flex items-center gap-2 w-full h-[50px] lg2:h-[52px]
-      px-4
-      bg-background-input-default
+      flex flex-col w-full group/trigger overflow-hidden
       ${borderRadiusClass}
-      transition-all duration-[var(--transition-normal)]
+      ${bgClass}
       ${outlineClass}
-      border-b-[3px] border-transparent
-      ${isInteractive ? 'hover:border-border-input-positive focus-within:border-border-input-positive cursor-text' : ''}
-      ${hasError && !isMobile ? '!border-[var(--alert-error-border)]' : ''}
+      transition-all duration-[var(--transition-normal)]
+      ${isInteractive ? 'cursor-text' : ''}
     `.trim();
-  }, [actualState, isInteractive, stateClasses, variant, hasError, isMobile]);
+  }, [actualState, isInteractive, stateClasses, variant]);
+
+  // Clases de la línea verde: ancho, alineamiento y border-radius
+  // Para grouped: calc(100% - 4px) centrado + border-radius en esquinas
+  // que coinciden con el contenedor padre (rounded-[8px])
+  const greenLineClasses = useMemo(() => {
+    switch (variant) {
+      case 'grouped-left':
+        return 'w-[calc(100%-4px)] self-center rounded-bl-lg';
+      case 'grouped-right':
+        return 'w-[calc(100%-4px)] self-center rounded-br-lg';
+      case 'grouped-last':
+        return 'w-[calc(100%-4px)] self-center rounded-b-lg';
+      default:
+        return 'w-full';
+    }
+  }, [variant]);
 
   return html`
     <div
-      class=${`${containerRelative ? 'relative' : ''} flex ${customClassName}`}
+      class=${`${containerRelative ? 'relative' : ''} ${customClassName}`}
       data-name="citySelector"
       ref=${containerRef}
       onKeyDown=${handleKeyDown}
       ...${rest}
     >
-      <!-- Trigger Input Container (estilo Input component) -->
+      <!-- Trigger + Error wrapper (relative for error positioning without affecting layout) -->
+      <div class="relative">
+      <!-- Trigger Input Container (flex-col: content row + green line) -->
       <div
         ref=${triggerRef}
         onClick=${handleToggle}
         class=${containerClasses}
       >
-        <span class="flex-shrink-0 flex items-center" aria-hidden="true">
-          <${Icon} icon=${iconInputName} size="m" />
-        </span>
+        <!-- Content Row -->
+        <div class="flex items-center gap-2 w-full h-[50px] lg2:h-[52px] px-4">
+          <span class="flex-shrink-0 flex items-center" aria-hidden="true">
+            <${Icon} icon=${iconInputName} size="m" customClassName=${iconInputName === 'action/plane' ? '[&_svg]:pt-[3.33px] [&_svg]:pb-[1.28px] [&_svg]:pl-[0.42px] [&_svg]:pr-[2.31px]' : ''}/>
+          </span>
 
-        <div class="relative flex-1 flex items-center min-h-full">
-           <!-- Floating Label -->
-           ${!isMobile && hasError && html`
-            <div class="absolute top-full min-h-[21px] left-[-40px] flex items-start mt-[4px] font-normal text-sm leading-5 text-[var(--alert-error-icon-bg)]">
-              <svg
-                class="w-4 h-4 mr-1 flex-shrink-0 mt-0.5"
-                fill="currentColor"
-                viewBox="0 0 20 20"
-                aria-hidden="true"
-              >
-                <circle cx="10" cy="10" r="9" fill="currentColor" />
-                <text x="10" y="14" text-anchor="middle" fill="white" font-size="12" font-weight="bold">i</text>
-              </svg>
-              <span class="">${i18n['bookingBox.labels.requiredField'] || 'This field is required'}</span>
-            </div>
-            `}
-
-            ${label && html`
-              <label
-                for=${`${label}-input`}
-                class=${`
-                  
-                  pointer-events-none
-                  transition-all duration-200 ease-in-out
-                  font-[var(--font-weight-regular)] tracking-[var(--letter-spacing-normal)]
-                  ${labelStateClasses[actualState]}
-                  ${shouldFloat
+          <div class="relative flex-1 flex items-center min-h-full">
+              ${label && html`
+                <label
+                  for=${`${label}-input`}
+                  class=${`
+                    
+                    pointer-events-none
+                    transition-all duration-200 ease-in-out
+                    font-[var(--font-weight-regular)] tracking-[var(--letter-spacing-normal)]
+                    ${labelStateClasses[actualState]}
+                    ${shouldFloat
     ? 'absolute top-[7px] text-xs leading-[16px] left-0'
     : 'text-sm leading-5'}
-                  ${!isMobile && hasError ? '!text-[var(--alert-error-icon-bg)]' : ''}
-                `}
-              >
-                ${label}
-              </label>
-            `}
-
-            <!-- Content (Input Field) -->
-            <div class="flex-1 flex flex-col justify-center min-w-0">
-              <!-- Desktop: Input único con estados manejados por clases -->
-              ${!isMobile && html`
-                <input
-                  ref=${inputRef}
-                  id=${`${label}-input`}
-                  type="text"
-                  value=${isOpen ? searchQuery : displayValue}
-                  placeholder=${shouldFloat ? placeholder : ''}
-                  onInput=${handleSearchChange}
-                  onFocus=${handleFocus}
-                  onBlur=${handleBlur}
-                  onKeyDown=${handleDropdownKeyDown}
-                  autocomplete="off"
-                  autoCorrect="off"
-                  autoCapitalize="off"
-                  spellCheck="false"
-                  class=${`
-                    w-full bg-transparent !border-0 !outline-none p-0 text-ellipsis cursor-text
-                    !text-base leading-5
-                    ${shouldFloat ? 'relative top-2 !font-[var(--font-weight-bold)] h-[20px]' : 'absolute inset-0 opacity-0 cursor-pointer'}
-                    text-text-normal-primary
+                    ${!isMobile && hasError ? '!text-[var(--alert-error-icon-bg)]' : ''}
                   `}
-                  role="combobox"
-                  aria-label=${label || 'Buscar ciudad'}
-                  aria-expanded=${isOpen}
-                  aria-haspopup="listbox"
-                  aria-autocomplete="list"
-                  aria-activedescendant=${focusedIndex >= 0 ? `city-option-${focusedIndex}` : ''}
-                  aria-controls="city-listbox"
-                />
+                >
+                  ${label}
+                </label>
               `}
 
-              <!-- Mobile: Solo mostrar valor seleccionado -->
-              ${isMobile && value && !isOpen && html`
-                <div
-                  class="relative top-2 left-[2px] text-text-normal-primary font-[var(--font-weight-bold)] text-base leading-5"
-                >
-                  ${displayValue}
-                </div>
-              `}
-            </div>
-            <!-- End Content -->
-            </div>
+              <!-- Content (Input Field) -->
+              <div class="flex-1 flex flex-col justify-center min-w-0">
+                <!-- Desktop: Input único con estados manejados por clases -->
+                ${!isMobile && html`
+                  <input
+                    ref=${inputRef}
+                    id=${`${label}-input`}
+                    type="text"
+                    value=${isOpen ? searchQuery : displayValue}
+                    placeholder=${shouldFloat ? placeholder : ''}
+                    onInput=${handleSearchChange}
+                    onFocus=${handleFocus}
+                    onBlur=${handleBlur}
+                    onKeyDown=${handleDropdownKeyDown}
+                    autocomplete="off"
+                    autoCorrect="off"
+                    autoCapitalize="off"
+                    spellCheck="false"
+                    class=${`
+                      w-full bg-transparent !border-0 !outline-none p-0 text-ellipsis cursor-text
+                      !text-base leading-5
+                      ${shouldFloat ? 'relative top-2 !font-[var(--font-weight-bold)] h-[20px]' : 'absolute inset-0 opacity-0 cursor-pointer'}
+                      text-text-normal-primary
+                    `}
+                    role="combobox"
+                    aria-label=${label || 'Buscar ciudad'}
+                    aria-expanded=${isOpen}
+                    aria-haspopup="listbox"
+                    aria-autocomplete="list"
+                    aria-activedescendant=${focusedIndex >= 0 ? `city-option-${focusedIndex}` : ''}
+                    aria-controls="city-listbox"
+                  />
+                `}
+
+                <!-- Mobile: Solo mostrar valor seleccionado -->
+                ${isMobile && value && !isOpen && html`
+                  <div
+                    class="relative top-2 left-[2px] text-text-normal-primary font-[var(--font-weight-bold)] text-base leading-5"
+                  >
+                    ${displayValue}
+                  </div>
+                `}
+              </div>
+              <!-- End Content -->
+          </div>
         </div>
+        <!-- End Content Row -->
+
+        <!-- Bottom line: red when error, green on hover/focus when no error -->
+        <div class=${`h-[3px] ${greenLineClasses} transition-colors duration-[var(--transition-normal)] ${hasError && !isMobile ? 'bg-[var(--alert-error-border)]' : 'bg-transparent group-hover/trigger:bg-border-input-positive group-focus-within/trigger:bg-border-input-positive'}`} aria-hidden="true"></div>
+      </div>
+
+      <!-- Error message (absolute: floats below trigger without affecting layout) -->
+      ${showErrorMessage && !isMobile && hasError && html`
+        <div class="absolute top-full left-0 min-h-[21px] flex items-start mt-[4px] font-normal text-sm leading-5 text-[var(--alert-error-icon-bg)]">
+          <svg
+            class="w-4 h-4 mr-1 flex-shrink-0 mt-0.5"
+            fill="currentColor"
+            viewBox="0 0 20 20"
+            aria-hidden="true"
+          >
+            <circle cx="10" cy="10" r="9" fill="currentColor" />
+            <text x="10" y="14" text-anchor="middle" fill="white" font-size="12" font-weight="bold">i</text>
+          </svg>
+          <span>${i18n['bookingBox.labels.requiredField'] || 'This field is required'}</span>
+        </div>
+      `}
+      </div>
+      <!-- End Trigger + Error wrapper -->
 
       <!-- Desktop Popup (sin input de búsqueda - ya está en trigger) -->
       ${isOpen && !isMobile && html`
         <div
-          class=${`absolute ${positionDropdownStyles} px-4 py-6 bg-background-card-lighter rounded-[24px] shadow-[0px_2px_20px_2px_rgba(73,73,73,0.25)] max-h-[376px] min-h-[376px] max-w-[${DROPDOWN_MAX_WIDTH}] min-w-[${DROPDOWN_MAX_WIDTH}] overflow-hidden z-50 flex flex-col`}
+          class=${`absolute ${positionDropdownStyles} px-4 py-6 pr-0  bg-background-card-lighter rounded-[24px]  max-h-[376px] min-h-[376px] max-w-[${DROPDOWN_MAX_WIDTH}] min-w-[${DROPDOWN_MAX_WIDTH}] overflow-hidden z-50 flex flex-col`}
           ref=${dropdownRef}
           role="listbox"
           aria-label=${label || 'Lista de ciudades'}
         >
         ${filteredCities.length > 0 && !isLoading ? html`
-          <div class="self-stretch justify-start text-text-normal-secondary text-base font-bold">${i18n['bookingBox.labels.results'] || 'Resultados'}</div>
+          <div class="self-stretch justify-start text-text-normal-secondary text-base font-bold">${isSearching ? (i18n['bookingBox.labels.results'] || 'Resultados') : (i18n['bookingBox.stepTitles.allAirports'] || 'Todos los aeropuertos')}</div>
         ` : ''}
           <!-- Cities List -->
-          <div class="flex-1 overflow-y-auto">
+          <div ref=${desktopListRef} class=${`flex-1 overflow-y-auto ${desktopListHasScrollbar ? 'pr-[4px]' : 'pr-4'}`}>
             ${filteredCities.length > 0 && !isLoading ? html`
                 ${filteredCities.map((city, index) => renderCityItem(city, index))}
             ` : html`
@@ -661,7 +721,7 @@ export const CitySelector = ({
             <h2
               class="!text-[18px] font-bold text-[var(--color-text-normal-primary)] min-h-[24px]"
             >
-              ${actualStepTitle}
+              ${isSearching ? (i18n['bookingBox.labels.results'] || 'Resultados') : (i18n['bookingBox.stepTitles.allAirports'] || actualStepTitle)}
             </h2>
 
             <!-- Close Button -->
@@ -677,71 +737,79 @@ export const CitySelector = ({
         `}
 
         <!-- Content -->
-        <div class="overflow-hidden flex-1 px-[var(--spacing-x-x-large)] pt-[var(--spacing-medium)] pb-0 flex flex-col gap-[var(--spacing-medium)]">
-          <!-- Search Input (siempre standalone con bordes completos) -->
+        <div class="overflow-hidden flex-1 px-[var(--spacing-x-x-large)] pt-[var(--spacing-medium)] pb-0 flex flex-col ">
+          <!-- Search Input (flex-col: content row + green line) -->
           <div
-            class="flex items-center gap-2 w-full h-[50px] lg2:h-[52px] px-4 bg-background-input-default rounded-lg transition-all duration-[var(--transition-normal)]
-            ${stateClasses[actualState]} border-b-[3px] border-transparent
-            ${isInteractive ? 'hover:border-border-input-positive focus-within:border-border-input-positive cursor-text' : ''} min-h-[50px] lg2:min-h-[52px]"
+            class="flex flex-col w-full bg-background-input-default rounded-lg overflow-hidden transition-all duration-[var(--transition-normal)]
+            outline outline-neutral-400 group/mobileInput min-h-[53px]
+            ${isInteractive ? 'cursor-text' : ''}"
           >
-            <span class="flex-shrink-0 flex items-center" aria-hidden="true">
-              ${inputIconRef.current && html`<div class="flex" dangerouslySetInnerHTML=${{ __html: inputIconRef.current.innerHTML }} />`}
-            </span>
-            <div class="relative flex-1 flex items-center min-h-full">
-            <!-- Floating Label -->
-              ${label && html`
-                <label
-                  for=${`${label}-input`}
-                  class=${`
-                    pointer-events-none
-                    transition-all duration-200 ease-in-out
-                    font-[var(--font-weight-regular)] tracking-[var(--letter-spacing-normal)]
-                    ${labelStateClasses[actualState]}
-                    ${shouldFloat
+            <!-- Content Row -->
+            <!-- mobile input -->
+            <div class="flex items-center gap-2 w-full h-[50px] lg2:h-[52px] px-4 min-h-[50px] lg2:min-h-[52px]">
+              <span class="flex-shrink-0 flex items-center" aria-hidden="true">
+                <${Icon} icon=${iconInputName} size="m" customClassName=${iconInputName === 'action/plane' ? '[&_svg]:pt-[3.33px] [&_svg]:pb-[1.28px] [&_svg]:pl-[0.42px] [&_svg]:pr-[2.31px]' : ''}/>
+              </span>
+              <div class="relative flex-1 flex items-center min-h-full">
+              <!-- Floating Label -->
+                ${label && html`
+                  <label
+                    for=${`${label}-input`}
+                    class=${`
+                      pointer-events-none
+                      transition-all duration-200 ease-in-out
+                      font-[var(--font-weight-regular)] tracking-[var(--letter-spacing-normal)]
+                      ${labelStateClasses[actualState]}
+                      ${shouldFloat
     ? 'absolute top-[7px] text-xs leading-[16px] left-0]'
     : 'text-sm leading-5'}
-                  `}
-                >
-                  ${label}
-                </label>
-              `}
+                    `}
+                  >
+                    ${label}
+                  </label>
+                `}
 
-              <!-- Content (Input Field) -->
-              <div class="flex-1 flex flex-col justify-center min-w-0">
-                <input
-                  ref=${inputRef}
-                  type="text"
-                  value=${searchQuery}
-                  placeholder=${shouldFloat ? placeholder : ''}
-                  onInput=${handleSearchChange}
-                  onKeyDown=${handleDropdownKeyDown}
-                  onFocus=${handleFocus}
-                  onBlur=${handleBlur}
-                  autocomplete="off"
-                  autoCorrect="off"
-                  autoCapitalize="off"
-                  spellCheck="false"
-                  class=${`
-                    w-full bg-transparent !border-0 !outline-none p-0 text-ellipsis cursor-text
-                    !text-base leading-5
-                    ${shouldFloat ? 'relative top-2 !font-[var(--font-weight-bold)] h-[20px]' : 'absolute inset-0 opacity-0 cursor-pointer'}
-                    text-text-normal-primary
-                  `}
-                  role="combobox"
-                  aria-label=${label || 'Buscar ciudad'}
-                  aria-expanded="true"
-                  aria-haspopup="listbox"
-                  aria-autocomplete="list"
-                  aria-activedescendant=${focusedIndex >= 0 ? `city-option-${index}` : ''}
-                  autoFocus
-                />
+                <!-- Content (Input Field) -->
+                <div class="flex-1 flex flex-col justify-center min-w-0">
+                  <input
+                    ref=${inputRef}
+                    type="text"
+                    value=${searchQuery}
+                    placeholder=${shouldFloat ? placeholder : ''}
+                    onInput=${handleSearchChange}
+                    onKeyDown=${handleDropdownKeyDown}
+                    onFocus=${handleFocus}
+                    onBlur=${handleBlur}
+                    autocomplete="off"
+                    autoCorrect="off"
+                    autoCapitalize="off"
+                    spellCheck="false"
+                    class=${`
+                      w-full bg-transparent !border-0 !outline-none p-0 text-ellipsis cursor-text
+                      !text-base leading-5
+                      ${shouldFloat ? 'relative top-2 !font-[var(--font-weight-bold)] h-[20px]' : 'absolute inset-0 opacity-0 cursor-pointer'}
+                      text-text-normal-primary
+                    `}
+                    role="combobox"
+                    aria-label=${label || 'Buscar ciudad'}
+                    aria-expanded="true"
+                    aria-haspopup="listbox"
+                    aria-autocomplete="list"
+                    aria-activedescendant=${focusedIndex >= 0 ? `city-option-${index}` : ''}
+                    autoFocus
+                  />
+                </div>
+                <!-- End Content -->
               </div>
-              <!-- End Content -->
             </div>
+            <!-- End Content Row -->
+
+            <!-- Green bottom line (straight, inside borders, no border-radius) -->
+            <div class="w-full h-[3px] bg-transparent transition-colors duration-[var(--transition-normal)] group-hover/mobileInput:bg-border-input-positive group-focus-within/mobileInput:bg-border-input-positive" aria-hidden="true"></div>
           </div>
 
           ${filteredCities.length > 0 && !isLoading ? html`
-            <div class="self-stretch justify-start text-text-normal-secondary text-base font-bold">${i18n['bookingBox.labels.results'] || 'Resultados'}</div>
+            <div class="self-stretch justify-start text-text-normal-secondary text-base font-bold mt-[16px]">${isSearching ? (i18n['bookingBox.labels.results'] || 'Resultados') : (i18n['bookingBox.stepTitles.allAirports'] || 'Todos los aeropuertos')}</div>
           ` : ''}
           ${filteredCities.length > 0 && !isLoading ? html`
             <div class="overflow-y-auto">

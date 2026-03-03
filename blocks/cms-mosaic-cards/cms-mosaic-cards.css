@@ -1,1 +1,16 @@
 /* Common CSS styles for CMS Mosaic Cards block */
+.section.cms-mosaic-cards-container{
+    padding: var(--main-section-div-padding-mosaic-cards, 32px 16px);
+}
+
+@media (width >= 768px) and (width <= 1248px) {
+    :root {
+        --main-section-div-padding-mosaic-cards: 32px;
+    }
+}
+
+@media (width >= 1248px) {
+    :root {
+        --main-section-div-padding-mosaic-cards: 32px 0;
+    }
+}

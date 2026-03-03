@@ -149,6 +149,10 @@ export const DayCell = ({
 }) => {
   // ========== STATE ==========
   const [isHovered, setIsHovered] = useState(false);
+  const supportsHover = useMemo(() => {
+    if (typeof window === 'undefined' || !window.matchMedia) return false;
+    return window.matchMedia('(hover: hover) and (pointer: fine)').matches;
+  }, []);
 
   // ========== EVENT HANDLERS ==========
   const handleClick = useCallback(() => {
@@ -158,21 +162,31 @@ export const DayCell = ({
     }
   }, [isDisabled, date, onClick]);
 
-  const handleMouseEnter = useCallback(() => {
-    if (!isDisabled) {
-      setIsHovered(true);
-      if (onHover) {
-        onHover(date);
-      }
+  const handlePointerEnter = useCallback((e) => {
+    if (!supportsHover || e.pointerType !== 'mouse' || isDisabled) return;
+    setIsHovered(true);
+    if (onHover) {
+      onHover(date);
     }
-  }, [isDisabled, onHover, date]);
+  }, [supportsHover, isDisabled, onHover, date]);
 
-  const handleMouseLeave = useCallback(() => {
+  const handlePointerLeave = useCallback((e) => {
+    if (!supportsHover || e.pointerType !== 'mouse') return;
     setIsHovered(false);
     if (onHover) {
       onHover(null);
     }
-  }, [onHover]);
+  }, [supportsHover, onHover]);
+
+  const handleTouchStart = useCallback(() => {
+    // Ensure no residual hover state is kept on touch interactions.
+    if (isHovered) {
+      setIsHovered(false);
+    }
+    if (onHover) {
+      onHover(null);
+    }
+  }, [isHovered, onHover]);
 
   const handleKeyDown = useCallback((e) => {
     if ((e.key === 'Enter' || e.key === ' ') && !isDisabled) {
@@ -224,9 +238,14 @@ export const DayCell = ({
   const buttonClasses = useMemo(() => {
     const base = BASE_BUTTON_CLASSES;
 
+    // Disabled + Today: show today border even when disabled
+    if (isDisabled && isToday) {
+      return `${base} border-2 border-[var(--brand-primary)] text-[var(--text-normal-secondary)] bg-background-card-lighter`;
+    }
+
     // Disabled state
     if (isDisabled) {
-      return `${base} cursor-not-allowed text-[var(--text-normal-secondary)]`;
+      return `${base} text-[var(--text-normal-secondary)] bg-background-card-lighter`;
     }
 
     // Selected (departure or return) - black bg, white text
@@ -246,7 +265,7 @@ export const DayCell = ({
 
     // Today (not selected) - black border, no bg
     if (isToday) {
-      return `${base} cursor-pointer border-2 border-[var(--brand-primary)] text-[var(--brand-primary)]`;
+      return `${base} cursor-pointer border-2 border-[var(--brand-primary)] text-[var(--brand-primary)] bg-background-card-lighter`;
     }
 
     // With pricing: bg color by category
@@ -263,7 +282,7 @@ export const DayCell = ({
     }
 
     // Default: black text, no bg
-    return `${base} cursor-pointer text-[var(--text-normal-primary)]`;
+    return `${base} cursor-pointer bg-background-card-lighter text-[var(--text-normal-primary)]`;
   }, [isDisabled, isSelected, isInRange,
     isRangeStart, isRangeEnd, isHoverEnd, isToday, isHovered, pricingCategory]);
 
@@ -283,8 +302,9 @@ export const DayCell = ({
           data-name="dayCell"
           data-date=${date.toISOString()}
           onClick=${handleClick}
-          onMouseEnter=${handleMouseEnter}
-          onMouseLeave=${handleMouseLeave}
+          onPointerEnter=${handlePointerEnter}
+          onPointerLeave=${handlePointerLeave}
+          onTouchStart=${handleTouchStart}
           onKeyDown=${handleKeyDown}
           disabled=${isDisabled}
           aria-label=${ariaLabel}

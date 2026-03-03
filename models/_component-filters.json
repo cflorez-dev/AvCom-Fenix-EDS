@@ -34,6 +34,7 @@
       "breadcrumb",
       "marquesina",
       "multitab",
+      "mosaic-cards-v2",
       "origin-dropdown-selector",
       "header-logo",
       "header-language-selector",
@@ -48,7 +49,11 @@
       "booking-box",
       "accordion-group",
       "tips-cards",
-      "cms-interactive-banner"
+      "tables",
+      "cms-interactive-banner",
+      "html-embed",
+      "destination-details",
+      "hub-destinations"
     ]
   },
   {
@@ -143,5 +148,9 @@
     "components": [
       "cms-interactive-banner-item"
     ]
+  },
+  {
+    "id": "tables",
+    "components": []
   }
 ]

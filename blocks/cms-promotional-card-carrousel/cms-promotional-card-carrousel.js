@@ -3,6 +3,7 @@ import htm from 'htm';
 import { extractCmsPromotionalCardCarrouselProps, extractCarouselCards } from './cms-promotional-card-carrousel-helper.js';
 import { PromotionalCardCarrousel } from '../../design-system/organisms/cards/promotional-card-carrousel/promotional-card-carrousel.js';
 import { Carousel } from '../../design-system/molecules/carousel/carousel.js';
+import { shouldShowByTargeting, hideBlockWithSection } from '../../scripts/utils/target-filter.js';
 
 const html = htm.bind(h);
 
@@ -147,18 +148,26 @@ function renderMultiCardsCarousel(cards, loadingMode) {
 export default function decorate(block) {
   // Extract configuration and cards using helper
   const props = extractCmsPromotionalCardCarrouselProps(block);
+
+  // Parent-level targeting: hide entire block if targeting doesn't match
+  if (!shouldShowByTargeting(props.targetCountries, props.targetLanguages)) {
+    hideBlockWithSection(block);
+    return;
+  }
+
   const cards = extractCarouselCards(block);
   const totalCards = cards.length;
   const loadingMode = props.loading || 'lazy';
 
   if (totalCards === 0) {
-    console.warn('[CMS Promotional Card Carrousel] No valid cards found.');
+    // Hide the block if there are no cards
+    block.style.display = 'none';
     return;
   }
 
   // Create container
   const container = document.createElement('div');
-  container.className = 'w-full py-6';
+  container.className = 'w-full pt-4 pb-8';
   container.dataset.loading = loadingMode;
 
   /**

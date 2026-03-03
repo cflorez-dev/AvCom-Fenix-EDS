@@ -223,7 +223,7 @@ export const IconGallerySample = () => {
         'flags/guatemala-flag',
         'flags/panama-flag',
         'flags/uruguay-flag',
-        'flags/brazil-flag',
+        'flags/brasil-flag',
         'flags/ecuador-flag',
         'flags/mexico-flag',
         'flags/nicaragua-flag',

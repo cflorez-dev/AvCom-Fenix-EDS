@@ -21,7 +21,9 @@ const html = htm.bind(h);
  * - `pricingData`: `Object` – Pricing object.
  * - `disabledDates`: `Array<string>` – Disabled dates from CMS.
  * - `minDate`: `Date | null` – Minimum selectable date.
+ * - `showRangeHighlight`: `boolean` – If false, no range shading (e.g. solo ida). Default: true.
  * - `showWeekdayHeader`: `boolean` – Show weekday header (default: true).
+ * - `isFirstMonth`: `boolean` – If true, applies reduced top padding (default: false).
  * - `customClassName`: `string` – Additional CSS classes.
  * - `...rest`: Other HTML props.
  *
@@ -70,7 +72,9 @@ export const CalendarMonth = ({
   pricingData = {},
   disabledDates = [],
   minDate = null,
+  showRangeHighlight = true,
   showWeekdayHeader = true,
+  isFirstMonth = false,
   customClassName = '',
   ...rest
 }) => {
@@ -103,7 +107,7 @@ export const CalendarMonth = ({
     >
       <!-- Month/Year Title -->
       <div
-        class="flex items-center py-2 md:justify-center md:min-h-14 md:py-3"
+        class="flex items-center ${isFirstMonth ? 'pt-[16px]' : 'pt-[24px]'} pb-[8px] md:justify-center md:min-h-14 md:py-3"
         aria-live="polite"
         aria-atomic="true"
       >
@@ -127,6 +131,7 @@ export const CalendarMonth = ({
         pricingData=${pricingData}
         disabledDates=${disabledDates}
         minDate=${minDate}
+        showRangeHighlight=${showRangeHighlight}
       />
     </div>
   `;

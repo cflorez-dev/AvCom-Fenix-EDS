@@ -9,7 +9,7 @@ const html = htm.bind(h);
 // Constants
 const MOBILE_BREAKPOINT = 768;
 const ICON_COLOR_DISABLED = '#949494';
-const ICON_COLOR_ENABLED = '#1b1b1b';
+const ICON_COLOR_ENABLED = '#1C1B1F';
 
 /**
  * SwapButton - Circular button to swap values between origin and destination
@@ -105,7 +105,7 @@ export const SwapButton = ({
   const baseClasses = useMemo(
     () => `${size} ${padding} rounded-[22px] border border-solid flex items-center justify-center transition-all duration-200 outline-none ${
       disabled
-        ? 'bg-[#f5f5f5] border-[#d9d9d9] cursor-not-allowed'
+        ? 'bg-[#f5f5f5] border-[#d9d9d9]'
         : 'bg-white border-[#949494] cursor-pointer'
     } ${customClassName}`,
     [size, disabled, customClassName],
@@ -125,21 +125,23 @@ export const SwapButton = ({
   // Mobile: Vertical arrows
   const swapIconMobile = useMemo(
     () => html`
-      <svg
-        width="24"
-        height="24"
-        viewBox="0 0 24 24"
-        fill="none"
-        xmlns="http://www.w3.org/2000/svg"
-        class=${iconSize}
-        aria-hidden="true"
-        role="presentation"
-      >
-        <path
-          d="M16 17.01V10h-2v7.01h-3L15 21l4-3.99h-3zM9 3L5 6.99h3V14h2V6.99h3L9 3z"
-          fill=${iconColor}
-        />
-      </svg>
+    <svg
+    width="24"
+    height="24"
+    viewBox="0 0 24 24"
+    fill="none"
+    xmlns="http://www.w3.org/2000/svg"
+    class=${iconSize}
+    aria-hidden="true"
+    role="presentation"
+  >
+    <mask id="mask0_12405_40724" style="mask-type:alpha" maskUnits="userSpaceOnUse" x="0" y="0" width="24" height="24">
+      <rect x="24" y="1.04907e-06" width="24" height="24" transform="rotate(90 24 1.04907e-06)" fill="#D9D9D9"/>
+    </mask>
+    <g mask="url(#mask0_12405_40724)">
+      <path d="M4 7L9 2L14 7L12.575 8.4L10 5.825L10 13L8 13L8 5.825L5.425 8.4L4 7ZM10 17L11.425 15.6L14 18.175L14 11L16 11L16 18.175L18.575 15.6L20 17L15 22L10 17Z" fill=${iconColor}/>
+    </g>
+  </svg>
     `,
     [iconSize, iconColor],
   );

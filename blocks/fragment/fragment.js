@@ -17,6 +17,77 @@ import { cacheResolvedPath, cacheFailedPath } from '../../scripts/utils/locale.j
 const fragmentHTMLCache = new Map();
 const pendingFragments = new Map();
 
+function isAuthorEnvironment() {
+  return !!(
+    window.xwalk?.isAuthorEnv
+    || window.hlx?.aue
+    || document.querySelector('meta[name="urn:auecon:aemconnection"]')
+    || (
+      window.location.hostname.includes('author-')
+      && window.location.pathname.startsWith('/content/')
+    )
+  );
+}
+
+function isElementHidden(element) {
+  return !!(
+    element.hidden
+    || element.classList.contains('hidden')
+    || element.style.display === 'none'
+    || element.getAttribute('aria-hidden') === 'true'
+  );
+}
+
+function hasMeaningfulContent(node) {
+  if (!node) {
+    return false;
+  }
+
+  if (node.nodeType === Node.TEXT_NODE) {
+    return node.textContent.replace(/\u00a0/g, ' ').trim().length > 0;
+  }
+
+  if (node.nodeType !== Node.ELEMENT_NODE) {
+    return false;
+  }
+
+  const element = node;
+  if (isElementHidden(element)) {
+    return false;
+  }
+
+  const tag = element.tagName;
+  if (['SCRIPT', 'STYLE', 'TEMPLATE', 'NOSCRIPT'].includes(tag)) {
+    return false;
+  }
+
+  if (['IMG', 'PICTURE', 'VIDEO', 'IFRAME', 'SVG', 'TABLE', 'FORM', 'INPUT', 'BUTTON', 'SELECT', 'TEXTAREA', 'CANVAS'].includes(tag)) {
+    return true;
+  }
+
+  return [...element.childNodes].some((child) => hasMeaningfulContent(child));
+}
+
+function cleanupEmptyFragmentSections(main) {
+  main.querySelectorAll(':scope > .section[data-fragment-source="true"]').forEach((section) => {
+    if (isElementHidden(section)) {
+      section.remove();
+      return;
+    }
+
+    section.querySelectorAll(':scope > div').forEach((wrapper) => {
+      if (!hasMeaningfulContent(wrapper)) {
+        wrapper.remove();
+      }
+    });
+
+    const hasVisibleContent = [...section.childNodes].some((child) => hasMeaningfulContent(child));
+    if (!hasVisibleContent) {
+      section.remove();
+    }
+  });
+}
+
 /**
  * Hydrate cached HTML into a fully decorated fragment
  * Creates FRESH DOM and decorates it (safe for IDs, event handlers)
@@ -28,6 +99,9 @@ const pendingFragments = new Map();
 async function hydrateFragment(html, basePath) {
   const main = document.createElement('main');
   main.innerHTML = html;
+  main.querySelectorAll(':scope > div').forEach((section) => {
+    section.dataset.fragmentSource = 'true';
+  });
 
   // Reset base path for media (existing logic)
   const resetAttributeBase = (tag, attr) => {
@@ -41,6 +115,7 @@ async function hydrateFragment(html, basePath) {
   // Fresh decoration each time (IDs, event handlers work correctly)
   decorateMain(main);
   await loadSections(main);
+  cleanupEmptyFragmentSections(main);
   return main;
 }
 
@@ -93,7 +168,7 @@ export async function loadFragment(path, resourceType = null) {
 
         // Cache successful path for future requests
         if (resourceType) {
-          cacheResolvedPath(resourceType, path);
+          await cacheResolvedPath(resourceType, path);
         }
 
         return 'success';
@@ -123,14 +198,27 @@ export async function loadFragment(path, resourceType = null) {
 }
 
 export default async function decorate(block) {
+  // Preserve the original instrumented block in Universal Editor so it remains
+  // available in the content tree and keeps in-place editing references.
+  if (isAuthorEnvironment()) {
+    return;
+  }
+
   const link = block.querySelector('a');
   const path = link ? link.getAttribute('href') : block.textContent.trim();
-  const fragment = await loadFragment(path);
+  let fragment = await loadFragment(path);
+
+  // Fallback to Spanish for 404 pages if language-specific fragment not found
+  if (!fragment && typeof path === 'string' && path.startsWith('/errors/404-')) {
+    // eslint-disable-next-line no-console
+    console.log(`[Fragment] 404 fragment not found for ${path}, falling back to /errors/404`);
+    fragment = await loadFragment('/errors/404');
+  }
+
   if (fragment) {
-    const fragmentSection = fragment.querySelector(':scope .section');
-    if (fragmentSection) {
-      block.closest('.section').classList.add(...fragmentSection.classList);
-      block.closest('.fragment').replaceWith(...fragment.childNodes);
-    }
+    // Replace the fragment block with the fragment's child nodes.
+    // No class propagation needed — fragment.css makes the outer section
+    // transparent and gives inner sections proper main > .section styling.
+    block.closest('.fragment').replaceWith(...fragment.childNodes);
   }
 }

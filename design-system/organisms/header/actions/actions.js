@@ -100,7 +100,7 @@ export const Actions = ({
   return html`
     <div class=${`avi-header-actions h-[48px] flex items-center justify-center flex-row gap-[8px] ${customClassName}`} ...${rest}>
     ${user.show && html`
-      <div class="w-[48px] flex justify-center">
+      <div class="${ user.label? '': 'w-[48px]'} flex justify-center">
         <${Button}
           variant="secondary"
           size="sm"
@@ -113,7 +113,7 @@ export const Actions = ({
       </div>
       `}
       ${cart.show && html`
-        <div class="w-[48px] flex justify-center">
+        <div class="${ cart.label? '': 'w-[48px]'} flex justify-center">
           <${Button}
             variant="secondary"
             size="sm"

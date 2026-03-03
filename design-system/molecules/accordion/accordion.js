@@ -9,6 +9,7 @@ const html = htm.bind(h);
  * Accordion component
  * @param {Object} props - Component props
  * @param {string} props.title - Accordion title
+ * @param {'h1'|'h2'|'h3'|'h4'|'h5'|'h6'|'p'} [props.titleLevel='p'] - Semantic heading level
  * @param {boolean} props.defaultOpen - Whether accordion starts open
  * @param {string} props.customClassName - Additional CSS classes
  * @param {*} props.children - Accordion content
@@ -16,6 +17,7 @@ const html = htm.bind(h);
  */
 export const Accordion = ({
   title = 'Title',
+  titleLevel = 'p',
   defaultOpen = false,
   customClassName = '',
   children,
@@ -87,6 +89,9 @@ export const Accordion = ({
     maxHeight: height,
   };
 
+  // Determine which HTML tag to use for the title
+  const TitleTag = titleLevel;
+
   return html`
     <div
       class=${containerClasses}
@@ -102,9 +107,9 @@ export const Accordion = ({
         aria-expanded=${isOpen}
         aria-controls="accordion-content"
       >
-        <p class=${titleClasses}>
+        <${TitleTag} class=${titleClasses}>
           ${title}
-        </p>
+        </${TitleTag}>
         <div class=${`${iconContainerClasses} h-6 w-6 flex items-center justify-center`}>
           <${Icon} 
             icon="navigation/expand-more" 

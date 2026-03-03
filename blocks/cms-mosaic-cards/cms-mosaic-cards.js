@@ -8,12 +8,14 @@
  *
  * @param {string} template - Template variant (template-1 to template-7)
  * @param {number} cardIndex - Card index (0-based)
+ * @param {number} totalCards - Total number of cards
  * @returns {string} Tailwind classes applied to the card wrapper
  */
 
-import { getStoredCountry, getStoredLanguage } from '../../scripts/services/header/language-country-selector.js';
+import { getMosaicStore } from '../mosaic-cards-v2/mosaic-cards-v2.store.js';
+import { shouldShowByTargeting, hideBlockWithSection, filterItemsByTargeting } from '../../scripts/utils/target-filter.js';
 
-function getCardClasses(template, cardIndex) {
+function getCardClasses(template, cardIndex, totalCards) {
   // Desktop classes (≥768px) - grid 3x3
   const templates = {
     'template-1': [
@@ -59,16 +61,44 @@ function getCardClasses(template, cardIndex) {
 
   const desktopClasses = templates[template]?.[cardIndex] || '';
 
-  // Tablet classes (480-767px): 2x2 grid, equal proportions
-  const tabletPosition = [
-    'sm:col-start-1 sm:row-start-1', // Card 1: top-left
-    'sm:col-start-2 sm:row-start-1', // Card 2: top-right
-    'sm:col-start-1 sm:row-start-2', // Card 3: bottom-left
-    'sm:col-start-2 sm:row-start-2', // Card 4: bottom-right
-  ];
+  // Tablet classes (480-767px)
+  // Special case for 3 cards: the third card spans full width on row 2
+  const tabletPosition = totalCards === 3
+    ? [
+      'sm:col-start-1 sm:row-start-1', // Card 1: top-left
+      'sm:col-start-2 sm:row-start-1', // Card 2: top-right
+      'sm:col-span-2 sm:col-start-1 sm:row-start-2', // Card 3: full-width bottom
+    ]
+    : [
+      'sm:col-start-1 sm:row-start-1', // Card 1: top-left
+      'sm:col-start-2 sm:row-start-1', // Card 2: top-right
+      'sm:col-start-1 sm:row-start-2', // Card 3: bottom-left
+      'sm:col-start-2 sm:row-start-2', // Card 4: bottom-right
+    ];
   const tabletClasses = tabletPosition[cardIndex] || '';
 
   return `${desktopClasses} ${tabletClasses}`;
+}
+
+/**
+ * Maximum cards supported by each template.
+ * Templates 1-4 support 4 cards, templates 5-7 support 3 cards.
+ *
+ * @param {string} template - Template variant
+ * @returns {number} Max cards allowed for the selected template
+ */
+function getTemplateMaxCards(template) {
+  const maxByTemplate = {
+    'template-1': 4,
+    'template-2': 4,
+    'template-3': 4,
+    'template-4': 4,
+    'template-5': 3,
+    'template-6': 3,
+    'template-7': 3,
+  };
+
+  return maxByTemplate[template] || 4;
 }
 
 /**
@@ -127,19 +157,22 @@ function createCMSMosaicCards(deps) {
 
     return html`
       <div 
-        class="parent-cms-mosaic grid w-full gap-4 grid-cols-[repeat(3,minmax(0,1fr))] md:grid-cols-[repeat(3,minmax(0,1fr))] md:grid-rows-[auto_auto_auto] sm:min-h-[31.25rem] sm:grid-cols-2 sm:grid-rows-2 sm:max-h-none max-[480px]:inline-flex max-[480px]:flex-col max-[480px]:gap-0 max-[480px]:max-h-none pt-[5px]" 
+        class="parent-cms-mosaic grid w-full gap-4 grid-cols-[repeat(3,minmax(0,1fr))] md:grid-cols-[repeat(3,minmax(0,1fr))] md:grid-rows-[repeat(3,minmax(0,1fr))] sm:min-h-[31.25rem] sm:grid-cols-2 sm:grid-rows-2 sm:max-h-none max-[480px]:inline-flex max-[480px]:flex-col max-[480px]:gap-0 max-[480px]:max-h-none pt-[5px]" 
         data-name="cmsMosaicCards"
         data-template=${template}
       >
-        <div class="md:contents sm:contents max-[480px]:flex max-[480px]:flex-col max-[480px]:gap-3 max-[480px]:items-start max-[480px]:w-full">
+        <div class="md:contents sm:contents max-[480px]:flex max-[480px]:flex-col max-[480px]:gap-4 max-[480px]:items-start max-[480px]:w-full">
           ${cards.map((card, index) => {
-    const cardClasses = getCardClasses(template, index);
+    const cardClasses = getCardClasses(template, index, cards.length);
     const { columns, rows } = getCardDimensions(cardClasses);
+
+    const isPhotographicCard = !card.title && !card.description && !card.ctaLabel;
+    const mobileHeightClass = isPhotographicCard ? 'max-[480px]:h-[326px]' : '';
 
     return html`
           <div 
             key=${index} 
-            class=${`child-cms-mosaic flex flex-col justify-center items-start self-stretch justify-self-stretch ${cardClasses} sm:col-span-1 sm:row-span-1 max-[768px]:min-h-[326px] max-[480px]:w-full max-[480px]:shrink-0`}
+            class=${`child-cms-mosaic flex flex-col justify-center items-start self-stretch justify-self-stretch ${cardClasses} max-[768px]:min-h-[326px] max-[480px]:w-full max-[480px]:shrink-0 ${mobileHeightClass}`}
             data-card=${index + 1}
           >
             <${LinkCard}
@@ -159,7 +192,6 @@ function createCMSMosaicCards(deps) {
               ctaIconAfter=${card.ctaIconAfter}
               clickBehavior=${card.clickBehavior}
               supportIcon=${card.supportIcon}
-              badges=${card.badges}
               columns=${columns}
               rows=${rows}
             />
@@ -246,47 +278,40 @@ function parseCardDataFromItem(item) {
     description: '',
     ctaLabel: '',
     supportIcon: '',
-    badges: [],
     linkUrl: '',
     linkAlt: '',
     linkOpensIn: 'sameTab',
     ctaIconBefore: 'none',
     ctaIconAfter: 'none',
     clickBehavior: 'fullCard',
+    targetCountries: '',
+    targetLanguages: '',
   };
 
   let cellIndex = 0;
 
-  // Cell 0: imageDesktop (picture/img)
+  // Cell 0: imageDesktop
   if (cells[cellIndex]) {
     const img = cells[cellIndex].querySelector('img');
     if (img) {
       cardData.imageDesktop = img.src;
+      cardData.imageDesktopAlt = img.alt || '';
     }
     cellIndex += 1;
   }
 
-  // Cell 1: imageDesktopAlt
+  // Cell 1: imageMobile (OPCIONAL)
   if (cells[cellIndex]) {
-    cardData.imageDesktopAlt = cells[cellIndex].textContent.trim();
-    cellIndex += 1;
-  }
-
-  // Cell 2: imageMobile (picture/img) - OPTIONAL
-  // Check if this cell has an image, if not, skip it
-  if (cells[cellIndex] && cells[cellIndex].querySelector('img')) {
-    cardData.imageMobile = cells[cellIndex].querySelector('img').src;
-    cellIndex += 1;
-
-    // Cell 3: imageMobileAlt - only if imageMobile exists
-    if (cells[cellIndex]) {
-      cardData.imageMobileAlt = cells[cellIndex].textContent.trim();
-      cellIndex += 1;
+    const mobileImg = cells[cellIndex].querySelector('img');
+    if (mobileImg) {
+      cardData.imageMobile = mobileImg.src;
+      cardData.imageMobileAlt = mobileImg.alt || '';
     }
+    cellIndex += 1;
   }
 
   // Now continue with text fields
-  // Cell N: title
+  // Cell 2: title
   if (cells[cellIndex]) {
     cardData.title = cells[cellIndex].textContent.trim();
     cellIndex += 1;
@@ -310,16 +335,7 @@ function parseCardDataFromItem(item) {
     cellIndex += 1;
   }
 
-  // Cell N+4: badges (comma-separated)
-  if (cells[cellIndex]) {
-    const badgesText = cells[cellIndex].textContent.trim();
-    if (badgesText) {
-      cardData.badges = badgesText.split(',').map((b) => b.trim()).filter(Boolean);
-    }
-    cellIndex += 1;
-  }
-
-  // Cell N+5: linkUrl (has button-container or link)
+  // Cell N+4: linkUrl (has button-container or link)
   if (cells[cellIndex]) {
     const link = cells[cellIndex].querySelector('a');
     let linkUrl = link ? link.href : cells[cellIndex].textContent.trim();
@@ -339,13 +355,13 @@ function parseCardDataFromItem(item) {
     cellIndex += 1;
   }
 
-  // Cell N+6: linkAlt
+  // Cell N+5: linkAlt
   if (cells[cellIndex]) {
     cardData.linkAlt = cells[cellIndex].textContent.trim();
     cellIndex += 1;
   }
 
-  // Cell N+7: linkOpensIn
+  // Cell N+6: linkOpensIn
   if (cells[cellIndex]) {
     const opensIn = cells[cellIndex].textContent.trim();
     if (opensIn === 'sameTab' || opensIn === 'newTab') {
@@ -354,7 +370,7 @@ function parseCardDataFromItem(item) {
     cellIndex += 1;
   }
 
-  // Cell N+8: ctaIconBefore
+  // Cell N+7: ctaIconBefore
   if (cells[cellIndex]) {
     const iconBefore = cells[cellIndex].textContent.trim();
     if (iconBefore) {
@@ -363,7 +379,7 @@ function parseCardDataFromItem(item) {
     cellIndex += 1;
   }
 
-  // Cell N+9: ctaIconAfter
+  // Cell N+8: ctaIconAfter
   if (cells[cellIndex]) {
     const iconAfter = cells[cellIndex].textContent.trim();
     if (iconAfter) {
@@ -372,12 +388,24 @@ function parseCardDataFromItem(item) {
     cellIndex += 1;
   }
 
-  // Cell N+10: clickBehavior
+  // Cell N+9: clickBehavior
   if (cells[cellIndex]) {
     const behavior = cells[cellIndex].textContent.trim();
     if (behavior === 'ctaOnly' || behavior === 'fullCard') {
       cardData.clickBehavior = behavior;
     }
+    cellIndex += 1;
+  }
+
+  // Cell N+10: target-countries (multiselect, comma-separated)
+  if (cells[cellIndex]) {
+    cardData.targetCountries = cells[cellIndex].textContent.trim();
+    cellIndex += 1;
+  }
+
+  // Cell N+11: target-languages (multiselect, comma-separated)
+  if (cells[cellIndex]) {
+    cardData.targetLanguages = cells[cellIndex].textContent.trim();
   }
 
   return cardData;
@@ -389,6 +417,22 @@ function parseCardDataFromItem(item) {
  */
 export default async function decorate(block) {
   try {
+    const section = block.closest('.section');
+    const sectionId = section?.dataset?.mosaicV2Group || '';
+    const noDisplaySection = document.querySelector('.no-section-display');
+
+    if (sectionId && noDisplaySection && noDisplaySection?.dataset?.mosaicV2Group === sectionId) {
+      hideBlockWithSection(block);
+      return;
+    }
+
+    const config = parseParentConfig(block);
+
+    // Country and language filtering (PARENT level)
+    if (!shouldShowByTargeting(config.targetCountries, config.targetLanguages)) {
+      hideBlockWithSection(block);
+      return;
+    }
     // Load dependencies dynamically using importmap aliases and codeBasePath
     const [preactModule, htmModule, linkCardModule] = await Promise.all([
       import('@dropins/tools/preact.js'),
@@ -406,39 +450,6 @@ export default async function decorate(block) {
 
     const allRows = [...block.children];
 
-    // Parse parent config from block (first rows)
-    const config = parseParentConfig(block);
-
-    // Country and language filtering (PARENT level)
-    const targetCountries = config.targetCountries
-      ? config.targetCountries.split(',').map((c) => c.trim().toLowerCase())
-      : [];
-    const targetLanguages = config.targetLanguages
-      ? config.targetLanguages.split(',').map((l) => l.trim().toLowerCase())
-      : [];
-
-    const currentCountry = getStoredCountry()?.toLowerCase() || '';
-    const currentLang = getStoredLanguage()?.toLowerCase() || document.documentElement.lang?.toLowerCase() || 'en';
-
-    // Hide entire mosaic if filtering criteria not met
-    if (targetCountries.length > 0 && currentCountry && !targetCountries.includes(currentCountry)) {
-      const section = block.closest('.section');
-      if (section) {
-        section.classList.add('!p-0', '!m-0', '!h-0', '!overflow-hidden');
-      }
-      block.style.display = 'none';
-      return;
-    }
-
-    if (targetLanguages.length > 0 && currentLang && !targetLanguages.includes(currentLang)) {
-      const section = block.closest('.section');
-      if (section) {
-        section.classList.add('!p-0', '!m-0', '!h-0', '!overflow-hidden');
-      }
-      block.style.display = 'none';
-      return;
-    }
-
     // Map layout values to template numbers
     const layoutToTemplate = {
       'featured-left-tall': 'template-1',
@@ -451,6 +462,7 @@ export default async function decorate(block) {
     };
 
     const template = layoutToTemplate[config.layout] || 'template-1';
+    const maxTemplateCards = getTemplateMaxCards(template);
 
     const childItems = [];
 
@@ -460,7 +472,7 @@ export default async function decorate(block) {
     for (let i = 0; i < allRows.length; i += 1) {
       const row = allRows[i];
 
-      // Child items have multiple cells (15 cells for link-card)
+      // Child items have multiple cells (17 cells for link-card with targeting)
       // Parent fields have only 1 cell
       if (row.children.length > 1) {
         const cardData = parseCardDataFromItem(row);
@@ -470,9 +482,18 @@ export default async function decorate(block) {
       }
     }
 
-    if (childItems.length === 0) {
-      console.warn('No link-card children found in cms-mosaic-cards block');
+    // Filter cards by targeting
+    const filteredItems = filterItemsByTargeting(childItems);
+    const visibleItems = filteredItems.slice(0, maxTemplateCards);
+
+    if (visibleItems.length === 0) {
+      console.warn('No link-card children found after filtering in cms-mosaic-cards block');
+      hideBlockWithSection(block);
       return;
+    }
+
+    if (filteredItems.length > visibleItems.length) {
+      console.warn(`cms-mosaic-cards: template "${template}" supports max ${maxTemplateCards} cards. Ignoring ${filteredItems.length - visibleItems.length} extra card(s).`);
     }
 
     // Hide original block content but keep it in DOM for Universal Editor
@@ -487,12 +508,73 @@ export default async function decorate(block) {
     render(
       html`
         <${CMSMosaicCards} 
-          cards=${childItems} 
+          cards=${visibleItems} 
           template=${template}
         />
       `,
       container,
     );
+
+    // Register cards in store if this mosaic is part of a mosaic-cards-v2 group
+    setTimeout(() => {
+      // Check if this block is inside a mosaic-cards-v2 container
+      const section = block.closest('.section');
+      const groupId = section?.dataset?.mosaicV2Group;
+
+      if (groupId) {
+        // This mosaic is part of a mosaic-cards-v2 group
+        const store = getMosaicStore();
+
+        // Get existing group data or create new one
+        const existingGroup = store.getGroup(groupId) || { cards: [], metadata: {} };
+
+        // Transform childItems to store format with DOM elements
+        const cardsWithElements = visibleItems.map((card, index) => {
+          // Find the corresponding DOM element
+          const cardElement = container.querySelector(`[data-card="${index + 1}"]`);
+
+          return {
+            index: existingGroup.cards.length + index,
+            element: cardElement,
+            title: card.title,
+            description: card.description,
+            link: card.linkUrl ? {
+              href: card.linkUrl,
+              text: card.ctaLabel,
+              alt: card.linkAlt,
+              opensIn: card.linkOpensIn,
+            } : null,
+            image: card.imageDesktop ? {
+              src: card.imageDesktop,
+              alt: card.imageDesktopAlt,
+              mobile: card.imageMobile,
+              mobileAlt: card.imageMobileAlt,
+            } : null,
+            supportIcon: card.supportIcon,
+            clickBehavior: card.clickBehavior,
+            ctaIconBefore: card.ctaIconBefore,
+            ctaIconAfter: card.ctaIconAfter,
+          };
+        });
+
+        // Merge with existing cards (for multiple mosaics in same group)
+        const allCards = [...existingGroup.cards, ...cardsWithElements];
+
+        // Register or update group
+        store.registerGroup(groupId, {
+          cards: allCards,
+          metadata: {
+            ...existingGroup.metadata,
+            template,
+            layout: config.layout,
+            loading: config.loading,
+            targetCountries: config.targetCountries,
+            targetLanguages: config.targetLanguages,
+            totalMosaics: (existingGroup.metadata.totalMosaics || 0) + 1,
+          },
+        });
+      }
+    }, 100);
   } catch (error) {
     console.error('Error loading cms-mosaic-cards dependencies:', error);
     block.innerHTML = `<div style="padding: 20px; background: #ffebee; border: 1px solid #f44336; border-radius: 4px;"><strong>❌ Error loading content</strong><br>${error.message}</div>`;

@@ -148,20 +148,30 @@ export const PosForm = ({
           ${finalTitle}
         </h2>
         ${showCloseButton && html`
-        <${Button} onClick=${handleClose} variant="transparent" size="xxxs" iconOnly=${true}>
-          <${Icon} icon="navigation/close" size="xs" />
+        <${Button}
+          onClick=${handleClose}
+          variant="transparent"
+          size="xxxs"
+          iconOnly=${true}
+          customClassName="w-6 h-6 flex items-center justify-center transition-colors duration-200 hover:!bg-[#D9D9D9] active:!bg-[#B8B8B8] !rounded-[12px]"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+            <path fill-rule="evenodd" clip-rule="evenodd" d="M12.6666 4.27301L11.7266 3.33301L7.99992 7.05967L4.27325 3.33301L3.33325 4.27301L7.05992 7.99967L3.33325 11.7263L4.27325 12.6663L7.99992 8.93967L11.7266 12.6663L12.6666 11.7263L8.93992 7.99967L12.6666 4.27301Z" fill="#1B1B1B"/>
+          </svg>
         </${Button}>
         `}
       </div>
 
       <!-- Form -->
-      <form onSubmit=${handleConfirm} class=${`flex flex-col gap-2 ${responsiveMode ? 'lg:gap-6 ' : ''}`}>
+      <form onSubmit=${handleConfirm} class=${`flex flex-col gap-6 ${responsiveMode ? 'lg:gap-6 ' : ''}`}>
         <!-- Selects Container - Row on large screens only if responsiveMode is true -->
-        <div class=${`flex flex-col gap-2 ${responsiveMode ? 'lg:flex-row lg:gap-6' : ''}`}>
+        <div class=${`flex flex-col gap-6 leading-[auto] ${responsiveMode ? 'lg:flex-row lg:gap-6' : ''}`}>
           <!-- Country/Region Select -->
           <div class=${responsiveMode ? 'flex-1' : ''}>
             <${Select}
+              customDropdownClassName="mt-[4px]"
               label=${finalCountryLabel}
+              labelClassName="left-[1rem] top-[0.625rem] leading-[1.125rem]"
               placeholder=${countryPlaceholder}
               options=${getOrderedCountries()}
               value=${selectedCountry}
@@ -170,7 +180,7 @@ export const PosForm = ({
               required=${true}
               id="pos-country"
               hasPrefixIcon=${false}
-              dropdownMaxHeight="221px"
+              dropdownMaxHeight="13.813rem"
               name="country"
             />
           </div>
@@ -178,7 +188,9 @@ export const PosForm = ({
           <!-- Language Select -->
           <div class=${responsiveMode ? 'flex-1' : ''}>
             <${Select}
+              customDropdownClassName="mt-[4px]"
               label=${finalLanguageLabel}
+              labelClassName="left-[1rem] top-[0.625rem] leading-[1.125rem]"
               placeholder=${languagePlaceholder}
               options=${getOrderedLanguages()}
               value=${selectedLanguage}

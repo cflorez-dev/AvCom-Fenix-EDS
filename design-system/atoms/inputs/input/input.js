@@ -78,7 +78,7 @@ export const Input = ({
   const labelStateClasses = {
     normal: 'text-text-normal-secondary',
     success: 'text-border-input-positive',
-    error: 'text-red-700',
+    error: 'text-[var(--color-alert-error-icon-bg)]',
     disabled: 'text-[#C4C8C5]',
     readonly: 'text-text-normal-secondary',
   };
@@ -86,33 +86,42 @@ export const Input = ({
   const helperStateClasses = {
     normal: 'text-text-normal-secondary',
     success: 'text-border-input-positive',
-    error: 'text-red-700',
+    error: 'text-[var(--color-alert-error-icon-bg)]',
     disabled: 'text-text-normal-secondary',
     readonly: 'text-text-normal-secondary',
   };
 
-  // Handle keydown to detect Tab key navigation
-  const handleKeyDown = (e) => {
-    if (e.key === 'Tab') {
-      tabKeyPressedRef.current = true;
-    }
-  };
+  // Listen for Tab key globally to detect keyboard navigation
+  useEffect(() => {
+    const onKeyDown = (e) => {
+      if (e.key === 'Tab') {
+        tabKeyPressedRef.current = true;
+      }
+    };
+    const onMouseDown = () => {
+      tabKeyPressedRef.current = false;
+    };
+    document.addEventListener('keydown', onKeyDown, true);
+    document.addEventListener('mousedown', onMouseDown, true);
+    return () => {
+      document.removeEventListener('keydown', onKeyDown, true);
+      document.removeEventListener('mousedown', onMouseDown, true);
+    };
+  }, []);
 
-  // Handle focus
+  // Handle focus - show keyboard ring only if Tab was pressed
   const handleFocus = () => {
     setIsFocused(true);
-    // Only show keyboard focus ring if Tab key was pressed
     if (tabKeyPressedRef.current) {
       setIsKeyboardFocused(true);
-      tabKeyPressedRef.current = false;
     }
+    tabKeyPressedRef.current = false;
   };
 
   // Handle blur
   const handleBlur = () => {
     setIsFocused(false);
     setIsKeyboardFocused(false);
-    tabKeyPressedRef.current = false;
   };
 
   // Handle input change
@@ -120,10 +129,6 @@ export const Input = ({
     if (isInteractive) {
       const newValue = e.target.value;
       setInputValue(newValue);
-      // Remove keyboard focus when typing (means interaction started with mouse)
-      if (isKeyboardFocused) {
-        setIsKeyboardFocused(false);
-      }
       if (onChange) {
         onChange(newValue);
       }
@@ -160,7 +165,6 @@ export const Input = ({
     <div
       class="relative w-full ${customClassName}"
       data-name="input"
-      onKeyDown=${handleKeyDown}
       ...${rest}
     >
       <!-- Input Container -->
@@ -181,7 +185,7 @@ export const Input = ({
         <!-- Focus Ring (keyboard navigation only) -->
         ${isKeyboardFocused && isInteractive && html`
           <div
-            class="absolute -inset-[2px] rounded-[9px] outline outline-2 outline-border-stroke-focus pointer-events-none"
+            class="absolute -inset-[2px] rounded-[9px] outline outline-border-stroke-focus pointer-events-none"
             aria-hidden="true"
           />
         `}
@@ -202,10 +206,10 @@ export const Input = ({
               transition-all duration-100 ease-in-out
               font-['Red_Hat_Display'] font-normal tracking-[0px]
               ${labelStateClasses[actualState]}
-              ${shouldFloat 
-                ? `top-[10px] text-xs leading-[18px] ${prefixIconName ? 'left-[46px]' : 'left-[var(--padding-16)]'}`
-                : `top-1/2 -translate-y-1/2 text-sm leading-[21px] ${prefixIconName ? 'left-[calc(var(--padding-16)+1.25rem+var(--spacing-small))]' : 'left-[var(--padding-16)]'}`
-              }
+              ${shouldFloat
+    ? `top-[10px] text-xs leading-[18px] ${prefixIconName ? 'left-[46px]' : 'left-[var(--padding-16)]'}`
+    : `top-1/2 -translate-y-1/2 text-sm leading-[21px] ${prefixIconName ? 'left-[calc(var(--padding-16)+1.25rem+var(--spacing-small))]' : 'left-[var(--padding-16)]'}`
+}
             `}
           >
             ${label}${required ? '*' : ''}
@@ -231,8 +235,9 @@ export const Input = ({
               onFocus=${handleFocus}
               onBlur=${handleBlur}
               class=${`
+                bg-white
                 w-full relative -bottom-2 left-[2px] bg-transparent border-0 outline-none p-0
-                text-base font-bold font-['Red_Hat_Display'] leading-normal
+                !text-base font-bold font-['Red_Hat_Display'] leading-normal
                 ${actualState === 'disabled' ? 'text-[#C4C8C5] cursor-not-allowed' : actualState === 'readonly' ? 'text-text-normal-secondary cursor-default' : 'text-text-normal-primary'}
                 placeholder:text-text-normal-secondary placeholder:font-normal
               `}
@@ -241,7 +246,7 @@ export const Input = ({
 
           <!-- Cursor placeholder when active but empty -->
           ${!shouldFloat && isFocused && !inputValue && html`
-            <div class="text-base font-bold font-['Red_Hat_Display'] text-text-normal-primary">|</div>
+            <div class="!text-base font-bold font-['Red_Hat_Display'] text-text-normal-primary">|</div>
           `}
 
           <!-- Hidden input for when not floating -->
@@ -259,7 +264,8 @@ export const Input = ({
             onFocus=${handleFocus}
             onBlur=${handleBlur}
             class=${`
-              ${shouldFloat ? 'sr-only' : 'absolute inset-0 w-full h-full opacity-0 cursor-pointer'}
+              bg-white
+              ${shouldFloat ? 'sr-only' : `absolute inset-0 w-full h-full opacity-0 cursor-pointer font-['Red_Hat_Display']!`}
             `}
           />
         </div>

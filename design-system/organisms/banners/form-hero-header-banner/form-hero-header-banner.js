@@ -88,9 +88,9 @@ export const FormHeroHeaderBanner = ({
         <div class="md:absolute md:top-0 md:left-0 md:w-full md:h-full md:z-[-1]" dangerouslySetInnerHTML=${{ __html: pictureHTML }}>
         </div>
         <div class="bg-white rounded-3xl md:rounded-2xl md:max-w-[480px] md:max-h-[480px] md:min-h-[300px] md:h-max overflow-auto">
-          <div class="p-4">
+          <div class="p-4 lg:p-6">
               <div class="flex flex-col justify-start items-start gap-[4px]">
-                  <${titleLevel} class="!m-0 self-stretch justify-start text-text-normal-primary !text-2xl md:!text-[28px] font-bold">${titleText}</${titleLevel}>
+                  <${titleLevel} class="!m-0 self-stretch justify-start text-text-normal-primary !text-2xl md:!text-[28px] !font-bold">${titleText}</${titleLevel}>
                   <${subtitleLevel} class="!m-0 self-stretch justify-start text-text-normal-primary !font-normal leading-6 !text-base">${subtitleText}</${subtitleLevel}>
               </div>
               <div class="mt-6">
@@ -102,6 +102,8 @@ export const FormHeroHeaderBanner = ({
                     fullWidth=${true}
                     contentHTML=${alertContent}
                     dismissible=${alertDismissible}
+                    dismissIconHTML='<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" fill="none"><path fill-rule="evenodd" clip-rule="evenodd" d="M12.6663 4.27203L11.7263 3.33203L7.99967 7.0587L4.27301 3.33203L3.33301 4.27203L7.05967 7.9987L3.33301 11.7254L4.27301 12.6654L7.99967 8.9387L11.7263 12.6654L12.6663 11.7254L8.93967 7.9987L12.6663 4.27203Z" fill="#1B1B1B"/></svg>'
+                    dismissButtonClassName='h-[24px] w-[24px]'
                   />
                 ` : null}
               </div>

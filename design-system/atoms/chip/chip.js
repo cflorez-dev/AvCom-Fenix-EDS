@@ -7,13 +7,14 @@ const html = htm.bind(h);
  * Chip - Avianca chip/tag component based on Figma design
  *
  * ## Props
- * - `variant`: `"lifemiles" | "discount" | "dark" | "alert" | "white"` –
+ * - `variant`: `"lifemiles" | "discount" | "dark" | "alert" | "white" | "control"` –
  *   Visual variant of the chip (default: `"lifemiles"`).
  *   - `lifemiles`: Light blue background with dark text and shadow
  *   - `discount`: Red background with centered white text
  *   - `dark`: Dark gray background (#2B3C46) with white text
  *   - `alert`: Alert red background (#E9010D) with white text
  *   - `white`: White background with red text (#E9010D)
+ *   - `control`: White background with secondary gray text, larger padding, shadow
  * - `icon`: `string | null` –
  *   URL or content of the icon to display before the text (default: `null`).
  * - `customClassName`: Additional CSS classes.
@@ -76,6 +77,18 @@ export const Chip = ({
       bg-[var(--color-chip-white-bg)]
       text-[var(--color-chip-white-text)]
     `,
+    control: `
+      justify-center
+      gap-2
+      bg-[var(--color-background-card-lighter)]
+      text-[var(--color-text-normal-secondary)]
+      text-sm
+      h-[32px]
+      !py-0
+      px-[16px]
+      rounded-full
+      shadow-[0px_0px_6px_rgba(90,90,90,0.20)]
+    `,
   };
 
   const currentVariantClasses = variantClasses[variant];
@@ -93,7 +106,9 @@ export const Chip = ({
           <img src=${icon} alt="" class="w-full h-full block max-w-none" />
         </div>
       `}
-      <p class="!m-0 font-inherit text-xs leading-inherit tracking-inherit whitespace-inherit  antialiased ">
+      <p class=${variant === 'control'
+    ? '!m-0 text-[14px] font-[700] leading-[14px] tracking-inherit whitespace-inherit antialiased'
+    : '!m-0 font-inherit text-xs leading-inherit tracking-inherit whitespace-inherit antialiased'}>
         ${children}
       </p>
     </div>

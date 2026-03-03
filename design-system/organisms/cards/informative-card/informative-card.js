@@ -30,9 +30,7 @@ export const InformativeCard = ({
   buttonText = null,
   onClick,
 }) => {
-  const focusClasses = (ActionType === 'chevron' || ActionType === 'none')
-    ? 'focus:outline focus:outline-2 focus:outline-border-stroke-focus focus:outline-offset-2'
-    : '';
+  const focusClasses = 'focus-visible:!outline focus-visible:!outline-2 focus-visible:!outline-border-stroke-focus focus-visible:!outline-offset-2';
 
   const cursorClass = ((ActionType === 'chevron' || ActionType === 'none') && onClick) ? 'cursor-pointer' : '';
 
@@ -42,21 +40,21 @@ export const InformativeCard = ({
         data-button="${ActionType === 'button' ? 'true' : ''}" 
         data-chevronicon="${ActionType === 'chevron' ? 'true' : ''}" 
         data-direction="${ActionType === 'horizontal' ? 'horizontal' : 'vertical'}" 
-        className="w-80 min-w-72 h-full bg-background-card-lighter rounded-2xl outline outline-1 outline-offset-[-1px] outline-border-brand-primary-disable inline-flex justify-start items-center overflow-hidden hover:shadow-[0px_2px_20px_2px_rgba(73,73,73,0.25)] transition-shadow mdlg:w-full mdlg:min-w-0 ${focusClasses} ${cursorClass}"
-        tabIndex=${(ActionType === 'chevron' || ActionType === 'none') ? 0 : undefined}
+        class="w-80 min-w-72 h-full bg-background-card-lighter rounded-2xl outline outline-1 outline-offset-[-1px] outline-border-brand-primary-disable inline-flex justify-start items-center overflow-hidden hover:shadow-[0px_2px_20px_2px_rgba(73,73,73,0.25)] transition-shadow mdlg:w-full mdlg:min-w-0 ${focusClasses} ${cursorClass}"
+        tabIndex=${0}
         onClick=${(ActionType === 'chevron' || ActionType === 'none') ? onClick : undefined}
       >
-        <div className="self-stretch max-w-48 px-6 rounded-tl-2xl rounded-bl-2xl flex justify-center items-center">
-          <img className="w-20 h-20 relative" src=${image} alt=${imageAlt} />
+        <div class="self-stretch max-w-48 px-6 rounded-tl-2xl rounded-bl-2xl flex justify-center items-center">
+          <img class="w-20 h-20 relative" src=${image} alt=${imageAlt} />
         </div>
-        <div className="flex-1 pr-5 rounded-tr-2xl rounded-br-2xl flex justify-start items-center gap-3">
-          <div className="flex-1 min-h-40 py-5 inline-flex flex-col justify-center items-start gap-3">
-            <div className="flex-1 flex flex-col justify-center items-start gap-2">
-              <div className="justify-start text-text-normal-primary text-xl font-bold">${title}</div>
-              <div className="self-stretch justify-start text-text-normal-primary text-base font-normal leading-6">${details}</div>
+        <div class="flex-1 pr-5 rounded-tr-2xl rounded-br-2xl flex justify-start items-center gap-3">
+          <div class="flex-1 min-h-40 py-5 inline-flex flex-col justify-center items-start gap-3">
+            <div class="flex-1 flex flex-col justify-center items-start gap-2">
+              <div class="justify-start text-text-normal-primary text-xl font-bold">${title}</div>
+              <div class="self-stretch justify-start text-text-normal-primary text-base font-normal leading-6">${details}</div>
             </div>
             ${(ActionType === 'button' || ActionType === 'both') && buttonText ? html`
-              <div className="self-stretch inline-flex justify-end items-center gap-2">
+              <div class="self-stretch inline-flex justify-end items-center gap-2">
                 <${Button}
                   variant="secondary"
                   size="xs"
@@ -68,8 +66,8 @@ export const InformativeCard = ({
             ` : ''}
           </div>
           ${(ActionType === 'chevron' || ActionType === 'both') ? html`
-            <div data-direction="right" data-state="default" className="w-6 h-6 flex justify-center items-center">
-              <${Icon} icon="navigation/chevron-right" size="m" />
+            <div data-direction="right" data-state="default" class="w-6 h-6 flex justify-center items-center">
+              <${Icon} icon="navigation/chevron-right" size="m" customSize=${true}/>
             </div>
           ` : ''}
         </div>
@@ -77,7 +75,7 @@ export const InformativeCard = ({
     ` : html`
       <div 
         class="w-80 min-w-80 h-full bg-background-card-lighter rounded-2xl outline outline-1 outline-offset-[-1px] outline-border-brand-primary-disable inline-flex flex-col justify-center items-center overflow-hidden hover:shadow-[0px_2px_20px_2px_rgba(73,73,73,0.25)] transition-shadow mdlg:w-full mdlg:min-w-0 ${focusClasses} ${cursorClass}"
-        tabIndex=${(ActionType === 'chevron' || ActionType === 'none') ? 0 : undefined}
+        tabIndex=${0}
         onClick=${(ActionType === 'chevron' || ActionType === 'none') ? onClick : undefined}
       >
         <div class="w-full h-32 max-w-48 px-6 rounded-tl-2xl rounded-bl-2xl inline-flex justify-center items-center">
