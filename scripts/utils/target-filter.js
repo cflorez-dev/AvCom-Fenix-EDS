@@ -246,6 +246,49 @@ export function hideBlockWithSection(block) {
 }
 
 /**
+ * Apply targeting rules to a section based on metadata
+ * This is meant to be called during section decoration
+ * @param {Element} section - The section element
+ * @param {Object} meta - Section metadata object from readBlockConfig
+ * @returns {boolean} True if section should be shown, false if hidden
+ */
+export function applySectionTargeting(section, meta) {
+  if (!section || !meta) {
+    return true;
+  }
+
+  // In author mode, always show
+  if (isAuthorEnvironment()) {
+    return true;
+  }
+
+  // Get targeting values (support both formats)
+  const targetCountries = meta['target-countries'] || meta.targetCountries;
+  const targetLanguages = meta['target-languages'] || meta.targetLanguages;
+
+  // If no targeting is configured, show the section
+  if (!targetCountries && !targetLanguages) {
+    return true;
+  }
+
+  // Check if section should be shown
+  const shouldShow = shouldShowByTargeting(targetCountries, targetLanguages);
+
+  if (!shouldShow) {
+    // Hide section completely
+    section.style.display = 'none';
+    section.style.padding = '0';
+    section.style.margin = '0';
+    section.style.height = '0';
+    section.style.overflow = 'hidden';
+    section.classList.add('hidden-by-targeting');
+    section.dataset.sectionStatus = 'hidden';
+  }
+
+  return shouldShow;
+}
+
+/**
  * Check if content should be shown based on legacy field names (backward compatibility)
  * Supports new (target-countries, target-languages) and old (targetMarkets, targetLanguages)
  * @param {Object} config - Configuration object with target fields

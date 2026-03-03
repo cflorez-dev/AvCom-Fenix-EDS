@@ -327,15 +327,19 @@ export const mapHubDestinationsData = async (i18n) => {
         mainCityCode
       );
      const mappedRegions = reggionsMapped.sortedMeppedRegions;
+
+      const renderedIataCodes = new Set();
+      reggionsMapped.countriesDestination.forEach((country) => {
+        (country.destinations || []).forEach((dest) => {
+          const code = dest.iataCityCode?.trim().toUpperCase();
+          if (code) renderedIataCodes.add(code);
+        });
+      });
+
       destinationData.push({
         code: city.value,
         label: city.label,
-        posibleDestinations: new Set(
-          originData
-            .filter((origin) => city.allCodes.includes(origin.Origin))
-            .map((origin) => origin.Destination?.trim().toUpperCase())
-            .filter(Boolean),
-        ).size,
+        posibleDestinations: renderedIataCodes.size,
         regions: mappedRegions,
         filtersByRegions: reggionsMapped.filtersByRegions,
         countriesDestination: reggionsMapped.countriesDestination,

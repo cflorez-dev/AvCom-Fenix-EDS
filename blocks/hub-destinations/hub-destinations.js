@@ -56,7 +56,6 @@ export default async function decorate(block) {
     mainCityCode: destinationsData?.mainCityCode || '',
     firstOrigin: origins[0]?.code || null,
   });
-
   render(
     html`
       <${HubDestinations}

@@ -193,7 +193,8 @@ const InteractiveTabs = ({ destinationData, language = 'es' }) => {
             <div class="w-full md:w-auto md:flex-shrink-0">
               ${(() => {
     // eslint-disable-next-line dot-notation
-    const heroImageUrl = destination.heroImage?.['_publishUrl'];
+    const des = destination
+    const heroImageUrl = destination.introImage?.['_publishUrl'];
     return heroImageUrl ? html`
                   <img
                     src=${heroImageUrl}

@@ -57,7 +57,8 @@
   border-right: none;
 }
 
-.tables tr:last-child td {
+.tables tr:last-child td,
+.tables td[data-ends-in-last-row] {
   border-bottom: none;
 }
 
@@ -175,7 +176,8 @@
     border-right: none;
   }
 
-  .tables .table-tablet tr:last-child td {
+  .tables .table-tablet tr:last-child td,
+  .tables .table-tablet td[data-ends-in-last-row] {
     border-bottom: none;
   }
 
@@ -256,7 +258,8 @@
     border-bottom: 1px dashed var(--color-border-Borders-and-dividers-mail-border-default);
   }
 
-  .tables .table-mobile tr:last-child td {
+  .tables .table-mobile tr:last-child td,
+  .tables .table-mobile td[data-ends-in-last-row] {
     border-bottom: none;
   }
 

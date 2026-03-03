@@ -5,7 +5,7 @@ import { h, render } from '@dropins/tools/preact.js';
 import htm from 'htm';
 import { loadBlock } from '../../scripts/aem.js';
 import { Icon } from '../../design-system/atoms/icon/icon.js';
-import { shouldShowByTargeting, hideBlockWithSection } from '../../scripts/utils/target-filter.js';
+import { shouldShowByTargeting, hideBlockWithSection, applySectionTargeting } from '../../scripts/utils/target-filter.js';
 
 const html = htm.bind(h);
 
@@ -173,6 +173,20 @@ export default async function decorate(block) {
 
     if (sectionMetadata.multitabGroup !== groupId) {
       break; // Stop when we hit a section that doesn't belong to this group
+    }
+
+    // Apply section-level targeting - skip sections that should be hidden
+    // Section metadata is in dataset, convert to object for applySectionTargeting
+    const sectionMeta = {
+      'target-countries': sectionMetadata.targetCountries,
+      'target-languages': sectionMetadata.targetLanguages,
+    };
+
+    const shouldShowSection = applySectionTargeting(tabSection, sectionMeta);
+    if (!shouldShowSection) {
+      // Section is hidden by targeting, skip adding it to tabs
+      // eslint-disable-next-line no-continue
+      continue;
     }
 
     const tabLabel = sectionMetadata.multitabLabel || `Tab ${tabSections.length + 1}`;
@@ -664,11 +678,15 @@ export default async function decorate(block) {
       // Start animation immediately (synchronous)
       animateScroll(performance.now());
     } else {
-      // Desktop: Center the active tab in viewport
-      tabButtons[newIndex].scrollIntoView({
+      // Desktop: Center active tab within tabNav (without affecting page scroll)
+      const activeTab = tabButtons[newIndex];
+      const containerWidth = tabNav.offsetWidth;
+      const tabLeft = activeTab.offsetLeft;
+      const tabWidth = activeTab.offsetWidth;
+      const targetScroll = tabLeft - (containerWidth / 2) + (tabWidth / 2);
+      tabNav.scrollTo({
+        left: Math.max(0, targetScroll),
         behavior: 'smooth',
-        block: 'nearest',
-        inline: 'center',
       });
     }
 
@@ -742,12 +760,16 @@ export default async function decorate(block) {
         left: scrollOffset,
         behavior: 'smooth',
       });
-    } else {
-      // Desktop: Center the active tab
-      activeTabButton.scrollIntoView({
-        behavior: 'smooth',
-        block: 'nearest',
-        inline: 'center',
+    } else if (activeTabIndex > 0) {
+      // Desktop: Center active tab within tabNav only if it's not the first tab
+      // (avoids triggering unwanted page scroll on initial load)
+      const containerWidth = tabNav.offsetWidth;
+      const tabLeft = activeTabButton.offsetLeft;
+      const tabWidth = activeTabButton.offsetWidth;
+      const targetScroll = tabLeft - (containerWidth / 2) + (tabWidth / 2);
+      tabNav.scrollTo({
+        left: Math.max(0, targetScroll),
+        behavior: 'instant',
       });
     }
   };

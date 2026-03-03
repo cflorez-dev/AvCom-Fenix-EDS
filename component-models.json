@@ -849,6 +849,132 @@
         }
       },
       {
+        "component": "multiselect",
+        "name": "target-countries",
+        "label": "Target Countries (POS)",
+        "valueType": "string",
+        "description": "Optional: Select target countries/POS. If empty, shows in all. Compared against 'selected-country' cookie (ISO-2 codes).",
+        "options": [
+          {
+            "name": "Argentina",
+            "value": "ar"
+          },
+          {
+            "name": "Bolivia",
+            "value": "bo"
+          },
+          {
+            "name": "Brasil",
+            "value": "br"
+          },
+          {
+            "name": "Canadá",
+            "value": "ca"
+          },
+          {
+            "name": "Chile",
+            "value": "cl"
+          },
+          {
+            "name": "Colombia",
+            "value": "co"
+          },
+          {
+            "name": "Costa Rica",
+            "value": "cr"
+          },
+          {
+            "name": "República Dominicana",
+            "value": "do"
+          },
+          {
+            "name": "Ecuador",
+            "value": "ec"
+          },
+          {
+            "name": "España",
+            "value": "eu"
+          },
+          {
+            "name": "Francia",
+            "value": "fr"
+          },
+          {
+            "name": "Reino Unido",
+            "value": "gb"
+          },
+          {
+            "name": "Guatemala",
+            "value": "gt"
+          },
+          {
+            "name": "Honduras",
+            "value": "hn"
+          },
+          {
+            "name": "México",
+            "value": "mx"
+          },
+          {
+            "name": "Nicaragua",
+            "value": "ni"
+          },
+          {
+            "name": "Otros",
+            "value": "ot"
+          },
+          {
+            "name": "Panamá",
+            "value": "pa"
+          },
+          {
+            "name": "Perú",
+            "value": "pe"
+          },
+          {
+            "name": "Paraguay",
+            "value": "py"
+          },
+          {
+            "name": "El Salvador",
+            "value": "sv"
+          },
+          {
+            "name": "Estados Unidos",
+            "value": "us"
+          },
+          {
+            "name": "Uruguay",
+            "value": "uy"
+          }
+        ]
+      },
+      {
+        "component": "multiselect",
+        "name": "target-languages",
+        "label": "Target Languages",
+        "valueType": "string",
+        "description": "Optional: Select target languages. If empty, shows in all. Compared against 'selected-language' cookie.",
+        "options": [
+          {
+            "name": "English",
+            "value": "en"
+          },
+          {
+            "name": "Spanish",
+            "value": "es"
+          },
+          {
+            "name": "French",
+            "value": "fr"
+          },
+          {
+            "name": "Portuguese",
+            "value": "pt"
+          }
+        ]
+      },
+      {
         "component": "boolean",
         "name": "rounded-image",
         "label": "Rounded Image",
@@ -2751,6 +2877,132 @@
         "label": "URL",
         "value": "",
         "description": "Enlace del logo (opcional)"
+      },
+      {
+        "component": "multiselect",
+        "name": "target-countries",
+        "label": "Target Countries (POS)",
+        "valueType": "string",
+        "description": "Optional: Select target countries/POS. If empty, shows in all. Compared against 'selected-country' cookie (ISO-2 codes).",
+        "options": [
+          {
+            "name": "Argentina",
+            "value": "ar"
+          },
+          {
+            "name": "Bolivia",
+            "value": "bo"
+          },
+          {
+            "name": "Brasil",
+            "value": "br"
+          },
+          {
+            "name": "Canadá",
+            "value": "ca"
+          },
+          {
+            "name": "Chile",
+            "value": "cl"
+          },
+          {
+            "name": "Colombia",
+            "value": "co"
+          },
+          {
+            "name": "Costa Rica",
+            "value": "cr"
+          },
+          {
+            "name": "República Dominicana",
+            "value": "do"
+          },
+          {
+            "name": "Ecuador",
+            "value": "ec"
+          },
+          {
+            "name": "España",
+            "value": "eu"
+          },
+          {
+            "name": "Francia",
+            "value": "fr"
+          },
+          {
+            "name": "Reino Unido",
+            "value": "gb"
+          },
+          {
+            "name": "Guatemala",
+            "value": "gt"
+          },
+          {
+            "name": "Honduras",
+            "value": "hn"
+          },
+          {
+            "name": "México",
+            "value": "mx"
+          },
+          {
+            "name": "Nicaragua",
+            "value": "ni"
+          },
+          {
+            "name": "Otros",
+            "value": "ot"
+          },
+          {
+            "name": "Panamá",
+            "value": "pa"
+          },
+          {
+            "name": "Perú",
+            "value": "pe"
+          },
+          {
+            "name": "Paraguay",
+            "value": "py"
+          },
+          {
+            "name": "El Salvador",
+            "value": "sv"
+          },
+          {
+            "name": "Estados Unidos",
+            "value": "us"
+          },
+          {
+            "name": "Uruguay",
+            "value": "uy"
+          }
+        ]
+      },
+      {
+        "component": "multiselect",
+        "name": "target-languages",
+        "label": "Target Languages",
+        "valueType": "string",
+        "description": "Optional: Select target languages. If empty, shows in all. Compared against 'selected-language' cookie.",
+        "options": [
+          {
+            "name": "English",
+            "value": "en"
+          },
+          {
+            "name": "Spanish",
+            "value": "es"
+          },
+          {
+            "name": "French",
+            "value": "fr"
+          },
+          {
+            "name": "Portuguese",
+            "value": "pt"
+          }
+        ]
       }
     ]
   },
@@ -3308,6 +3560,132 @@
         "label": "Content",
         "value": "",
         "description": "Contenido rich text de la columna (puede incluir enlaces, listas, texto formateado)"
+      },
+      {
+        "component": "multiselect",
+        "name": "target-countries",
+        "label": "Target Countries (POS)",
+        "valueType": "string",
+        "description": "Optional: Select target countries/POS. If empty, shows in all. Compared against 'selected-country' cookie (ISO-2 codes).",
+        "options": [
+          {
+            "name": "Argentina",
+            "value": "ar"
+          },
+          {
+            "name": "Bolivia",
+            "value": "bo"
+          },
+          {
+            "name": "Brasil",
+            "value": "br"
+          },
+          {
+            "name": "Canadá",
+            "value": "ca"
+          },
+          {
+            "name": "Chile",
+            "value": "cl"
+          },
+          {
+            "name": "Colombia",
+            "value": "co"
+          },
+          {
+            "name": "Costa Rica",
+            "value": "cr"
+          },
+          {
+            "name": "República Dominicana",
+            "value": "do"
+          },
+          {
+            "name": "Ecuador",
+            "value": "ec"
+          },
+          {
+            "name": "España",
+            "value": "eu"
+          },
+          {
+            "name": "Francia",
+            "value": "fr"
+          },
+          {
+            "name": "Reino Unido",
+            "value": "gb"
+          },
+          {
+            "name": "Guatemala",
+            "value": "gt"
+          },
+          {
+            "name": "Honduras",
+            "value": "hn"
+          },
+          {
+            "name": "México",
+            "value": "mx"
+          },
+          {
+            "name": "Nicaragua",
+            "value": "ni"
+          },
+          {
+            "name": "Otros",
+            "value": "ot"
+          },
+          {
+            "name": "Panamá",
+            "value": "pa"
+          },
+          {
+            "name": "Perú",
+            "value": "pe"
+          },
+          {
+            "name": "Paraguay",
+            "value": "py"
+          },
+          {
+            "name": "El Salvador",
+            "value": "sv"
+          },
+          {
+            "name": "Estados Unidos",
+            "value": "us"
+          },
+          {
+            "name": "Uruguay",
+            "value": "uy"
+          }
+        ]
+      },
+      {
+        "component": "multiselect",
+        "name": "target-languages",
+        "label": "Target Languages",
+        "valueType": "string",
+        "description": "Optional: Select target languages. If empty, shows in all. Compared against 'selected-language' cookie.",
+        "options": [
+          {
+            "name": "English",
+            "value": "en"
+          },
+          {
+            "name": "Spanish",
+            "value": "es"
+          },
+          {
+            "name": "French",
+            "value": "fr"
+          },
+          {
+            "name": "Portuguese",
+            "value": "pt"
+          }
+        ]
       }
     ]
   },
