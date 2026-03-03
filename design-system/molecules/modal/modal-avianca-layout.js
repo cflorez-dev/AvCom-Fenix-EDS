@@ -165,7 +165,7 @@ export const ModalAviancaLayout = ({
                 size="medium"
                 colorVariant="informative"
                 disabled=${secondaryButtonDisabled}
-                customClassName="w-full sm:w-auto [&]:!leading-[26px]"
+                customClassName="w-full sm:w-auto [&]:!leading-[26px] hover:!font-bold active:!font-bold"
                 data-no-modal-fx="true"
               >
                 ${secondaryButtonLabel}
