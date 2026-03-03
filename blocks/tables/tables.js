@@ -841,6 +841,34 @@ function markLastColumnCells(table) {
 }
 
 /**
+ * Mark cells with rowspan that visually end in the last row
+ * @param {HTMLTableElement} table - The table to mark
+ */
+function markCellsEndingInLastRow(table) {
+  const tbody = table.querySelector('tbody');
+  if (!tbody) return;
+
+  const rows = Array.from(tbody.querySelectorAll('tr'));
+  if (rows.length === 0) return;
+
+  const lastRowIndex = rows.length - 1;
+
+  // Iterate through all rows to find cells with rowspan
+  rows.forEach((row, rowIndex) => {
+    const cells = row.querySelectorAll('td');
+    cells.forEach((cell) => {
+      const rowspan = parseInt(cell.getAttribute('rowspan'), 10) || 1;
+      const cellEndRow = rowIndex + rowspan - 1;
+
+      // If this cell ends in the last row, mark it
+      if (cellEndRow === lastRowIndex) {
+        cell.setAttribute('data-ends-in-last-row', 'true');
+      }
+    });
+  });
+}
+
+/**
  * Apply zebra rows styling to table
  * @param {HTMLTableElement} table - The table element
  * @param {string} zebraColor - Background color for even rows
@@ -922,12 +950,14 @@ function renderTable(
     applyCustomColors(desktopTable, headerBgColor, contentBgColor, enableZebra, zebraColor);
     enhanceTableAccessibility(desktopTable, 'desktop');
     markLastColumnCells(desktopTable);
+    markCellsEndingInLastRow(desktopTable);
     // Create tablet version with 2 columns per record
     const tabletTable = transformTableForTablet(table.cloneNode(true));
     tabletTable.classList.add('table-tablet');
     applyCustomColors(tabletTable, headerBgColor, contentBgColor, enableZebra, zebraColor);
     enhanceTableAccessibility(tabletTable, 'tablet');
     markLastColumnCells(tabletTable);
+    markCellsEndingInLastRow(tabletTable);
     // Create mobile version with 1 column, vertical layout
     const mobileTable = buildTableForMobile(table.cloneNode(true));
     mobileTable.classList.add('table-mobile');
