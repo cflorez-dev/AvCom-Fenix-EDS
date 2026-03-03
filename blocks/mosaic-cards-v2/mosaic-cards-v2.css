@@ -58,6 +58,16 @@
     }
 }
 
+/* No-loop edge state: hide the arrow that has no more slides to navigate to.
+   Uses visibility+opacity so the sibling arrow doesn't shift position. */
+.mosaic-v2-nav-left.is-nav-disabled,
+.mosaic-v2-nav-right.is-nav-disabled {
+    visibility: hidden;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.2s ease, visibility 0.2s ease;
+}
+
 /* Author mode preview styling */
 .mosaic-cards-v2--author-mode {
     min-height: 120px;
@@ -200,7 +210,7 @@
         left: 0;
         right: 0;
         bottom: 0;
-        z-index: 99;
+        z-index: 29;
         pointer-events: none;
         background: linear-gradient(
             to right,
@@ -213,13 +223,25 @@
         );
     }
 
+    .mosaic-v2-container.is-autoplay::after {
+        background: linear-gradient(
+            to right,
+            #fff 0%,
+            #fff calc(var(--main-section-div-padding, 4px) - 4px),
+            transparent calc(var(--main-section-div-padding, 4px) - 4px),
+            transparent calc(100% - var(--main-section-div-padding, 4px) + 4px),
+            #fff calc(100% - var(--main-section-div-padding, 4px) + 4px),
+            #fff 100%
+        );
+    }
+
     /* Navigation arrows positioning - respect section padding */
     .mosaic-v2-navigation .left-0 {
-        left: 32px !important;
+        left: 16px !important;
     }
 
     .mosaic-v2-navigation .right-0 {
-        right: 32px !important;
+        right: 16px !important;
     }
 }
 
@@ -298,5 +320,36 @@
         
         /* Force override Tailwind responsive classes */
         box-sizing: border-box !important;
+    }
+}
+
+/* Desktop 1248px screen */
+@media (min-width: 1248px) {
+    /* Apply solid mask to hide partial cards at edges - Desktop only when padding is present */
+    .mosaic-v2-container.is-autoplay .mosaic-v2-track {
+        gap: 16px !important;
+    }
+    .mosaic-v2-container:not(.is-autoplay) .parent-cms-mosaic {
+        padding-inline: 16px;
+    }
+
+    .mosaic-v2-container.is-autoplay::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        z-index: 29;
+        pointer-events: none;
+        background: linear-gradient(
+            to right,
+            #fff 0%,
+            #fff calc(var(--main-section-div-padding, 4px) - 4px),
+            transparent calc(var(--main-section-div-padding, 4px) - 4px),
+            transparent calc(100% - var(--main-section-div-padding, 4px) + 4px),
+            #fff calc(100% - var(--main-section-div-padding, 4px) + 4px),
+            #fff 100%
+        );
     }
 }

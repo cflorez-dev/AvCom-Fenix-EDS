@@ -46,6 +46,9 @@ async function createMobileCarousel(allCards, groupId, config = {}) {
   carouselWrapper.className = `carousel-wrapper overflow-x-auto ${snapClasses} scrollbar-hide flex gap-4 p-4 pb-0 scroll-pl-4 scroll-pr-4`;
   // Set scroll behavior based on autoplay: 'auto' for autoplay (no animation), 'smooth' for manual scroll
   carouselWrapper.style.scrollBehavior = autoplay ? 'auto' : 'smooth';
+  // Prevent iOS momentum scrolling from overshooting the loop boundary,
+  // which would expose the empty gap beyond the duplicated card set.
+  carouselWrapper.style.overscrollBehaviorX = 'none';
   carouselWrapper.setAttribute('role', 'list');
   carouselWrapper.setAttribute('aria-live', 'polite');
 
@@ -146,17 +149,10 @@ async function createMobileCarousel(allCards, groupId, config = {}) {
     isUserScrolling = true;
     userPaused = true;
 
-    // Enable smooth scroll for manual interaction
-    carouselWrapper.style.scrollBehavior = 'smooth';
-    
-    // Enable snap for manual interaction if autoplay was enabled
-    if (autoplay) {
-      carouselWrapper.classList.add('snap-x', 'snap-mandatory');
-      // Also enable snap on cards
-      carouselWrapper.querySelectorAll('.carousel-slide').forEach((slide) => {
-        slide.classList.add('snap-center', 'snap-always');
-      });
-    }
+    // NOTE: do NOT add snap classes here.
+    // Adding snap on touchstart causes the browser to immediately snap/center
+    // the current card before the user has moved (visible "centering" bug).
+    // Snap is enabled on touchend instead, so cards snap cleanly after finger release.
 
     // Clear any existing pause timeout
     if (pauseTimeout) {
@@ -173,6 +169,16 @@ async function createMobileCarousel(allCards, groupId, config = {}) {
 
   carouselWrapper.addEventListener('touchend', () => {
     isUserScrolling = false;
+
+    // Enable snap NOW (after finger release) so the card snaps into position
+    // naturally as part of the browser's deceleration — not during the drag.
+    if (autoplay) {
+      carouselWrapper.style.scrollBehavior = 'smooth';
+      carouselWrapper.classList.add('snap-x', 'snap-mandatory');
+      carouselWrapper.querySelectorAll('.carousel-slide').forEach((slide) => {
+        slide.classList.add('snap-center', 'snap-always');
+      });
+    }
 
     // Clear any existing pause timeout
     if (pauseTimeout) {
@@ -198,8 +204,12 @@ async function createMobileCarousel(allCards, groupId, config = {}) {
     }, 3000);
   }, { passive: true });
 
-  // Infinite loop scroll handler - seamless reset at boundaries
+  // Infinite loop scroll handler - seamless reset at boundaries.
+  // Guarded: do NOT fire while the user's finger is on screen or while dot
+  // navigation is animating. Triggering a position reset mid-drag causes a
+  // visible jump because scrollBehavior is 'smooth' during user interaction.
   const handleInfiniteScroll = () => {
+    if (isUserScrolling || isDotNavigating) return;
     const { scrollLeft } = carouselWrapper;
     const allSlides = Array.from(carouselWrapper.querySelectorAll('.carousel-slide'));
     

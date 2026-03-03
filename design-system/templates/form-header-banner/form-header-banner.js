@@ -1,4 +1,5 @@
 import { h } from '@dropins/tools/preact.js';
+import { useState } from '@dropins/tools/preact-hooks.js';
 import htm from 'htm';
 import { Alert } from '../../molecules/alert/alert.js';
 import { CabinUpgradeForm } from '../../organisms/forms/cabin-upgrade-form/cabin-upgrade-form.js';
@@ -49,6 +50,12 @@ export const FormHeaderBanner = ({
   customClassName = '',
   ...rest
 }) => {
+  const [isAlertVisible, setIsAlertVisible] = useState(showAlert);
+
+  const handleAlertDismiss = () => {
+    setIsAlertVisible(false);
+  };
+
   const containerClasses = `form-header-banner-container ${customClassName}`.trim();
 
   // Map alertType to Alert component variant
@@ -116,17 +123,18 @@ export const FormHeaderBanner = ({
                         ${renderForm()}
                     </div>
                   ` : null}
-                  <div data-content="true" data-title="false" data-type="informative" class="w-full max-w-[1248px] min-w-48  inline-flex justify-start items-start gap-2">
-                    ${showAlert ? html`
+                  ${isAlertVisible ? html`
+                    <div data-content="true" data-title="false" data-type="informative" class="w-full max-w-[1248px] min-w-48  inline-flex justify-start items-start gap-2">
                       <${Alert} 
                         variant=${alertVariant}
                         marqueeMode=${false} 
                         isRounded=${true} 
                         contentHTML=${alertContent}
                         dismissible=${alertDismissible}
+                        onDismiss=${handleAlertDismiss}
                       />
-                    ` : null}
-                  </div>
+                    </div>
+                  ` : null}
               </div>
           </div>
       </div>

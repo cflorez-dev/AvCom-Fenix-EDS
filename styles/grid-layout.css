@@ -5,9 +5,10 @@
  * - Select one layout preset (e.g., grid-6-6, grid-3-9, grid-4-4-4)
  * - Optionally combine with gap/alignment/padding/mobile classes
  * - Mobile stacks vertically by default (< 992px)
+ * - Works both as direct children of <main> and inside .fragment-wrapper
  */
 
-main > .section:is(
+:is(main, .fragment-wrapper) > .section:is(
   .grid-12,
   .grid-6-6,
   .grid-4-8,
@@ -36,7 +37,7 @@ main > .section:is(
   justify-items: var(--grid-layout-justify-items, stretch);
 }
 
-main > .section:is(
+:is(main, .fragment-wrapper) > .section:is(
   .grid-12,
   .grid-6-6,
   .grid-4-8,
@@ -61,56 +62,56 @@ main > .section:is(
 }
 
 /* Gap utilities */
-main > .section.grid-gap-none { --grid-layout-gap: 0; }
-main > .section.grid-gap-sm { --grid-layout-gap: 12px; }
-main > .section.grid-gap-md { --grid-layout-gap: 16px; }
-main > .section.grid-gap-lg { --grid-layout-gap: 24px; }
-main > .section.grid-gap-xl { --grid-layout-gap: 32px; }
+:is(main, .fragment-wrapper) > .section.grid-gap-none { --grid-layout-gap: 0; }
+:is(main, .fragment-wrapper) > .section.grid-gap-sm { --grid-layout-gap: 12px; }
+:is(main, .fragment-wrapper) > .section.grid-gap-md { --grid-layout-gap: 16px; }
+:is(main, .fragment-wrapper) > .section.grid-gap-lg { --grid-layout-gap: 24px; }
+:is(main, .fragment-wrapper) > .section.grid-gap-xl { --grid-layout-gap: 32px; }
 
 /* Grid item alignment utilities (section-wide) */
-main > .section.grid-items-start { --grid-layout-align-items: start; }
-main > .section.grid-items-center { --grid-layout-align-items: center; }
-main > .section.grid-items-end { --grid-layout-align-items: end; }
-main > .section.grid-items-stretch { --grid-layout-align-items: stretch; }
+:is(main, .fragment-wrapper) > .section.grid-items-start { --grid-layout-align-items: start; }
+:is(main, .fragment-wrapper) > .section.grid-items-center { --grid-layout-align-items: center; }
+:is(main, .fragment-wrapper) > .section.grid-items-end { --grid-layout-align-items: end; }
+:is(main, .fragment-wrapper) > .section.grid-items-stretch { --grid-layout-align-items: stretch; }
 
-main > .section.grid-justify-start { --grid-layout-justify-items: start; }
-main > .section.grid-justify-center { --grid-layout-justify-items: center; }
-main > .section.grid-justify-end { --grid-layout-justify-items: end; }
-main > .section.grid-justify-stretch { --grid-layout-justify-items: stretch; }
+:is(main, .fragment-wrapper) > .section.grid-justify-start { --grid-layout-justify-items: start; }
+:is(main, .fragment-wrapper) > .section.grid-justify-center { --grid-layout-justify-items: center; }
+:is(main, .fragment-wrapper) > .section.grid-justify-end { --grid-layout-justify-items: end; }
+:is(main, .fragment-wrapper) > .section.grid-justify-stretch { --grid-layout-justify-items: stretch; }
 
 /* Optional inner spacing per column wrapper */
-main > .section.grid-col-pad-sm > div { padding: 12px; }
-main > .section.grid-col-pad-md > div { padding: 16px; }
-main > .section.grid-col-pad-lg > div { padding: 24px; }
+:is(main, .fragment-wrapper) > .section.grid-col-pad-sm > div { padding: 12px; }
+:is(main, .fragment-wrapper) > .section.grid-col-pad-md > div { padding: 16px; }
+:is(main, .fragment-wrapper) > .section.grid-col-pad-lg > div { padding: 24px; }
 
 /* Optional content alignment inside each column wrapper */
-main > .section.grid-col-content-start > div,
-main > .section.grid-col-content-center > div,
-main > .section.grid-col-content-end > div {
+:is(main, .fragment-wrapper) > .section.grid-col-content-start > div,
+:is(main, .fragment-wrapper) > .section.grid-col-content-center > div,
+:is(main, .fragment-wrapper) > .section.grid-col-content-end > div {
   display: flex;
   flex-direction: column;
 }
 
-main > .section.grid-col-content-start > div { justify-content: flex-start; }
-main > .section.grid-col-content-center > div { justify-content: center; }
-main > .section.grid-col-content-end > div { justify-content: flex-end; }
+:is(main, .fragment-wrapper) > .section.grid-col-content-start > div { justify-content: flex-start; }
+:is(main, .fragment-wrapper) > .section.grid-col-content-center > div { justify-content: center; }
+:is(main, .fragment-wrapper) > .section.grid-col-content-end > div { justify-content: flex-end; }
 
 /* Mobile behavior */
 @media (max-width: 991px) {
-  main > .section.grid-mobile-reverse {
+  :is(main, .fragment-wrapper) > .section.grid-mobile-reverse {
     display: flex;
     flex-direction: column-reverse;
     gap: var(--grid-layout-gap, 24px);
   }
 
-  main > .section.grid-mobile-reverse > div {
+  :is(main, .fragment-wrapper) > .section.grid-mobile-reverse > div {
     width: 100%;
   }
 }
 
 /* Desktop/tablet layouts (12-column grid base) */
 @media (min-width: 992px) {
-  main > .section:is(
+  :is(main, .fragment-wrapper) > .section:is(
     .grid-12,
     .grid-6-6,
     .grid-4-8,
@@ -134,76 +135,76 @@ main > .section.grid-col-content-end > div { justify-content: flex-end; }
     grid-template-columns: repeat(12, minmax(0, 1fr));
   }
 
-  main > .section.grid-12 > div {
+  :is(main, .fragment-wrapper) > .section.grid-12 > div {
     grid-column: span 12;
   }
 
-  main > .section.grid-6-6 > div:nth-child(1) { grid-column: span 6; }
-  main > .section.grid-6-6 > div:nth-child(2) { grid-column: span 6; }
+  :is(main, .fragment-wrapper) > .section.grid-6-6 > div:nth-child(1) { grid-column: span 6; }
+  :is(main, .fragment-wrapper) > .section.grid-6-6 > div:nth-child(2) { grid-column: span 6; }
 
-  main > .section.grid-4-8 > div:nth-child(1) { grid-column: span 4; }
-  main > .section.grid-4-8 > div:nth-child(2) { grid-column: span 8; }
+  :is(main, .fragment-wrapper) > .section.grid-4-8 > div:nth-child(1) { grid-column: span 4; }
+  :is(main, .fragment-wrapper) > .section.grid-4-8 > div:nth-child(2) { grid-column: span 8; }
 
-  main > .section.grid-8-4 > div:nth-child(1) { grid-column: span 8; }
-  main > .section.grid-8-4 > div:nth-child(2) { grid-column: span 4; }
+  :is(main, .fragment-wrapper) > .section.grid-8-4 > div:nth-child(1) { grid-column: span 8; }
+  :is(main, .fragment-wrapper) > .section.grid-8-4 > div:nth-child(2) { grid-column: span 4; }
 
-  main > .section.grid-3-9 > div:nth-child(1) { grid-column: span 3; }
-  main > .section.grid-3-9 > div:nth-child(2) { grid-column: span 9; }
+  :is(main, .fragment-wrapper) > .section.grid-3-9 > div:nth-child(1) { grid-column: span 3; }
+  :is(main, .fragment-wrapper) > .section.grid-3-9 > div:nth-child(2) { grid-column: span 9; }
 
-  main > .section.grid-9-3 > div:nth-child(1) { grid-column: span 9; }
-  main > .section.grid-9-3 > div:nth-child(2) { grid-column: span 3; }
+  :is(main, .fragment-wrapper) > .section.grid-9-3 > div:nth-child(1) { grid-column: span 9; }
+  :is(main, .fragment-wrapper) > .section.grid-9-3 > div:nth-child(2) { grid-column: span 3; }
 
-  main > .section.grid-5-7 > div:nth-child(1) { grid-column: span 5; }
-  main > .section.grid-5-7 > div:nth-child(2) { grid-column: span 7; }
+  :is(main, .fragment-wrapper) > .section.grid-5-7 > div:nth-child(1) { grid-column: span 5; }
+  :is(main, .fragment-wrapper) > .section.grid-5-7 > div:nth-child(2) { grid-column: span 7; }
 
-  main > .section.grid-7-5 > div:nth-child(1) { grid-column: span 7; }
-  main > .section.grid-7-5 > div:nth-child(2) { grid-column: span 5; }
+  :is(main, .fragment-wrapper) > .section.grid-7-5 > div:nth-child(1) { grid-column: span 7; }
+  :is(main, .fragment-wrapper) > .section.grid-7-5 > div:nth-child(2) { grid-column: span 5; }
 
-  main > .section.grid-2-10 > div:nth-child(1) { grid-column: span 2; }
-  main > .section.grid-2-10 > div:nth-child(2) { grid-column: span 10; }
+  :is(main, .fragment-wrapper) > .section.grid-2-10 > div:nth-child(1) { grid-column: span 2; }
+  :is(main, .fragment-wrapper) > .section.grid-2-10 > div:nth-child(2) { grid-column: span 10; }
 
-  main > .section.grid-10-2 > div:nth-child(1) { grid-column: span 10; }
-  main > .section.grid-10-2 > div:nth-child(2) { grid-column: span 2; }
+  :is(main, .fragment-wrapper) > .section.grid-10-2 > div:nth-child(1) { grid-column: span 10; }
+  :is(main, .fragment-wrapper) > .section.grid-10-2 > div:nth-child(2) { grid-column: span 2; }
 
-  main > .section.grid-1-11 > div:nth-child(1) { grid-column: span 1; }
-  main > .section.grid-1-11 > div:nth-child(2) { grid-column: span 11; }
+  :is(main, .fragment-wrapper) > .section.grid-1-11 > div:nth-child(1) { grid-column: span 1; }
+  :is(main, .fragment-wrapper) > .section.grid-1-11 > div:nth-child(2) { grid-column: span 11; }
 
-  main > .section.grid-11-1 > div:nth-child(1) { grid-column: span 11; }
-  main > .section.grid-11-1 > div:nth-child(2) { grid-column: span 1; }
+  :is(main, .fragment-wrapper) > .section.grid-11-1 > div:nth-child(1) { grid-column: span 11; }
+  :is(main, .fragment-wrapper) > .section.grid-11-1 > div:nth-child(2) { grid-column: span 1; }
 
-  main > .section.grid-4-4-4 > div:nth-child(1) { grid-column: span 4; }
-  main > .section.grid-4-4-4 > div:nth-child(2) { grid-column: span 4; }
-  main > .section.grid-4-4-4 > div:nth-child(3) { grid-column: span 4; }
+  :is(main, .fragment-wrapper) > .section.grid-4-4-4 > div:nth-child(1) { grid-column: span 4; }
+  :is(main, .fragment-wrapper) > .section.grid-4-4-4 > div:nth-child(2) { grid-column: span 4; }
+  :is(main, .fragment-wrapper) > .section.grid-4-4-4 > div:nth-child(3) { grid-column: span 4; }
 
-  main > .section.grid-3-3-6 > div:nth-child(1) { grid-column: span 3; }
-  main > .section.grid-3-3-6 > div:nth-child(2) { grid-column: span 3; }
-  main > .section.grid-3-3-6 > div:nth-child(3) { grid-column: span 6; }
+  :is(main, .fragment-wrapper) > .section.grid-3-3-6 > div:nth-child(1) { grid-column: span 3; }
+  :is(main, .fragment-wrapper) > .section.grid-3-3-6 > div:nth-child(2) { grid-column: span 3; }
+  :is(main, .fragment-wrapper) > .section.grid-3-3-6 > div:nth-child(3) { grid-column: span 6; }
 
-  main > .section.grid-3-6-3 > div:nth-child(1) { grid-column: span 3; }
-  main > .section.grid-3-6-3 > div:nth-child(2) { grid-column: span 6; }
-  main > .section.grid-3-6-3 > div:nth-child(3) { grid-column: span 3; }
+  :is(main, .fragment-wrapper) > .section.grid-3-6-3 > div:nth-child(1) { grid-column: span 3; }
+  :is(main, .fragment-wrapper) > .section.grid-3-6-3 > div:nth-child(2) { grid-column: span 6; }
+  :is(main, .fragment-wrapper) > .section.grid-3-6-3 > div:nth-child(3) { grid-column: span 3; }
 
-  main > .section.grid-6-3-3 > div:nth-child(1) { grid-column: span 6; }
-  main > .section.grid-6-3-3 > div:nth-child(2) { grid-column: span 3; }
-  main > .section.grid-6-3-3 > div:nth-child(3) { grid-column: span 3; }
+  :is(main, .fragment-wrapper) > .section.grid-6-3-3 > div:nth-child(1) { grid-column: span 6; }
+  :is(main, .fragment-wrapper) > .section.grid-6-3-3 > div:nth-child(2) { grid-column: span 3; }
+  :is(main, .fragment-wrapper) > .section.grid-6-3-3 > div:nth-child(3) { grid-column: span 3; }
 
-  main > .section.grid-2-5-5 > div:nth-child(1) { grid-column: span 2; }
-  main > .section.grid-2-5-5 > div:nth-child(2) { grid-column: span 5; }
-  main > .section.grid-2-5-5 > div:nth-child(3) { grid-column: span 5; }
+  :is(main, .fragment-wrapper) > .section.grid-2-5-5 > div:nth-child(1) { grid-column: span 2; }
+  :is(main, .fragment-wrapper) > .section.grid-2-5-5 > div:nth-child(2) { grid-column: span 5; }
+  :is(main, .fragment-wrapper) > .section.grid-2-5-5 > div:nth-child(3) { grid-column: span 5; }
 
-  main > .section.grid-5-2-5 > div:nth-child(1) { grid-column: span 5; }
-  main > .section.grid-5-2-5 > div:nth-child(2) { grid-column: span 2; }
-  main > .section.grid-5-2-5 > div:nth-child(3) { grid-column: span 5; }
+  :is(main, .fragment-wrapper) > .section.grid-5-2-5 > div:nth-child(1) { grid-column: span 5; }
+  :is(main, .fragment-wrapper) > .section.grid-5-2-5 > div:nth-child(2) { grid-column: span 2; }
+  :is(main, .fragment-wrapper) > .section.grid-5-2-5 > div:nth-child(3) { grid-column: span 5; }
 
-  main > .section.grid-5-5-2 > div:nth-child(1) { grid-column: span 5; }
-  main > .section.grid-5-5-2 > div:nth-child(2) { grid-column: span 5; }
-  main > .section.grid-5-5-2 > div:nth-child(3) { grid-column: span 2; }
+  :is(main, .fragment-wrapper) > .section.grid-5-5-2 > div:nth-child(1) { grid-column: span 5; }
+  :is(main, .fragment-wrapper) > .section.grid-5-5-2 > div:nth-child(2) { grid-column: span 5; }
+  :is(main, .fragment-wrapper) > .section.grid-5-5-2 > div:nth-child(3) { grid-column: span 2; }
 
   /*
    * Any wrappers beyond the defined preset count become full-width rows.
    * This prevents overlap and avoids breaking existing content.
    */
-  main > .section:is(
+  :is(main, .fragment-wrapper) > .section:is(
     .grid-6-6,
     .grid-4-8,
     .grid-8-4,
@@ -216,7 +217,7 @@ main > .section.grid-col-content-end > div { justify-content: flex-end; }
     .grid-1-11,
     .grid-11-1
   ) > div:nth-child(n+3),
-  main > .section:is(
+  :is(main, .fragment-wrapper) > .section:is(
     .grid-4-4-4,
     .grid-3-3-6,
     .grid-3-6-3,

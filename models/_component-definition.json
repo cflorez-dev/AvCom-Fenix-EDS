@@ -585,8 +585,7 @@
                 "template": {
                   "name": "Tables",
                   "model": "tables",
-                  "filter": "tables",
-                  "key-value": true
+                  "filter": "tables"
                 }
               }
             }
