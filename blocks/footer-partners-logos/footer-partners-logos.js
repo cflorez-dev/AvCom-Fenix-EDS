@@ -1,34 +1,45 @@
-import { createOptimizedPicture, readBlockConfig } from '../../scripts/aem.js';
+import { createOptimizedPicture } from '../../scripts/aem.js';
 import { shouldShowByTargeting } from '../../scripts/utils/target-filter.js';
 
 /**
- * Maps the footer partners logos block data
+ * Gets the text content of a specific cell within an element.
+ * Tries: p tag → first child element → direct textContent.
+ * @param {Element} el - Parent element
+ * @param {number} index - Cell index (0-based)
+ * @returns {string} Trimmed text content
+ */
+function getCellText(el, index) {
+  const cell = el?.children[index];
+  if (!cell) return '';
+  return cell.querySelector('p')?.textContent?.trim()
+    || cell.children[0]?.textContent?.trim()
+    || cell.textContent?.trim()
+    || '';
+}
+
+/**
+ * Maps the footer partners logos block data.
+ * Block model fields: 0=target-countries, 1=target-languages
+ * Item model fields:  0=image, 1=alt, 2=url, 3=target-countries, 4=target-languages
  * @param {Element} block The footer-partners-logos block element
  * @returns {Array<{imageUrl: string, imageAlt: string, redirectUrl: string}>}
  * Array of partner logo data
  */
 export function mapFooterPartnersLogosData(block) {
   const items = [];
-  const allChildren = [...block.children];
 
-  // Check if first 2 rows are targeting config (single-column rows with country/language codes)
-  const validCountries = ['co', 'ar', 'mx', 'pe', 'ec', 'sv', 'cr', 'br', 'bo', 'cl', 'ca', 'gt', 'hn', 'ni', 'pa', 'py', 'do', 'eu', 'gb', 'uy', 'ot', 'us'];
-  let startIndex = 0;
-  
-  if (allChildren.length >= 2) {
-    const firstRowValue = allChildren[0]?.children[0]?.textContent?.trim().toLowerCase();
-    const firstRowIsTargeting = firstRowValue && 
-      allChildren[0].children.length <= 2 && // Max 2 cols for targeting config
-      (validCountries.includes(firstRowValue) || firstRowValue.split(',').every((c) => validCountries.includes(c.trim())));
-    
-    if (firstRowIsTargeting) {
-      // Skip first 2 rows (target-countries and target-languages)
-      startIndex = 2;
+  // Rows 0 and 1 are always targeting fields (target-countries, target-languages)
+  const contentChildren = [...block.children].slice(2);
+
+  contentChildren.forEach((item) => {
+    // Item-level targeting: positional fields 3=target-countries, 4=target-languages
+    const itemCountries = getCellText(item, 3);
+    const itemLanguages = getCellText(item, 4);
+
+    if ((itemCountries || itemLanguages)
+      && !shouldShowByTargeting(itemCountries, itemLanguages)) {
+      return; // Skip this item
     }
-  }
-
-  // Iterate through each partner logo item (after skipping targeting rows if present)
-  allChildren.slice(startIndex).forEach((item) => {
     // Extract image URL from picture > img
     const img = item.querySelector('picture img');
     const imageUrl = img?.src || img?.getAttribute('src') || '';
@@ -104,34 +115,16 @@ export default function decorate(block) {
     return;
   }
 
-  // Targeting check - hide if not matching current POS
-  const config = readBlockConfig(block);
-  
-  // Leer targeting desde config (formato estándar: target-countries | co)
-  let targetCountries = config['target-countries'] || '';
-  let targetLanguages = config['target-languages'] || '';
-  
-  // Fallback: Si no hay config con nombre, leer de las primeras dos filas simples
-  // SOLO si el contenido parece ser un código de país/idioma válido
-  if (!targetCountries && !targetLanguages) {
-    const validCountries = ['co', 'ar', 'mx', 'pe', 'ec', 'sv', 'cr', 'br', 'bo', 'cl', 'ca', 'gt', 'hn', 'ni', 'pa', 'py', 'do', 'eu', 'gb', 'uy', 'ot', 'us'];
-    const validLanguages = ['es', 'en', 'pt', 'fr'];
-    
-    const rows = block.querySelectorAll(':scope > div');
-    if (rows.length >= 2) {
-      const firstRowValue = rows[0]?.children[0]?.textContent?.trim().toLowerCase();
-      // Solo usar si es un código de país válido (2-3 letras) o lista separada por comas
-      if (firstRowValue && (validCountries.includes(firstRowValue) || firstRowValue.split(',').every((c) => validCountries.includes(c.trim())))) {
-        targetCountries = firstRowValue;
-      }
-      
-      const secondRowValue = rows[1]?.children[0]?.textContent?.trim().toLowerCase();
-      // Solo usar si es un código de idioma válido o lista separada por comas
-      if (secondRowValue && (validLanguages.includes(secondRowValue) || secondRowValue.split(',').every((l) => validLanguages.includes(l.trim())))) {
-        targetLanguages = secondRowValue;
-      }
-    }
-  }
+  // 2. Block-level targeting: positional rows 0=target-countries, 1=target-languages
+  const rows = [...block.children];
+  const getRowText = (rowIndex) => {
+    const row = rows[rowIndex];
+    if (!row || !row.children.length) return '';
+    return row.children[0]?.textContent?.trim() || '';
+  };
+
+  const targetCountries = getRowText(0);
+  const targetLanguages = getRowText(1);
 
   if (!shouldShowByTargeting(targetCountries, targetLanguages)) {
     block.style.display = 'none';
