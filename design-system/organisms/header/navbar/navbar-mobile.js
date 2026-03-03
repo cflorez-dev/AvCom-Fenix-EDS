@@ -246,7 +246,7 @@ export const NavbarMobile = ({
   })}
         </ul>
         <!-- Language Selector Button -->
-        <div class="px-[16px] py-[16px]">
+        <div class="px-[1rem] py-[1.5rem]">
           <${LanguageSelectorButton} onClick=${handleLanguageButtonClick} customClassName="[&:hover]:scale-100" />
         </div>
       </nav>
@@ -294,7 +294,7 @@ export const NavbarMobile = ({
           >
             ${renderIcon(backIcon)}
           </button>
-          <h2 class="text-lg font-bold text-[var(--text-normal)] m-0 flex-1">${selectedSection.itemLabel}</h2>
+          <h2 class="!text-lg font-bold text-[var(--color-text-normal-primary)] m-0 flex-1">${selectedSection.itemLabel}</h2>
         </div>
         <nav role="navigation" aria-label=${`Submenú de ${selectedSection.itemLabel}`}>
           <ul class="list-none p-0 m-0 flex flex-col">
@@ -317,7 +317,7 @@ export const NavbarMobile = ({
                       onClick=${handleNavLinkClick}
                     >
                       <span class=${`sub-item-link-text  h-[21px] ${isHovered ? 'text-[var(--brand-secondary)]' : 'text-[var(--text-normal-secondary)]'}`}>${subItem.itemLabel}</span>
-                      <span class=${`w-6 h-6 inline-flex items-center justify-center shrink-0 ml-3 ${isHovered ? 'text-[var(--brand-secondary)]' : 'text-[var(--text-normal-secondary)]'}`}>
+                      <span class=${`w-6 h-6 inline-flex items-center justify-center shrink-0 ml-4 ${isHovered ? 'text-[var(--brand-secondary)]' : 'text-[var(--text-normal-secondary)]'}`}>
                         <${Icon}
                           icon=${isExternalLink ? 'navigation/open-in-new-16' : 'navigation/arrow-forward-16'}
                           size="s"

@@ -1,9 +1,9 @@
 import { h, render } from '@dropins/tools/preact.js';
 import htm from 'htm';
-import { readBlockConfig } from '../../scripts/aem.js';
 import { Button } from '../../design-system/atoms/button/button.js';
 import { LinkButton } from '../../design-system/atoms/link-button/link-button.js';
 import { Icon } from '../../design-system/atoms/icon/icon.js';
+import { shouldShowByTargeting, hideBlockWithSection } from '../../scripts/utils/target-filter.js';
 
 const html = htm.bind(h);
 
@@ -193,24 +193,34 @@ export default function decorate(block) {
 
   // 2. Production Mode: Map block data
   const mappedData = mapBlockData(block);
-  // Fallback to readBlockConfig if available
-  const config = readBlockConfig(block);
 
-  // Extract configuration with default values, prioritizing mappedData
-  const text = mappedData.text || config.text || '';
-  const variant = mappedData.variant || config.variant || 'primary';
+  // Extract targeting from positional rows
+  // Model field order: 0-9 = button fields, 10=target-countries, 11=target-languages
+  const divs = Array.from(block.querySelectorAll(':scope > div'));
+  const targetCountries = divs[10]?.children[0]?.textContent?.trim() || '';
+  const targetLanguages = divs[11]?.children[0]?.textContent?.trim() || '';
+
+  // Check targeting (country/language filtering)
+  if (!shouldShowByTargeting(targetCountries, targetLanguages)) {
+    hideBlockWithSection(block);
+    return;
+  }
+
+  // Extract configuration with default values
+  const text = mappedData.text || '';
+  const variant = mappedData.variant || 'primary';
   // Icon is now a simple text field - use value as-is (empty string = no icon)
-  const icon = mappedData.icon || config.icon || '';
-  const iconPosition = mappedData.iconPosition || config.iconPosition || 'prefix';
-  const linkType = mappedData.linkType || config.linkType || 'internal';
-  const href = mappedData.href || config.href || '';
-  const target = (mappedData.target && mappedData.target.trim()) || (config.target && config.target.trim()) || '_self';
-  const tooltip = mappedData.tooltip || config.tooltip || '';
-  const title = mappedData.title || config.title || '';
+  const icon = mappedData.icon || '';
+  const iconPosition = mappedData.iconPosition || 'prefix';
+  const linkType = mappedData.linkType || 'internal';
+  const href = mappedData.href || '';
+  const target = (mappedData.target && mappedData.target.trim()) || '_self';
+  const tooltip = mappedData.tooltip || '';
+  const title = mappedData.title || '';
 
   // Parse custom attributes
   let customAttrs = {};
-  const customAttributesValue = mappedData.customAttributes || config.customAttributes || '';
+  const customAttributesValue = mappedData.customAttributes || '';
 
   if (customAttributesValue) {
     if (typeof customAttributesValue === 'object') {
@@ -253,11 +263,17 @@ export default function decorate(block) {
   // 5. Build component props
   // Button accepts: "xxs" | "xs" | "sm" | "md" | "lg" | "icon"
   // LinkButton accepts: "compact" | "default" | "medium" | "large" | "huge"
+  // Detect icon-only mode (has icon but no text)
+  const hasIcon = icon && icon.trim() !== '';
+  const hasText = text && text.trim() !== '';
+  const isIconOnly = hasIcon && !hasText;
+
   const buttonProps = {
     variant: isTertiary ? 'link' : variant, // tertiary uses LinkButton variant="link"
     size: isTertiary ? 'medium' : 'md', // LinkButton uses "medium", Button uses "md"
-    customClassName: 'cms-button-element w-full',
+    customClassName: isIconOnly ? 'cms-button-element' : 'cms-button-element w-full', // No w-full for icon-only
     title: title || text, // Fallback to text if no title
+    iconOnly: isIconOnly, // Enable icon-only mode when no text present
     ...customAttrs, // Spread custom attributes (aria-*, data-*, etc)
   };
 
@@ -361,12 +377,18 @@ export default function decorate(block) {
 
   // 6. Build children (text + icon)
   const renderChildren = () => {
-    // Icon is a text field - check if it's not empty
-    const hasIcon = icon && icon.trim() !== '';
-
     if (!hasIcon) {
       // Text only
       return text;
+    }
+
+    // Icon only mode - render with avi-button__icon
+    if (isIconOnly) {
+      return html`
+        <span class="max-h-[1.25rem]">
+          <${Icon} icon=${icon} />
+        </span>
+      `;
     }
 
     // For tertiary (LinkButton), use Tailwind classes that respond to group
@@ -390,7 +412,7 @@ export default function decorate(block) {
       return { color: 'var(--color-text-link-informative-default)' };
     };
 
-    // With icon
+    // With icon and text
     const iconProps = getIconProps();
     const iconElement = html`
       <${Icon} icon=${icon} size="m" ...${iconProps} />
@@ -416,7 +438,7 @@ export default function decorate(block) {
 
   render(
     html`
-    <div class="cms-button-container w-full my-2">
+    <div class="cms-button-container w-full">
       <${ButtonComponent} ...${buttonProps} customClassName="group/cms-button ">
         <div class="flex items-center justify-center gap-[12px]">
           ${renderChildren()}

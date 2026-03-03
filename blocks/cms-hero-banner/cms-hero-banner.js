@@ -4,7 +4,8 @@ import htm from 'htm';
 import { readBlockConfig, loadCSS } from '../../scripts/aem.js';
 import { PromotionalCountdownCard, AbsoluteCountdown } from '../../design-system/molecules/promotional-countdown-card/promotional-countdown-card.js';
 import { fetchAEMData } from '../../scripts/utils/aem-data.js';
-import { getStoredCountry, getStoredLanguage } from '../../scripts/services/header/language-country-selector.js';
+import { shouldShowByTargeting, hideBlockWithSection } from '../../scripts/utils/target-filter.js';
+import { getStoredLanguage } from '../../scripts/services/header/language-country-selector.js';
 
 const html = htm.bind(h);
 
@@ -19,25 +20,6 @@ loadCSS('/design-system/molecules/promotional-countdown-card/promotional-countdo
  */
 function getColombiaTime() {
   return new Date(new Date().toLocaleString('en-US', { timeZone: 'America/Bogota' }));
-}
-
-/**
- * Gets language from 'selected-language' cookie
- * @returns {string} Language code from cookie, default 'es'
- */
-function getLanguageFromCookie() {
-  try {
-    const value = `; ${document.cookie}`;
-    const parts = value.split('; selected-language=');
-    if (parts.length === 2) {
-      const language = parts.pop().split(';').shift();
-      return language || 'es';
-    }
-  } catch (error) {
-    // eslint-disable-next-line no-console
-    console.error('Error reading selected-language cookie:', error);
-  }
-  return 'es';
 }
 
 /**
@@ -80,7 +62,7 @@ export default async function decorate(block) {
 
   // Load i18n cache
   if (!i18Cache) {
-    const language = getLanguageFromCookie();
+    const language = getStoredLanguage() || 'es';
     const i18Data = await fetchAEMData(`${language}`);
     i18Cache = i18Data?.data || [];
   }
@@ -92,33 +74,8 @@ export default async function decorate(block) {
   const secondsLabel = getI18nLabel('cms-hero-banner.counter.labels.seconds') || 'Seg';
 
   // Country/Language filtering
-  const targetCountries = targetcountries
-    ? targetcountries.split(',').map((country) => country.trim().toLowerCase())
-    : [];
-  const targetLanguages = targetlanguages
-    ? targetlanguages.split(',').map((lang) => lang.trim().toLowerCase())
-    : [];
-
-  const currentCountry = getStoredCountry()?.toLowerCase() || '';
-  const currentLang = getStoredLanguage()?.toLowerCase() || document.documentElement.lang?.toLowerCase() || 'en';
-
-  // Target countries validation: only validate if both config AND cookie exist
-  if (targetCountries.length > 0 && currentCountry && !targetCountries.includes(currentCountry)) {
-    const section = block.closest('.section');
-    if (section) {
-      section.classList.add('!p-0', '!m-0', '!h-0', '!overflow-hidden');
-    }
-    block.classList.add('hidden');
-    return;
-  }
-
-  // Target languages validation: only validate if config exists
-  if (targetLanguages.length > 0 && currentLang && !targetLanguages.includes(currentLang)) {
-    const section = block.closest('.section');
-    if (section) {
-      section.classList.add('!p-0', '!m-0', '!h-0', '!overflow-hidden');
-    }
-    block.classList.add('hidden');
+  if (!shouldShowByTargeting(targetcountries, targetlanguages)) {
+    hideBlockWithSection(block);
     return;
   }
 

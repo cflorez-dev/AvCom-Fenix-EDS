@@ -59,7 +59,7 @@ export const ListItem = ({
   const baseClasses = 'group w-full min-h-12 px-4 py-3 relative inline-flex justify-start items-center gap-4 transition-[background-color]';
 
   const interactiveClasses = disabled
-    ? 'cursor-not-allowed opacity-60'
+    ? 'opacity-60'
     : 'cursor-pointer bg-background-brand-secondary-default hover:bg-background-brand-secondary-hover active:bg-background-brand-primary-active focus:outline-none focus-visible:[box-shadow:inset_0_0_0_2px_var(--color-border-stroke-focus)]';
 
   const textClasses = disabled

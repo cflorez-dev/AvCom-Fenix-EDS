@@ -10,6 +10,8 @@ import htm from 'htm';
 import { Incrementer } from '../../atoms/incrementer/incrementer.js';
 import { Icon } from '../../atoms/icon/icon.js';
 import { Button } from '../../atoms/button/button.js';
+import { Alert } from '../alert/alert.js';
+import { processContentHTML } from '../../helpers/process-content-html.js';
 
 const html = htm.bind(h);
 
@@ -328,7 +330,7 @@ export const PassengerSelector = ({
 
   // Calculate trigger text (memoized)
   const getDisplayText = useMemo(() => {
-    const total = passengers.adults + passengers.youth + passengers.children + passengers.infants;
+    const total = passengers.adults + passengers.youth + passengers.children;
 
     // Desktop: Solo mostrar el número total
     if (!isMobile) {
@@ -352,6 +354,43 @@ export const PassengerSelector = ({
     () => passengers.adults + passengers.youth + passengers.children,
     [passengers.adults, passengers.youth, passengers.children],
   );
+
+  // Process groupTravelLink HTML so <a> get LinkButton styles (process-content-html)
+  const groupTravelLinkProcessed = useMemo(() => {
+    const processed = processContentHTML(
+      i18n['bookingBox.labels.groupTravelLink'] || '',
+      'informative',
+      {
+        linkButtonOptions: {
+          customClassName: '!text-[14px] !font-normal hover:!text-[13.5px] hover:!font-bold',
+        },
+      },
+    );
+    // Normalize link text size: replace 16px with 14px (LinkButton default can be 16px)
+    return processed
+      .replace(/\b!?text-\[16px\]/g, 'text-[14px]')
+      .replace(/\b!?text-\[1rem\]/g, 'text-[14px]');
+  }, [i18n['bookingBox.labels.groupTravelLink']]);
+
+  const youthPolicyLearnProcessed = useMemo(() => {
+    const processed = processContentHTML(
+      i18n['bookingBox.labels.youthPolicyLearn'] || '',
+      'informative',
+      {
+        pClassName: 'text-[14px] leading-[21px]',
+        strongClassName: 'font-bold',
+        processRelAttributes: true,
+        linkButtonOptions: {
+          customClassName: '!text-[14px] !leading-[21px] py-0',
+          linkTarget: 'self',
+        },
+      },
+    );
+
+    return processed
+      .replace(/\b!?text-\[16px\]/g, 'text-[14px]')
+      .replace(/\b!?text-\[1rem\]/g, 'text-[14px]');
+  }, [i18n['bookingBox.labels.youthPolicyLearn']]);
 
   // Performance: Radio Button Component optimizado
   const RadioButton = ({ label, checked, onClick }) => {
@@ -403,30 +442,32 @@ export const PassengerSelector = ({
       data-name="passengerSelector"
       ...${rest}
     >
-      <!-- Trigger Input -->
-      <div class="h-12 w-full rounded-lg outline-1 outline-[var(--color-border-default)] inline-flex justify-start items-start">
+      <!-- Trigger Input (flex-col: content row + green line) -->
+      <div class="w-full rounded-[8px] outline-1 outline-[var(--color-border-default)] inline-flex justify-start items-start overflow-hidden">
         <button
           ref=${triggerRef}
           type="button"
-          class="flex-1 h-12 px-4 flex justify-start items-center gap-2 cursor-pointer transition-all duration-200 outline-0 bg-white max-w-full border-b-[3px] border-b-transparent rounded-lg
-            focus-within:border-border-input-positive
-            hover:border-border-input-positive
-            active:border-border-input-positive
-            ${isOpen ? '!border-border-input-positive' : ''}
-            "
+          class="flex-1 flex flex-col cursor-pointer transition-all duration-200 outline-0 bg-white max-w-full group/passengerTrigger"
           onClick=${handleTriggerClick}
           aria-expanded=${isOpen}
           aria-haspopup="true"
           aria-label=${i18n['bookingBox.aria.selectPassengers'] || 'Seleccionar pasajeros'}
         >
-          <${Icon} icon="action/addpeople" size="m"/>
-          <div class="flex-1 inline-flex flex-col justify-center items-start text-left min-w-0">
-            <div class="self-stretch justify-start text-[var(--text-normal-secondary)] text-xs font-normal">${i18n['bookingBox.labels.passengers'] || 'Pasajeros'}</div>
-            <div class="self-stretch h-5 justify-start text-[var(--text-normal-primary)] text-base font-bold truncate">${getDisplayText}</div>
+          <!-- Content Row -->
+          <div class="flex items-center gap-2 w-full h-12 px-4">
+            <${Icon} icon="action/addpeople" size="m"/>
+            <div class="flex-1 inline-flex flex-col justify-center items-start text-left min-w-0">
+              <div class="self-stretch justify-start text-[var(--text-normal-secondary)] text-xs font-normal">${i18n['bookingBox.labels.passengers'] || 'Pasajeros'}</div>
+              <div class="self-stretch h-5 justify-start text-[var(--text-normal-primary)] text-base font-bold truncate">${getDisplayText}</div>
+            </div>
+            <div class="w-5 h-5 flex justify-center items-center">
+              <div class="${isOpen ? 'rotate-180' : ''} transition-transform duration-200 flex items-center justify-center h-5">
+                <${Icon} icon="navigation/expand-more" size="xsm" />
+              </div>
+            </div>
           </div>
-          <div class="${isOpen ? 'rotate-180' : ''} transition-transform duration-200">
-            <${Icon} icon="navigation/expand-more" size="sm" />
-          </div>
+          <!-- Green bottom line (straight, no border-radius) -->
+          <div class="w-full h-[3px] bg-transparent transition-colors duration-200 group-hover/passengerTrigger:bg-border-input-positive group-focus-within/passengerTrigger:bg-border-input-positive ${isOpen ? '!bg-border-input-positive' : ''}" aria-hidden="true"></div>
         </button>
       </div>
 
@@ -493,8 +534,8 @@ export const PassengerSelector = ({
               <!-- Helper Text (solo mostrar cuando total = 9) -->
               ${totalPassengers === MAX_TOTAL_PASSENGERS && html`
                 <p 
-                  class="text-[14px] text-[var(--color-text-brand-disable)] leading-[1.5] link-container"
-                  dangerouslySetInnerHTML=${{ __html: (i18n['bookingBox.labels.groupTravelLink']) }}
+                  class="!text-[14px] text-[var(--color-text-brand-disable)] leading-[1.5] link-container !m-0"
+                  dangerouslySetInnerHTML=${{ __html: groupTravelLinkProcessed }}
                 />
               `}
 
@@ -543,20 +584,14 @@ export const PassengerSelector = ({
 
             <!-- Info Banner -->
             ${showInfoBanner && html`
-              <div class="w-full max-w-[1248px] min-w-48 min-h-14 p-4 bg-[var(--color-alert-informative-bg)] rounded-lg inline-flex justify-start items-center gap-2">
-                <${Icon} icon="alert/info" size="s" color="var(--color-alert-informative-text)" customClassName="mt-[4px]" />
-                <div class="leading-none max-h-[21px] min-h-max text-[var(--color-alert-informative-text)] text-sm font-normal"
-                  dangerouslySetInnerHTML=${{ __html: (i18n['bookingBox.labels.youthPolicyLearn']) }}
-                />
-                <button
-                  type="button"
-                  onClick=${() => setShowInfoBanner(false)}
-                  class="w-5 h-5 flex items-center justify-center cursor-pointer hover:opacity-60 transition-opacity ml-auto"
-                  aria-label=${i18n['bookingBox.aria.closeBanner'] || 'Cerrar banner'}
-                >
-                <${Icon} icon="navigation/close" size="xs"/>
-                </button>
-              </div>
+              <${Alert}
+                variant="informative"
+                contentHTML=${youthPolicyLearnProcessed}
+                dismissible=${true}
+                onDismiss=${() => setShowInfoBanner(false)}
+                marqueeMode=${false}
+                preserveRawHTML=${true}
+              />
             `}
 
             ${showCabinClass && html`
@@ -601,10 +636,10 @@ export const PassengerSelector = ({
         <!-- Desktop Dropdown Popup -->
         <div
           ref=${dropdownRef}
-          class="absolute ${dropdownPositionStyles} bg-white rounded-[16px] shadow-[0px_2px_12px_0px_rgba(27,27,27,0.15)] p-[24px] z-50 flex flex-col gap-[16px] w-[342px]"
+          class="absolute ${dropdownPositionStyles} bg-white rounded-[16px] shadow-[0px_2px_12px_0px_rgba(27,27,27,0.15)] p-[24px] z-50 flex flex-col gap-[16px] w-[359px]"
         >
           <!-- Title -->
-          <h3 class="!text-[16px] font-bold text-[var(--color-text-normal-primary)] leading-[normal] !mt-0 !mb-0 h-[21px]">${i18n['bookingBox.labels.whoFlies'] || '¿Quiénes vuelan?'}</h3>
+          <h3 class="!text-[16px] !font-bold text-[var(--color-text-normal-primary)] leading-[normal] !mt-0 !mb-0 h-[21px]">${i18n['bookingBox.labels.whoFlies'] || '¿Quiénes vuelan?'}</h3>
 
           <!-- Passenger List -->
           <div class="flex flex-col">
@@ -612,7 +647,7 @@ export const PassengerSelector = ({
             <div class="flex justify-between items-center h-[64px] py-[8px]">
               <div class="flex flex-col gap-[4px]">
                 <span class="text-[18px] font-normal text-[var(--color-text-normal-primary)] leading-[normal]">${i18n['bookingBox.labels.adults'] || 'Adultos'}</span>
-                <span class="text-[12px] text-[var(--color-text-disabled)] leading-[normal]">${i18n['bookingBox.labels.adultsAge'] || 'De 15 a 64 años'}</span>
+                <span class="text-[12px] font-normal text-[var(--color-text-disabled)] leading-[normal]">${i18n['bookingBox.labels.adultsAge'] || 'De 15 a 64 años'}</span>
               </div>
               <${Incrementer}
                 value=${passengers.adults}
@@ -625,8 +660,8 @@ export const PassengerSelector = ({
             <!-- Helper Text (solo mostrar cuando total = 9) -->
             ${totalPassengers === MAX_TOTAL_PASSENGERS && html`
               <p 
-                class="text-[14px] text-[var(--color-text-brand-disable)] leading-[1.5] link-container"
-                dangerouslySetInnerHTML=${{ __html: (i18n['bookingBox.labels.groupTravelLink']) }}
+                class="text-[14px] text-[var(--color-text-brand-disable)] leading-[1.5] link-container !m-0"
+                dangerouslySetInnerHTML=${{ __html: groupTravelLinkProcessed }}
               />
             `}
 
@@ -634,7 +669,7 @@ export const PassengerSelector = ({
             <div class="flex justify-between items-center h-[64px] py-[8px]">
               <div class="flex flex-col gap-[4px]">
                 <span class="text-[18px] font-normal text-[var(--color-text-normal-primary)] leading-[normal]">${i18n['bookingBox.labels.youth'] || 'Jóvenes'}</span>
-                <span class="text-[12px] text-[var(--color-text-disabled)] leading-[normal]">${i18n['bookingBox.labels.youthAge'] || 'De 12 a 14 años'}</span>
+                <span class="text-[12px] font-normal text-[var(--color-text-disabled)] leading-[normal]">${i18n['bookingBox.labels.youthAge'] || 'De 12 a 14 años'}</span>
               </div>
               <${Incrementer}
                 value=${passengers.youth}
@@ -648,7 +683,7 @@ export const PassengerSelector = ({
             <div class="flex justify-between items-center h-[64px] py-[8px]">
               <div class="flex flex-col gap-[4px]">
                 <span class="text-[18px] font-normal text-[var(--color-text-normal-primary)] leading-[normal]">${i18n['bookingBox.labels.children'] || 'Niños'}</span>
-                <span class="text-[12px] text-[var(--color-text-disabled)] leading-[normal]">${i18n['bookingBox.labels.childrenAge'] || 'De 2 a 11 años'}</span>
+                <span class="text-[12px] font-normal text-[var(--color-text-disabled)] leading-[normal]">${i18n['bookingBox.labels.childrenAge'] || 'De 2 a 11 años'}</span>
               </div>
               <${Incrementer}
                 value=${passengers.children}
@@ -662,7 +697,7 @@ export const PassengerSelector = ({
             <div class="flex justify-between items-center h-[64px] py-[8px]">
               <div class="flex flex-col gap-[4px]">
                 <span class="text-[18px] font-normal text-[var(--color-text-normal-primary)] leading-[normal]">${i18n['bookingBox.labels.infants'] || 'Bebés'}</span>
-                <span class="text-[12px] text-[var(--color-text-disabled)] leading-[normal]">${i18n['bookingBox.labels.infantsAge'] || 'Menores de 2 años (1 por adulto)'}</span>
+                <span class="text-[12px] font-normal text-[var(--color-text-disabled)] leading-[normal]">${i18n['bookingBox.labels.infantsAge'] || 'Menores de 2 años (1 por adulto)'}</span>
               </div>
               <${Incrementer}
                 value=${passengers.infants}
@@ -675,20 +710,16 @@ export const PassengerSelector = ({
 
           <!-- Info Banner -->
           ${showInfoBanner && html`
-            <div class="w-full max-w-[1248px] min-w-48 min-h-14 p-4 bg-[var(--color-alert-informative-bg)] rounded-lg inline-flex justify-start items-center gap-2">
-              <${Icon} icon="alert/info" size="s" color="var(--color-alert-informative-text)" />
-              <div class="leading-none max-h-[21px] min-h-max text-[var(--color-alert-informative-text)] text-sm font-normal"
-                dangerouslySetInnerHTML=${{ __html: (i18n['bookingBox.labels.youthPolicyLearn']) }}
-              />
-              <button
-                type="button"
-                onClick=${() => setShowInfoBanner(false)}
-                class="w-5 h-5 flex items-center justify-center cursor-pointer hover:opacity-60 transition-opacity ml-auto"
-                aria-label=${i18n['bookingBox.aria.closeBanner'] || 'Cerrar banner'}
-              >
-                <${Icon} icon="navigation/close" size="xs"/>
-              </button>
-            </div>
+            <${Alert}
+              variant="informative"
+              contentHTML=${youthPolicyLearnProcessed}
+              dismissible=${true}
+              onDismiss=${() => setShowInfoBanner(false)}
+              marqueeMode=${false}
+              isRounded=${true}
+              customClassName="rounded-[8px] border-none !p-[16px] !leading-[21px]"
+              preserveRawHTML=${true}
+            />
           `}
 
           ${showCabinClass && html`
@@ -723,7 +754,7 @@ export const PassengerSelector = ({
               size="md"
               onClick=${handleConfirm}
               disabled=${!!validationError}
-              customClassName="w-full max-h-[50px]"
+              customClassName="w-full max-h-[50px] py-[12px]"
             >
               ${i18n['bookingBox.labels.confirm'] || 'Confirmar'}
             </${Button}>

@@ -157,6 +157,7 @@ export const DateSelector = ({
   desktopDropdownPositionStyles = 'absolute top-full left-0 right-0',
   departureHasError = false,
   returnHasError = false,
+  showErrorMessage = true,
   startMonth = null,
   startYear = null,
   restrictPrevNavigation = false,
@@ -236,6 +237,21 @@ export const DateSelector = ({
       }
     };
   }, []);
+
+  // Mobile: Auto-scroll to startMonth when calendar opens
+  useEffect(() => {
+    if (!isMobile || !isOpen || startMonth === null || startYear === null) return;
+
+    // Use setTimeout to ensure DOM is fully rendered
+    const timer = setTimeout(() => {
+      const monthElement = monthRefs.current[`${startYear}-${startMonth}`];
+      if (monthElement) {
+        monthElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    }, 100);
+
+    return () => clearTimeout(timer);
+  }, [isMobile, isOpen, startMonth, startYear]);
 
   // Fetch pricing for a specific month
   const fetchPricingForMonth = useCallback(async (year, month) => {
@@ -520,9 +536,10 @@ export const DateSelector = ({
   const monthsToRender = useMemo(() => {
     let months = getMonthsToRender();
 
-    // If RESTRICT_RETURN_START_MONTH=true and in return mode with startMonth/startYear,
+    // Desktop only: If RESTRICT_RETURN_START_MONTH=true and in return mode with startMonth/startYear,
     // filter months to start from startMonth
-    if (RESTRICT_RETURN_START_MONTH && mode === 'return' && startMonth !== null && startYear !== null) {
+    // Mobile: Render all months but auto-scroll to startMonth (controlled via useEffect above)
+    if (RESTRICT_RETURN_START_MONTH && !isMobile && mode === 'return' && startMonth !== null && startYear !== null) {
       months = months.filter(({ year, month }) => {
         if (year < startYear) return false;
         if (year === startYear && month < startMonth) return false;
@@ -531,7 +548,7 @@ export const DateSelector = ({
     }
 
     return months;
-  }, [mode, startMonth, startYear]);
+  }, [isMobile, mode, startMonth, startYear]);
 
   // Check if there's pricing data available
   const hasPricingData = useMemo(
@@ -548,7 +565,7 @@ export const DateSelector = ({
   // ========== RENDER ==========
   return html`
     <div
-      class=${`${containerRelative ? 'relative' : ''} flex ${customClassName}`}
+      class=${`${containerRelative ? 'relative' : ''} flex ${customClassName}  group-container`}
       data-name="dateSelector"
       ref=${containerRef}
       ...${rest}
@@ -563,6 +580,7 @@ export const DateSelector = ({
         required=${required}
         containerRelative=${true}
         hasError=${hasInputError}
+        showErrorMessage=${showErrorMessage}
         active=${isOpen}
         i18n=${i18n}
       />
@@ -570,13 +588,13 @@ export const DateSelector = ({
       <!-- Desktop Popup -->
       ${isOpen && !isMobile && html`
         <div
-          class="mt-2 p-6 bg-background-card-lighter w-max rounded-[16px] shadow-[0px_2px_20px_2px_rgba(73,73,73,0.25)] z-50 absolute ${desktopDropdownPositionStyles}"
+          class="mt-2 p-6 flex flex-col gap-[16px] bg-background-card-lighter w-max rounded-[16px] shadow-[0px_2px_20px_2px_rgba(73,73,73,0.25)] z-50 absolute ${desktopDropdownPositionStyles}"
           ref=${popupRef}
           role="dialog"
           aria-label=${i18n['bookingBox.aria.selectDate'] || 'Select date'}
         >
           <!-- Header with Title and Price Indicator -->
-          <div class="flex justify-between mb-4 mr-[20px]">
+          <div class="flex font-normal justify-between">
             ${calendarTitle && html`
               <div class="font-bold text-[var(--text-normal-primary)] text-base min-h-[21px] leading-none">
                 ${calendarTitle}
@@ -590,13 +608,14 @@ export const DateSelector = ({
           <!-- Desktop: 2 months side by side -->
           <div class="flex gap-[68px] relative">
             <!-- Left: Prev Arrow -->
-            <${CarouselNavigationButton} 
-              direction="left" 
-              onClick=${handlePrevMonth} 
-              disabled=${isCurrentMonth} 
-              absolute=${true} 
+            <${CarouselNavigationButton}
+              direction="left"
+              onClick=${handlePrevMonth}
+              disabled=${isCurrentMonth}
+              absolute=${true}
               absoluteTop="top-[12px]"
               absoluteTranslate="translate-y-0"
+              customClassName="shadow-calendar-nav"
             />
             
             <!-- Current month -->
@@ -611,7 +630,9 @@ export const DateSelector = ({
               pricingData=${pricingData}
               disabledDates=${disabledDates}
               minDate=${minDate}
+              showRangeHighlight=${mode !== 'single'}
               customClassName="mb-[10px]"
+              isFirstMonth=${true}
               locale=${locale}
             />
 
@@ -627,18 +648,20 @@ export const DateSelector = ({
               pricingData=${pricingData}
               disabledDates=${disabledDates}
               minDate=${minDate}
+              showRangeHighlight=${mode !== 'single'}
               customClassName="mb-[10px]"
               locale=${locale}
             />
 
             <!-- Right: Next Arrow -->
-            <${CarouselNavigationButton} 
-              direction="right" 
-              onClick=${handleNextMonth} 
-              disabled=${isMaxMonth} 
-              absolute=${true} 
+            <${CarouselNavigationButton}
+              direction="right"
+              onClick=${handleNextMonth}
+              disabled=${isMaxMonth}
+              absolute=${true}
               absoluteTop="top-[12px]"
               absoluteTranslate="translate-y-0"
+              customClassName="shadow-calendar-nav"
             />
           </div>
         </div>
@@ -694,14 +717,15 @@ export const DateSelector = ({
           <!-- Date Inputs -->
           <div class="flex my-6 px-[var(--spacing-x-x-large)] pointer-events-none">
             ${(mode === 'departure' || mode === 'return') && html`
-              <div class="flex flex-1 items-center outline outline-1 outline-offset-[-1px] outline-neutral-400 rounded-lg bg-background-input-default overflow-hidden">
+              <div class="flex flex-1 items-center outline outline-offset-[-1px] outline-neutral-400 rounded-lg bg-background-input-default overflow-hidden">
                 <${DateInput}
                   label=${i18n['bookingBox.labels.departure'] || 'Salida'}
                   value=${formatDate(departureDate, 'numeric')}
                   variant="grouped-left"
                   containerRelative=${false}
                   active=${mode === 'departure'}
-                  hasError=${mode === 'departure' ? departureHasError : false}
+                  hasError=${false}
+                  showErrorMessage=${showErrorMessage}
                   i18n=${i18n}
                 />
 
@@ -714,7 +738,8 @@ export const DateSelector = ({
                   variant="grouped-right"
                   containerRelative=${false}
                   active=${mode === 'return'}
-                  hasError=${returnHasError}
+                  hasError=${false}
+                  showErrorMessage=${showErrorMessage}
                   i18n=${i18n}
                 />
               </div>
@@ -726,7 +751,8 @@ export const DateSelector = ({
                 variant="standalone"
                 containerRelative=${false}
                 active=${true}
-                hasError=${departureHasError}
+                hasError=${false}
+                showErrorMessage=${showErrorMessage}
                 active=${isOpen}
                 i18n=${i18n}
               />
@@ -748,10 +774,10 @@ export const DateSelector = ({
           <div 
             ref=${scrollContainerRef}
             onScroll=${handleScroll}
-            class="flex-1 pl-[var(--spacing-x-x-large)] pr-5 pb-[var(--spacing-x-x-large)] overflow-y-auto"
+            class="flex-1 pl-[var(--spacing-x-x-large)] pr-[10px] mr-[10px] pb-[var(--spacing-x-x-large)] overflow-y-auto"
           >
             <!-- Months in vertical scroll -->
-            ${monthsToRender.map(({ year: y, month: m }) => html`
+            ${monthsToRender.map(({ year: y, month: m }, index) => html`
               <div
                 ref=${(el) => { monthRefs.current[`${y}-${m}`] = el; }}
                 data-year=${y}
@@ -769,8 +795,10 @@ export const DateSelector = ({
                   pricingData=${pricingData}
                   disabledDates=${disabledDates}
                   minDate=${minDate}
+                  showRangeHighlight=${mode !== 'single'}
                   customClassName="my-2"
                   showWeekdayHeader=${false}
+                  isFirstMonth=${index === 0}
                   locale=${locale}
                 />
               </div>

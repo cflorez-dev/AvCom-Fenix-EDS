@@ -1,5 +1,5 @@
 import { getMetadata } from '../../scripts/aem.js';
-import { getLocalizedPaths } from '../../scripts/utils/locale.js';
+import { getLocalizedPathsForErrorPage } from '../../scripts/utils/locale.js';
 import { loadFragment } from '../fragment/fragment.js';
 
 /**
@@ -10,7 +10,7 @@ export default async function decorate(block) {
   // Load footer as fragment with localized paths and fallback
   const footerMeta = getMetadata('footer');
   const customPath = footerMeta ? new URL(footerMeta, window.location).pathname : null;
-  const footerPaths = getLocalizedPaths('footer', customPath);
+  const footerPaths = await getLocalizedPathsForErrorPage('footer', customPath);
   
   // Attempt to load in priority order
   let fragment = null;
@@ -34,9 +34,9 @@ export default async function decorate(block) {
   const footerContainer = document.createElement('div');
   footerContainer.className = 'footer-container flex flex-col';
   footerContainer.innerHTML = `
-      <div class="footer-columns-wrapper flex justify-center"></div>
-      <div class="footer-partner-logos-wrapper flex justify-center"></div>
-      <div class="footer-bottom-wrapper"></div>
+      <div class="footer-columns-wrapper hidden flex justify-center"></div>
+      <div class="footer-partner-logos-wrapper hidden flex justify-center"></div>
+      <div class="footer-bottom-wrapper hidden"></div>
   `;
 
   block.style.display = 'none';

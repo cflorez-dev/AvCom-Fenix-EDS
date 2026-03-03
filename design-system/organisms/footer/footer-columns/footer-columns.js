@@ -80,13 +80,13 @@ export const FooterColumns = ({
 
   // Render column for desktop
   const renderDesktopColumn = (column) => html`
-    <div class="footer-column-desktop w-[220px] flex flex-col gap-[24px]">
+    <div class="footer-column-desktop flex flex-col gap-[24px]">
       <h4
         class="footer-column-title !m-0 w-full !text-[18px] !font-bold break-words text-[var(--text-normal-lighter)]"
       >
         ${column.title}
       </h4>
-      <ul class="footer-column-list flex flex-col list-none p-0 m-0 gap-[12px]">
+      <ul class="footer-column-list flex flex-col list-none p-0 !m-0 gap-[12px]">
         ${column.subItems.map((item) => html`
           <li class="footer-column-item">
             ${renderLink(item)}
@@ -122,9 +122,9 @@ export const FooterColumns = ({
       class="footer-columns-container max-w-xl w-full flex justify-center ${customClassName}"
       ...${rest}
     >
-      <!-- Desktop View: Dynamic column grid -->
+      <!-- Desktop View: CSS Grid with 5 equal columns -->
       <!-- Visible only when width is greater than 1156px -->
-      <div class="footer-columns-desktop max-w-xl w-full hidden min-[1157px]:flex flex-row gap-[16px]">
+      <div class="footer-columns-desktop max-w-xl w-full hidden min-[1157px]:flex justify-between gap-[1.5rem] ">
         ${displayColumns.map((column) => renderDesktopColumn(column))}
       </div>
 

@@ -42,7 +42,7 @@ export const PromotionalCardCarrousel = ({
   // Detect mobile viewport (< 1024px)
   useEffect(() => {
     const checkMobile = () => {
-      setIsMobile(window.innerWidth <= 1024);
+      setIsMobile(window.innerWidth <= 768);
     };
 
     checkMobile();
@@ -89,7 +89,7 @@ export const PromotionalCardCarrousel = ({
 
   // Responsive classes for mobile
   const cardClasses = isMobile
-    ? 'w-96 max-w-96 min-w-96 shadow-[0px_2px_20px_2px_rgba(73,73,73,0.25)]'
+    ? 'w-96 max-w-96 min-w-96'
     : flexClass;
 
   const imageClasses = isMobile
@@ -98,7 +98,7 @@ export const PromotionalCardCarrousel = ({
 
   return html`
     <div 
-      class="${cardClasses} rounded-2xl inline-flex justify-start items-center overflow-hidden ${isCardClickable ? 'cursor-pointer focus:outline focus:outline-2 focus:outline-offset-[-2px] focus:outline-sky-500' : ''} ${!isMobile ? 'hover:shadow-[0px_2px_20px_2px_rgba(73,73,73,0.25)] transition-shadow' : ''} ${customClassName}"
+      class="${cardClasses} rounded-2xl inline-flex justify-start items-center overflow-hidden ${isCardClickable ? 'cursor-pointer focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-[var(--color-border-stroke-focus)]' : ''} ${!isMobile ? 'hover:shadow-[0px_2px_20px_2px_rgba(73,73,73,0.25)] transition-shadow' : ''} ${customClassName}"
       data-name="promotionalCardCarrousel"
       data-variant="${variant}"
       onClick=${isCardClickable ? handleCardClick : null}

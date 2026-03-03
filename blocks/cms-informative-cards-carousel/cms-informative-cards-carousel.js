@@ -3,6 +3,7 @@ import htm from 'htm';
 import { extractCmsInformativeCardsCarouselProps, extractCarouselCards } from './cms-informative-cards-carousel-helper.js';
 import { InformativePhotoCard } from '../../design-system/organisms/cards/informative-photo-card/informative-photo-card.js';
 import { Carousel } from '../../design-system/molecules/carousel/carousel.js';
+import { shouldShowByTargeting, hideBlockWithSection } from '../../scripts/utils/target-filter.js';
 
 const html = htm.bind(h);
 
@@ -10,26 +11,25 @@ const html = htm.bind(h);
 const DESKTOP_BREAKPOINT = 1248;
 
 /**
- * Strip HTML tags and return plain text
- * @param {string} html - HTML string
- * @returns {string} Plain text
- */
-function stripHtmlTags(html) {
-  const div = document.createElement('div');
-  div.innerHTML = html;
-  return div.textContent || div.innerText || '';
-}
-
-/**
- * Render cards in grid layout (100% width)
- * Cards use flex-1 to distribute space equally
+ * Render cards in grid layout
+ * Cards use fixed 300px width only when there are 4 or more cards
+ * Otherwise, cards use flex-1 to distribute space equally
  * @param {Array} cards - Card data array (1-4 cards)
  * @param {string} loadingMode - Image loading strategy ('lazy' or 'eager')
  * @returns {import('preact').VNode} Preact component
  */
 function renderCardsGrid(cards, loadingMode) {
+  const totalCards = cards.length;
+  // Only force 300px width when there are 4 or more cards
+  const cardClassName = totalCards >= 4
+    ? 'w-[300px] min-w-[300px] max-w-[300px]'
+    : 'flex-1';
+  const containerClass = totalCards >= 4
+    ? 'flex flex-wrap gap-4 w-full'
+    : 'flex gap-4 w-full';
+
   return html`
-    <div class="flex gap-3 w-full">
+    <div class="${containerClass}">
       ${cards.map((cardData) => html`
         <${InformativePhotoCard}
           title=${cardData.title}
@@ -40,7 +40,7 @@ function renderCardsGrid(cards, loadingMode) {
           buttonURL=${cardData.ctaLink || ''}
           ctaTargetBlank=${cardData.ctaTargetBlank || false}
           ctaRel=${cardData.ctaRel || 'dofollow'}
-          customClassName="flex-1"
+          customClassName="${cardClassName}"
           loading=${loadingMode}
         />
       `)}
@@ -50,19 +50,14 @@ function renderCardsGrid(cards, loadingMode) {
 
 /**
  * Render cards in carousel (mobile <1248px with 1-4 cards)
- * Cards maintain desktop size inside carousel
+ * Cards maintain 300px fixed width inside carousel
  * Reduce itemsPerView to 1 to force navigation controls
  * @param {Array} cards - Card data array (1-4 cards)
  * @param {string} loadingMode - Image loading strategy ('lazy' or 'eager')
  * @returns {import('preact').VNode} Preact component
  */
 function renderFourCardsCarousel(cards, loadingMode) {
-  const isDesktop = window.innerWidth >= DESKTOP_BREAKPOINT;
-
-  const cardClassName = isDesktop
-    ? 'w-[400px] min-w-[400px] max-w-[400px]' 
-    : 'w-[360px] min-w-[360px] max-w-[360px]';
-  
+  const cardClassName = 'w-[300px] min-w-[300px] max-w-[300px]';
   const cardElements = cards.map((cardData) => html`
     <${InformativePhotoCard}
       title=${cardData.title}
@@ -73,21 +68,23 @@ function renderFourCardsCarousel(cards, loadingMode) {
       buttonURL=${cardData.ctaLink || ''}
       ctaTargetBlank=${cardData.ctaTargetBlank || false}
       ctaRel=${cardData.ctaRel || 'dofollow'}
-      customClassName="${cardClassName} my-[16px] ml-[-0.2px]"
+      customClassName="${cardClassName} my-[16px]"
       loading=${loadingMode}
     />
   `);
-    
+
   return html`
     <${Carousel}
       itemsPerView=${1}
-      gap=${12}
+      gap=${16}
       showNavigation=${false}
       navigationBreakpoint=${1025}
       showPagination=${true}
       autoPlay=${false}
       loop=${false}
       infiniteMobile=${true}
+      paginateByGroup=${true}
+      customScrollContainerClassName="gap-4 min-[480px]:px-[32px]"
     >
       ${cardElements}
     </${Carousel}>
@@ -96,6 +93,7 @@ function renderFourCardsCarousel(cards, loadingMode) {
 
 /**
  * Render 5+ cards in carousel (all viewports)
+ * All cards have fixed 300px width in carousel mode
  * Desktop (≥1248px): Shows 4 cards at once, remaining cards hidden
  * Mobile (<1248px): Shows 1 card at once
  * @param {Array} cards - Card data array (5+)
@@ -103,25 +101,22 @@ function renderFourCardsCarousel(cards, loadingMode) {
  * @returns {import('preact').VNode} Preact component
  */
 function renderMultiCardsCarousel(cards, loadingMode) {
-  const isDesktop = window.innerWidth >= DESKTOP_BREAKPOINT;
-  
-  // Desktop: fixed width to show 4 cards at once
-  // Mobile: fixed width to show 1 card at once
-  // Calculate: (100% - (3 gaps of 12px)) / 4 = calc((100% - 36px) / 4)
-  const cardClassName = isDesktop
-    ? 'w-[calc((100%-36px)/4)] min-w-[calc((100%-36px)/4)] max-w-[calc((100%-36px)/4)]' 
-    : 'w-[360px] min-w-[360px] max-w-[360px]';
-  
+  const cardClassName = 'w-[300px] min-w-[300px] max-w-[300px]';
+  const itemContainerClassName = 'w-[300px]';
+  const scrollContainerClassName = 'gap-4 min-[480px]:px-[32px]';
   return html`
     <${Carousel}
       itemsPerView=${1}
-      gap=${12}
+      gap=${16}
       showNavigation=${false}
       navigationBreakpoint=${1025}
       showPagination=${true}
       autoPlay=${false}
-      loop=${true}
+      loop=${false}
       infiniteMobile=${true}
+      paginateByGroup=${true}
+      itemContainerClassName="${itemContainerClassName}"
+      customScrollContainerClassName="${scrollContainerClassName}"
     >
       ${cards.map((cardData) => html`
         <${InformativePhotoCard}
@@ -133,7 +128,7 @@ function renderMultiCardsCarousel(cards, loadingMode) {
           buttonURL=${cardData.ctaLink || ''}
           ctaTargetBlank=${cardData.ctaTargetBlank || false}
           ctaRel=${cardData.ctaRel || 'dofollow'}
-          customClassName="${cardClassName} my-[16px] ml-[-0.2px]"
+          customClassName="${cardClassName} mb-[16px] ml-[2px]"
           loading=${loadingMode}
         />
       `)}
@@ -145,39 +140,42 @@ function renderMultiCardsCarousel(cards, loadingMode) {
  * Decorates the CMS Informative Cards Carousel block
  * @param {Element} block The cms-informative-cards-carousel block element
  */
-export default function decorate(block) { 
-  console.log('[CMS Informative Cards Carousel] Decorating block...', block);
+export default function decorate(block) {
   // Extract configuration and cards using helper
   const props = extractCmsInformativeCardsCarouselProps(block);
   const cards = extractCarouselCards(block);
   const totalCards = cards.length;
   const loadingMode = props.loading || 'lazy';
 
+  // Country/Language filtering
+  if (!shouldShowByTargeting(props.targetCountries, props.targetLanguages)) {
+    hideBlockWithSection(block);
+    return;
+  }
+
   if (totalCards === 0) {
-    console.warn('[CMS Informative Cards Carousel] No valid cards found.');
+    // Hide the block if there are no cards
+    block.style.display = 'none';
     return;
   }
 
   // Create container
   const container = document.createElement('div');
-  container.className = 'w-full py-6';
+  container.className = 'w-full pt-6 pb-8';
   container.dataset.loading = loadingMode;
 
   /**
    * Render logic based on cards count and viewport width
-   * 
    * Rules:
    * 1. Desktop (≥1248px):
    *    - ≤4 cards → Grid 100% width
    *    - 5+ cards → Carousel
-   * 
    * 2. Mobile (<1248px):
    *    - Any card count → Carousel
    */
   const renderContent = () => {
     const viewportWidth = window.innerWidth;
     const isDesktop = viewportWidth >= DESKTOP_BREAKPOINT;
-    
     if (isDesktop) {
       // Desktop: grid if ≤4 cards, carousel if 5+
       if (totalCards <= 4) {

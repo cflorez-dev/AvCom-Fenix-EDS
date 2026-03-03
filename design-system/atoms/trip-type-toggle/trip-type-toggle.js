@@ -167,7 +167,7 @@ export const TripTypeToggle = ({
     }
 
     // States 3-6: Unselected (default, hover, pressed, focus)
-    return 'z-0 bg-transparent font-normal leading-6 hover:opacity-80';
+    return 'z-0 bg-transparent font-normal leading-6 hover:bg-background-brand-secondary-hover active:bg-alert-dismiss-hover';
   }, [value]);
 
   return html`
@@ -192,7 +192,7 @@ export const TripTypeToggle = ({
         type="button"
         role="radio"
         aria-checked=${isSelected}
-        class="inline-flex justify-center items-center min-w-[130px] min-h-[40px] md:min-h-[48px] px-3 py-2 rounded-[32px] shrink-0 relative cursor-pointer text-center focus-visible:outline-2 focus-visible:outline-border-stroke-focus transition-opacity ${getButtonClasses(option.value)}"
+        class="inline-flex justify-center items-center min-w-[130px] min-h-[40px] md:min-h-[48px] px-3 py-2 rounded-[32px] shrink-0 relative cursor-pointer text-center focus-visible:outline-2 focus-visible:outline-border-stroke-focus transition-colors ${getButtonClasses(option.value)}"
         onClick=${() => handleSelect(option.value)}
       >
         <div class="flex-1 flex items-center text-center justify-center text-[var(--text-normal-primary)] text-base min-h-[21px] ${isSelected ? 'leading-none' : 'leading-6'}">

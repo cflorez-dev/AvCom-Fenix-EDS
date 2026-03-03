@@ -80,7 +80,7 @@ export const NavbarDropdown = ({
         left: 0;
         right: 0;
         bottom: 0;
-        background-color: rgba(0, 0, 0, 0.5);
+        background-color: rgba(27, 27, 27, 0.70);
         z-index: 900;
         pointer-events: auto;
         cursor: pointer;
@@ -175,6 +175,20 @@ export const NavbarDropdown = ({
     setHoveredItemIndex(null);
   };
 
+  const handleKeyDown = (e) => {
+    // Let nested interactive elements (subitem buttons) handle their own keyboard events.
+    if (e.target !== e.currentTarget) {
+      return;
+    }
+
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      e.stopPropagation();
+      const newIsOpen = !isOpen;
+      setIsOpen(newIsOpen);
+    }
+  };
+
   // Render icon as Preact vnode using dangerouslySetInnerHTML
   const renderIcon = (svgElement, size = '24') => {
     if (!svgElement) return null;
@@ -221,6 +235,7 @@ export const NavbarDropdown = ({
         after:left-0 after:right-0 after:h-0 after:transition-colors ${navItemOutlineStyle} 
         focus-visible:after:border-[var(--header-offers)] focus-visible:outline-none ${customClassName}`}
       onClick=${handleToggle}
+      onKeyDown=${handleKeyDown}
       ref=${dropdownRef}
       data-navbar-dropdown="true"
       tabindex="0"
@@ -249,28 +264,29 @@ export const NavbarDropdown = ({
           
           onMouseLeave=${handleMouseLeave}
         >
-          <div class="bg-[var(--bg-brand-primary-lighter)] rounded-[24px] shadow-[var(--shadow-axis-none)_var(--shadow-axis-none)_var(--shadow-blur-tiny)_var(--shadow-spread-none)_var(--effect-shadow-light)] py-[var(--padding-16)] px-[var(--padding-24)] min-w-max max-w-[580px] w-full">
+          <div class="bg-[var(--bg-brand-primary-lighter)] rounded-[24px] shadow-[0_0_6px_0_rgba(90,90,90,0.20)] py-[var(--padding-16)] px-[var(--padding-24)] min-w-max max-w-[580px] w-full">
             <ul class="list-none p-0 !m-0 flex flex-col gap-0">
               ${subItems.map((subItem, index) => {
     const isExternalLink = subItem.url.startsWith('http');
     return html`
-                <li key=${subItem.url || subItem.itemLabel} class="group/sub-item flex flex-row items-center hover:translate-x-2 transition-transform" tabindex="-1">
+                <li key=${subItem.url || subItem.itemLabel} class="group/sub-item flex flex-row items-center transition-transform" tabindex="-1">
                   <button
                     type="button"
                     class=${`group/subitem-button relative flex gap-[var(--spacing-medium)] 
                       items-center max-w-[580px] min-h-[var(--height-48)] py-[var(--padding-12)] 
                       w-full cursor-pointer transition-[var(--transition-colors)] 
-                      bg-transparent border-none text-left focus-visible:outline-none`}
+                      bg-transparent border-none text-left focus-visible:outline-none
+                      group-hover/sub-item:py-[12px] group-hover/sub-item:pr-0 group-hover/sub-item:pl-[8px]`}
                     onClick=${() => handleSubItemClick(subItem, isExternalLink)}
                     onMouseEnter=${() => setHoveredItemIndex(index)}
                     onMouseLeave=${() => setHoveredItemIndex(null)}
                     tabindex="0"
                   >
-                    <div class="absolute transition-all top-0 left-0 right-0 w-full h-[100%] border-2 border-transparent group-focus-visible/subitem-button:border-[var(--color-border-stroke-focus)] hidden group-focus-visible/subitem-button:block pointer-events-none z-1"></div>
+                    <div class="absolute transition-all top-0 left-0 right-0 w-full h-[100%] border-2 border-[var(--color-border-stroke-focus)] hidden group-focus-visible/subitem-button:block pointer-events-none z-1"></div>
                     <div class="flex flex-1 flex-col gap-[var(--spacing-tiny)] items-start justify-center">
                       <p class=${`
                           !m-0 w-full text-left transition-[var(--transition-colors)] 
-                          font-[var(--paragraph-p300-family)] text-[var(--paragraph-p300-size)] 
+                          font-[var(--paragraph-p300-family)] text-[16px] 
                           group-hover/sub-item:text-[var(--brand-secondary)]
                           leading-[var(--paragraph-p300-line-height)] tracking-[var(--paragraph-p300-letter-spacing)] 
                           text-[var(--text-normal-secondary)]
@@ -281,7 +297,7 @@ export const NavbarDropdown = ({
                         ${subItem.itemLabel}
                       </p>
                     </div>
-                    <div class="w-6 h-6 inline-flex items-center justify-center shrink-0 transition-[var(--transition-colors)] ${hoveredItemIndex === index ? 'text-[var(--brand-secondary)]' : 'text-[var(--text-normal-secondary)]'}">
+                    <div class="w-6 h-6 inline-flex items-center justify-center shrink-0 transition-[var(--transition-colors)] transition-transform group-hover/sub-item:translate-x-[8px] ${hoveredItemIndex === index ? 'text-[var(--brand-secondary)]' : 'text-[var(--text-normal-secondary)]'}">
                       ${isExternalLink ? html`
                           <${Icon}
                             icon="navigation/open-in-new"

@@ -1,24 +1,38 @@
-import { readBlockConfig } from '../../scripts/aem.js';
+import { filterItemsByTargeting } from '../../scripts/utils/target-filter.js';
 
 /**
  * Extracts props from a CMS Promotional Card Carrousel block.
- * Extracts loading mode from the parent block configuration.
+ * Parent model fields (loading, target-countries, target-languages) are rendered
+ * by AEM as leading single-cell rows (one row per field, positional order).
  *
  * @param {Element} block - The CMS Promotional Card Carrousel block element
- * @returns {Object} Configuration object with loading mode
+ * @returns {Object} Configuration object with loading mode and targeting
  */
 export function extractCmsPromotionalCardCarrouselProps(block) {
   const defaultProps = {
-    loading: 'lazy', // Default to lazy loading
+    loading: 'lazy',
+    targetCountries: '',
+    targetLanguages: '',
   };
 
   if (!block) {
     return defaultProps;
   }
 
-  // Extract configuration from block metadata using readBlockConfig
-  const config = readBlockConfig(block);
-  const loading = config.loading || defaultProps.loading;
+  const rows = Array.from(block.children);
+
+  // Parent config rows are leading rows with exactly 1 cell (single value, no key-value).
+  // Model field order: loading (row 0), target-countries (row 1), target-languages (row 2).
+  // Backward compatible: old content may have only 1 parent row (loading).
+  const parentValues = [];
+  for (let i = 0; i < rows.length; i += 1) {
+    const cells = Array.from(rows[i].children);
+    if (cells.length === 1) {
+      parentValues.push(cells[0]?.textContent?.trim() || '');
+    } else {
+      break; // Card items start here (multi-cell rows)
+    }
+  }
 
   // All other carousel behavior is hardcoded according to acceptance criteria:
   // - Navigation: Auto-enabled when ≥4 cards
@@ -29,11 +43,10 @@ export function extractCmsPromotionalCardCarrouselProps(block) {
   // - Dimensions: 400px width, 408px height (responsive)
   // - Gap: 16px between cards
 
-  // All card-specific configuration comes from child items (cms-promotional-card-carrousel-item)
-  // Each child has 8 fields: image, imageAlt, backgroundColor, variant, title, description, ctaText, ctaLink
-
   return {
-    loading,
+    loading: parentValues[0] || defaultProps.loading,
+    targetCountries: parentValues[1] || '',
+    targetLanguages: parentValues[2] || '',
   };
 }
 
@@ -53,9 +66,9 @@ export function extractCarouselCards(block) {
 
   const rows = Array.from(block.children);
 
-  // Skip the first row (index 0) - it contains parent configuration (loading mode)
-  // Start from index 1 for child items (cards)
-  const cardRows = rows.slice(1);
+  // Skip all leading single-cell rows (parent config: loading, target-countries, target-languages).
+  // Card item rows always have >= 7 cells.
+  const cardRows = rows.filter((row) => Array.from(row.children).length >= 7);
 
   // Each row is a child item (cms-promotional-card-carrousel-item)
   // According to component-models.json, each row has cells in this order:
@@ -67,13 +80,10 @@ export function extractCarouselCards(block) {
   // 5: ctaText (text)
   // 6: ctaLink (text - URL) - wrapped in button-container
 
-  cardRows.forEach((row, index) => {
+  cardRows.forEach((row) => {
     const cells = Array.from(row.children);
 
-    console.log(`🔍 Processing card row ${index + 1}:`, { row, cells, cellsLength: cells.length });
-
     if (cells.length < 7) {
-      console.warn(`CMS Promotional Card Carrousel: Row ${index + 1} has insufficient cells (${cells.length}/7). Skipping.`);
       return;
     }
 
@@ -81,53 +91,44 @@ export function extractCarouselCards(block) {
     const imageCell = cells[0];
     const imgElement = imageCell?.querySelector('img');
     const image = imgElement?.src || '';
-    
+
     // Extract backgroundColor (cell 1) - the href from the link inside button-container
     const backgroundColorCell = cells[1];
     const backgroundColorLink = backgroundColorCell?.querySelector('a');
     const backgroundColor = backgroundColorLink?.href?.split('#')[1] ? `#${backgroundColorLink.href.split('#')[1]}` : backgroundColorLink?.textContent?.trim() || '#1b1b1b';
-    
+
     // Extract imageAlt from img element
     const imageAlt = imgElement?.alt || '';
-    
+
     // Extract variant (cell 2)
     const variant = cells[2]?.textContent?.trim() || 'dark';
-    
+
     // Extract title (cell 3)
     const title = cells[3]?.textContent?.trim() || '';
-    
+
     // Extract description (cell 4) - preserve HTML from richtext
     const description = cells[4]?.innerHTML?.trim() || '';
-    
+
     // Extract ctaText (cell 5)
     const ctaText = cells[5]?.textContent?.trim() || '';
-    
+
     // Extract ctaLink (cell 6) - from link inside button-container
     const ctaLinkCell = cells[6];
     const ctaLinkElement = ctaLinkCell?.querySelector('a');
     const ctaLink = ctaLinkElement?.href || ctaLinkCell?.textContent?.trim() || '';
 
-    console.log(`🎴 Card ${index + 1} extracted data:`, {
-      image,
-      imageAlt,
-      backgroundColor,
-      variant,
-      title,
-      description,
-      ctaText,
-      ctaLink,
-    });
-
     // Validate required fields
     if (!image) {
-      console.warn(`CMS Promotional Card Carrousel: Row ${index + 1} missing image. Skipping card.`);
       return;
     }
 
     if (!title) {
-      console.warn(`CMS Promotional Card Carrousel: Row ${index + 1} missing title. Skipping card.`);
       return;
     }
+
+    // Extract targeting fields (cells 7 and 8 - appended at end of model)
+    const targetCountries = cells[7]?.textContent?.trim() || '';
+    const targetLanguages = cells[8]?.textContent?.trim() || '';
 
     // Create card object
     const card = {
@@ -139,10 +140,13 @@ export function extractCarouselCards(block) {
       description,
       ctaText,
       ctaLink,
+      'target-countries': targetCountries,
+      'target-languages': targetLanguages,
     };
 
     cards.push(card);
   });
 
-  return cards;
+  // Filter cards by targeting (country/language)
+  return filterItemsByTargeting(cards, 'target-countries', 'target-languages');
 }

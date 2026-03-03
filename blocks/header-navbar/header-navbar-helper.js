@@ -4,7 +4,8 @@
 
 /**
  * Parses a sub-item string in format "label | url | icon"
- * @param {string} subItemText - Text content from <li> element (e.g., "item 1 | /item-1 | item-1-icon")
+ * @param {string} subItemText - Text content from <li> element
+ *   (e.g., "item 1 | /item-1 | item-1-icon")
  * @returns {Object} Object with label, url, and iconName
  */
 function parseSubItem(subItemText) {
@@ -18,7 +19,7 @@ function parseSubItem(subItemText) {
 
   // Trim the input
   const trimmed = subItemText.trim();
-  
+
   // If no pipe character, treat entire string as label
   if (!trimmed.includes('|')) {
     return {
@@ -29,8 +30,8 @@ function parseSubItem(subItemText) {
   }
 
   // Split by pipe character and trim each part
-  const parts = trimmed.split('|').map(part => part.trim()).filter(part => part.length > 0);
-  
+  const parts = trimmed.split('|').map((part) => part.trim()).filter((part) => part.length > 0);
+
   return {
     label: parts[0] || '',
     url: parts[1] || '#',
@@ -54,19 +55,19 @@ function extractSubItems(subItemsColumn) {
     if (!link) return '';
     return (link.getAttribute('href') || link.href || '').trim();
   };
-  
+
   // Find all <ul> elements in the column
   const lists = subItemsColumn.querySelectorAll('ul');
-  
+
   lists.forEach((list) => {
     // Get all <li> elements
     const listItems = list.querySelectorAll('li');
-    
+
     listItems.forEach((li) => {
       // Get text content from <li>
       const subItemText = li.textContent?.trim() || '';
       const anchorHref = getAnchorHref(li);
-      
+
       if (subItemText) {
         const subItem = parseSubItem(subItemText);
         if (anchorHref) {
@@ -78,7 +79,7 @@ function extractSubItems(subItemsColumn) {
       }
     });
   });
-  
+
   // Also check if there are direct text nodes or <p> elements with sub-item format
   const paragraphs = subItemsColumn.querySelectorAll('p');
   paragraphs.forEach((p) => {
@@ -89,12 +90,13 @@ function extractSubItems(subItemsColumn) {
       if (anchorHref) {
         subItem.url = anchorHref;
       }
-      if (subItem.label && !subItems.some(item => item.label === subItem.label && item.url === subItem.url)) {
+      if (subItem.label
+        && !subItems.some((item) => item.label === subItem.label && item.url === subItem.url)) {
         subItems.push(subItem);
       }
     }
   });
-  
+
   return subItems;
 }
 
@@ -109,12 +111,12 @@ function extractNavbarItem(rowElement) {
   }
 
   const cols = Array.from(rowElement.children);
-  
+
   // Columna 0: label (Menu item label)
   const labelCol = cols[0];
-  const label = labelCol?.querySelector('p')?.textContent?.trim() || 
-                labelCol?.textContent?.trim() || 
-                '';
+  const label = labelCol?.querySelector('p')?.textContent?.trim()
+                || labelCol?.textContent?.trim()
+                || '';
 
   // Si no hay label, el item no es válido
   if (!label) {
@@ -136,19 +138,27 @@ function extractNavbarItem(rowElement) {
 
   // Columna 2: iconName (Menu item Icon Name)
   const iconCol = cols[2];
-  const iconName = iconCol?.querySelector('p')?.textContent?.trim() || 
-                   iconCol?.textContent?.trim() || 
-                   '';
+  const iconName = iconCol?.querySelector('p')?.textContent?.trim()
+                   || iconCol?.textContent?.trim()
+                   || '';
 
   // Columna 3: subItems (Sub-menu items)
   const subItemsCol = cols[3];
   const subItems = extractSubItems(subItemsCol);
+
+  // Columna 4: target-countries (Optional - targeting per menu item)
+  const targetCountries = cols[4]?.textContent?.trim() || '';
+
+  // Columna 5: target-languages (Optional - targeting per menu item)
+  const targetLanguages = cols[5]?.textContent?.trim() || '';
 
   // Construir el objeto del item
   const item = {
     label,
     url: url || '#',
     iconName,
+    'target-countries': targetCountries,
+    'target-languages': targetLanguages,
   };
 
   // Solo agregar subItems si hay elementos
@@ -163,7 +173,7 @@ function extractNavbarItem(rowElement) {
  * Extracts all header navbar data from the block element
  * @param {Element} block - The header-navbar block element
  * @returns {Object} Object containing extracted navbar data
- * 
+ *
  * Structure returned:
  * {
  *   items: [
@@ -190,14 +200,46 @@ export function extractHeaderNavbarData(block) {
   }
 
   const items = [];
-  
+
   // Process each child row (each row is a menu item)
   const rows = Array.from(block.children);
-  
-  rows.forEach((row) => {
+
+  // Check each row independently to determine if it's targeting config
+  // Row 0: country codes, Row 1: language codes - each validated separately
+  const validCountries = ['co', 'ar', 'mx', 'pe', 'ec', 'sv', 'cr', 'br', 'bo', 'cl', 'ca', 'gt', 'hn', 'ni', 'pa', 'py', 'do', 'eu', 'gb', 'uy', 'ot', 'us'];
+  const validLanguages = ['es', 'en', 'pt', 'fr'];
+  let startIndex = 0;
+
+  // Check row 0 for country targeting
+  if (rows.length >= 1) {
+    const firstRowValue = rows[0]?.children[0]?.textContent?.trim().toLowerCase();
+    const hasOnlyTargetingColumns = rows[0].children.length <= 2;
+    const hasValidCountryCode = firstRowValue
+      && (validCountries.includes(firstRowValue) || firstRowValue.split(',').every((c) => validCountries.includes(c.trim())));
+    const isEmpty = !firstRowValue || firstRowValue === '';
+
+    if (hasOnlyTargetingColumns && (hasValidCountryCode || isEmpty)) {
+      startIndex += 1;
+    }
+  }
+
+  // Check row 1 for language targeting (independently of row 0)
+  if (rows.length >= 2) {
+    const adjustedIndex = startIndex;
+    const secondRowValue = rows[adjustedIndex]?.children[0]?.textContent?.trim().toLowerCase();
+    const hasOnlyTargetingColumns = rows[adjustedIndex].children.length <= 2;
+    const hasValidLanguageCode = secondRowValue
+      && (validLanguages.includes(secondRowValue) || secondRowValue.split(',').every((l) => validLanguages.includes(l.trim())));
+
+    if (hasOnlyTargetingColumns && hasValidLanguageCode) {
+      startIndex += 1;
+    }
+  }
+
+  rows.slice(startIndex).forEach((row) => {
     // Ignorar elementos que no son items (como indicadores de autor, etc.)
-    if (row.classList.contains('header-navbar-author-indicator') || 
-        row.classList.contains('header-navbar-author-mode')) {
+    if (row.classList.contains('header-navbar-author-indicator')
+        || row.classList.contains('header-navbar-author-mode')) {
       return;
     }
 

@@ -25,7 +25,53 @@
   },
   {
     "id": "header-navbar",
-    "fields": []
+    "fields": [
+      {
+        "component": "multiselect",
+        "name": "target-countries",
+        "label": "Target Countries (POS)",
+        "valueType": "string",
+        "description": "Optional: Select target countries/POS. If empty, shows in all. Compared against 'selected-country' cookie (ISO-2 codes).",
+        "options": [
+          { "name": "Argentina", "value": "ar" },
+          { "name": "Bolivia", "value": "bo" },
+          { "name": "Brasil", "value": "br" },
+          { "name": "Canadá", "value": "ca" },
+          { "name": "Chile", "value": "cl" },
+          { "name": "Colombia", "value": "co" },
+          { "name": "Costa Rica", "value": "cr" },
+          { "name": "República Dominicana", "value": "do" },
+          { "name": "Ecuador", "value": "ec" },
+          { "name": "España", "value": "eu" },
+          { "name": "Francia", "value": "fr" },
+          { "name": "Reino Unido", "value": "gb" },
+          { "name": "Guatemala", "value": "gt" },
+          { "name": "Honduras", "value": "hn" },
+          { "name": "México", "value": "mx" },
+          { "name": "Nicaragua", "value": "ni" },
+          { "name": "Otros", "value": "ot" },
+          { "name": "Panamá", "value": "pa" },
+          { "name": "Perú", "value": "pe" },
+          { "name": "Paraguay", "value": "py" },
+          { "name": "El Salvador", "value": "sv" },
+          { "name": "Estados Unidos", "value": "us" },
+          { "name": "Uruguay", "value": "uy" }
+        ]
+      },
+      {
+        "component": "multiselect",
+        "name": "target-languages",
+        "label": "Target Languages",
+        "valueType": "string",
+        "description": "Optional: Select target languages. If empty, shows in all. Compared against 'selected-language' cookie.",
+        "options": [
+          { "name": "English", "value": "en" },
+          { "name": "Spanish", "value": "es" },
+          { "name": "French", "value": "fr" },
+          { "name": "Portuguese", "value": "pt" }
+        ]
+      }
+    ]
   },
   {
     "id": "header-menu-item",
@@ -57,6 +103,51 @@
         "label": "Submenu Content",
         "value": "",
         "description": "Rich text content for submenu dropdown"
+      },
+      {
+        "component": "multiselect",
+        "name": "target-countries",
+        "label": "Target Countries (POS)",
+        "valueType": "string",
+        "description": "Optional: Select target countries/POS. If empty, shows in all. Compared against 'selected-country' cookie (ISO-2 codes).",
+        "options": [
+          { "name": "Argentina", "value": "ar" },
+          { "name": "Bolivia", "value": "bo" },
+          { "name": "Brasil", "value": "br" },
+          { "name": "Canadá", "value": "ca" },
+          { "name": "Chile", "value": "cl" },
+          { "name": "Colombia", "value": "co" },
+          { "name": "Costa Rica", "value": "cr" },
+          { "name": "República Dominicana", "value": "do" },
+          { "name": "Ecuador", "value": "ec" },
+          { "name": "España", "value": "eu" },
+          { "name": "Francia", "value": "fr" },
+          { "name": "Reino Unido", "value": "gb" },
+          { "name": "Guatemala", "value": "gt" },
+          { "name": "Honduras", "value": "hn" },
+          { "name": "México", "value": "mx" },
+          { "name": "Nicaragua", "value": "ni" },
+          { "name": "Otros", "value": "ot" },
+          { "name": "Panamá", "value": "pa" },
+          { "name": "Perú", "value": "pe" },
+          { "name": "Paraguay", "value": "py" },
+          { "name": "El Salvador", "value": "sv" },
+          { "name": "Estados Unidos", "value": "us" },
+          { "name": "Uruguay", "value": "uy" }
+        ]
+      },
+      {
+        "component": "multiselect",
+        "name": "target-languages",
+        "label": "Target Languages",
+        "valueType": "string",
+        "description": "Optional: Select target languages. If empty, shows in all. Compared against 'selected-language' cookie.",
+        "options": [
+          { "name": "English", "value": "en" },
+          { "name": "Spanish", "value": "es" },
+          { "name": "French", "value": "fr" },
+          { "name": "Portuguese", "value": "pt" }
+        ]
       }
     ]
   },
@@ -160,6 +251,28 @@
     "id": "section",
     "fields": [
       {
+        "component": "select",
+        "name": "section-type",
+        "label": "Section Type",
+        "description": "Select the type of section to configure different fields.",
+        "value": "default",
+        "options": [
+          {
+            "name": "Default",
+            "value": "default"
+          },
+          {
+            "name": "Hero Destinations",
+            "value": "hero-destinations"
+          },
+          {
+            "name": "Hero Destinations Detail",
+            "value": "hero-destinations-detail"
+          }
+
+        ]
+      },
+      {
         "component": "text",
         "name": "name",
         "label": "Section Name",
@@ -193,26 +306,216 @@
             "value": "layout-1-2-992"
           },
           {
+            "name": "no-padding-top",
+            "value": "no-padding-top"
+          },
+          {
+            "name": "no-padding-y",
+            "value": "no-padding-y"
+          },
+          {
+            "name": "padding-title",
+            "value": "padding-title"
+          },
+          {
+            "name": "text-center",
+            "value": "text-center"
+          },
+          {
             "name": "Accordion Item",
             "value": "accordion-item"
           },
           {
             "name": "MultiTab Item",
             "value": "multitab-item"
+          },
+          {
+            "name": "Grid 12",
+            "value": "grid-12"
+          },
+          {
+            "name": "Grid 6/6",
+            "value": "grid-6-6"
+          },
+          {
+            "name": "Grid 4/8",
+            "value": "grid-4-8"
+          },
+          {
+            "name": "Grid 8/4",
+            "value": "grid-8-4"
+          },
+          {
+            "name": "Grid 3/9",
+            "value": "grid-3-9"
+          },
+          {
+            "name": "Grid 9/3",
+            "value": "grid-9-3"
+          },
+          {
+            "name": "Grid 5/7",
+            "value": "grid-5-7"
+          },
+          {
+            "name": "Grid 7/5",
+            "value": "grid-7-5"
+          },
+          {
+            "name": "Grid 2/10",
+            "value": "grid-2-10"
+          },
+          {
+            "name": "Grid 10/2",
+            "value": "grid-10-2"
+          },
+          {
+            "name": "Grid 1/11",
+            "value": "grid-1-11"
+          },
+          {
+            "name": "Grid 11/1",
+            "value": "grid-11-1"
+          },
+          {
+            "name": "Grid 4/4/4",
+            "value": "grid-4-4-4"
+          },
+          {
+            "name": "Grid 3/3/6",
+            "value": "grid-3-3-6"
+          },
+          {
+            "name": "Grid 3/6/3",
+            "value": "grid-3-6-3"
+          },
+          {
+            "name": "Grid 6/3/3",
+            "value": "grid-6-3-3"
+          },
+          {
+            "name": "Grid 2/5/5",
+            "value": "grid-2-5-5"
+          },
+          {
+            "name": "Grid 5/2/5",
+            "value": "grid-5-2-5"
+          },
+          {
+            "name": "Grid 5/5/2",
+            "value": "grid-5-5-2"
+          },
+          {
+            "name": "Grid Gap None",
+            "value": "grid-gap-none"
+          },
+          {
+            "name": "Grid Gap S",
+            "value": "grid-gap-sm"
+          },
+          {
+            "name": "Grid Gap M",
+            "value": "grid-gap-md"
+          },
+          {
+            "name": "Grid Gap L",
+            "value": "grid-gap-lg"
+          },
+          {
+            "name": "Grid Gap XL",
+            "value": "grid-gap-xl"
+          },
+          {
+            "name": "Grid Align Items Start",
+            "value": "grid-items-start"
+          },
+          {
+            "name": "Grid Align Items Center",
+            "value": "grid-items-center"
+          },
+          {
+            "name": "Grid Align Items End",
+            "value": "grid-items-end"
+          },
+          {
+            "name": "Grid Align Items Stretch",
+            "value": "grid-items-stretch"
+          },
+          {
+            "name": "Grid Justify Items Start",
+            "value": "grid-justify-start"
+          },
+          {
+            "name": "Grid Justify Items Center",
+            "value": "grid-justify-center"
+          },
+          {
+            "name": "Grid Justify Items End",
+            "value": "grid-justify-end"
+          },
+          {
+            "name": "Grid Justify Items Stretch",
+            "value": "grid-justify-stretch"
+          },
+          {
+            "name": "Grid Column Padding S",
+            "value": "grid-col-pad-sm"
+          },
+          {
+            "name": "Grid Column Padding M",
+            "value": "grid-col-pad-md"
+          },
+          {
+            "name": "Grid Column Padding L",
+            "value": "grid-col-pad-lg"
+          },
+          {
+            "name": "Grid Column Content Top",
+            "value": "grid-col-content-start"
+          },
+          {
+            "name": "Grid Column Content Middle",
+            "value": "grid-col-content-center"
+          },
+          {
+            "name": "Grid Column Content Bottom",
+            "value": "grid-col-content-end"
+          },
+          {
+            "name": "Grid Mobile Reverse",
+            "value": "grid-mobile-reverse"
           }
-        ]
+        ],
+        "condition": {
+          "===": [
+            { "var": "section-type" },
+            "default"
+          ]
+        }
       },
       {
         "component": "text",
         "name": "accordion-group",
         "label": "Accordion Group ID",
-        "description": "Links this section to an Accordion Group block. Must match the Group ID of the Accordion Group controller."
+        "description": "Links this section to an Accordion Group block. Must match the Group ID of the Accordion Group controller.",
+        "condition": {
+          "===": [
+            { "var": "section-type" },
+            "default"
+          ]
+        }
       },
       {
         "component": "text",
         "name": "accordion-label",
         "label": "Accordion Label",
-        "description": "The clickable title shown in the accordion header when this section is an accordion item."
+        "description": "The clickable title shown in the accordion header when this section is an accordion item.",
+        "condition": {
+          "===": [
+            { "var": "section-type" },
+            "default"
+          ]
+        }
       },
       {
         "component": "select",
@@ -232,37 +535,73 @@
             "name": "H4",
             "value": "4"
           }
-        ]
+        ],
+        "condition": {
+          "===": [
+            { "var": "section-type" },
+            "default"
+          ]
+        }
       },
       {
         "component": "boolean",
         "name": "accordion-default-open",
         "label": "Accordion Default Open",
-        "description": "Whether this accordion item should be expanded by default when the page loads."
+        "description": "Whether this accordion item should be expanded by default when the page loads.",
+        "condition": {
+          "===": [
+            { "var": "section-type" },
+            "default"
+          ]
+        }
       },
       {
         "component": "text",
         "name": "multitab-group",
         "label": "MultiTab Group ID",
-        "description": "Links this section to a MultiTab block. Must match the Group ID of the MultiTab controller."
+        "description": "Links this section to a MultiTab block. Must match the Group ID of the MultiTab controller.",
+        "condition": {
+          "===": [
+            { "var": "section-type" },
+            "default"
+          ]
+        }
       },
       {
         "component": "text",
         "name": "multitab-label",
         "label": "Tab Label (Primary)",
-        "description": "The primary text shown in the tab button for this content."
+        "description": "The primary text shown in the tab button for this content.",
+        "condition": {
+          "===": [
+            { "var": "section-type" },
+            "default"
+          ]
+        }
       },
       {
         "component": "text",
         "name": "multitab-secondary-label",
         "label": "Tab Label (Secondary)",
-        "description": "Optional secondary text shown below the primary label in the tab button."
+        "description": "Optional secondary text shown below the primary label in the tab button.",
+        "condition": {
+          "===": [
+            { "var": "section-type" },
+            "default"
+          ]
+        }
       },
       {
         "component": "text",
         "name": "multitab-icon",
         "label": "Tab Icon",
-        "description": "Optional icon path for the tab (e.g., 'action/check', 'alert/info'). Leave empty for no icon."
+        "description": "Optional icon path for the tab (e.g., 'action/check', 'alert/info'). Leave empty for no icon.",
+        "condition": {
+          "===": [
+            { "var": "section-type" },
+            "default"
+          ]
+        }
       },
       {
         "component": "select",
@@ -278,13 +617,62 @@
             "name": "After",
             "value": "after"
           }
-        ]
+        ],
+        "condition": {
+          "===": [
+            { "var": "section-type" },
+            "default"
+          ]
+        }
       },
       {
         "component": "boolean",
         "name": "multitab-default-open",
         "label": "Default Tab",
-        "description": "Whether this tab should be active by default when the page loads."
+        "description": "Whether this tab should be active by default when the page loads.",
+        "condition": {
+          "===": [
+            { "var": "section-type" },
+            "default"
+          ]
+        }
+      },
+      {
+        "component": "text",
+        "name": "mosaic-v2-group",
+        "label": "Mosaic V2 Group ID",
+        "description": "Links this section to a Mosaic Cards V2 block. Must match the Group ID of the controller.",
+        "condition": {
+          "===": [
+            { "var": "section-type" },
+            "default"
+          ]
+        }
+      },
+      {
+        "component": "text",
+        "name": "mosaic-label",
+        "label": "Mosaic Phase Label",
+        "description": "Optional label for this mosaic phase (used for dot indicators or debugging).",
+        "condition": {
+          "===": [
+            { "var": "section-type" },
+            "default"
+          ]
+        }
+      },
+      {
+        "component": "boolean",
+        "name": "rounded-image",
+        "label": "Rounded Image",
+        "description": "Enable rounded corners for images in this hero destinations section.",
+        "value": false,
+        "condition": {
+          "===": [
+            { "var": "section-type" },
+            "hero-destinations"
+          ]
+        }
       }
     ]
   },
@@ -775,6 +1163,51 @@
         "label": "Action Link",
         "value": "",
         "description": "Navigation URL for the action link"
+      },
+      {
+        "component": "multiselect",
+        "name": "target-countries",
+        "label": "Target Countries (POS)",
+        "valueType": "string",
+        "description": "Optional: Select target countries/POS. If empty, shows in all. Compared against 'selected-country' cookie (ISO-2 codes).",
+        "options": [
+          { "name": "Argentina", "value": "ar" },
+          { "name": "Bolivia", "value": "bo" },
+          { "name": "Brasil", "value": "br" },
+          { "name": "Canadá", "value": "ca" },
+          { "name": "Chile", "value": "cl" },
+          { "name": "Colombia", "value": "co" },
+          { "name": "Costa Rica", "value": "cr" },
+          { "name": "República Dominicana", "value": "do" },
+          { "name": "Ecuador", "value": "ec" },
+          { "name": "España", "value": "eu" },
+          { "name": "Francia", "value": "fr" },
+          { "name": "Reino Unido", "value": "gb" },
+          { "name": "Guatemala", "value": "gt" },
+          { "name": "Honduras", "value": "hn" },
+          { "name": "México", "value": "mx" },
+          { "name": "Nicaragua", "value": "ni" },
+          { "name": "Otros", "value": "ot" },
+          { "name": "Panamá", "value": "pa" },
+          { "name": "Perú", "value": "pe" },
+          { "name": "Paraguay", "value": "py" },
+          { "name": "El Salvador", "value": "sv" },
+          { "name": "Estados Unidos", "value": "us" },
+          { "name": "Uruguay", "value": "uy" }
+        ]
+      },
+      {
+        "component": "multiselect",
+        "name": "target-languages",
+        "label": "Target Languages",
+        "valueType": "string",
+        "description": "Optional: Select target languages. If empty, shows in all. Compared against 'selected-language' cookie.",
+        "options": [
+          { "name": "English", "value": "en" },
+          { "name": "Spanish", "value": "es" },
+          { "name": "French", "value": "fr" },
+          { "name": "Portuguese", "value": "pt" }
+        ]
       }
     ]
   },
@@ -952,6 +1385,51 @@
         "label": "Publish End Date (ISO 8601)",
         "value": "",
         "description": "Fecha de fin de publicación (ej: 2024-12-31T23:59:59). Vacío = sin límite"
+      },
+      {
+        "component": "multiselect",
+        "name": "target-countries",
+        "label": "Target Countries (POS)",
+        "valueType": "string",
+        "description": "Optional: Select target countries/POS. If empty, shows in all. Compared against 'selected-country' cookie (ISO-2 codes).",
+        "options": [
+          { "name": "Argentina", "value": "ar" },
+          { "name": "Bolivia", "value": "bo" },
+          { "name": "Brasil", "value": "br" },
+          { "name": "Canadá", "value": "ca" },
+          { "name": "Chile", "value": "cl" },
+          { "name": "Colombia", "value": "co" },
+          { "name": "Costa Rica", "value": "cr" },
+          { "name": "República Dominicana", "value": "do" },
+          { "name": "Ecuador", "value": "ec" },
+          { "name": "España", "value": "eu" },
+          { "name": "Francia", "value": "fr" },
+          { "name": "Reino Unido", "value": "gb" },
+          { "name": "Guatemala", "value": "gt" },
+          { "name": "Honduras", "value": "hn" },
+          { "name": "México", "value": "mx" },
+          { "name": "Nicaragua", "value": "ni" },
+          { "name": "Otros", "value": "ot" },
+          { "name": "Panamá", "value": "pa" },
+          { "name": "Perú", "value": "pe" },
+          { "name": "Paraguay", "value": "py" },
+          { "name": "El Salvador", "value": "sv" },
+          { "name": "Estados Unidos", "value": "us" },
+          { "name": "Uruguay", "value": "uy" }
+        ]
+      },
+      {
+        "component": "multiselect",
+        "name": "target-languages",
+        "label": "Target Languages",
+        "valueType": "string",
+        "description": "Optional: Select target languages. If empty, shows in all. Compared against 'selected-language' cookie.",
+        "options": [
+          { "name": "English", "value": "en" },
+          { "name": "Spanish", "value": "es" },
+          { "name": "French", "value": "fr" },
+          { "name": "Portuguese", "value": "pt" }
+        ]
       }
     ]
   },
@@ -1068,6 +1546,51 @@
         "label": "Home URL",
         "value": "/",
         "description": "URL al hacer clic en el logo (se ajusta por POS/idioma)"
+      },
+      {
+        "component": "multiselect",
+        "name": "target-countries",
+        "label": "Target Countries (POS)",
+        "valueType": "string",
+        "description": "Optional: Select target countries/POS. If empty, shows in all. Compared against 'selected-country' cookie (ISO-2 codes).",
+        "options": [
+          { "name": "Argentina", "value": "ar" },
+          { "name": "Bolivia", "value": "bo" },
+          { "name": "Brasil", "value": "br" },
+          { "name": "Canadá", "value": "ca" },
+          { "name": "Chile", "value": "cl" },
+          { "name": "Colombia", "value": "co" },
+          { "name": "Costa Rica", "value": "cr" },
+          { "name": "República Dominicana", "value": "do" },
+          { "name": "Ecuador", "value": "ec" },
+          { "name": "España", "value": "eu" },
+          { "name": "Francia", "value": "fr" },
+          { "name": "Reino Unido", "value": "gb" },
+          { "name": "Guatemala", "value": "gt" },
+          { "name": "Honduras", "value": "hn" },
+          { "name": "México", "value": "mx" },
+          { "name": "Nicaragua", "value": "ni" },
+          { "name": "Otros", "value": "ot" },
+          { "name": "Panamá", "value": "pa" },
+          { "name": "Perú", "value": "pe" },
+          { "name": "Paraguay", "value": "py" },
+          { "name": "El Salvador", "value": "sv" },
+          { "name": "Estados Unidos", "value": "us" },
+          { "name": "Uruguay", "value": "uy" }
+        ]
+      },
+      {
+        "component": "multiselect",
+        "name": "target-languages",
+        "label": "Target Languages",
+        "valueType": "string",
+        "description": "Optional: Select target languages. If empty, shows in all. Compared against 'selected-language' cookie.",
+        "options": [
+          { "name": "English", "value": "en" },
+          { "name": "Spanish", "value": "es" },
+          { "name": "French", "value": "fr" },
+          { "name": "Portuguese", "value": "pt" }
+        ]
       }
     ]
   },
@@ -1169,6 +1692,51 @@
         "label": "ARIA Button Label",
         "value": "",
         "description": "Texto accesible para lectores de pantalla del botón"
+      },
+      {
+        "component": "multiselect",
+        "name": "target-countries",
+        "label": "Target Countries (POS)",
+        "valueType": "string",
+        "description": "Optional: Select target countries/POS. If empty, shows in all. Compared against 'selected-country' cookie (ISO-2 codes).",
+        "options": [
+          { "name": "Argentina", "value": "ar" },
+          { "name": "Bolivia", "value": "bo" },
+          { "name": "Brasil", "value": "br" },
+          { "name": "Canadá", "value": "ca" },
+          { "name": "Chile", "value": "cl" },
+          { "name": "Colombia", "value": "co" },
+          { "name": "Costa Rica", "value": "cr" },
+          { "name": "República Dominicana", "value": "do" },
+          { "name": "Ecuador", "value": "ec" },
+          { "name": "España", "value": "eu" },
+          { "name": "Francia", "value": "fr" },
+          { "name": "Reino Unido", "value": "gb" },
+          { "name": "Guatemala", "value": "gt" },
+          { "name": "Honduras", "value": "hn" },
+          { "name": "México", "value": "mx" },
+          { "name": "Nicaragua", "value": "ni" },
+          { "name": "Otros", "value": "ot" },
+          { "name": "Panamá", "value": "pa" },
+          { "name": "Perú", "value": "pe" },
+          { "name": "Paraguay", "value": "py" },
+          { "name": "El Salvador", "value": "sv" },
+          { "name": "Estados Unidos", "value": "us" },
+          { "name": "Uruguay", "value": "uy" }
+        ]
+      },
+      {
+        "component": "multiselect",
+        "name": "target-languages",
+        "label": "Target Languages",
+        "valueType": "string",
+        "description": "Optional: Select target languages. If empty, shows in all. Compared against 'selected-language' cookie.",
+        "options": [
+          { "name": "English", "value": "en" },
+          { "name": "Spanish", "value": "es" },
+          { "name": "French", "value": "fr" },
+          { "name": "Portuguese", "value": "pt" }
+        ]
       }
     ]
   },
@@ -1180,7 +1748,7 @@
         "valueType": "string",
         "name": "cart-button-label",
         "label": "Cart Button Label",
-        "value": "Carrito",
+        "value": "",
         "description": "Texto del botón del carrito"
       },
       {
@@ -1203,7 +1771,7 @@
         "valueType": "string",
         "name": "user-button-label",
         "label": "User Button Label",
-        "value": "Mi cuenta",
+        "value": "",
         "description": "Texto del botón de usuario"
       },
       {
@@ -1220,12 +1788,103 @@
         "label": "Show User Button",
         "value": true,
         "description": "Mostrar botón de usuario"
+      },
+      {
+        "component": "multiselect",
+        "name": "target-countries",
+        "label": "Target Countries (POS)",
+        "valueType": "string",
+        "description": "Optional: Select target countries/POS. If empty, shows in all. Compared against 'selected-country' cookie (ISO-2 codes).",
+        "options": [
+          { "name": "Argentina", "value": "ar" },
+          { "name": "Bolivia", "value": "bo" },
+          { "name": "Brasil", "value": "br" },
+          { "name": "Canadá", "value": "ca" },
+          { "name": "Chile", "value": "cl" },
+          { "name": "Colombia", "value": "co" },
+          { "name": "Costa Rica", "value": "cr" },
+          { "name": "República Dominicana", "value": "do" },
+          { "name": "Ecuador", "value": "ec" },
+          { "name": "España", "value": "eu" },
+          { "name": "Francia", "value": "fr" },
+          { "name": "Reino Unido", "value": "gb" },
+          { "name": "Guatemala", "value": "gt" },
+          { "name": "Honduras", "value": "hn" },
+          { "name": "México", "value": "mx" },
+          { "name": "Nicaragua", "value": "ni" },
+          { "name": "Otros", "value": "ot" },
+          { "name": "Panamá", "value": "pa" },
+          { "name": "Perú", "value": "pe" },
+          { "name": "Paraguay", "value": "py" },
+          { "name": "El Salvador", "value": "sv" },
+          { "name": "Estados Unidos", "value": "us" },
+          { "name": "Uruguay", "value": "uy" }
+        ]
+      },
+      {
+        "component": "multiselect",
+        "name": "target-languages",
+        "label": "Target Languages",
+        "valueType": "string",
+        "description": "Optional: Select target languages. If empty, shows in all. Compared against 'selected-language' cookie.",
+        "options": [
+          { "name": "English", "value": "en" },
+          { "name": "Spanish", "value": "es" },
+          { "name": "French", "value": "fr" },
+          { "name": "Portuguese", "value": "pt" }
+        ]
       }
     ]
   },
   {
     "id": "footer-partners-logos",
-    "fields": []
+    "fields": [
+      {
+        "component": "multiselect",
+        "name": "target-countries",
+        "label": "Target Countries (POS)",
+        "valueType": "string",
+        "description": "Optional: Select target countries/POS. If empty, shows in all. Compared against 'selected-country' cookie (ISO-2 codes).",
+        "options": [
+          { "name": "Argentina", "value": "ar" },
+          { "name": "Bolivia", "value": "bo" },
+          { "name": "Brasil", "value": "br" },
+          { "name": "Canadá", "value": "ca" },
+          { "name": "Chile", "value": "cl" },
+          { "name": "Colombia", "value": "co" },
+          { "name": "Costa Rica", "value": "cr" },
+          { "name": "República Dominicana", "value": "do" },
+          { "name": "Ecuador", "value": "ec" },
+          { "name": "España", "value": "eu" },
+          { "name": "Francia", "value": "fr" },
+          { "name": "Reino Unido", "value": "gb" },
+          { "name": "Guatemala", "value": "gt" },
+          { "name": "Honduras", "value": "hn" },
+          { "name": "México", "value": "mx" },
+          { "name": "Nicaragua", "value": "ni" },
+          { "name": "Otros", "value": "ot" },
+          { "name": "Panamá", "value": "pa" },
+          { "name": "Perú", "value": "pe" },
+          { "name": "Paraguay", "value": "py" },
+          { "name": "El Salvador", "value": "sv" },
+          { "name": "Estados Unidos", "value": "us" },
+          { "name": "Uruguay", "value": "uy" }
+        ]
+      },
+      {
+        "component": "multiselect",
+        "name": "target-languages",
+        "label": "Target Languages",
+        "valueType": "string",
+        "description": "Optional: Select target languages. If empty, shows in all. Compared against 'selected-language' cookie.",
+        "options": [
+          { "name": "English", "value": "en" },
+          { "name": "Spanish", "value": "es" },
+          { "name": "French", "value": "fr" },
+          { "name": "Portuguese", "value": "pt" }
+        ]
+      }
+    ]
   },
   {
     "id": "footer-partners-logos-item",
@@ -1300,6 +1959,10 @@
           {
             "name": "Dark",
             "value": "dark"
+          },
+          {
+            "name": "White",
+            "value": "white"
           }
         ],
         "value": "light",
@@ -1528,12 +2191,103 @@
         "label": "Red Social 5 - Abrir en Nueva Pestaña",
         "value": true,
         "description": "Si está activo, el enlace se abre en una nueva pestaña"
+      },
+      {
+        "component": "multiselect",
+        "name": "target-countries",
+        "label": "Target Countries (POS)",
+        "valueType": "string",
+        "description": "Optional: Select target countries/POS. If empty, shows in all. Compared against 'selected-country' cookie (ISO-2 codes).",
+        "options": [
+          { "name": "Argentina", "value": "ar" },
+          { "name": "Bolivia", "value": "bo" },
+          { "name": "Brasil", "value": "br" },
+          { "name": "Canadá", "value": "ca" },
+          { "name": "Chile", "value": "cl" },
+          { "name": "Colombia", "value": "co" },
+          { "name": "Costa Rica", "value": "cr" },
+          { "name": "República Dominicana", "value": "do" },
+          { "name": "Ecuador", "value": "ec" },
+          { "name": "España", "value": "eu" },
+          { "name": "Francia", "value": "fr" },
+          { "name": "Reino Unido", "value": "gb" },
+          { "name": "Guatemala", "value": "gt" },
+          { "name": "Honduras", "value": "hn" },
+          { "name": "México", "value": "mx" },
+          { "name": "Nicaragua", "value": "ni" },
+          { "name": "Otros", "value": "ot" },
+          { "name": "Panamá", "value": "pa" },
+          { "name": "Perú", "value": "pe" },
+          { "name": "Paraguay", "value": "py" },
+          { "name": "El Salvador", "value": "sv" },
+          { "name": "Estados Unidos", "value": "us" },
+          { "name": "Uruguay", "value": "uy" }
+        ]
+      },
+      {
+        "component": "multiselect",
+        "name": "target-languages",
+        "label": "Target Languages",
+        "valueType": "string",
+        "description": "Optional: Select target languages. If empty, shows in all. Compared against 'selected-language' cookie.",
+        "options": [
+          { "name": "English", "value": "en" },
+          { "name": "Spanish", "value": "es" },
+          { "name": "French", "value": "fr" },
+          { "name": "Portuguese", "value": "pt" }
+        ]
       }
     ]
   },
   {
     "id": "footer-columns",
-    "fields": []
+    "fields": [
+      {
+        "component": "multiselect",
+        "name": "target-countries",
+        "label": "Target Countries (POS)",
+        "valueType": "string",
+        "description": "Optional: Select target countries/POS. If empty, shows in all. Compared against 'selected-country' cookie (ISO-2 codes).",
+        "options": [
+          { "name": "Argentina", "value": "ar" },
+          { "name": "Bolivia", "value": "bo" },
+          { "name": "Brasil", "value": "br" },
+          { "name": "Canadá", "value": "ca" },
+          { "name": "Chile", "value": "cl" },
+          { "name": "Colombia", "value": "co" },
+          { "name": "Costa Rica", "value": "cr" },
+          { "name": "República Dominicana", "value": "do" },
+          { "name": "Ecuador", "value": "ec" },
+          { "name": "España", "value": "eu" },
+          { "name": "Francia", "value": "fr" },
+          { "name": "Reino Unido", "value": "gb" },
+          { "name": "Guatemala", "value": "gt" },
+          { "name": "Honduras", "value": "hn" },
+          { "name": "México", "value": "mx" },
+          { "name": "Nicaragua", "value": "ni" },
+          { "name": "Otros", "value": "ot" },
+          { "name": "Panamá", "value": "pa" },
+          { "name": "Perú", "value": "pe" },
+          { "name": "Paraguay", "value": "py" },
+          { "name": "El Salvador", "value": "sv" },
+          { "name": "Estados Unidos", "value": "us" },
+          { "name": "Uruguay", "value": "uy" }
+        ]
+      },
+      {
+        "component": "multiselect",
+        "name": "target-languages",
+        "label": "Target Languages",
+        "valueType": "string",
+        "description": "Optional: Select target languages. If empty, shows in all. Compared against 'selected-language' cookie.",
+        "options": [
+          { "name": "English", "value": "en" },
+          { "name": "Spanish", "value": "es" },
+          { "name": "French", "value": "fr" },
+          { "name": "Portuguese", "value": "pt" }
+        ]
+      }
+    ]
   },
   {
     "id": "footer-column-item",
@@ -1701,20 +2455,6 @@
         "description": "Optional decorative icon name (e.g., airplane, calendar, gift)"
       },
       {
-        "component": "multiselect",
-        "name": "badges",
-        "label": "Badges",
-        "options": [
-          { "name": "New", "value": "new" },
-          { "name": "Popular", "value": "popular" },
-          { "name": "Offer", "value": "offer" },
-          { "name": "Limited Time", "value": "limited-time" },
-          { "name": "Exclusive", "value": "exclusive" },
-          { "name": "Recommended", "value": "recommended" }
-        ],
-        "description": "Optional badges to display on the card (multilanguage)"
-      },
-      {
         "component": "text",
         "valueType": "string",
         "name": "linkUrl",
@@ -1779,6 +2519,51 @@
         ],
         "value": "fullCard",
         "description": "Whether only the CTA button or the entire card is clickable"
+      },
+      {
+        "component": "multiselect",
+        "name": "target-countries",
+        "label": "Target Countries (POS)",
+        "valueType": "string",
+        "description": "Optional: Select target countries/POS. If empty, shows in all. Compared against 'selected-country' cookie (ISO-2 codes).",
+        "options": [
+          { "name": "Argentina", "value": "ar" },
+          { "name": "Bolivia", "value": "bo" },
+          { "name": "Brasil", "value": "br" },
+          { "name": "Canadá", "value": "ca" },
+          { "name": "Chile", "value": "cl" },
+          { "name": "Colombia", "value": "co" },
+          { "name": "Costa Rica", "value": "cr" },
+          { "name": "República Dominicana", "value": "do" },
+          { "name": "Ecuador", "value": "ec" },
+          { "name": "España", "value": "eu" },
+          { "name": "Francia", "value": "fr" },
+          { "name": "Reino Unido", "value": "gb" },
+          { "name": "Guatemala", "value": "gt" },
+          { "name": "Honduras", "value": "hn" },
+          { "name": "México", "value": "mx" },
+          { "name": "Nicaragua", "value": "ni" },
+          { "name": "Otros", "value": "ot" },
+          { "name": "Panamá", "value": "pa" },
+          { "name": "Perú", "value": "pe" },
+          { "name": "Paraguay", "value": "py" },
+          { "name": "El Salvador", "value": "sv" },
+          { "name": "Estados Unidos", "value": "us" },
+          { "name": "Uruguay", "value": "uy" }
+        ]
+      },
+      {
+        "component": "multiselect",
+        "name": "target-languages",
+        "label": "Target Languages",
+        "valueType": "string",
+        "description": "Optional: Select target languages. If empty, shows in all. Compared against 'selected-language' cookie.",
+        "options": [
+          { "name": "English", "value": "en" },
+          { "name": "Spanish", "value": "es" },
+          { "name": "French", "value": "fr" },
+          { "name": "Portuguese", "value": "pt" }
+        ]
       }
     ]
   },
@@ -1897,6 +2682,51 @@
         "label": "Show Dismiss Button",
         "value": true,
         "description": "Allow users to dismiss/close the alert"
+      },
+      {
+        "component": "multiselect",
+        "name": "target-countries",
+        "label": "Target Countries (POS)",
+        "valueType": "string",
+        "description": "Optional: Select target countries/POS. If empty, shows in all. Compared against 'selected-country' cookie (ISO-2 codes).",
+        "options": [
+          { "name": "Argentina", "value": "ar" },
+          { "name": "Bolivia", "value": "bo" },
+          { "name": "Brasil", "value": "br" },
+          { "name": "Canadá", "value": "ca" },
+          { "name": "Chile", "value": "cl" },
+          { "name": "Colombia", "value": "co" },
+          { "name": "Costa Rica", "value": "cr" },
+          { "name": "República Dominicana", "value": "do" },
+          { "name": "Ecuador", "value": "ec" },
+          { "name": "España", "value": "eu" },
+          { "name": "Francia", "value": "fr" },
+          { "name": "Reino Unido", "value": "gb" },
+          { "name": "Guatemala", "value": "gt" },
+          { "name": "Honduras", "value": "hn" },
+          { "name": "México", "value": "mx" },
+          { "name": "Nicaragua", "value": "ni" },
+          { "name": "Otros", "value": "ot" },
+          { "name": "Panamá", "value": "pa" },
+          { "name": "Perú", "value": "pe" },
+          { "name": "Paraguay", "value": "py" },
+          { "name": "El Salvador", "value": "sv" },
+          { "name": "Estados Unidos", "value": "us" },
+          { "name": "Uruguay", "value": "uy" }
+        ]
+      },
+      {
+        "component": "multiselect",
+        "name": "target-languages",
+        "label": "Target Languages",
+        "valueType": "string",
+        "description": "Optional: Select target languages. If empty, shows in all. Compared against 'selected-language' cookie.",
+        "options": [
+          { "name": "English", "value": "en" },
+          { "name": "Spanish", "value": "es" },
+          { "name": "French", "value": "fr" },
+          { "name": "Portuguese", "value": "pt" }
+        ]
       }
     ]
   },
@@ -1995,6 +2825,51 @@
         "label": "Cover Image",
         "multi": false,
         "description": "Header cover image for the modal (jpg, png, webp, gif). Optional."
+      },
+      {
+        "component": "multiselect",
+        "name": "target-countries",
+        "label": "Target Countries (POS)",
+        "valueType": "string",
+        "description": "Optional: Select target countries/POS. If empty, shows in all. Compared against 'selected-country' cookie (ISO-2 codes).",
+        "options": [
+          { "name": "Argentina", "value": "ar" },
+          { "name": "Bolivia", "value": "bo" },
+          { "name": "Brasil", "value": "br" },
+          { "name": "Canadá", "value": "ca" },
+          { "name": "Chile", "value": "cl" },
+          { "name": "Colombia", "value": "co" },
+          { "name": "Costa Rica", "value": "cr" },
+          { "name": "República Dominicana", "value": "do" },
+          { "name": "Ecuador", "value": "ec" },
+          { "name": "España", "value": "eu" },
+          { "name": "Francia", "value": "fr" },
+          { "name": "Reino Unido", "value": "gb" },
+          { "name": "Guatemala", "value": "gt" },
+          { "name": "Honduras", "value": "hn" },
+          { "name": "México", "value": "mx" },
+          { "name": "Nicaragua", "value": "ni" },
+          { "name": "Otros", "value": "ot" },
+          { "name": "Panamá", "value": "pa" },
+          { "name": "Perú", "value": "pe" },
+          { "name": "Paraguay", "value": "py" },
+          { "name": "El Salvador", "value": "sv" },
+          { "name": "Estados Unidos", "value": "us" },
+          { "name": "Uruguay", "value": "uy" }
+        ]
+      },
+      {
+        "component": "multiselect",
+        "name": "target-languages",
+        "label": "Target Languages",
+        "valueType": "string",
+        "description": "Optional: Select target languages. If empty, shows in all. Compared against 'selected-language' cookie.",
+        "options": [
+          { "name": "English", "value": "en" },
+          { "name": "Spanish", "value": "es" },
+          { "name": "French", "value": "fr" },
+          { "name": "Portuguese", "value": "pt" }
+        ]
       }
     ]
   },
@@ -2222,6 +3097,132 @@
           }
         ],
         "value": "lazy"
+      },
+      {
+        "component": "multiselect",
+        "name": "target-countries",
+        "label": "Target Countries (POS)",
+        "valueType": "string",
+        "description": "Optional: Select target countries/POS. If empty, shows in all. Compared against 'selected-country' cookie (ISO-2 codes).",
+        "options": [
+          {
+            "name": "Argentina",
+            "value": "ar"
+          },
+          {
+            "name": "Bolivia",
+            "value": "bo"
+          },
+          {
+            "name": "Brasil",
+            "value": "br"
+          },
+          {
+            "name": "Canadá",
+            "value": "ca"
+          },
+          {
+            "name": "Chile",
+            "value": "cl"
+          },
+          {
+            "name": "Colombia",
+            "value": "co"
+          },
+          {
+            "name": "Costa Rica",
+            "value": "cr"
+          },
+          {
+            "name": "República Dominicana",
+            "value": "do"
+          },
+          {
+            "name": "Ecuador",
+            "value": "ec"
+          },
+          {
+            "name": "España",
+            "value": "eu"
+          },
+          {
+            "name": "Francia",
+            "value": "fr"
+          },
+          {
+            "name": "Reino Unido",
+            "value": "gb"
+          },
+          {
+            "name": "Guatemala",
+            "value": "gt"
+          },
+          {
+            "name": "Honduras",
+            "value": "hn"
+          },
+          {
+            "name": "México",
+            "value": "mx"
+          },
+          {
+            "name": "Nicaragua",
+            "value": "ni"
+          },
+          {
+            "name": "Otros",
+            "value": "ot"
+          },
+          {
+            "name": "Panamá",
+            "value": "pa"
+          },
+          {
+            "name": "Perú",
+            "value": "pe"
+          },
+          {
+            "name": "Paraguay",
+            "value": "py"
+          },
+          {
+            "name": "El Salvador",
+            "value": "sv"
+          },
+          {
+            "name": "Estados Unidos",
+            "value": "us"
+          },
+          {
+            "name": "Uruguay",
+            "value": "uy"
+          }
+        ]
+      },
+      {
+        "component": "multiselect",
+        "name": "target-languages",
+        "label": "Target Languages",
+        "valueType": "string",
+        "description": "Optional: Select target languages. If empty, shows in all. Compared against 'selected-language' cookie.",
+        "options": [
+          {
+            "name": "English",
+            "value": "en"
+          },
+          {
+            "name": "Spanish",
+            "value": "es"
+          },
+          {
+            "name": "French",
+            "value": "fr"
+          },
+          {
+            "name": "Portuguese",
+            "value": "pt"
+          }
+        ]
       }
     ]
   },
@@ -2235,12 +3236,102 @@
         "valueType": "string",
         "value": "",
         "description": "Rich text content with full formatting support (headings, paragraphs, lists, links, bold, italic, etc.)"
+      },
+      {
+        "component": "multiselect",
+        "name": "target-countries",
+        "label": "Target Countries (POS)",
+        "valueType": "string",
+        "description": "Optional: Select target countries/POS. If empty, shows in all. Compared against 'selected-country' cookie (ISO-2 codes).",
+        "options": [
+          { "name": "Argentina", "value": "ar" },
+          { "name": "Bolivia", "value": "bo" },
+          { "name": "Brasil", "value": "br" },
+          { "name": "Canadá", "value": "ca" },
+          { "name": "Chile", "value": "cl" },
+          { "name": "Colombia", "value": "co" },
+          { "name": "Costa Rica", "value": "cr" },
+          { "name": "República Dominicana", "value": "do" },
+          { "name": "Ecuador", "value": "ec" },
+          { "name": "España", "value": "eu" },
+          { "name": "Francia", "value": "fr" },
+          { "name": "Reino Unido", "value": "gb" },
+          { "name": "Guatemala", "value": "gt" },
+          { "name": "Honduras", "value": "hn" },
+          { "name": "México", "value": "mx" },
+          { "name": "Nicaragua", "value": "ni" },
+          { "name": "Otros", "value": "ot" },
+          { "name": "Panamá", "value": "pa" },
+          { "name": "Perú", "value": "pe" },
+          { "name": "Paraguay", "value": "py" },
+          { "name": "El Salvador", "value": "sv" },
+          { "name": "Estados Unidos", "value": "us" },
+          { "name": "Uruguay", "value": "uy" }
+        ]
+      },
+      {
+        "component": "multiselect",
+        "name": "target-languages",
+        "label": "Target Languages",
+        "valueType": "string",
+        "description": "Optional: Select target languages. If empty, shows in all. Compared against 'selected-language' cookie.",
+        "options": [
+          { "name": "English", "value": "en" },
+          { "name": "Spanish", "value": "es" },
+          { "name": "French", "value": "fr" },
+          { "name": "Portuguese", "value": "pt" }
+        ]
       }
     ]
   },
   {
     "id": "form-header-banner",
     "fields": [
+      {
+        "component": "multiselect",
+        "name": "target-countries",
+        "label": "Target Countries (POS)",
+        "valueType": "string",
+        "description": "Optional: Select target countries/POS. If empty, shows in all. Compared against 'selected-country' cookie (ISO-2 codes).",
+        "options": [
+          { "name": "Argentina", "value": "ar" },
+          { "name": "Bolivia", "value": "bo" },
+          { "name": "Brasil", "value": "br" },
+          { "name": "Canadá", "value": "ca" },
+          { "name": "Chile", "value": "cl" },
+          { "name": "Colombia", "value": "co" },
+          { "name": "Costa Rica", "value": "cr" },
+          { "name": "República Dominicana", "value": "do" },
+          { "name": "Ecuador", "value": "ec" },
+          { "name": "España", "value": "eu" },
+          { "name": "Francia", "value": "fr" },
+          { "name": "Reino Unido", "value": "gb" },
+          { "name": "Guatemala", "value": "gt" },
+          { "name": "Honduras", "value": "hn" },
+          { "name": "México", "value": "mx" },
+          { "name": "Nicaragua", "value": "ni" },
+          { "name": "Otros", "value": "ot" },
+          { "name": "Panamá", "value": "pa" },
+          { "name": "Perú", "value": "pe" },
+          { "name": "Paraguay", "value": "py" },
+          { "name": "El Salvador", "value": "sv" },
+          { "name": "Estados Unidos", "value": "us" },
+          { "name": "Uruguay", "value": "uy" }
+        ]
+      },
+      {
+        "component": "multiselect",
+        "name": "target-languages",
+        "label": "Target Languages",
+        "valueType": "string",
+        "description": "Optional: Select target languages. If empty, shows in all. Compared against 'selected-language' cookie.",
+        "options": [
+          { "name": "English", "value": "en" },
+          { "name": "Spanish", "value": "es" },
+          { "name": "French", "value": "fr" },
+          { "name": "Portuguese", "value": "pt" }
+        ]
+      },
       {
         "component": "reference",
         "valueType": "string",
@@ -2315,6 +3406,16 @@
         "description": "Semantic level for the subtitle"
       },
       {
+        "component": "select",
+        "name": "formType",
+        "label": "Form Type",
+        "options": [
+          { "name": "Cabin Upgrade Form", "value": "cabin-upgrade" }
+        ],
+        "value": "cabin-upgrade",
+        "description": "Type of form to display in the banner"
+      },
+      {
         "component": "boolean",
         "name": "showAlert",
         "label": "Show Alert",
@@ -2348,6 +3449,22 @@
         "valueType": "string",
         "value": "",
         "description": "Rich text content for the alert message"
+      },
+      {
+        "component": "reference",
+        "valueType": "string",
+        "name": "modalImage",
+        "label": "Modal Image",
+        "multi": false,
+        "description": "Image displayed inside the modal"
+      },
+      {
+        "component": "text",
+        "valueType": "string",
+        "name": "modalImageAlt",
+        "label": "Modal Image Alt Text",
+        "value": "",
+        "description": "Alternative text for the modal image (accessibility)"
       }
     ]
   },
@@ -2461,6 +3578,51 @@
         "valueType": "string",
         "value": "",
         "description": "Rich text content for the alert message"
+      },
+      {
+        "component": "multiselect",
+        "name": "target-countries",
+        "label": "Target Countries (POS)",
+        "valueType": "string",
+        "description": "Optional: Select target countries/POS. If empty, shows in all. Compared against 'selected-country' cookie (ISO-2 codes).",
+        "options": [
+          { "name": "Argentina", "value": "ar" },
+          { "name": "Bolivia", "value": "bo" },
+          { "name": "Brasil", "value": "br" },
+          { "name": "Canadá", "value": "ca" },
+          { "name": "Chile", "value": "cl" },
+          { "name": "Colombia", "value": "co" },
+          { "name": "Costa Rica", "value": "cr" },
+          { "name": "República Dominicana", "value": "do" },
+          { "name": "Ecuador", "value": "ec" },
+          { "name": "España", "value": "eu" },
+          { "name": "Francia", "value": "fr" },
+          { "name": "Reino Unido", "value": "gb" },
+          { "name": "Guatemala", "value": "gt" },
+          { "name": "Honduras", "value": "hn" },
+          { "name": "México", "value": "mx" },
+          { "name": "Nicaragua", "value": "ni" },
+          { "name": "Otros", "value": "ot" },
+          { "name": "Panamá", "value": "pa" },
+          { "name": "Perú", "value": "pe" },
+          { "name": "Paraguay", "value": "py" },
+          { "name": "El Salvador", "value": "sv" },
+          { "name": "Estados Unidos", "value": "us" },
+          { "name": "Uruguay", "value": "uy" }
+        ]
+      },
+      {
+        "component": "multiselect",
+        "name": "target-languages",
+        "label": "Target Languages",
+        "valueType": "string",
+        "description": "Optional: Select target languages. If empty, shows in all. Compared against 'selected-language' cookie.",
+        "options": [
+          { "name": "English", "value": "en" },
+          { "name": "Spanish", "value": "es" },
+          { "name": "French", "value": "fr" },
+          { "name": "Portuguese", "value": "pt" }
+        ]
       }
     ]
   },
@@ -2483,6 +3645,51 @@
         ],
         "value": "lazy",
         "description": "Image loading strategy for all cards in the carousel. Use 'eager' for above-the-fold carousels, 'lazy' for others."
+      },
+      {
+        "component": "multiselect",
+        "name": "target-countries",
+        "label": "Target Countries (POS)",
+        "valueType": "string",
+        "description": "Optional: Select target countries/POS. If empty, shows in all. Compared against 'selected-country' cookie (ISO-2 codes).",
+        "options": [
+          { "name": "Argentina", "value": "ar" },
+          { "name": "Bolivia", "value": "bo" },
+          { "name": "Brasil", "value": "br" },
+          { "name": "Canadá", "value": "ca" },
+          { "name": "Chile", "value": "cl" },
+          { "name": "Colombia", "value": "co" },
+          { "name": "Costa Rica", "value": "cr" },
+          { "name": "República Dominicana", "value": "do" },
+          { "name": "Ecuador", "value": "ec" },
+          { "name": "España", "value": "eu" },
+          { "name": "Francia", "value": "fr" },
+          { "name": "Reino Unido", "value": "gb" },
+          { "name": "Guatemala", "value": "gt" },
+          { "name": "Honduras", "value": "hn" },
+          { "name": "México", "value": "mx" },
+          { "name": "Nicaragua", "value": "ni" },
+          { "name": "Otros", "value": "ot" },
+          { "name": "Panamá", "value": "pa" },
+          { "name": "Perú", "value": "pe" },
+          { "name": "Paraguay", "value": "py" },
+          { "name": "El Salvador", "value": "sv" },
+          { "name": "Estados Unidos", "value": "us" },
+          { "name": "Uruguay", "value": "uy" }
+        ]
+      },
+      {
+        "component": "multiselect",
+        "name": "target-languages",
+        "label": "Target Languages",
+        "valueType": "string",
+        "description": "Optional: Select target languages. If empty, shows in all. Compared against 'selected-language' cookie.",
+        "options": [
+          { "name": "English", "value": "en" },
+          { "name": "Spanish", "value": "es" },
+          { "name": "French", "value": "fr" },
+          { "name": "Portuguese", "value": "pt" }
+        ]
       }
     ]
   },
@@ -2559,6 +3766,51 @@
         "label": "CTA/Card Link",
         "value": "",
         "description": "URL for CTA button or whole card link (internal or external). Supports dofollow for SEO."
+      },
+      {
+        "component": "multiselect",
+        "name": "target-countries",
+        "label": "Target Countries (POS)",
+        "valueType": "string",
+        "description": "Optional: Select target countries/POS. If empty, shows in all. Compared against 'selected-country' cookie (ISO-2 codes).",
+        "options": [
+          { "name": "Argentina", "value": "ar" },
+          { "name": "Bolivia", "value": "bo" },
+          { "name": "Brasil", "value": "br" },
+          { "name": "Canadá", "value": "ca" },
+          { "name": "Chile", "value": "cl" },
+          { "name": "Colombia", "value": "co" },
+          { "name": "Costa Rica", "value": "cr" },
+          { "name": "República Dominicana", "value": "do" },
+          { "name": "Ecuador", "value": "ec" },
+          { "name": "España", "value": "eu" },
+          { "name": "Francia", "value": "fr" },
+          { "name": "Reino Unido", "value": "gb" },
+          { "name": "Guatemala", "value": "gt" },
+          { "name": "Honduras", "value": "hn" },
+          { "name": "México", "value": "mx" },
+          { "name": "Nicaragua", "value": "ni" },
+          { "name": "Otros", "value": "ot" },
+          { "name": "Panamá", "value": "pa" },
+          { "name": "Perú", "value": "pe" },
+          { "name": "Paraguay", "value": "py" },
+          { "name": "El Salvador", "value": "sv" },
+          { "name": "Estados Unidos", "value": "us" },
+          { "name": "Uruguay", "value": "uy" }
+        ]
+      },
+      {
+        "component": "multiselect",
+        "name": "target-languages",
+        "label": "Target Languages",
+        "valueType": "string",
+        "description": "Optional: Select target languages. If empty, shows in all. Compared against 'selected-language' cookie.",
+        "options": [
+          { "name": "English", "value": "en" },
+          { "name": "Spanish", "value": "es" },
+          { "name": "French", "value": "fr" },
+          { "name": "Portuguese", "value": "pt" }
+        ]
       }
     ]
   },
@@ -2581,6 +3833,132 @@
         ],
         "value": "lazy",
         "description": "Image loading strategy."
+      },
+      {
+        "component": "multiselect",
+        "name": "target-countries",
+        "label": "Target Countries (POS)",
+        "valueType": "string",
+        "description": "Optional: Select target countries/POS. If empty, shows in all. Compared against 'selected-country' cookie (ISO-2 codes).",
+        "options": [
+          {
+            "name": "Argentina",
+            "value": "ar"
+          },
+          {
+            "name": "Bolivia",
+            "value": "bo"
+          },
+          {
+            "name": "Brasil",
+            "value": "br"
+          },
+          {
+            "name": "Canadá",
+            "value": "ca"
+          },
+          {
+            "name": "Chile",
+            "value": "cl"
+          },
+          {
+            "name": "Colombia",
+            "value": "co"
+          },
+          {
+            "name": "Costa Rica",
+            "value": "cr"
+          },
+          {
+            "name": "República Dominicana",
+            "value": "do"
+          },
+          {
+            "name": "Ecuador",
+            "value": "ec"
+          },
+          {
+            "name": "España",
+            "value": "eu"
+          },
+          {
+            "name": "Francia",
+            "value": "fr"
+          },
+          {
+            "name": "Reino Unido",
+            "value": "gb"
+          },
+          {
+            "name": "Guatemala",
+            "value": "gt"
+          },
+          {
+            "name": "Honduras",
+            "value": "hn"
+          },
+          {
+            "name": "México",
+            "value": "mx"
+          },
+          {
+            "name": "Nicaragua",
+            "value": "ni"
+          },
+          {
+            "name": "Otros",
+            "value": "ot"
+          },
+          {
+            "name": "Panamá",
+            "value": "pa"
+          },
+          {
+            "name": "Perú",
+            "value": "pe"
+          },
+          {
+            "name": "Paraguay",
+            "value": "py"
+          },
+          {
+            "name": "El Salvador",
+            "value": "sv"
+          },
+          {
+            "name": "Estados Unidos",
+            "value": "us"
+          },
+          {
+            "name": "Uruguay",
+            "value": "uy"
+          }
+        ]
+      },
+      {
+        "component": "multiselect",
+        "name": "target-languages",
+        "label": "Target Languages",
+        "valueType": "string",
+        "description": "Optional: Select target languages. If empty, shows in all. Compared against 'selected-language' cookie.",
+        "options": [
+          {
+            "name": "English",
+            "value": "en"
+          },
+          {
+            "name": "Spanish",
+            "value": "es"
+          },
+          {
+            "name": "French",
+            "value": "fr"
+          },
+          {
+            "name": "Portuguese",
+            "value": "pt"
+          }
+        ]
       }
     ]
   },
@@ -2659,6 +4037,51 @@
         ],
         "value": "dofollow",
         "description": "SEO link relationship. Use dofollow for internal key links, nofollow/sponsored for promotional or external."
+      },
+      {
+        "component": "multiselect",
+        "name": "target-countries",
+        "label": "Target Countries (POS)",
+        "valueType": "string",
+        "description": "Optional: Select target countries/POS. If empty, shows in all. Compared against 'selected-country' cookie (ISO-2 codes).",
+        "options": [
+          { "name": "Argentina", "value": "ar" },
+          { "name": "Bolivia", "value": "bo" },
+          { "name": "Brasil", "value": "br" },
+          { "name": "Canadá", "value": "ca" },
+          { "name": "Chile", "value": "cl" },
+          { "name": "Colombia", "value": "co" },
+          { "name": "Costa Rica", "value": "cr" },
+          { "name": "República Dominicana", "value": "do" },
+          { "name": "Ecuador", "value": "ec" },
+          { "name": "España", "value": "eu" },
+          { "name": "Francia", "value": "fr" },
+          { "name": "Reino Unido", "value": "gb" },
+          { "name": "Guatemala", "value": "gt" },
+          { "name": "Honduras", "value": "hn" },
+          { "name": "México", "value": "mx" },
+          { "name": "Nicaragua", "value": "ni" },
+          { "name": "Otros", "value": "ot" },
+          { "name": "Panamá", "value": "pa" },
+          { "name": "Perú", "value": "pe" },
+          { "name": "Paraguay", "value": "py" },
+          { "name": "El Salvador", "value": "sv" },
+          { "name": "Estados Unidos", "value": "us" },
+          { "name": "Uruguay", "value": "uy" }
+        ]
+      },
+      {
+        "component": "multiselect",
+        "name": "target-languages",
+        "label": "Target Languages",
+        "valueType": "string",
+        "description": "Optional: Select target languages. If empty, shows in all. Compared against 'selected-language' cookie.",
+        "options": [
+          { "name": "English", "value": "en" },
+          { "name": "Spanish", "value": "es" },
+          { "name": "French", "value": "fr" },
+          { "name": "Portuguese", "value": "pt" }
+        ]
       }
     ]
   },
@@ -2788,6 +4211,51 @@
         "label": "Custom Attributes (JSON)",
         "value": "",
         "description": "Additional attributes in JSON format. Example: {\"aria-label\": \"Buy now\", \"data-tracking\": \"cta-buy\", \"data-pos\": \"CO\"}"
+      },
+      {
+        "component": "multiselect",
+        "name": "target-countries",
+        "label": "Target Countries (POS)",
+        "valueType": "string",
+        "description": "Optional: Select target countries/POS. If empty, shows in all. Compared against 'selected-country' cookie (ISO-2 codes).",
+        "options": [
+          { "name": "Argentina", "value": "ar" },
+          { "name": "Bolivia", "value": "bo" },
+          { "name": "Brasil", "value": "br" },
+          { "name": "Canadá", "value": "ca" },
+          { "name": "Chile", "value": "cl" },
+          { "name": "Colombia", "value": "co" },
+          { "name": "Costa Rica", "value": "cr" },
+          { "name": "República Dominicana", "value": "do" },
+          { "name": "Ecuador", "value": "ec" },
+          { "name": "España", "value": "eu" },
+          { "name": "Francia", "value": "fr" },
+          { "name": "Reino Unido", "value": "gb" },
+          { "name": "Guatemala", "value": "gt" },
+          { "name": "Honduras", "value": "hn" },
+          { "name": "México", "value": "mx" },
+          { "name": "Nicaragua", "value": "ni" },
+          { "name": "Otros", "value": "ot" },
+          { "name": "Panamá", "value": "pa" },
+          { "name": "Perú", "value": "pe" },
+          { "name": "Paraguay", "value": "py" },
+          { "name": "El Salvador", "value": "sv" },
+          { "name": "Estados Unidos", "value": "us" },
+          { "name": "Uruguay", "value": "uy" }
+        ]
+      },
+      {
+        "component": "multiselect",
+        "name": "target-languages",
+        "label": "Target Languages",
+        "valueType": "string",
+        "description": "Optional: Select target languages. If empty, shows in all. Compared against 'selected-language' cookie.",
+        "options": [
+          { "name": "English", "value": "en" },
+          { "name": "Spanish", "value": "es" },
+          { "name": "French", "value": "fr" },
+          { "name": "Portuguese", "value": "pt" }
+        ]
       }
     ]
   },
@@ -2884,6 +4352,51 @@
         "label": "ARIA Role",
         "value": "",
         "description": "ARIA role for accessibility. Examples: status, banner"
+      },
+      {
+        "component": "multiselect",
+        "name": "target-countries",
+        "label": "Target Countries (POS)",
+        "valueType": "string",
+        "description": "Optional: Select target countries/POS. If empty, shows in all. Compared against 'selected-country' cookie (ISO-2 codes).",
+        "options": [
+          { "name": "Argentina", "value": "ar" },
+          { "name": "Bolivia", "value": "bo" },
+          { "name": "Brasil", "value": "br" },
+          { "name": "Canadá", "value": "ca" },
+          { "name": "Chile", "value": "cl" },
+          { "name": "Colombia", "value": "co" },
+          { "name": "Costa Rica", "value": "cr" },
+          { "name": "República Dominicana", "value": "do" },
+          { "name": "Ecuador", "value": "ec" },
+          { "name": "España", "value": "eu" },
+          { "name": "Francia", "value": "fr" },
+          { "name": "Reino Unido", "value": "gb" },
+          { "name": "Guatemala", "value": "gt" },
+          { "name": "Honduras", "value": "hn" },
+          { "name": "México", "value": "mx" },
+          { "name": "Nicaragua", "value": "ni" },
+          { "name": "Otros", "value": "ot" },
+          { "name": "Panamá", "value": "pa" },
+          { "name": "Perú", "value": "pe" },
+          { "name": "Paraguay", "value": "py" },
+          { "name": "El Salvador", "value": "sv" },
+          { "name": "Estados Unidos", "value": "us" },
+          { "name": "Uruguay", "value": "uy" }
+        ]
+      },
+      {
+        "component": "multiselect",
+        "name": "target-languages",
+        "label": "Target Languages",
+        "valueType": "string",
+        "description": "Optional: Select target languages. If empty, shows in all. Compared against 'selected-language' cookie.",
+        "options": [
+          { "name": "English", "value": "en" },
+          { "name": "Spanish", "value": "es" },
+          { "name": "French", "value": "fr" },
+          { "name": "Portuguese", "value": "pt" }
+        ]
       }
     ]
   },
@@ -3166,7 +4679,7 @@
         "name": "show-chevrons",
         "label": "Show Navigation Chevrons",
         "value": false,
-        "description": "Display left/right chevron buttons for navigating tabs when scrolling is needed"
+        "description": "Display left/right chevron buttons for navigating tabs when scrolling is needed (only for large size - Width: ≥ 1248px)"
       },
       {
         "component": "select",
@@ -3174,6 +4687,126 @@
         "label": "Show Block",
         "value": "true",
         "description": "Enable or disable the entire block",
+        "valueType": "string",
+        "options": [
+          {
+            "name": "true",
+            "value": "true"
+          },
+          {
+            "name": "false",
+            "value": "false"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "mosaic-cards-v2",
+    "fields": [
+      {
+        "component": "text",
+        "valueType": "string",
+        "name": "group-id",
+        "label": "Group ID",
+        "value": "",
+        "description": "Unique identifier for this carousel group. Mosaic sections must have matching mosaic-v2-group metadata."
+      },
+      {
+        "component": "boolean",
+        "name": "autoplay",
+        "label": "Enable Autoplay",
+        "value": false,
+        "description": "Automatically cycle through mosaic phases"
+      },
+      {
+        "component": "number",
+        "name": "autoplay-speed",
+        "label": "Autoplay Speed (ms)",
+        "value": 3000,
+        "description": "Continuous scroll velocity in marquee mode. Lower = faster, higher = slower (default: 3000)"
+      },
+      {
+        "component": "boolean",
+        "name": "loop",
+        "label": "Loop Infinitely",
+        "value": true,
+        "description": "Return to first mosaic after last one"
+      },
+      {
+        "component": "boolean",
+        "name": "show-arrows",
+        "label": "Show Navigation Arrows",
+        "value": false,
+        "description": "Display left/right arrows for manual navigation desktop | Display dots for manual navigation mobile/tablet"
+      },
+      {
+        "component": "text",
+        "valueType": "string",
+        "name": "enable-from",
+        "label": "Enable From Date",
+        "value": "",
+        "description": "Optional: Start date in ISO format (YYYY-MM-DD). Block hidden before this date."
+      },
+      {
+        "component": "text",
+        "valueType": "string",
+        "name": "enable-to",
+        "label": "Enable To Date",
+        "value": "",
+        "description": "Optional: End date in ISO format (YYYY-MM-DD). Block hidden after this date."
+      },
+      {
+        "component": "multiselect",
+        "name": "target-countries",
+        "label": "Target Countries (POS)",
+        "valueType": "string",
+        "description": "Optional: Select target countries/POS. If empty, shows in all. Compared against 'selected-country' cookie (ISO-2 codes).",
+        "options": [
+          { "name": "Argentina", "value": "ar" },
+          { "name": "Bolivia", "value": "bo" },
+          { "name": "Brasil", "value": "br" },
+          { "name": "Canadá", "value": "ca" },
+          { "name": "Chile", "value": "cl" },
+          { "name": "Colombia", "value": "co" },
+          { "name": "Costa Rica", "value": "cr" },
+          { "name": "República Dominicana", "value": "do" },
+          { "name": "Ecuador", "value": "ec" },
+          { "name": "España", "value": "eu" },
+          { "name": "Francia", "value": "fr" },
+          { "name": "Reino Unido", "value": "gb" },
+          { "name": "Guatemala", "value": "gt" },
+          { "name": "Honduras", "value": "hn" },
+          { "name": "México", "value": "mx" },
+          { "name": "Nicaragua", "value": "ni" },
+          { "name": "Otros", "value": "ot" },
+          { "name": "Panamá", "value": "pa" },
+          { "name": "Perú", "value": "pe" },
+          { "name": "Paraguay", "value": "py" },
+          { "name": "El Salvador", "value": "sv" },
+          { "name": "Estados Unidos", "value": "us" },
+          { "name": "Uruguay", "value": "uy" }
+        ]
+      },
+      {
+        "component": "multiselect",
+        "name": "target-languages",
+        "label": "Target Languages",
+        "valueType": "string",
+        "description": "Optional: Select target languages. If empty, shows in all. Compared against 'selected-language' cookie.",
+        "options": [
+          { "name": "English", "value": "en" },
+          { "name": "Spanish", "value": "es" },
+          { "name": "French", "value": "fr" },
+          { "name": "Portuguese", "value": "pt" }
+        ]
+      },
+      {
+        "component": "select",
+        "name": "show",
+        "label": "Show Block",
+        "value": "true",
+        "description": "Enable or disable the entire carousel",
         "valueType": "string",
         "options": [
           {
@@ -3207,6 +4840,51 @@
         ],
         "value": "lazy",
         "description": "Image loading strategy for icons."
+      },
+      {
+        "component": "multiselect",
+        "name": "target-countries",
+        "label": "Target Countries (POS)",
+        "valueType": "string",
+        "description": "Optional: Select target countries/POS. If empty, shows in all. Compared against 'selected-country' cookie (ISO-2 codes).",
+        "options": [
+          { "name": "Argentina", "value": "ar" },
+          { "name": "Bolivia", "value": "bo" },
+          { "name": "Brasil", "value": "br" },
+          { "name": "Canadá", "value": "ca" },
+          { "name": "Chile", "value": "cl" },
+          { "name": "Colombia", "value": "co" },
+          { "name": "Costa Rica", "value": "cr" },
+          { "name": "República Dominicana", "value": "do" },
+          { "name": "Ecuador", "value": "ec" },
+          { "name": "España", "value": "eu" },
+          { "name": "Francia", "value": "fr" },
+          { "name": "Reino Unido", "value": "gb" },
+          { "name": "Guatemala", "value": "gt" },
+          { "name": "Honduras", "value": "hn" },
+          { "name": "México", "value": "mx" },
+          { "name": "Nicaragua", "value": "ni" },
+          { "name": "Otros", "value": "ot" },
+          { "name": "Panamá", "value": "pa" },
+          { "name": "Perú", "value": "pe" },
+          { "name": "Paraguay", "value": "py" },
+          { "name": "El Salvador", "value": "sv" },
+          { "name": "Estados Unidos", "value": "us" },
+          { "name": "Uruguay", "value": "uy" }
+        ]
+      },
+      {
+        "component": "multiselect",
+        "name": "target-languages",
+        "label": "Target Languages",
+        "valueType": "string",
+        "description": "Optional: Select target languages. If empty, shows in all. Compared against 'selected-language' cookie.",
+        "options": [
+          { "name": "English", "value": "en" },
+          { "name": "Spanish", "value": "es" },
+          { "name": "French", "value": "fr" },
+          { "name": "Portuguese", "value": "pt" }
+        ]
       }
     ]
   },
@@ -3241,6 +4919,51 @@
         "name": "description",
         "label": "Description",
         "value": ""
+      },
+      {
+        "component": "multiselect",
+        "name": "target-countries",
+        "label": "Target Countries (POS)",
+        "valueType": "string",
+        "description": "Optional: Select target countries/POS. If empty, shows in all. Compared against 'selected-country' cookie (ISO-2 codes).",
+        "options": [
+          { "name": "Argentina", "value": "ar" },
+          { "name": "Bolivia", "value": "bo" },
+          { "name": "Brasil", "value": "br" },
+          { "name": "Canadá", "value": "ca" },
+          { "name": "Chile", "value": "cl" },
+          { "name": "Colombia", "value": "co" },
+          { "name": "Costa Rica", "value": "cr" },
+          { "name": "República Dominicana", "value": "do" },
+          { "name": "Ecuador", "value": "ec" },
+          { "name": "España", "value": "eu" },
+          { "name": "Francia", "value": "fr" },
+          { "name": "Reino Unido", "value": "gb" },
+          { "name": "Guatemala", "value": "gt" },
+          { "name": "Honduras", "value": "hn" },
+          { "name": "México", "value": "mx" },
+          { "name": "Nicaragua", "value": "ni" },
+          { "name": "Otros", "value": "ot" },
+          { "name": "Panamá", "value": "pa" },
+          { "name": "Perú", "value": "pe" },
+          { "name": "Paraguay", "value": "py" },
+          { "name": "El Salvador", "value": "sv" },
+          { "name": "Estados Unidos", "value": "us" },
+          { "name": "Uruguay", "value": "uy" }
+        ]
+      },
+      {
+        "component": "multiselect",
+        "name": "target-languages",
+        "label": "Target Languages",
+        "valueType": "string",
+        "description": "Optional: Select target languages. If empty, shows in all. Compared against 'selected-language' cookie.",
+        "options": [
+          { "name": "English", "value": "en" },
+          { "name": "Spanish", "value": "es" },
+          { "name": "French", "value": "fr" },
+          { "name": "Portuguese", "value": "pt" }
+        ]
       }
     ]
   },
@@ -3409,8 +5132,199 @@
         "label": "Background Image (Mobile)",
         "multi": false,
         "description": "Background image for panel interactive state on mobile. If empty, uses desktop image."
+      },
+      {
+        "component": "multiselect",
+        "name": "target-countries",
+        "label": "Target Countries (POS)",
+        "valueType": "string",
+        "description": "Optional: Select target countries/POS. If empty, shows in all. Compared against 'selected-country' cookie (ISO-2 codes).",
+        "options": [
+          { "name": "Argentina", "value": "ar" },
+          { "name": "Bolivia", "value": "bo" },
+          { "name": "Brasil", "value": "br" },
+          { "name": "Canadá", "value": "ca" },
+          { "name": "Chile", "value": "cl" },
+          { "name": "Colombia", "value": "co" },
+          { "name": "Costa Rica", "value": "cr" },
+          { "name": "República Dominicana", "value": "do" },
+          { "name": "Ecuador", "value": "ec" },
+          { "name": "España", "value": "eu" },
+          { "name": "Francia", "value": "fr" },
+          { "name": "Reino Unido", "value": "gb" },
+          { "name": "Guatemala", "value": "gt" },
+          { "name": "Honduras", "value": "hn" },
+          { "name": "México", "value": "mx" },
+          { "name": "Nicaragua", "value": "ni" },
+          { "name": "Otros", "value": "ot" },
+          { "name": "Panamá", "value": "pa" },
+          { "name": "Perú", "value": "pe" },
+          { "name": "Paraguay", "value": "py" },
+          { "name": "El Salvador", "value": "sv" },
+          { "name": "Estados Unidos", "value": "us" },
+          { "name": "Uruguay", "value": "uy" }
+        ]
+      },
+      {
+        "component": "multiselect",
+        "name": "target-languages",
+        "label": "Target Languages",
+        "valueType": "string",
+        "description": "Optional: Select target languages. If empty, shows in all. Compared against 'selected-language' cookie.",
+        "options": [
+          { "name": "English", "value": "en" },
+          { "name": "Spanish", "value": "es" },
+          { "name": "French", "value": "fr" },
+          { "name": "Portuguese", "value": "pt" }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "tables",
+    "fields": [
+      {
+        "component": "multiselect",
+        "name": "target-countries",
+        "label": "Target Countries (POS)",
+        "valueType": "string",
+        "description": "Optional: Select target countries/POS. If empty, shows in all. Compared against 'selected-country' cookie (ISO-2 codes).",
+        "options": [
+          { "name": "Argentina", "value": "ar" },
+          { "name": "Bolivia", "value": "bo" },
+          { "name": "Brasil", "value": "br" },
+          { "name": "Canadá", "value": "ca" },
+          { "name": "Chile", "value": "cl" },
+          { "name": "Colombia", "value": "co" },
+          { "name": "Costa Rica", "value": "cr" },
+          { "name": "República Dominicana", "value": "do" },
+          { "name": "Ecuador", "value": "ec" },
+          { "name": "España", "value": "eu" },
+          { "name": "Francia", "value": "fr" },
+          { "name": "Reino Unido", "value": "gb" },
+          { "name": "Guatemala", "value": "gt" },
+          { "name": "Honduras", "value": "hn" },
+          { "name": "México", "value": "mx" },
+          { "name": "Nicaragua", "value": "ni" },
+          { "name": "Otros", "value": "ot" },
+          { "name": "Panamá", "value": "pa" },
+          { "name": "Perú", "value": "pe" },
+          { "name": "Paraguay", "value": "py" },
+          { "name": "El Salvador", "value": "sv" },
+          { "name": "Estados Unidos", "value": "us" },
+          { "name": "Uruguay", "value": "uy" }
+        ]
+      },
+      {
+        "component": "multiselect",
+        "name": "target-languages",
+        "label": "Target Languages",
+        "valueType": "string",
+        "description": "Optional: Select target languages. If empty, shows in all. Compared against 'selected-language' cookie.",
+        "options": [
+          { "name": "English", "value": "en" },
+          { "name": "Spanish", "value": "es" },
+          { "name": "French", "value": "fr" },
+          { "name": "Portuguese", "value": "pt" }
+        ]
+      },
+      {
+        "component": "aem-content-fragment",
+        "name": "picker",
+        "label": "Content Fragment Picker",
+        "valueType": "string",
+        "validation": {
+          "rootPath": "/content"
+        },
+        "description": "Select a Content Fragment that contains a table. Use ONLY this field OR the Rich Text field below, not both. If both are filled, only the Content Fragment will be displayed."
+      },
+      {
+        "component": "richtext",
+        "name": "rte",
+        "label": "Rich Text",
+        "valueType": "string",
+        "description": "Create a table using HTML code. Click the 'Code' option in the rich text editor to write HTML table markup. Use ONLY this field OR the Content Fragment Picker above, not both. This field is ignored if a Content Fragment is selected."
+      },
+      {
+        "component": "text",
+        "name": "header-background-color",
+        "label": "Header Background Color",
+        "valueType": "string",
+        "value": "",
+        "description": "Optional: Background color for table headers (th). Use hex color code (e.g., #F5F5F5, #E53935). Leave empty for default styling."
+      },
+      {
+        "component": "text",
+        "name": "content-background-color",
+        "label": "Content Background Color",
+        "valueType": "string",
+        "value": "",
+        "description": "Optional: Background color for table content cells (td). Use hex color code (e.g., #FFFFFF, #FAFAFA). Leave empty for default styling."
+      },
+      {
+        "component": "boolean",
+        "name": "enable-zebra-rows",
+        "label": "Enable Zebra Rows",
+        "valueType": "boolean",
+        "value": false,
+        "description": "Enable alternating row colors for better readability. When enabled, even rows will use the color specified below."
+      },
+      {
+        "component": "text",
+        "name": "zebra-row-color",
+        "label": "Zebra Row Color",
+        "valueType": "string",
+        "value": "",
+        "description": "Background color for even rows when zebra rows are enabled. Use hex color code (e.g., #F5F5F5, #FAFAFA).",
+        "condition": {
+          "===": [
+            { "var": "enable-zebra-rows" },
+            true
+          ]
+        }
+      }
+    ]
+  },
+  {
+    "id": "html-embed",
+    "fields": [
+      {
+        "component": "richtext",
+        "name": "htmlContent",
+        "label": "HTML Content",
+        "valueType": "string",
+        "value": "",
+        "description": "Insert your HTML code here (including scripts and iframes). Use the 'Code' or 'Source' button (<>) in the editor toolbar to paste raw HTML. HTML is injected without sanitization - only use trusted sources."
+      },
+      {
+        "component": "text",
+        "valueType": "string",
+        "name": "display",
+        "label": "Display Style",
+        "value": "block",
+        "description": "CSS display property for the container (default: block). Options: block, inline-block, flex, grid, none, etc."
+      }
+    ]
+  },
+  {
+    "id": "destination-details",
+    "fields": [
+      {
+        "component": "text",
+        "valueType": "string",
+        "name": "iata",
+        "label": "IATA Code",
+        "value": "AXM",
+        "description": "3-letter IATA airport code for the destination (e.g., AXM for Armenia, BOG for Bogotá, MDE for Medellín)"
+      },
+      {
+        "component": "text",
+        "valueType": "string",
+        "name": "display",
+        "label": "Display Style",
+        "value": "block",
+        "description": "CSS display property for the container (default: block)"
       }
     ]
   }
-
 ]

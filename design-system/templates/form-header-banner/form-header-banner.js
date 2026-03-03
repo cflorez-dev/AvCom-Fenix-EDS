@@ -1,6 +1,7 @@
 import { h } from '@dropins/tools/preact.js';
 import htm from 'htm';
 import { Alert } from '../../molecules/alert/alert.js';
+import { CabinUpgradeForm } from '../../organisms/forms/cabin-upgrade-form/cabin-upgrade-form.js';
 
 const html = htm.bind(h);
 
@@ -17,10 +18,12 @@ const html = htm.bind(h);
  * @param {string} [props.subtitleText=''] - Subtitle text
  * @param {'h2'|'h3'|'h4'|'h5'|'h6'|'p'} [props.subtitleLevel='p'] - Semantic level of the subtitle
  * @param {'left'|'center'|'right'} [props.contentAlignment='left'] - Content alignment
+ * @param {'cabin-upgrade'|'none'} [props.formType='cabin-upgrade'] - Type of form to display
  * @param {boolean} [props.showAlert=false] - Show alert
  * @param {'info'|'success'|'warning'|'error'} [props.alertType='info'] - Alert type
  * @param {boolean} [props.alertDismissible=true] - Allow closing the alert
  * @param {string} [props.alertContent=''] - Alert HTML content (rich text)
+ * @param {Function} [props.onFormSubmit] - Callback when form is submitted
  * @param {string} [props.customClassName=''] - Additional CSS classes
  * @param {Object} [props.rest] - Additional properties
  * @returns {import('preact').VNode} FormHeaderBanner component
@@ -34,10 +37,15 @@ export const FormHeaderBanner = ({
   subtitleText = '',
   subtitleLevel = 'p',
   contentAlignment = 'left',
+  formType = 'cabin-upgrade',
   showAlert = false,
   alertType = 'info',
   alertDismissible = true,
   alertContent = '',
+  onFormSubmit = () => {},
+  modalDescription,
+  modalImageData,
+  modalImageAlt,
   customClassName = '',
   ...rest
 }) => {
@@ -51,6 +59,21 @@ export const FormHeaderBanner = ({
   };
 
   const alertVariant = getAlertVariant(alertType);
+
+  // Render form based on formType
+  const renderForm = () => {
+    if (formType === 'cabin-upgrade') {
+      return html`<${CabinUpgradeForm} 
+      modalDescription=${modalDescription}
+      modalImageData=${modalImageData}
+      modalImageAlt=${modalImageAlt} 
+      onSubmit=${onFormSubmit} />`;
+    }
+    // if (formType === 'otro-formulario') {
+    //   return html`<${OtroFormulario} onSubmit=${onFormSubmit} />`;
+    // }
+    return null; // Si formType === 'none' o no reconocido
+  };
 
   // Determine fetchpriority based on loading mode
   // Only set fetchpriority="high" if eager (likely LCP/above the fold)
@@ -75,22 +98,24 @@ export const FormHeaderBanner = ({
     <div class="w-full py-8 relative inline-flex flex-col justify-center items-center gap-14">
       <div class="self-stretch xl:px-8 flex flex-col justify-start items-center gap-9">
           <div data-alert="true" data-device="mob" data-form="true" class="w-full max-w-[1248px] rounded-[24px] shadow-[0px_2px_20px_2px_rgba(73,73,73,0.25)] flex flex-col min-[1024px]:flex-row justify-center items-start overflow-hidden">
-              <div class="self-stretch h-[180px] min-[1024px]:h-auto">
+              <div class="relative self-stretch h-[180px] min-[1024px]:h-auto min-[1024px]:flex-1 overflow-hidden">
                 ${imageData?.src ? html`
-                  <picture class="w-full h-full">
+                  <picture class="absolute inset-0 block w-full h-full">
                     <img ...${imgAttributes} />
                   </picture>
                 ` : null}
               </div>
-              <div class="self-stretch p-4 min-[1024px]:p-8 bg-background-card-lighter flex flex-col justify-start items-start gap-6 w-[100%] min-[1024px]:min-w-[690px] min-[1248px]:max-w-[848px]">
+
+              <div class="self-stretch p-4 min-[1024px]:p-8 bg-background-card-lighter flex flex-col justify-start items-start gap-6 w-[100%] min-[1024px]:min-w-[660px] min-[1024px]:w-[660px] min-[1248px]:max-w-[848px] min-[1248px]:w-[848px]">
                   <div class="self-stretch flex flex-col justify-start items-start gap-[4px]">
                       <${titleLevel} class="!m-0 self-stretch justify-start text-text-normal-primary !text-[24px] min-[1024px]:!text-[32px] font-bold">${titleText}</${titleLevel}>
                       <${subtitleLevel} class="!m-0 self-stretch justify-start text-text-normal-primary !font-normal !text-[16px] min-[1024px]:!text-[20px] leading-[30px]">${subtitleText}</${subtitleLevel}>
                   </div>
-                  <div class="self-stretch flex flex-col justify-center items-start w-full h-[64px] gap-4 border border-red-600">
-                      <!-- form -->
-                      <p>form</p>
-                  </div>
+                  ${formType !== 'none' ? html`
+                    <div class="self-stretch flex flex-col justify-center items-start w-full gap-4">
+                        ${renderForm()}
+                    </div>
+                  ` : null}
                   <div data-content="true" data-title="false" data-type="informative" class="w-full max-w-[1248px] min-w-48  inline-flex justify-start items-start gap-2">
                     ${showAlert ? html`
                       <${Alert} 

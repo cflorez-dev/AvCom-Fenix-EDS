@@ -19,7 +19,7 @@ function getColombiaTime() {
  */
 const CountdownUnit = ({ value, label }) => html`
   <div 
-    class="w-[50px] h-[50px] min-[1248px]:w-[65px] min-[1248px]:h-[65px] p-1 bg-white rounded-lg inline-flex flex-col justify-center items-center min-[1248px]:gap-[2px]"
+    class="w-[50px] h-[50px] min-[1248px]:w-[65px] min-[1248px]:h-[65px] p-1 bg-white rounded-[0.5rem] inline-flex flex-col justify-center items-center min-[1248px]:gap-[2px]"
     data-device="Mob"
     data-style="White"
     data-size="Default"
@@ -90,7 +90,7 @@ export const AbsoluteCountdown = ({
   return html`
     <div class="hidden min-[1248px]:flex absolute right-[24px] bottom-[24px] flex-col justify-start items-center gap-3">
       <div class="inline-flex justify-start items-start gap-3">
-        <div class="min-w-20 min-h-20 px-4 py-3 bg-zinc-900/70 rounded-lg backdrop-blur-[6px] inline-flex flex-col justify-center items-center gap-2">
+        <div class="min-w-20 min-h-20 px-4 py-3 bg-[rgba(27,27,27,0.70)] rounded-[1rem] backdrop-blur-[6px] inline-flex flex-col justify-center items-center gap-2">
           <div class="justify-start text-[var(--banner-banner-text-light)] text-xl font-normal leading-[26px]">
             ${countdownLabel}
           </div>
@@ -123,7 +123,6 @@ export const AbsoluteCountdown = ({
 /**
  * PromotionalCountdownCard Component
  * Card component with countdown timer, pricing info, and CTA button for promotional campaigns
- * 
  * @param {Object} props - Component props
  * @param {string} props.title - Main promotional title (supports HTML)
  * @param {string} props.subtitle - Promotional subtitle/description
@@ -182,7 +181,6 @@ export const PromotionalCountdownCard = ({
 
     const calculateTimeLeft = () => {
       const difference = new Date(endDateTime) - getColombiaTime();
-      
       if (difference <= 0) {
         return { days: 0, hours: 0, minutes: 0, seconds: 0, total: 0 };
       }

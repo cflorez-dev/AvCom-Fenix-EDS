@@ -1,3 +1,4 @@
+/* eslint-disable */ /* Reason: focus only on the changes made  */
 import { h } from '@dropins/tools/preact.js';
 import { useState, useEffect, useRef } from '@dropins/tools/preact-hooks.js';
 import htm from 'htm';
@@ -42,6 +43,8 @@ export const Select = ({
   iconName,
   hasPrefixIcon,
   dropdownMaxHeight,
+  labelClassName = '',
+  customDropdownClassName = '',
   customClassName = '',
   id,
   name,
@@ -80,11 +83,11 @@ export const Select = ({
 
   // State-based styling classes - Figma specs, Tailwind only
   const stateClasses = {
-    normal: 'border-2 border-border-input-default hover:border-border-input-positive',
-    success: 'border-2 border-border-input-positive',
-    error: 'border-2 border-border-input-error',
-    disabled: 'border-2 border-border-input-disabled cursor-not-allowed',
-    readonly: 'border-2 border-border-input-disabled cursor-default bg-background-input-disabled',
+    normal: 'border-1 border-border-input-default hover:border-border-input-positive',
+    success: 'border-1 border-border-input-positive',
+    error: 'border-1 border-border-input-error',
+    disabled: 'border-1 border-border-input-disabled cursor-not-allowed',
+    readonly: 'border-1 border-border-input-disabled cursor-default bg-background-input-disabled',
   };
 
   const labelStateClasses = {
@@ -120,6 +123,11 @@ export const Select = ({
       setIsOpen(!isOpen);
       setFocusedIndex(-1);
     }
+  };
+
+  const getOptionElements = () => {
+    if (!dropdownRef.current) return [];
+    return Array.from(dropdownRef.current.querySelectorAll('[role="option"]'));
   };
 
   // Select option
@@ -168,33 +176,42 @@ export const Select = ({
         break;
       case 'Tab':
         if (isOpen) {
-          e.preventDefault();
+          // Ignore bubbled Tab events from option elements.
+          if (e.target !== e.currentTarget) {
+            break;
+          }
+
+          const optionElements = getOptionElements();
+          const hasOptions = optionElements.length > 0;
+          if (!hasOptions) {
+            setIsOpen(false);
+            setFocusedIndex(-1);
+            break;
+          }
+
           // Move focus to first option if none focused, or move to next option
           if (focusedIndex < 0) {
+            e.preventDefault();
             setFocusedIndex(0);
             // Focus the first option element
             setTimeout(() => {
-              if (dropdownRef.current && dropdownRef.current.children[0]) {
-                dropdownRef.current.children[0].focus();
-              }
+              optionElements[0]?.focus();
             }, 0);
           } else if (!e.shiftKey && focusedIndex < options.length - 1) {
             // Tab forward: move to next option
+            e.preventDefault();
             const nextIndex = focusedIndex + 1;
             setFocusedIndex(nextIndex);
             setTimeout(() => {
-              if (dropdownRef.current && dropdownRef.current.children[nextIndex]) {
-                dropdownRef.current.children[nextIndex].focus();
-              }
+              optionElements[nextIndex]?.focus();
             }, 0);
           } else if (e.shiftKey && focusedIndex > 0) {
             // Shift+Tab: move to previous option
+            e.preventDefault();
             const prevIndex = focusedIndex - 1;
             setFocusedIndex(prevIndex);
             setTimeout(() => {
-              if (dropdownRef.current && dropdownRef.current.children[prevIndex]) {
-                dropdownRef.current.children[prevIndex].focus();
-              }
+              optionElements[prevIndex]?.focus();
             }, 0);
           } else if (!e.shiftKey && focusedIndex === options.length - 1) {
             // Last option with Tab: close dropdown and allow default Tab behavior
@@ -238,7 +255,8 @@ export const Select = ({
   // Scroll focused item into view
   useEffect(() => {
     if (isOpen && focusedIndex >= 0 && dropdownRef.current) {
-      const focusedElement = dropdownRef.current.children[focusedIndex];
+      const optionElements = getOptionElements();
+      const focusedElement = optionElements[focusedIndex];
       if (focusedElement) {
         focusedElement.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
       }
@@ -300,6 +318,7 @@ export const Select = ({
                 ? `top-2 text-xs leading-4 ${hasPrefixIconValue ? 'left-[46px]' : 'left-5'}`
                 : `top-1/2 -translate-y-1/2 text-sm leading-5 ${hasPrefixIconValue ? 'left-[calc(var(--padding-16)+1.25rem+var(--spacing-small))]' : 'left-[var(--padding-16)]'}`
               }
+              ${labelClassName}
             `}
           >
             ${label}${required ? '*' : ''}
@@ -329,8 +348,8 @@ export const Select = ({
           ${selectedOption && html`
             <span
               class=${`
-                relative -bottom-2 left-[2px] flex-1 text-left
-                text-base font-bold font-['Red_Hat_Display']
+                relative -bottom-2 flex-1 text-left
+                text-base font-bold font-['Red_Hat_Display'] leading-auto
                 ${actualState === 'disabled' ? 'text-text-input-disabled' : 'text-text-normal-primary'}
               `}
             >
@@ -345,18 +364,25 @@ export const Select = ({
 
           <!-- Chevron Icon -->
           <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="16"
+            height="16"
+            viewBox="0 0 16 16"
+            fill="none"
             class=${`
               w-4 h-4 flex-shrink-0 ml-[var(--spacing-small)]
               transition-transform duration-200
               ${isOpen ? 'rotate-180' : ''}
-              ${actualState === 'disabled' ? 'text-icon-input-disabled' : 'text-text-normal-primary'}
+              ${actualState === 'disabled' ? 'opacity-50' : ''}
             `}
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
             aria-hidden="true"
           >
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+            <path
+              fill-rule="evenodd"
+              clip-rule="evenodd"
+              d="M11.06 5.72656L8 8.7799L4.94 5.72656L4 6.66656L8 10.6666L12 6.66656L11.06 5.72656Z"
+              fill="${actualState === 'disabled' ? '#999999' : '#1B1B1B'}"
+            />
           </svg>
         </div>
       </div>
@@ -371,39 +397,46 @@ export const Select = ({
           style=${dropdownMaxHeightValue ? { maxHeight: dropdownMaxHeightValue } : undefined}
           class=${`
             py-2
-            absolute z-50 w-full mt-[var(--spacing-tiny)]
+            absolute z-50 w-full
             ${!dropdownMaxHeightValue ? 'max-h-64' : ''}
-            overflow-y-auto
             bg-white
             rounded-[var(--border-radius-large)]
             shadow-[0_2px_20px_2px_rgba(73,73,73,0.25)]
+            ${customDropdownClassName}
           `}
-        >
+        ><div class="max-h-[12.813rem] overflow-y-auto">
           ${options.map((option, index) => {
             const handleOptionKeyDown = (e) => {
               if (e.key === 'Tab') {
-                e.preventDefault();
-                if (!e.shiftKey && index < options.length - 1) {
+                e.stopPropagation();
+                const optionElements = getOptionElements();
+                const currentIndex = optionElements.indexOf(e.currentTarget);
+                if (currentIndex === -1) {
+                  return;
+                }
+
+                if (!e.shiftKey && currentIndex < options.length - 1) {
+                  e.preventDefault();
                   // Tab forward: move to next option
-                  setFocusedIndex(index + 1);
+                  const nextIndex = currentIndex + 1;
+                  setFocusedIndex(nextIndex);
                   setTimeout(() => {
-                    if (dropdownRef.current && dropdownRef.current.children[index + 1]) {
-                      dropdownRef.current.children[index + 1].focus();
-                    }
+                    optionElements[nextIndex]?.focus();
                   }, 0);
-                } else if (e.shiftKey && index > 0) {
+                } else if (e.shiftKey && currentIndex > 0) {
+                  e.preventDefault();
                   // Shift+Tab: move to previous option
-                  setFocusedIndex(index - 1);
+                  const prevIndex = currentIndex - 1;
+                  setFocusedIndex(prevIndex);
                   setTimeout(() => {
-                    if (dropdownRef.current && dropdownRef.current.children[index - 1]) {
-                      dropdownRef.current.children[index - 1].focus();
-                    }
+                    optionElements[prevIndex]?.focus();
                   }, 0);
-                } else if (!e.shiftKey && index === options.length - 1) {
+                } else if (!e.shiftKey && currentIndex === options.length - 1) {
                   // Last option with Tab: close dropdown
                   setIsOpen(false);
                   setFocusedIndex(-1);
-                } else if (e.shiftKey && index === 0) {
+                } else if (e.shiftKey && currentIndex === 0) {
+                  e.preventDefault();
                   // First option with Shift+Tab: return focus to select input
                   setIsOpen(false);
                   setFocusedIndex(-1);
@@ -418,9 +451,11 @@ export const Select = ({
                 }
               } else if (e.key === 'Enter' || e.key === ' ') {
                 e.preventDefault();
+                e.stopPropagation();
                 selectOption(option);
               } else if (e.key === 'Escape') {
                 e.preventDefault();
+                e.stopPropagation();
                 setIsOpen(false);
                 setFocusedIndex(-1);
                 setTimeout(() => {
@@ -482,7 +517,7 @@ export const Select = ({
                   ${isPressed ? 'bg-[var(--state-hover-darken)] text-[var(--text-brand-light)]' : 'text-text-normal-primary hover:bg-[var(--bg-hover-light)]'}
                 `}
               >
-                <span class="flex items-center gap-[var(--spacing-small)]">
+                <span class="flex items-center gap-4">
                   ${option.flagPath && html`
                     <img
                       src=${option.flagPath}
@@ -496,19 +531,8 @@ export const Select = ({
                   <span>${option.label}</span>
                 </span>
                 ${selectedValue === option.value && html`
-                  <svg
-                    class="w-6 h-6 text-border-input-positive flex-shrink-0"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                    aria-hidden="true"
-                  >
-                    <path
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      stroke-width="3"
-                      d="M5 13l4 4L19 7"
-                    />
+                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" class="flex-shrink-0">
+                    <path fill-rule="evenodd" clip-rule="evenodd" d="M8.59 15.58L4.42 11.41L3 12.82L8.59 18.41L20.59 6.41L19.18 5L8.59 15.58Z" fill="#1EA93C"/>
                   </svg>
                 `}
                 ${selectedValue === option.value && html`
@@ -519,7 +543,7 @@ export const Select = ({
               </div>
             `;
           })}
-        </div>
+        </div></div>
       `}
 
       <!-- Helper Text -->

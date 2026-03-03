@@ -6,60 +6,110 @@
   <script type="text/javascript">
     window.isErrorPage = true;
     window.errorCode = '404';
-  </script>
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta property="og:title" content="Page not found">
-  <script src="/scripts/scripts.js" type="module"></script>
-  <script type="module">
-    window.addEventListener('load', () => {
-      if (document.referrer) {
-        const { origin, pathname } = new URL(document.referrer);
-        if (origin === window.location.origin) {
-          const backBtn = document.createElement('a');
-          backBtn.classList.add('button', 'error-button-back');
-          backBtn.href = pathname;
-          backBtn.textContent = 'Go back';
-          backBtn.title = 'Go back';
-          const btnContainer = document.querySelector('.button-container');
-          btnContainer.append(backBtn);
+    
+    // Language detection for 404 page
+    // ES uses /errors/404 (no suffix), other languages use /errors/404-{lang}
+    (function() {
+      var allLangs = ['es', 'en', 'pt', 'fr']; // All supported languages
+      var suffixLangs = ['en', 'pt', 'fr']; // Languages that need -suffix (ES is default)
+      var titles = {
+        es: 'Página no encontrada',
+        en: 'Page not found',
+        pt: 'Página não encontrada',
+        fr: 'Page non trouvée'
+      };
+      
+      function detectLang() {
+        // 1. PRIORITY: Check URL path first (most reliable for SEO URLs like /es/page)
+        var pathLang = window.location.pathname.split('/')[1];
+        if (pathLang && allLangs.indexOf(pathLang) !== -1) {
+          // If ES in URL, return null (use default /errors/404)
+          // If other lang in URL, return that lang for suffix
+          return pathLang === 'es' ? null : pathLang;
         }
+        
+        // 2. Try cookie
+        var cookieMatch = document.cookie.match(/selected-language=([^;]+)/);
+        var cookieLang = cookieMatch ? cookieMatch[1].toLowerCase() : null;
+        if (cookieLang && suffixLangs.indexOf(cookieLang) !== -1) return cookieLang;
+        if (cookieLang === 'es') return null;
+        
+        // 3. Try browser language (only for suffix languages, ES users get default)
+        var browserLang = (navigator.language || '').split('-')[0].toLowerCase();
+        if (browserLang && suffixLangs.indexOf(browserLang) !== -1) return browserLang;
+        
+        return null; // null = español (default)
       }
-    });
+      
+      var lang = detectLang();
+      window.errorPageLang = lang || 'es';
+      
+      // Update document title
+      document.title = titles[window.errorPageLang] || titles.es;
+      
+      // Set html lang attribute when DOM ready
+      document.addEventListener('DOMContentLoaded', function() {
+        document.documentElement.lang = window.errorPageLang;
+        
+        // Update fragment link dynamically
+        var fragmentLink = document.querySelector('.fragment a');
+        if (fragmentLink) {
+          var fragmentPath = lang ? '/errors/404-' + lang : '/errors/404';
+          fragmentLink.href = fragmentPath;
+        }
+      });
+    })();
   </script>
-  <script type="module">
-    import { sampleRUM } from '/scripts/aem.js';
-    sampleRUM('404', { source: document.referrer });
+  
+  <!-- MarTech Optimization - Preconnects -->
+  <link rel="preconnect" href="https://www.googletagmanager.com"/>
+  <link rel="dns-prefetch" href="https://www.googletagmanager.com"/>
+  <link rel="preconnect" href="https://assets.adobedtm.com"/>
+  <link rel="dns-prefetch" href="https://assets.adobedtm.com"/>
+  <link rel="preconnect" href="https://cdn.cookielaw.org"/>
+  <link rel="dns-prefetch" href="https://cdn.cookielaw.org"/>
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta property="og:title" content="Page not found">
+  
+  <!-- Import maps para dependencias de dropins -->
+  <script type="importmap">
+  {
+    "imports": {
+      "preact": "https://esm.sh/preact@10.19.3",
+      "preact/": "https://esm.sh/preact@10.19.3/",
+      "htm": "https://esm.sh/htm@3.1.1",
+      "@dropins/tools/preact.js": "https://esm.sh/preact@10.19.3",
+      "@dropins/tools/preact-hooks.js": "https://esm.sh/preact@10.19.3/hooks",
+      "@dropins/tools/preact-jsx-runtime.js": "https://esm.sh/preact@10.19.3/jsx-runtime",
+      "@dropins/tools/components.js": "https://cdn.jsdelivr.net/npm/@dropins/tools@0.42.0/components.js",
+      "@dropins/tools/lib.js": "https://cdn.jsdelivr.net/npm/@dropins/tools@0.42.0/lib.js",
+      "@dropins/tools/": "https://cdn.jsdelivr.net/npm/@dropins/tools@0.42.0/"
+    }
+  }
   </script>
-  <link rel="stylesheet" href="/styles/styles.css">
-  <style>
-    main.error {
-      min-height: calc(100vh - var(--nav-height));
-      display: flex;
-      align-items: center;
-    }
+  
+  <script src="/scripts/aem.js" type="module"></script>
+  <script src="/scripts/scripts.js" type="module"></script>
+  
+  <!-- CSS de AEM (carga primero con mayor prioridad) -->
+  <link rel="stylesheet" href="/styles/styles.css" />
+  
+  <!-- Tailwind CSS (carga después, solo para Design System) -->
+  <link rel="stylesheet" href="/styles/tw.css" />
 
-    main.error .error-number {
-      width: 100%;
-    }
-
-    main.error .error-number text {
-      font-family: monospace;
-    }
-  </style>
-  <link rel="stylesheet" href="/styles/lazy-styles.css">
+  <link rel="stylesheet" href="/styles/404.css" />
 </head>
 
 <body>
   <header></header>
-  <main class="error">
-    <div class="section">
-      <svg viewBox="1 0 38 18" class="error-number">
-        <text x="0" y="17">404</text>
-      </svg>
-      <h2 class="error-message">Page Not Found</h2>
-      <p class="button-container">
-        <a href="/" class="button secondary error-button-home">Go home</a>
-      </p>
+  <main>
+    <div>
+      <div class="fragment">
+        <div>
+          <div><a href="/errors/404">404</a></div>
+        </div>
+      </div>
     </div>
   </main>
   <footer></footer>

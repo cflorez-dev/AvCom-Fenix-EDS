@@ -36,29 +36,45 @@ function extractLogoFromPicture(pictureElement) {
  */
 export function extractHeaderLogoData(block) {
   const children = Array.from(block.children);
+  
+  // Check if first 2 rows are targeting config (single-column rows with country/language codes)
+  const validCountries = ['co', 'ar', 'mx', 'pe', 'ec', 'sv', 'cr', 'br', 'bo', 'cl', 'ca', 'gt', 'hn', 'ni', 'pa', 'py', 'do', 'eu', 'gb', 'uy', 'ot', 'us'];
+  let startIndex = 0;
+  
+  if (children.length >= 2) {
+    const firstRowValue = children[0]?.children[0]?.textContent?.trim().toLowerCase();
+    const firstRowIsTargeting = firstRowValue && 
+      children[0].children.length <= 2 && // Max 2 cols for targeting config
+      (validCountries.includes(firstRowValue) || firstRowValue.split(',').every((c) => validCountries.includes(c.trim())));
+    
+    if (firstRowIsTargeting) {
+      // Skip first 2 rows (target-countries and target-languages)
+      startIndex = 2;
+    }
+  }
 
-  // Logo Desktop (primer div - índice 0)
-  const logoDesktopDiv = children[0];
+  // Logo Desktop (primer div real - después del targeting si existe)
+  const logoDesktopDiv = children[startIndex + 0];
   const logoDesktopPicture = logoDesktopDiv?.querySelector('picture');
   const logoDesktop = extractLogoFromPicture(logoDesktopPicture);
 
-  // Logo Mobile (segundo div - índice 1)
-  const logoMobileDiv = children[1];
+  // Logo Mobile (segundo div real - después del targeting)
+  const logoMobileDiv = children[startIndex + 1];
   const logoMobilePicture = logoMobileDiv?.querySelector('picture');
   const logoMobile = extractLogoFromPicture(logoMobilePicture);
 
-  // Logo Dark Mode (tercer div - índice 2) - puede no existir
-  const logoDarkModeDiv = children[2];
+  // Logo Dark Mode (tercer div real - después del targeting) - puede no existir
+  const logoDarkModeDiv = children[startIndex + 2];
   const logoDarkModePicture = logoDarkModeDiv?.querySelector('picture');
   const logoDarkMode = extractLogoFromPicture(logoDarkModePicture);
 
-  // URL de redirección (cuarto div - índice 3)
-  const redirectUrlDiv = children[3];
+  // URL de redirección (cuarto div real - después del targeting)
+  const redirectUrlDiv = children[startIndex + 3];
   const redirectLink = redirectUrlDiv?.querySelector('a');
   const redirectUrl = redirectLink?.getAttribute('href') || '';
 
-  // Is Dark Mode (sexto div - índice 5)
-  const darkModeDiv = children[5];
+  // Is Dark Mode (sexto div real - después del targeting)
+  const darkModeDiv = children[startIndex + 5];
   const darkModeText = darkModeDiv?.querySelector('p')?.textContent?.trim() || 'false';
   const isDarkMode = darkModeText.toLowerCase() === 'true';
 

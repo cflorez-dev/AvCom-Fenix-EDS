@@ -58,11 +58,11 @@ export const ActionButton = ({
   const isLink = !!href;
 
   // Common CSS classes for all variants
-  const commonClasses = 'inline-flex justify-start min-h-[48px] items-center gap-2 py-2 bg-[var(--bg-card-lighter)] rounded-4xl shadow-[0px_0px_6px_0px_rgba(90,90,90,0.2)] !no-underline transition-[background-color,transform] duration-[var(--transition-normal)] cursor-pointer focus:outline focus:outline-2 focus:outline-offset-2 focus:outline-[var(--focus-primary)]';
+  const commonClasses = 'inline-flex justify-start min-h-[48px] items-center gap-2 py-2 bg-[var(--bg-card-lighter)] rounded-4xl shadow-[0px_0px_6px_0px_rgba(90,90,90,0.2)] hover:shadow-[0px_2px_20px_2px_rgba(73,73,73,0.25)] box:active:shadow-[0px_2px_20px_2px_rgba(73,73,73,0.25)] !no-underline transition-[background-color,transform] duration-[var(--transition-normal)] cursor-pointer focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--focus-primary)]';
 
   // Variant-specific classes
   const variantClasses = variant === 'iconRight'
-    ? 'self-stretch px-3 active:bg-[var(--state-disabled-gray)]'
+    ? 'self-stretch px-3 active:bg-background-brand-secondary-active'
     : 'pl-2 pr-3 active:bg-[var(--state-disabled)]';
 
   const baseClasses = `${commonClasses} ${variantClasses} ${customClassName}`;
@@ -80,7 +80,7 @@ export const ActionButton = ({
           src=${icon}
           alt=""
           role="presentation"
-          class="w-5 h-5 object-contain"
+          class="w-[15px] h-[15px] object-contain"
           loading="lazy"
           decoding="async"
         />`
@@ -89,9 +89,11 @@ export const ActionButton = ({
     if (variant === 'iconRight') {
       // iconRight variant: small icon (15px) without background
       return html`
+      <div class="w-[20px] h-[20px] flex justify-center items-center">
         <div class="w-[15px] h-[15px] flex justify-center items-center overflow-hidden" aria-hidden="true">
           ${iconContent}
         </div>
+      </div>
       `;
     }
 

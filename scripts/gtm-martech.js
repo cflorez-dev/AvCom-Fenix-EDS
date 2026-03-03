@@ -1,6 +1,6 @@
 // eslint-disable-next-line import/no-relative-packages
 import GtmMartech from '../plugins/gtm-martech/src/index.js';
-import { GTM_CONTAINER_ID, isTrackingDisabled } from './martech-config.js';
+import { GTM_CONTAINER_ID, isAuthorMode, isTrackingDisabled } from './martech-config.js';
 
 /**
  * Get consent from OneTrust
@@ -35,14 +35,14 @@ async function checkConsent() {
 }
 
 const martech = new GtmMartech({
-  analytics: !isTrackingDisabled(),
+  analytics: !isTrackingDisabled() && !isAuthorMode(),
   dataLayerInstanceName: 'dataLayer',
   tags: [],
   containers: {
     lazy: [GTM_CONTAINER_ID],
     delayed: [],
   },
-  consent: !isTrackingDisabled(),
+  consent: !isTrackingDisabled() && !isAuthorMode(),
   consentCallback: checkConsent,
 });
 

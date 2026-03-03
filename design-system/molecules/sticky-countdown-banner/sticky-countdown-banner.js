@@ -25,13 +25,13 @@ const CountdownUnit = ({ value, label, counterTextColor, counterBackgroundColor 
 
   return html`
     <div 
-      class="w-[50px] h-[50px] md:w-[64px] md:h-[64px] p-1 rounded-lg inline-flex flex-col justify-center items-center"
+      class="w-[50px] h-[50px] md:w-[64px] md:h-[64px] p-[0.25rem] rounded-[0.5rem] inline-flex flex-col justify-center items-center"
       style=${unitStyle}
     >
-      <div class="justify-start text-[var(--text-normal-lighter)] text-xl md:text-3xl font-bold [text-shadow:_0px_0px_14px_rgb(162_240_255_/_1.00)]">
+      <div class="justify-start text-[var(--text-normal-lighter)] text-xl md:text-3xl font-bold [text-shadow:_0px_0px_14px_rgb(162_240_255_/_1.00)] leading-auto">
         ${String(value).padStart(2, '0')}
       </div>
-      <div class="justify-start text-[var(--text-normal-lighter)] text-xs md:text-sm font-normal leading-4 md:leading-5">
+      <div class="justify-start text-[var(--text-normal-lighter)] text-xs md:text-sm font-normal leading-[1.5]">
         ${label}
       </div>
     </div>
@@ -41,7 +41,6 @@ const CountdownUnit = ({ value, label, counterTextColor, counterBackgroundColor 
 /**
  * StickyCountdownBanner Component
  * A sticky banner with countdown timer that can be dismissed
- * 
  * @param {Object} props - Component props
  * @param {string} props.title - Main title text
  * @param {string} props.subtitle - Subtitle text
@@ -77,7 +76,6 @@ export const StickyCountdownBanner = ({
   useEffect(() => {
     const calculateTimeLeft = () => {
       const difference = new Date(endDateTime) - getColombiaTime();
-      
       if (difference <= 0) {
         return { days: 0, hours: 0, minutes: 0, seconds: 0, total: 0 };
       }
@@ -137,10 +135,6 @@ export const StickyCountdownBanner = ({
     color: textColor,
   };
 
-  const buttonStyle = {
-    color: buttonColor,
-  };
-
   return html`
     <div 
       class="w-full px-6 pt-6 pb-[48px] md:p-6 rounded-tl-2xl rounded-tr-2xl md:rounded-2xl shadow-[0px_2px_32px_8px_rgba(27,27,27,0.40)] inline-flex flex-col md:flex-row justify-end md:justify-start items-center md:items-start gap-2 md:gap-4"
@@ -153,7 +147,7 @@ export const StickyCountdownBanner = ({
         <div class="self-stretch md:self-auto md:order-2 inline-flex justify-end items-center md:items-start gap-2.5">
           <button
             type="button"
-            class="w-6 h-6 cursor-pointer bg-transparent border-0 p-0 focus:outline focus:outline-2 focus:outline-[var(--border-stroke-focus)] focus:outline-offset-2 rounded flex items-center justify-center"
+            class="w-6 h-6 cursor-pointer bg-transparent border-0 p-0 focus-visible:outline focus-visible:outline-2 focus:outline-[var(--border-stroke-focus)] focus:outline-offset-2 rounded flex items-center justify-center"
             onClick=${handleDismiss}
             onKeyDown=${handleKeyDown}
             aria-label="Cerrar banner"
@@ -172,7 +166,7 @@ export const StickyCountdownBanner = ({
         <div class="self-stretch md:flex-1 flex flex-col justify-center items-center md:items-start gap-[4px]">
           ${title && html`
             <div 
-              class="self-stretch text-center md:text-left md:justify-start text-xl md:text-3xl font-bold leading-[26px] md:leading-[37px]"
+              class="self-stretch text-center md:text-left md:justify-start text-xl md:text-[1.75rem] font-bold leading-[26px] md:leading-[37px]"
               style=${textStyle}
             >
               ${title}

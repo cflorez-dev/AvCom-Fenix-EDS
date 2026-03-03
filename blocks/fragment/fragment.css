@@ -1,1 +1,23 @@
-/* stylelint-disable no-empty-source */
+/* Fragment container: transparent wrapper so inner sections
+   behave like regular main > .section elements */
+main > .section.fragment-container {
+  padding: 0;
+  max-width: none;
+}
+
+/* Inner sections of fragments get the same base styling as main > .section.
+   Uses lower specificity (0-1-1) than section metadata classes like
+   .section.no-padding-top (0-2-0) so they can properly override. */
+.fragment-wrapper > div {
+  max-width: 1248px;
+  margin-left: auto;
+  margin-right: auto;
+  padding: 32px var(--main-section-div-padding, 16px);
+}
+
+/* Sections that contain ONLY a picture (e.g. 1px-tall SVG dividers)
+   should have no vertical padding so they render as subtle lines. */
+.fragment-wrapper > div:has(> .default-content-wrapper:only-child > picture:only-child) {
+  padding-top: 0;
+  padding-bottom: 0;
+}

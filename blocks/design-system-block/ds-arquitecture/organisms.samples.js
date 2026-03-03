@@ -8,12 +8,14 @@ import { LinkCardSample } from '../../../design-system/organisms/cards/link-card
 import { PosFormSample } from '../../../design-system/organisms/header/pos-form/pos-form.sample.js';
 import { MarquesinaSample } from '../../../design-system/organisms/marquesina/marquesina.sample.js';
 import { BookingBoxSample } from '../../../design-system/organisms/booking-box/booking-box.sample.js';
+import { CarouselDestinationsSample } from '../../../design-system/organisms/carousel-destinations/carousel-destinations.sample.js';
 
 const html = htm.bind(h);
 
 export const OrganismsSamples = () => html`
     <div>
         <h2>Organisms samples</h2>
+        <${CarouselDestinationsSample} />
         <${BookingBoxSample} />
         <${LinkCardSample} />
         <${InformativeCardSample} />

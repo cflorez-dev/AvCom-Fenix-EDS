@@ -574,6 +574,23 @@
               }
             }
           }
+        },
+        {
+          "title": "Tables",
+          "id": "tables",
+          "plugins": {
+            "xwalk": {
+              "page": {
+                "resourceType": "core/franklin/components/block/v1/block",
+                "template": {
+                  "name": "Tables",
+                  "model": "tables",
+                  "filter": "tables",
+                  "key-value": true
+                }
+              }
+            }
+          }
         }
       ]
     },
@@ -635,6 +652,7 @@
                 "resourceType": "core/franklin/components/block/v1/block",
                 "template": {
                   "name": "Header Navbar",
+                  "model": "header-navbar",
                   "filter": "header-navbar"
                 }
               }
@@ -671,6 +689,7 @@
                 "resourceType": "core/franklin/components/block/v1/block",
                 "template": {
                   "name": "Footer Partners Logos",
+                  "model": "footer-partners-logos",
                   "filter": "footer-partners-logos"
                 }
               }
@@ -716,6 +735,7 @@
                 "resourceType": "core/franklin/components/block/v1/block",
                 "template": {
                   "name": "Footer Columns",
+                  "model": "footer-columns",
                   "filter": "footer-columns"
                 }
               }
@@ -799,6 +819,21 @@
           }
         },
         {
+          "title": "Mosaic Cards V2",
+          "id": "mosaic-cards-v2",
+          "plugins": {
+            "xwalk": {
+              "page": {
+                "resourceType": "core/franklin/components/block/v1/block",
+                "template": {
+                  "name": "Mosaic Cards V2",
+                  "model": "mosaic-cards-v2"
+                }
+              }
+            }
+          }
+        },
+        {
           "title": "CMS Interactive Banner",
           "id": "cms-interactive-banner",
           "plugins": {
@@ -824,6 +859,50 @@
                 "template": {
                   "name": "CMS Interactive Banner Item",
                   "model": "cms-interactive-banner-item"
+                }
+              }
+            }
+          }
+        },
+        {
+          "title": "HTML Embed",
+          "id": "html-embed",
+          "plugins": {
+            "xwalk": {
+              "page": {
+                "resourceType": "core/franklin/components/block/v1/block",
+                "template": {
+                  "name": "HTML Embed",
+                  "model": "html-embed"
+                }
+              }
+            }
+          }
+        },
+        {
+          "title": "Destination Details",
+          "id": "destination-details",
+          "plugins": {
+            "xwalk": {
+              "page": {
+                "resourceType": "core/franklin/components/block/v1/block",
+                "template": {
+                  "name": "Destination Details",
+                  "model": "destination-details"
+                }
+              }
+            }
+          }
+        },
+         {
+          "title": "Hub Destinations",
+          "id": "hub-destinations",
+          "plugins": {
+            "xwalk": {
+              "page": {
+                "resourceType": "core/franklin/components/block/v1/block",
+                "template": {
+                  "name": "Hub Destinations"
                 }
               }
             }

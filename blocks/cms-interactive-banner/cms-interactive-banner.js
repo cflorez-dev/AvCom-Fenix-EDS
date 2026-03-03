@@ -2,7 +2,7 @@ import { h, render } from '@dropins/tools/preact.js';
 import htm from 'htm';
 import InteractiveBanner from '../../design-system/organisms/banners/interactive-banner/interactive-banner.js';
 import extractPanelData from './cms-interactive-banner-helper.js';
-import { getStoredCountry, getStoredLanguage } from '../../scripts/services/header/language-country-selector.js';
+import { shouldShowByTargeting, hideBlockWithSection } from '../../scripts/utils/target-filter.js';
 
 const html = htm.bind(h);
 
@@ -24,12 +24,8 @@ function readParentConfig(block) {
   const targetLanguagesRaw = getValue(1);
 
   return {
-    targetCountries: targetCountriesRaw
-      ? targetCountriesRaw.split(',').map((c) => c.trim().toLowerCase())
-      : [],
-    targetLanguages: targetLanguagesRaw
-      ? targetLanguagesRaw.split(',').map((l) => l.trim().toLowerCase())
-      : [],
+    targetCountries: targetCountriesRaw,
+    targetLanguages: targetLanguagesRaw,
   };
 }
 
@@ -61,18 +57,8 @@ export default function decorate(block) {
   const config = readParentConfig(block);
 
   // Country/Language filtering
-  const currentCountry = getStoredCountry()?.toLowerCase() || '';
-  const currentLang = getStoredLanguage()?.toLowerCase() || document.documentElement.lang?.toLowerCase() || 'en';
-
-  // If targetCountries is configured and current country doesn't match, hide block
-  if (config.targetCountries.length > 0 && !config.targetCountries.includes(currentCountry)) {
-    block.style.display = 'none';
-    return;
-  }
-
-  // If targetLanguages is configured and current language doesn't match, hide block
-  if (config.targetLanguages.length > 0 && !config.targetLanguages.includes(currentLang)) {
-    block.style.display = 'none';
+  if (!shouldShowByTargeting(config.targetCountries, config.targetLanguages)) {
+    hideBlockWithSection(block);
     return;
   }
 
@@ -84,8 +70,25 @@ export default function decorate(block) {
   }
 
   // Extract data from first two sections (left and right panels)
-  const leftPanel = sections[0] ? extractPanelData(sections[0]) : {};
-  const rightPanel = sections[1] ? extractPanelData(sections[1]) : {};
+  const leftPanelData = sections[0] ? extractPanelData(sections[0]) : null;
+  const rightPanelData = sections[1] ? extractPanelData(sections[1]) : null;
+
+  // Filter panels by targeting (child-level filtering)
+  const leftPanel = (leftPanelData && shouldShowByTargeting(
+    leftPanelData['target-countries'],
+    leftPanelData['target-languages'],
+  )) ? leftPanelData : null;
+
+  const rightPanel = (rightPanelData && shouldShowByTargeting(
+    rightPanelData['target-countries'],
+    rightPanelData['target-languages'],
+  )) ? rightPanelData : null;
+
+  // If both panels are filtered out, hide the entire block
+  if (!leftPanel && !rightPanel) {
+    hideBlockWithSection(block);
+    return;
+  }
 
   const container = document.createElement('div');
 

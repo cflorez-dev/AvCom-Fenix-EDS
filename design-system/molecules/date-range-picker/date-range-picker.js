@@ -277,86 +277,139 @@ export const DateRangePicker = ({
   // Container with Tailwind classes
   const containerClasses = useMemo(
     () => (isRange
-      ? `flex items-center outline outline-1 outline-neutral-400 rounded-lg bg-background-input-default ${customClassName}`.trim()
+      ? `flex items-center outline outline-1 outline-[var(--color-border-default)] rounded-[8px] bg-background-input-default overflow-hidden ${customClassName}`.trim()
       : customClassName),
     [isRange, customClassName],
   );
 
   // ========== RENDER ==========
   return html`
-    <div
-      class="${containerClasses} ${departureHasError || returnHasError ? 'mb-[25px]' : ''}"
-      data-name="dateRangePicker"
-      data-mode=${mode}
-      ...${rest}
-    >
-      <!-- Departure DateSelector -->
-      <${DateSelector}
-        label=${i18n['bookingBox.labels.departure'] || 'Salida'}
-        value=${departureDate}
-        departureDate=${departureDate}
-        onChange=${handleDepartureChange}
-        mode=${tripType === 'RT' ? 'departure' : 'single'}
-        returnDate=${returnDate}
-        variant=${isRange ? 'grouped-left' : 'standalone'}
-        origin=${origin}
-        destination=${destination}
-        tripType=${tripType}
-        calendarTitle=${i18n['bookingBox.labels.whenToFly'] || '¿Cuándo quieres volar?'}
-        stepTitle=${i18n['bookingBox.stepTitles.whenToFly'] || '¿Cuando vas a volar?'}
-        isOpen=${activeStep === 'departure'}
-        onOpenChange=${handleDepartureOpenChange}
-        onBack=${handleBackDeparture}
-        onClose=${handleCloseDeparture}
-        onTripTypeChange=${onTripTypeChange}
-        currentTripType=${currentTripType}
-        required=${required}
-        showHeader=${showHeader}
-        customClassName="flex-1"
-        desktopDropdownPositionStyles=${departureDropdownPositionStyles}
-        containerRelative=${departureRelative}
-        departureHasError=${departureHasError}
-        startMonth=${departureStartMonth}
-        startYear=${departureStartYear}
-        restrictPrevNavigation=${false}
-        i18n=${i18n}
-        locale=${locale}
-      />
-
-      <!-- Return DateSelector (solo si mode="range") -->
-      ${isRange && html`
-        <div class="h-8.5 w-[1px] my-2 bg-[var(--color-border-input-default)] flex-shrink-0" aria-hidden="true"></div>
+    <div data-name="dateRangePicker" data-mode=${mode} ...${rest}>
+      <div class="${containerClasses}">
+        <!-- Departure DateSelector -->
         <${DateSelector}
-          label=${i18n['bookingBox.labels.return'] || 'Regreso'}
-          value=${justChangedDeparture ? null : returnDate}
-          onChange=${handleReturnChange}
-          mode="return"
-          returnDate=${justChangedDeparture ? null : returnDate}
+          label=${i18n['bookingBox.labels.departure'] || 'Salida'}
+          value=${departureDate}
           departureDate=${departureDate}
-          variant="grouped-right"
+          onChange=${handleDepartureChange}
+          mode=${tripType === 'RT' ? 'departure' : 'single'}
+          returnDate=${returnDate}
+          variant=${isRange ? 'grouped-left' : 'standalone'}
           origin=${origin}
           destination=${destination}
           tripType=${tripType}
           calendarTitle=${i18n['bookingBox.labels.whenToFly'] || '¿Cuándo quieres volar?'}
-          stepTitle=${i18n['bookingBox.stepTitles.whenToReturn'] || '¿Cuando vas a volar?'}
-          isOpen=${activeStep === 'return'}
-          onOpenChange=${handleReturnOpenChange}
-          onBack=${handleBackReturn}
-          onClose=${handleCloseReturn}
+          stepTitle=${i18n['bookingBox.stepTitles.whenToFly'] || '¿Cuando vas a volar?'}
+          isOpen=${activeStep === 'departure'}
+          onOpenChange=${handleDepartureOpenChange}
+          onBack=${handleBackDeparture}
+          onClose=${handleCloseDeparture}
           onTripTypeChange=${onTripTypeChange}
           currentTripType=${currentTripType}
           required=${required}
           showHeader=${showHeader}
           customClassName="flex-1"
-          desktopDropdownPositionStyles=${returnDropdownPositionStyles}
-          containerRelative=${returnRelative}
-          returnHasError=${returnHasError}
-          startMonth=${returnStartMonth}
-          startYear=${returnStartYear}
-          restrictPrevNavigation=${true}
+          desktopDropdownPositionStyles=${departureDropdownPositionStyles}
+          containerRelative=${departureRelative}
+          departureHasError=${departureHasError}
+          showErrorMessage=${!isRange}
+          startMonth=${departureStartMonth}
+          startYear=${departureStartYear}
+          restrictPrevNavigation=${false}
           i18n=${i18n}
           locale=${locale}
         />
+
+        <!-- Return DateSelector (solo si mode="range") -->
+        ${isRange && html`
+          <div class="h-8.5 w-[1px] my-2 bg-[var(--color-border-input-default)] flex-shrink-0" aria-hidden="true"></div>
+          <${DateSelector}
+            label=${i18n['bookingBox.labels.return'] || 'Regreso'}
+            value=${justChangedDeparture ? null : returnDate}
+            onChange=${handleReturnChange}
+            mode="return"
+            returnDate=${justChangedDeparture ? null : returnDate}
+            departureDate=${departureDate}
+            variant="grouped-right"
+            origin=${origin}
+            destination=${destination}
+            tripType=${tripType}
+            calendarTitle=${i18n['bookingBox.labels.whenToFly'] || '¿Cuándo quieres volar?'}
+            stepTitle=${i18n['bookingBox.stepTitles.whenToReturn'] || '¿Cuando vas a volar?'}
+            isOpen=${activeStep === 'return'}
+            onOpenChange=${handleReturnOpenChange}
+            onBack=${handleBackReturn}
+            onClose=${handleCloseReturn}
+            onTripTypeChange=${onTripTypeChange}
+            currentTripType=${currentTripType}
+            required=${required}
+            showHeader=${showHeader}
+            customClassName="flex-1"
+            desktopDropdownPositionStyles=${returnDropdownPositionStyles}
+            containerRelative=${returnRelative}
+            returnHasError=${returnHasError}
+            showErrorMessage=${false}
+            startMonth=${returnStartMonth}
+            startYear=${returnStartYear}
+            restrictPrevNavigation=${true}
+            i18n=${i18n}
+            locale=${locale}
+          />
+        `}
+      </div>
+      ${isRange && (departureHasError || returnHasError) && html`
+        <div class="mt-[4px] flex">
+          <div class="flex-1 min-h-[21px]">
+            ${departureHasError && html`
+              <div class="flex items-start font-normal text-sm leading-5 text-[var(--alert-error-icon-bg)]">
+                <svg
+                  class="w-4 h-4 mr-1 flex-shrink-0 mt-0.5"
+                  fill="currentColor"
+                  viewBox="0 0 20 20"
+                  aria-hidden="true"
+                >
+                  <circle cx="10" cy="10" r="9" fill="currentColor" />
+                  <text x="10" y="14" text-anchor="middle" fill="white" font-size="12" font-weight="bold">i</text>
+                </svg>
+                <span>${i18n['bookingBox.labels.requiredField'] || 'This field is required'}</span>
+              </div>
+            `}
+          </div>
+          <div class="flex-1 min-h-[21px]">
+            ${returnHasError && html`
+              <div class="flex items-start font-normal text-sm leading-5 text-[var(--alert-error-icon-bg)]">
+                <svg
+                  class="w-4 h-4 mr-1 flex-shrink-0 mt-0.5"
+                  fill="currentColor"
+                  viewBox="0 0 20 20"
+                  aria-hidden="true"
+                >
+                  <circle cx="10" cy="10" r="9" fill="currentColor" />
+                  <text x="10" y="14" text-anchor="middle" fill="white" font-size="12" font-weight="bold">i</text>
+                </svg>
+                <span>${i18n['bookingBox.labels.requiredField'] || 'This field is required'}</span>
+              </div>
+            `}
+          </div>
+        </div>
+      `}
+      ${!isRange && departureHasError && html`
+        <div class="mt-[4px] flex">
+          <div class="flex-1 min-h-[21px]">
+            <div class="flex items-start font-normal text-sm leading-5 text-[var(--alert-error-icon-bg)]">
+              <svg
+                class="w-4 h-4 mr-1 flex-shrink-0 mt-0.5"
+                fill="currentColor"
+                viewBox="0 0 20 20"
+                aria-hidden="true"
+              >
+                <circle cx="10" cy="10" r="9" fill="currentColor" />
+                <text x="10" y="14" text-anchor="middle" fill="white" font-size="12" font-weight="bold">i</text>
+              </svg>
+              <span>${i18n['bookingBox.labels.requiredField'] || 'This field is required'}</span>
+            </div>
+          </div>
+        </div>
       `}
     </div>
   `;

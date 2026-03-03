@@ -168,6 +168,24 @@ export const AccordionSample = () => {
           </${Accordion}>
         </div>
       </section>
+
+      <!-- Example 6: Different Heading Levels -->
+      <section class="mb-[var(--spacing-x-large)]">
+        <h2 class="mb-[var(--spacing-medium)]" style=${{ color: 'var(--text-normal-lighter)' }}>
+          Example 6: Different Heading Levels (H2, H3, H4)
+        </h2>
+        <div class="flex flex-col gap-[var(--spacing-medium)]">
+          <${Accordion} title="Heading Level 2" titleLevel="h2">
+            <p style=${{ color: 'var(--text-normal-lighter)' }}>This accordion uses an H2 tag for semantic heading hierarchy</p>
+          </${Accordion}>
+          <${Accordion} title="Heading Level 3" titleLevel="h3">
+            <p style=${{ color: 'var(--text-normal-lighter)' }}>This accordion uses an H3 tag for semantic heading hierarchy</p>
+          </${Accordion}>
+          <${Accordion} title="Heading Level 4" titleLevel="h4">
+            <p style=${{ color: 'var(--text-normal-lighter)' }}>This accordion uses an H4 tag for semantic heading hierarchy</p>
+          </${Accordion}>
+        </div>
+      </section>
     </div>
   `;
 };
