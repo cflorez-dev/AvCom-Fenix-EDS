@@ -239,7 +239,7 @@ export const CabinUpgradeForm = ({
               aria-required="true"
               aria-invalid=${errors.pnrCode ? 'true' : 'false'}
               aria-describedby=${errors.pnrCode ? 'pnr-error' : undefined}
-              customClassName=${`[&_label]:!text-[var(--color-text-normal-primary)] [&>div]:!outline-[var(${errors.pnrCode ? '--color-alert-error-icon-bg' : '--color-border-default'})]`}
+              customClassName=${`[&>div]:!outline-[var(${errors.pnrCode ? '' : '--color-border-default'})]${errors.pnrCode ? ' [&>div]:!outline-[#FF1C46]' : ''} ${errors.pnrCode ? '[&_label]:!text-[var(--color-alert-error-icon-bg)]' : '[&_label]:!text-[var(--color-text-normal-primary)]'}`}
             />
           </div>
 
@@ -259,7 +259,7 @@ export const CabinUpgradeForm = ({
               aria-required="true"
               aria-invalid=${errors.lastName ? 'true' : 'false'}
               aria-describedby=${errors.lastName ? 'lastname-error' : undefined}
-              customClassName=${`[&_label]:!text-[var(--color-text-normal-primary)] [&>div]:!outline-[var(${errors.lastName ? '--color-alert-error-icon-bg' : '--color-border-default'})]`}
+              customClassName=${`[&>div]:!outline-[var(${errors.lastName ? '' : '--color-border-default'})]${errors.lastName ? ' [&>div]:!outline-[#FF1C46]' : ''} ${errors.lastName ? '[&_label]:!text-[var(--color-alert-error-icon-bg)]' : '[&_label]:!text-[var(--color-text-normal-primary)]'}`}
             />
           </div>
         </div>
