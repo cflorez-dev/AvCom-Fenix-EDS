@@ -55,6 +55,11 @@ export default function decorate(block) {
   // Country/Language filtering
   const shouldShow = shouldShowByTargeting(props.targetCountries, props.targetLanguages);
   if (!shouldShow) {
+    // Add p-0 class to parent section container
+    const sectionContainer = block.closest('.section.cms-informative-cards-rail-container');
+    if (sectionContainer) {
+      sectionContainer.classList.add('!p-0');
+    }
     hideBlockWithSection(block);
     return;
   }
@@ -76,6 +81,11 @@ export default function decorate(block) {
   // Validate props in development
   const validation = validateCmsInformativeCardsRailProps(props);
   if (!validation.isValid) {
+    // Add p-0 class to parent section container
+    const sectionContainer = block.closest('.section.cms-informative-cards-rail-container');
+    if (sectionContainer) {
+      sectionContainer.classList.add('!p-0');
+    }
     // Hide the block if validation fails
     block.style.display = 'none';
     return;
