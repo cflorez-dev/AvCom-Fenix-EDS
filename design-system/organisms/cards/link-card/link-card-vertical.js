@@ -113,8 +113,8 @@ export const LinkCardVertical = ({
   }
 
   // Content container classes
-  const contentContainerClasses = 'min-h-[151px] md:min-h-[195px] lg:min-h-[151px] md:max-h-[151px] lg:max-h-[180px] box-border flex flex-col justify-between gap-3 '
-    + 'items-start shrink-0 p-[16px] w-full md:h-full sm:flex-1 sm:flex-1 md:flex-1 xl:flex-0 sm:h-full flex-shrink-0 overflow-hidden';
+  const contentContainerClasses = 'min-h-[151px] md:min-h-[195px] lg:min-h-[151px] md:max-h-full lg:max-h-full box-border flex flex-col justify-between gap-4 '
+    + 'items-start shrink-0 p-[16px] w-full md:h-full sm:flex-1 sm:flex-1 md:flex-1 sm:h-full flex-shrink-0 overflow-hidden';
 
   // Text container classes
   const textContainerClasses = 'flex flex-col gap-[8px] '
