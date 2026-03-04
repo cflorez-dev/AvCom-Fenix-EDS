@@ -86,8 +86,14 @@ const InteractiveBanner = ({
     // Ensure the panel being pushed out stays underneath the one that remains.
     const isPushedOut = (activeState === 'left-active' && !isLeft)
       || (activeState === 'right-active' && isLeft);
+    // Always z-10 — changing z-index dynamically on the same frame as translate
+    // forces a GPU layer recomposition that cancels the CSS transition.
+    // overflow-hidden on the parent handles visual clipping as panels slide out.
     const panelZClass = isPushedOut ? 'z-0' : 'z-10';
-    const panelEasingClass = isDesktop && (activeState === 'right-active' || prevActiveStateRef.current === 'right-active') ? 'ease-[cubic-bezier(0.34,1.56,0.64,1)]' : 'ease-out';
+    // Spring easing only on right-active (left panel slides out to the left).
+    // Coefficient 1.008 gives ~5px max overshoot on a ~600px panel (≈0.8% of travel),
+    // matching the Figma spring: slides in, overshoots ~5px, settles at left:0.
+    const panelEasingClass = isDesktop && (activeState === 'right-active' || prevActiveStateRef.current === 'right-active') ? 'ease-[cubic-bezier(0.34,1.20,0.64,1)]' : 'ease-out';
 
     // Interactive panel emerges from the center: down on mobile, right on desktop.
     // Content remains in DOM for SEO crawlability
@@ -111,7 +117,7 @@ const InteractiveBanner = ({
     return html`
       <div
         data-state=${activeState}
-        class="self-stretch flex-1 flex flex-col justify-end items-start relative min-h-[240px] transition-transform duration-500 ${panelEasingClass} ${panelTranslateClass} ${panelZClass} max-[1247px]:cursor-pointer"
+        class="self-stretch flex-1 flex flex-col justify-end items-start relative min-h-[240px] transition-transform duration-500 ${panelEasingClass} ${panelTranslateClass} z-10 max-[1247px]:cursor-pointer"
         onMouseEnter=${() => handlePanelInteraction(side, true)}
         onMouseLeave=${() => handlePanelInteraction(side, false)}
         onClick=${() => toggleActiveState(side)}
@@ -120,12 +126,12 @@ const InteractiveBanner = ({
         <!-- Default background - Mobile -->
         <div
           class="absolute z-10 inset-0 bg-cover md:hidden"
-          style="background-image: url('${defaultBgMobile}');"
+          style="background-image: url('${defaultBgMobile}'); will-change: transform;"
         ></div>
         <!-- Default background - Desktop -->
         <div
           class="absolute z-10 inset-0 bg-cover hidden md:block"
-          style="background-image: url('${defaultBg}');"
+          style="background-image: url('${defaultBg}'); will-change: transform;"
         ></div>
 
         <!-- Content area -->
