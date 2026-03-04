@@ -207,8 +207,8 @@ export const Input = ({
               font-['Red_Hat_Display'] font-normal tracking-[0px]
               ${labelStateClasses[actualState]}
               ${shouldFloat
-    ? `top-[10px] text-xs leading-[18px] ${prefixIconName ? 'left-[46px]' : 'left-[var(--padding-16)]'}`
-    : `top-1/2 -translate-y-1/2 text-sm leading-[21px] ${prefixIconName ? 'left-[calc(var(--padding-16)+1.25rem+var(--spacing-small))]' : 'left-[var(--padding-16)]'}`
+    ? `top-[10px] text-xs leading-[18px] ${prefixIconName ? 'left-[44px]' : 'left-[var(--padding-16)]'}`
+    : `top-1/2 -translate-y-1/2 text-sm leading-[21px] ${prefixIconName ? 'left-[calc(var(--padding-16)+1.25rem+0.5rem)]' : 'left-[var(--padding-16)]'}`
 }
             `}
           >
@@ -236,7 +236,7 @@ export const Input = ({
               onBlur=${handleBlur}
               class=${`
                 bg-white
-                w-full relative -bottom-2 left-[2px] bg-transparent border-0 outline-none p-0
+                w-full relative -bottom-2 bg-transparent border-0 outline-none p-0
                 !text-base font-bold font-['Red_Hat_Display'] leading-normal
                 ${actualState === 'disabled' ? 'text-[#C4C8C5] cursor-not-allowed' : actualState === 'readonly' ? 'text-text-normal-secondary cursor-default' : 'text-text-normal-primary'}
                 placeholder:text-text-normal-secondary placeholder:font-normal
