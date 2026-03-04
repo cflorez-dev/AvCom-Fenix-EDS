@@ -2,12 +2,14 @@
  * Service for managing country and language selection
  * Handles cookies, provides country/language lists, and flag icons
  */
+import { ensurePOSDataLoaded, getPOSDataSnapshot } from './get-pos-data.js';
 
 // Cookie names
 const COUNTRY_COOKIE = 'selected-country';
 const LANGUAGE_COOKIE = 'selected-language';
 const CURRENCY_COOKIE = 'selected-currency';
 const STORAGE_EVENT = 'pos-storage-change';
+const COUNTRY_DATA_EVENT = 'pos-country-data-updated';
 
 // Country data mapping: code -> {label, flagFileName, currencyCode}
 const COUNTRY_DATA = {
@@ -145,6 +147,105 @@ const COUNTRY_DATA = {
   },
 };
 
+let countryDataSnapshot = { ...COUNTRY_DATA };
+let countryDataLoadPromise = null;
+
+function hasCountryData(data) {
+  return !!data && typeof data === 'object' && Object.keys(data).length > 0;
+}
+
+function isCountryDataDifferent(nextData) {
+  const currentKeys = Object.keys(countryDataSnapshot);
+  const nextKeys = Object.keys(nextData);
+
+  if (currentKeys.length !== nextKeys.length) {
+    return true;
+  }
+
+  return nextKeys.some((key) => {
+    const current = countryDataSnapshot[key] || {};
+    const next = nextData[key] || {};
+    return (
+      current.label !== next.label
+      || current.flagFileName !== next.flagFileName
+      || current.currencyCode !== next.currencyCode
+      || current.keyIso !== next.keyIso
+    );
+  });
+}
+
+function setCountryDataSnapshot(nextData, dispatchEvent = true) {
+  if (!hasCountryData(nextData)) return false;
+
+  const changed = isCountryDataDifferent(nextData);
+  countryDataSnapshot = nextData;
+
+  if (
+    changed
+    && dispatchEvent
+    && typeof window !== 'undefined'
+    && typeof window.dispatchEvent === 'function'
+    && typeof CustomEvent === 'function'
+  ) {
+    window.dispatchEvent(new CustomEvent(COUNTRY_DATA_EVENT, {
+      detail: {
+        updatedAt: Date.now(),
+        size: Object.keys(nextData).length,
+      },
+    }));
+  }
+
+  return changed;
+}
+
+function scheduleCountryDataLoad(options = {}) {
+  if (typeof window === 'undefined') {
+    return Promise.resolve(countryDataSnapshot);
+  }
+
+  if (countryDataLoadPromise) {
+    return countryDataLoadPromise;
+  }
+
+  countryDataLoadPromise = ensurePOSDataLoaded({
+    preferStale: false,
+    ...options,
+  })
+    .then((remoteData) => {
+      setCountryDataSnapshot(remoteData);
+      return countryDataSnapshot;
+    })
+    .catch((error) => {
+      // eslint-disable-next-line no-console
+      console.error('[language-country-selector] Error loading POS data:', error);
+      return countryDataSnapshot;
+    })
+    .finally(() => {
+      countryDataLoadPromise = null;
+    });
+
+  return countryDataLoadPromise;
+}
+
+function getCountryData() {
+  // Fire-and-forget refresh to keep sync API unchanged.
+  scheduleCountryDataLoad();
+  return countryDataSnapshot;
+}
+
+const cachedCountryData = getPOSDataSnapshot();
+setCountryDataSnapshot(cachedCountryData, false);
+
+/**
+ * Ensure latest country data is loaded from POS service.
+ * Keeps backward compatibility: existing sync methods can still be used.
+ * @param {Object} [options] - Loading options
+ * @returns {Promise<Object>} Resolved country data snapshot
+ */
+export function ensureCountryDataLoaded(options = {}) {
+  return scheduleCountryDataLoad(options);
+}
+
 // Language data mapping: code -> {label}
 const LANGUAGE_DATA = {
   es: { label: 'Español' },
@@ -157,10 +258,10 @@ const LANGUAGE_DATA = {
 // Used when no country cookie exists to provide logical defaults
 // Prevents illogical combinations like PT (Portuguese) + CO (Colombia/COP)
 const LANGUAGE_DEFAULT_COUNTRY = {
-  es: 'co',  // Spanish → Colombia
-  en: 'us',  // English → United States
-  pt: 'br',  // Portuguese → Brazil
-  fr: 'eu',  // French → France (using Spain EU for EUR)
+  es: 'co', // Spanish -> Colombia
+  en: 'us', // English -> United States
+  pt: 'br', // Portuguese -> Brazil
+  fr: 'eu', // French -> France (using Spain EU for EUR)
 };
 
 /**
@@ -279,8 +380,9 @@ export function mapPosToStandard(pos) {
   const parts = normalizedPos.split('-');
   if (parts.length === 2) {
     const [lang, country] = parts;
+    const countryData = getCountryData();
     // If language and country exist in our data, return normalized format
-    if (LANGUAGE_DATA[lang] && COUNTRY_DATA[country]) {
+    if (LANGUAGE_DATA[lang] && countryData[country]) {
       return `${lang}-${country}`;
     }
   }
@@ -336,8 +438,9 @@ export function validatePos(pos) {
   }
 
   const { language, country } = parsePos(normalizedPos);
+  const countryData = getCountryData();
   // Check if language and country exist in our data
-  return !!(language && country && LANGUAGE_DATA[language] && COUNTRY_DATA[country]);
+  return !!(language && country && LANGUAGE_DATA[language] && countryData[country]);
 }
 
 /**
@@ -378,9 +481,10 @@ export function mapIsoToCountryCode(isoCode) {
   if (!isoCode || typeof isoCode !== 'string') {
     return null;
   }
+  const countryData = getCountryData();
 
   // Search in COUNTRY_DATA for the country that has this keyIso
-  const found = Object.entries(COUNTRY_DATA)
+  const found = Object.entries(countryData)
     .find(([, data]) => data.keyIso === isoCode.toLowerCase());
 
   if (found) {
@@ -389,7 +493,7 @@ export function mapIsoToCountryCode(isoCode) {
 
   // If not found by keyIso, check if isoCode is already an internal code
   // (for backward compatibility with old cookies)
-  if (COUNTRY_DATA[isoCode.toLowerCase()]) {
+  if (countryData[isoCode.toLowerCase()]) {
     return isoCode.toLowerCase();
   }
 
@@ -407,7 +511,7 @@ export function getDefaultCountryForLanguage(language) {
   if (!language || typeof language !== 'string') {
     return 'co'; // Default to Colombia if invalid input
   }
-  
+
   const normalizedLang = language.toLowerCase().trim();
   return LANGUAGE_DEFAULT_COUNTRY[normalizedLang] || 'co';
 }
@@ -418,7 +522,8 @@ export function getDefaultCountryForLanguage(language) {
  * Array of countries with label including currency code (e.g., "Colombia (COP)")
  */
 export function getCountries() {
-  return Object.entries(COUNTRY_DATA)
+  const countryData = getCountryData();
+  return Object.entries(countryData)
     .map(([code, data]) => ({
       value: code,
       label: data.currencyCode ? `${data.label} (${data.currencyCode})` : data.label,
@@ -452,10 +557,11 @@ export function getLanguages() {
  * @returns {string|null} Flag SVG path or null if not found
  */
 export function getCountryFlagPath(countryCode) {
-  if (!countryCode || !COUNTRY_DATA[countryCode]) {
+  const countryData = getCountryData();
+  if (!countryCode || !countryData[countryCode]) {
     return null;
   }
-  return `${getIconsBasePath()}/${COUNTRY_DATA[countryCode].flagFileName}`;
+  return `${getIconsBasePath()}/${countryData[countryCode].flagFileName}`;
 }
 
 /**
@@ -465,7 +571,8 @@ export function getCountryFlagPath(countryCode) {
  * @returns {string} Country label with currency (e.g., "Colombia (COP)") or empty string
  */
 export function getCountryLabel(countryCode, includeCurrency = true) {
-  const countryData = COUNTRY_DATA[countryCode];
+  const countries = getCountryData();
+  const countryData = countries[countryCode];
   if (!countryData) return '';
 
   if (includeCurrency && countryData.currencyCode) {
@@ -598,6 +705,7 @@ export function setStoredCurrency(currencyCode) {
  */
 export function setStoredCountry(countryCode) {
   if (!countryCode) return;
+  const countryDataMap = getCountryData();
 
   // Determine if we received an ISO code or internal code
   // First, try to find by ISO code (keyIso)
@@ -606,24 +714,24 @@ export function setStoredCountry(countryCode) {
   let countryData = null;
 
   // Check if it's an ISO code by searching in COUNTRY_DATA
-  const foundByIso = Object.entries(COUNTRY_DATA)
+  const foundByIso = Object.entries(countryDataMap)
     .find(([, data]) => data.keyIso === countryCode.toLowerCase());
 
   if (foundByIso) {
     // It's an ISO code
     isoCode = countryCode.toLowerCase();
     [internalCode, countryData] = foundByIso;
-  } else if (COUNTRY_DATA[countryCode.toLowerCase()]) {
+  } else if (countryDataMap[countryCode.toLowerCase()]) {
     // It's an internal code
     internalCode = countryCode.toLowerCase();
-    countryData = COUNTRY_DATA[internalCode];
+    countryData = countryDataMap[internalCode];
     isoCode = countryData.keyIso;
   } else {
     // If we can't find it, try mapIsoToCountryCode as fallback
     const mappedCode = mapIsoToCountryCode(countryCode);
-    if (mappedCode && COUNTRY_DATA[mappedCode]) {
+    if (mappedCode && countryDataMap[mappedCode]) {
       internalCode = mappedCode;
-      countryData = COUNTRY_DATA[internalCode];
+      countryData = countryDataMap[internalCode];
       isoCode = countryData.keyIso;
     } else {
       // eslint-disable-next-line no-console
@@ -691,6 +799,7 @@ export function setStoredPos(pos, fallback = 'es-col') {
   }
 
   const { language, country } = parsePos(normalizedPos);
+  const countryData = getCountryData();
 
   if (!language || !country) {
     // eslint-disable-next-line no-console
@@ -699,13 +808,13 @@ export function setStoredPos(pos, fallback = 'es-col') {
   }
 
   // Validate that language and country exist in our data
-  if (!LANGUAGE_DATA[language] || !COUNTRY_DATA[country]) {
+  if (!LANGUAGE_DATA[language] || !countryData[country]) {
     // eslint-disable-next-line no-console
     console.error('[language-country-selector] Invalid language or country:', { language, country });
     return;
   }
-  const isoCountry = COUNTRY_DATA[country].keyIso;
-  const countryCurrency = COUNTRY_DATA[country].currencyCode;
+  const isoCountry = countryData[country].keyIso;
+  const countryCurrency = countryData[country].currencyCode;
 
   // Set cookies
   setStoredCountry(isoCountry); // This will also set currency
@@ -716,8 +825,7 @@ export function setStoredPos(pos, fallback = 'es-col') {
   // Use navigateToPOS() for explicit user-initiated navigation
 
   // Get currency from country data
-  const countryData = COUNTRY_DATA[country];
-  const currency = countryData?.currencyCode || null;
+  const currency = countryData[country]?.currencyCode || null;
 
   // eslint-disable-next-line no-console
   console.log('[language-country-selector] POS set successfully:', {
@@ -790,7 +898,8 @@ export function formatPosForDisplay(pos) {
 
   // Obtener el código de moneda del país desde COUNTRY_DATA
   const countryCode = country.toLowerCase();
-  const countryData = COUNTRY_DATA[countryCode];
+  const countries = getCountryData();
+  const countryData = countries[countryCode];
   const currencyCode = countryData?.currencyCode || country.toUpperCase();
 
   // Return "CURRENCY - LANGUAGE" format (uppercase)
@@ -803,4 +912,12 @@ export function formatPosForDisplay(pos) {
  */
 export function getStorageEventName() {
   return STORAGE_EVENT;
+}
+
+/**
+ * Get the country data update event name
+ * @returns {string} The event name
+ */
+export function getCountryDataEventName() {
+  return COUNTRY_DATA_EVENT;
 }

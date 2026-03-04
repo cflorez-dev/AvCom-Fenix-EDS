@@ -325,15 +325,13 @@ export default async function decorate(block) {
 
     // Size-specific dimensions (Figma specs)
     const tabHeight = size === 'large' ? 'h-[80px]' : 'h-[64px]';
-    const tabPadding = size === 'large' ? 'px-6 md:px-8' : 'px-6';
+    const tabPadding = 'px-6 md:px-8';
     const primaryFontSize = size === 'large' ? 'text-[18px]' : 'text-[16px]';
     const secondaryFontSize = 'text-[14px]';
 
     // Mobile width: active tab minimum 56% (≤480px)
     // Inactive tabs: no width restriction, content flows naturally
-    const tabWidth = isActive
-      ? 'w-auto max-[480px]:min-w-[56%]'
-      : 'w-auto';
+    const tabWidth = 'w-auto';
 
     const tabButton = document.createElement('button');
     tabButton.setAttribute('type', 'button');
@@ -567,12 +565,6 @@ export default async function decorate(block) {
       const isActive = i === newIndex;
       btn.setAttribute('aria-selected', isActive ? 'true' : 'false');
       btn.setAttribute('tabindex', isActive ? '0' : '-1');
-
-      // Update mobile width classes: active tab minimum 56%
-      btn.classList.remove('max-[480px]:min-w-[56%]');
-      if (isActive) {
-        btn.classList.add('max-[480px]:min-w-[56%]');
-      }
 
       // Find primary label span (first span that is not icon wrapper)
       const contentContainer = btn.querySelector('div');
