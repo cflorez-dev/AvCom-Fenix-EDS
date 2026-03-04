@@ -68,7 +68,7 @@ export const Input = ({
 
   // State-based styling classes - Figma specs, Tailwind only
   const stateClasses = {
-    normal: 'outline outline-1 outline-[#444444] hover:outline-border-input-positive',
+    normal: 'outline outline-1 outline-[#969696] hover:outline-border-input-positive',
     success: 'outline outline-1 outline-border-input-positive',
     error: 'outline outline-1 outline-border-input-error',
     disabled: 'outline outline-1 outline-border-input-disabled cursor-not-allowed',
