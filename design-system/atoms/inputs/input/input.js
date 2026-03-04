@@ -2,6 +2,7 @@ import { h } from '@dropins/tools/preact.js';
 import { useState, useEffect, useRef } from '@dropins/tools/preact-hooks.js';
 import htm from 'htm';
 import { Icon } from '../../icon/icon.js';
+import { Tooltip } from '../../tooltip/tooltip.js';
 
 const html = htm.bind(h);
 
@@ -23,6 +24,7 @@ const html = htm.bind(h);
  * @param {string} [props.suffixIconName] - Icon name to display on the right (e.g., 'action/view')
  * @param {Function} [props.onSuffixIconClick] - Callback when suffix icon is clicked
  * @param {boolean} [props.showPasswordToggle=false] - Show password visibility toggle (only for type='password')
+ * @param {boolean} [props.truncateOption=false] - Truncate input value and show tooltip on hover when not focused
  * @param {string} [props.customClassName=''] - Additional CSS classes
  * @param {string} [props.id] - HTML id attribute
  * @param {string} [props.name] - HTML name attribute for forms
@@ -44,6 +46,7 @@ export const Input = ({
   suffixIconName,
   onSuffixIconClick,
   showPasswordToggle = false,
+  truncateOption = false,
   customClassName = '',
   id,
   name,
@@ -207,8 +210,8 @@ export const Input = ({
               font-['Red_Hat_Display'] font-normal tracking-[0px]
               ${labelStateClasses[actualState]}
               ${shouldFloat
-    ? `top-[10px] text-xs leading-[18px] ${prefixIconName ? 'left-[44px]' : 'left-[var(--padding-16)]'}`
-    : `top-1/2 -translate-y-1/2 text-sm leading-[21px] ${prefixIconName ? 'left-[calc(var(--padding-16)+1.25rem+0.5rem)]' : 'left-[var(--padding-16)]'}`
+    ? `top-[10px] text-xs leading-[18px] ${prefixIconName ? 'left-[calc(var(--padding-16)+1.25rem+var(--spacing-x-small))]' : 'left-[var(--padding-16)]'}`
+    : `top-1/2 -translate-y-1/2 text-sm leading-[21px] ${prefixIconName ? 'left-[calc(var(--padding-16)+1.25rem+var(--spacing-x-small))]' : 'left-[var(--padding-16)]'}`
 }
             `}
           >
@@ -221,27 +224,35 @@ export const Input = ({
 
           <!-- Input Field -->
           ${shouldFloat && html`
-            <input
-              ref=${inputRef}
-              id=${id}
-              name=${name}
-              type=${actualInputType}
-              value=${inputValue}
-              placeholder=${placeholder}
-              disabled=${disabled}
-              readonly=${readonly}
-              required=${required}
-              onInput=${handleChange}
-              onFocus=${handleFocus}
-              onBlur=${handleBlur}
-              class=${`
-                bg-white
-                w-full relative -bottom-2 bg-transparent border-0 outline-none p-0
-                !text-base font-bold font-['Red_Hat_Display'] leading-normal
-                ${actualState === 'disabled' ? 'text-[#C4C8C5] cursor-not-allowed' : actualState === 'readonly' ? 'text-text-normal-secondary cursor-default' : 'text-text-normal-primary'}
-                placeholder:text-text-normal-secondary placeholder:font-normal
-              `}
-            />
+            <${Tooltip}
+              content=${inputValue}
+              disabled=${!truncateOption || !inputValue || isFocused}
+              customClassName="block w-full relative -bottom-2 left-0"
+              triggerClassName="block w-full"
+            >
+              <input
+                ref=${inputRef}
+                id=${id}
+                name=${name}
+                type=${actualInputType}
+                value=${inputValue}
+                placeholder=${placeholder}
+                disabled=${disabled}
+                readonly=${readonly}
+                required=${required}
+                onInput=${handleChange}
+                onFocus=${handleFocus}
+                onBlur=${handleBlur}
+                class=${`
+                  bg-white
+                  w-full bg-transparent border-0 outline-none p-0
+                  !text-base font-bold font-['Red_Hat_Display'] leading-normal
+                  ${truncateOption && !isFocused ? 'truncate' : ''}
+                  ${actualState === 'disabled' ? 'text-[#C4C8C5] cursor-not-allowed' : actualState === 'readonly' ? 'text-text-normal-secondary cursor-default' : 'text-text-normal-primary'}
+                  placeholder:text-text-normal-secondary placeholder:font-normal
+                `}
+              />
+            </${Tooltip}>
           `}
 
           <!-- Cursor placeholder when active but empty -->
