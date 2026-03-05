@@ -71,6 +71,8 @@ export const HeadingDestinations = ({
           value=${selectedGeographicArea}
           onChange=${onGeographicAreaChange}
           hasPrefixIcon=${false}
+          customDropdownClassName="mt-[4px]"
+          labelClassName="left-[1rem]"
           truncateOption=${true}
           customClassName="w-full md:max-lg:flex-1 min-[1248px]:!w-[340px] min-[1248px]:min-w-[340px] [&>div]:!outline-[var(--color-border-input-default)]"
         />
