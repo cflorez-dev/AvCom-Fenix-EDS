@@ -2584,14 +2584,6 @@
       {
         "component": "text",
         "valueType": "string",
-        "name": "supportIcon",
-        "label": "Support Icon",
-        "value": "",
-        "description": "Optional decorative icon name (e.g., airplane, calendar, gift)"
-      },
-      {
-        "component": "text",
-        "valueType": "string",
         "name": "linkUrl",
         "label": "Link URL",
         "value": "",

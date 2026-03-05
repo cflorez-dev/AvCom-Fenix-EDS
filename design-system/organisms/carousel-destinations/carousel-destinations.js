@@ -247,7 +247,7 @@ export const CarouselDestinations = ({
       </div>
 
       <!-- Carousel or Grid container -->
-      <div ref=${carouselWrapperRef} class="relative w-full min-[1248px]:p-0 min-[480px]:pl-[32px] pl-[16px]" style="margin-left: max(0px, calc((100vw - 1248px) / 2))">
+      <div ref=${carouselWrapperRef} class="relative w-[calc(100%-max(0px,(100vw-1248px)/2))] min-[1248px]:p-0 min-[480px]:pl-[32px] pl-[16px] ml-[max(0px,calc((100vw-1248px)/2))] flex">
         ${isCarousel ? html`
           <!-- Carousel View -->
           <${Carousel}
