@@ -62,7 +62,7 @@ export const HeadingDestinations = ({
           onChange=${onSearchChange}
           truncateOption=${true}
           prefixIconName="action/search"
-          customClassName="w-full md:max-lg:flex-1 min-[1248px]:!w-[340px] min-[1248px]:min-w-[340px]"
+          customClassName="w-full md:max-lg:flex-1 min-[1248px]:!w-[340px] min-[1248px]:min-w-[340px] [&_input]:!font-bold [&>div]:!outline-[var(--color-border-input-default)]"
         />
 
         <${Select}
@@ -72,7 +72,7 @@ export const HeadingDestinations = ({
           onChange=${onGeographicAreaChange}
           hasPrefixIcon=${false}
           truncateOption=${true}
-          customClassName="w-full md:max-lg:flex-1 min-[1248px]:!w-[340px] min-[1248px]:min-w-[340px]"
+          customClassName="w-full md:max-lg:flex-1 min-[1248px]:!w-[340px] min-[1248px]:min-w-[340px] [&>div]:!outline-[var(--color-border-input-default)]"
         />
       </div>
     </div>
