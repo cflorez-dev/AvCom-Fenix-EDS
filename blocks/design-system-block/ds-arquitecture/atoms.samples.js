@@ -18,7 +18,6 @@ import { DateInputSample } from '../../../design-system/atoms/date-input/date-in
 import { DayCellSample } from '../../../design-system/atoms/day-cell/day-cell.sample.js';
 import { WeekdayHeaderSample } from '../../../design-system/atoms/weekday-header/weekday-header.sample.js';
 import { DestinationCardSample } from '../../../design-system/atoms/destination-card/destination-card.sample.js';
-import { TooltipSample } from '../../../design-system/atoms/tooltip/tooltip.sample.js';
 import { CarouselDestinationsSample } from '../../../design-system/organisms/carousel-destinations/carousel-destinations.sample.js';
 import { HubDestinationsSample } from '../../../design-system/templates/hub-destinations/hub-destinations.sample.js';
 
@@ -47,7 +46,6 @@ export const AtomsSamples = () => html`
         <${DateInputSample} />
         <${DayCellSample} />
         <${WeekdayHeaderSample} />
-        <${TooltipSample} />
         
         <!-- Icon Samples -->
         <div class="mt-[var(--spacing-xx-large)]">

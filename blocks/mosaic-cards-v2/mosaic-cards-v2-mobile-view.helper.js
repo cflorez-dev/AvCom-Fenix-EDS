@@ -129,94 +129,45 @@ async function createMobileCarousel(allCards, groupId, config = {}) {
   let isInitialized = false;
   let isDotNavigating = false;
 
-  // Touch direction detection state
-  // On real mobile devices vertical page-scroll fires touchstart/touchend on
-  // the carousel element too. Without direction detection this causes autoplay
-  // to pause → restart every time the user scrolls the page vertically.
-  let touchStartX = 0;
-  let touchStartY = 0;
-  let touchDirectionDetermined = false;
-  let isHorizontalTouch = false;
-
-  // IntersectionObserver state — tracks whether the carousel is currently
-  // visible in the viewport. On iOS/Android, when the user scrolls the
-  // carousel offscreen the browser may reset scrollLeft of overflow containers
-  // to reclaim memory. Without guarding against this the setInterval would
-  // continue running from scrollLeft=0, which looks like a "restart".
-  let isInViewport = true;
-  let viewportExitScrollLeft = 0; // saved position when carousel leaves viewport
-
   // Auto-scroll for smooth continuous movement
   // Defined here before event listeners need it
   const startAutoScroll = () => {
-    // Don't start if autoplay is disabled, already running, not in viewport, or user is interacting
-    if (!autoplay || autoScrollInterval || userPaused || isUserScrolling || !isInViewport) return;
+    // Don't start if autoplay is disabled, already running, or user is interacting
+    if (!autoplay || autoScrollInterval || userPaused || isUserScrolling) return;
     
+    let scrollCount = 0;
     autoScrollInterval = setInterval(() => {
-      if (!isUserScrolling && !userPaused && !document.hidden && isInViewport) {
+      if (!isUserScrolling && !userPaused && !document.hidden) {
         // Only increment scroll position - this is horizontal scroll, doesn't affect page
         carouselWrapper.scrollLeft += 1;
       }
     }, 30);
   };
 
-  // Record touch start position — do NOT pause autoplay yet.
-  // Direction is determined in touchmove once there is enough movement.
-  carouselWrapper.addEventListener('touchstart', (e) => {
-    const touch = e.touches[0];
-    touchStartX = touch.clientX;
-    touchStartY = touch.clientY;
-    touchDirectionDetermined = false;
-    isHorizontalTouch = false;
-  }, { passive: true });
+  // Pause on touch interaction
+  carouselWrapper.addEventListener('touchstart', () => {
+    isUserScrolling = true;
+    userPaused = true;
 
-  // Detect direction on first meaningful move and pause autoplay only for
-  // horizontal swipes. Vertical touches (page scroll) are ignored so autoplay
-  // keeps running undisturbed.
-  carouselWrapper.addEventListener('touchmove', (e) => {
-    if (touchDirectionDetermined) return;
+    // NOTE: do NOT add snap classes here.
+    // Adding snap on touchstart causes the browser to immediately snap/center
+    // the current card before the user has moved (visible "centering" bug).
+    // Snap is enabled on touchend instead, so cards snap cleanly after finger release.
 
-    const touch = e.touches[0];
-    const deltaX = Math.abs(touch.clientX - touchStartX);
-    const deltaY = Math.abs(touch.clientY - touchStartY);
-
-    // Wait until there is enough movement to decide direction
-    if (deltaX < 5 && deltaY < 5) return;
-
-    touchDirectionDetermined = true;
-    isHorizontalTouch = deltaX > deltaY;
-
-    if (isHorizontalTouch) {
-      // Horizontal swipe → pause autoplay
-      isUserScrolling = true;
-      userPaused = true;
-
-      // NOTE: do NOT add snap classes here.
-      // Adding snap on touchstart causes the browser to immediately snap/center
-      // the current card before the user has moved (visible "centering" bug).
-      // Snap is enabled on touchend instead, so cards snap cleanly after finger release.
-
-      if (pauseTimeout) {
-        clearTimeout(pauseTimeout);
-        pauseTimeout = null;
-      }
-      if (autoScrollInterval) {
-        clearInterval(autoScrollInterval);
-        autoScrollInterval = null;
-      }
+    // Clear any existing pause timeout
+    if (pauseTimeout) {
+      clearTimeout(pauseTimeout);
+      pauseTimeout = null;
     }
-    // Vertical touch → do nothing, autoplay continues uninterrupted
+
+    // Pause autoplay immediately
+    if (autoScrollInterval) {
+      clearInterval(autoScrollInterval);
+      autoScrollInterval = null;
+    }
   }, { passive: true });
 
   carouselWrapper.addEventListener('touchend', () => {
-    if (!isHorizontalTouch) {
-      // Vertical page scroll — reset flags and leave autoplay untouched
-      isUserScrolling = false;
-      touchDirectionDetermined = false;
-      isHorizontalTouch = false;
-      return;
-    }
-
     isUserScrolling = false;
 
     // Enable snap NOW (after finger release) so the card snaps into position
@@ -314,32 +265,15 @@ async function createMobileCarousel(allCards, groupId, config = {}) {
 
   document.addEventListener('visibilitychange', handleVisibilityChange);
 
-  // Track last known viewport WIDTH to distinguish real orientation/layout
-  // changes from the browser-chrome hide/show during vertical page scroll.
-  // On mobile, scrolling the page causes the address bar to hide → viewport
-  // HEIGHT changes but WIDTH stays the same. We must ignore those resize
-  // events or the carousel scroll position is needlessly recalculated and
-  // jumps, which looks like a "restart" to the user.
-  let lastKnownWidth = window.innerWidth;
-
   // Handle viewport resize (orientation change) - only within mobile viewport
   const handleResize = () => {
-    const currentWidth = window.innerWidth;
-
     // Only handle resize if we're still in mobile viewport
-    if (currentWidth > 767) {
-      lastKnownWidth = currentWidth;
+    if (window.innerWidth > 767) {
       // We've switched to desktop, stop handling resize here
       // The main handler in initMobileViewHelper will take over
       return;
     }
-
-    // Ignore resize events caused solely by viewport HEIGHT change
-    // (browser chrome hide/show during vertical scroll). Only act when
-    // the WIDTH changes (real orientation change or window resize).
-    if (currentWidth === lastKnownWidth) return;
-    lastKnownWidth = currentWidth;
-
+    
     // Recalculate positions after resize
     const allSlides = Array.from(carouselWrapper.querySelectorAll('.carousel-slide'));
     const firstCardSecondSet = allSlides[originalCardsCount];
@@ -576,65 +510,8 @@ async function createMobileCarousel(allCards, groupId, config = {}) {
     carouselContainer.appendChild(dotsWrapper);
   }
 
-  // IntersectionObserver — pause autoplay when carousel scrolls out of viewport
-  // and restore/resume when it comes back in.
-  // This prevents the browser from resetting scrollLeft while the carousel is
-  // offscreen (a common iOS/Android optimization) from appearing as a restart.
-  let viewportObserver = null;
-  if (autoplay && typeof IntersectionObserver !== 'undefined') {
-    viewportObserver = new IntersectionObserver(
-      (entries) => {
-        const entry = entries[0];
-        if (!entry.isIntersecting) {
-          // Carousel left viewport → save position and stop autoplay
-          isInViewport = false;
-          viewportExitScrollLeft = carouselWrapper.scrollLeft;
-          if (autoScrollInterval) {
-            clearInterval(autoScrollInterval);
-            autoScrollInterval = null;
-          }
-        } else {
-          // Carousel re-entered viewport
-          isInViewport = true;
-
-          // Check if browser reset scrollLeft while offscreen (iOS memory optimisation).
-          // scrollLeft will be 0 or very small when this happens. Restore to the
-          // saved position so the user sees the same card, not a jump to the start.
-          const slides = Array.from(carouselWrapper.querySelectorAll('.carousel-slide'));
-          const firstCardSecondSet = slides[originalCardsCount];
-          const totalOriginalWidth = firstCardSecondSet ? firstCardSecondSet.offsetLeft : 0;
-          const wasReset = totalOriginalWidth > 0 && carouselWrapper.scrollLeft < totalOriginalWidth * 0.1;
-
-          if (wasReset && viewportExitScrollLeft > 0) {
-            // Restore the position silently (no animation)
-            const savedBehavior = carouselWrapper.style.scrollBehavior;
-            carouselWrapper.style.scrollBehavior = 'auto';
-            // Clamp to valid range: keep relative position within second set
-            const relativeOffset = viewportExitScrollLeft % (totalOriginalWidth || 1);
-            carouselWrapper.scrollLeft = totalOriginalWidth + relativeOffset;
-            requestAnimationFrame(() => {
-              carouselWrapper.style.scrollBehavior = savedBehavior;
-            });
-          }
-
-          // Resume autoplay if no user interaction is in progress
-          if (!userPaused && !isUserScrolling && !document.hidden) {
-            startAutoScroll();
-          }
-        }
-      },
-      // Trigger when at least 10% of the carousel is visible
-      { threshold: 0.1 },
-    );
-    viewportObserver.observe(carouselContainer);
-  }
-
   // Cleanup function
   const cleanup = () => {
-    if (viewportObserver) {
-      viewportObserver.disconnect();
-      viewportObserver = null;
-    }
     window.removeEventListener('resize', debouncedResize);
     document.removeEventListener('visibilitychange', handleVisibilityChange);
     carouselWrapper.removeEventListener('scroll', handleInfiniteScroll);
