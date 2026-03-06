@@ -34,9 +34,7 @@ export const NoDestinationsFound = ({
 					decoding="async"
 				/>
 			</picture>
-			<p class="text-lg font-bold text-text-normal-primary !m-0 text-[20px]"
-			style="line-height: normal;"
-			>
+			<p class="text-lg font-bold text-text-normal-primary !m-0">
 				${title}
 			</p>
 		</div>

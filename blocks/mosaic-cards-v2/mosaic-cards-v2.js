@@ -619,13 +619,6 @@ export default async function decorate(block) {
     let isWrapping = false;      // true while animateWrap CSS transition is in flight
     let resumeTimeoutId = null;  // tracks pending resume timeout (cancelable)
     let clearTransitionFn = null; // current transitionend cleanup fn (to remove before new one)
-    // When loop=false: pixel offset of the last original slide (stop boundary for autoplay).
-    // Measured DOM in the init setTimeout below; also resolved lazily inside animate().
-    let lastSlideOffset = 0;
-    // Position (absolute value) at which to proactively hide the right arrow (loop=false).
-    // Set to 80% into the last fold so the user can't click "next" in a bad state.
-    // Computed once alongside lastSlideOffset.
-    let arrowHideThreshold = 0;
 
     // No-op default; real implementation assigned inside if(showArrows) below.
     // Allows the setTimeout init block to call it before showArrows block executes.
@@ -675,49 +668,20 @@ export default async function decorate(block) {
       if (!isPaused && !manualControl && autoplay) {
         position -= scrollSpeed;
 
-        if (loop) {
-          // Seamless infinite loop using modular-arithmetic period reset.
-          // Fires when the track has scrolled exactly one period past originalStartPosition,
-          // i.e. when post_clone_0 is fully aligned with where original_0 was.
-          // Using position += loopPeriod (not = originalStartPosition) so the reset
-          // is always correct regardless of which slide the user last navigated to.
-          if (loopPeriod > 0 && position <= originalStartPosition - loopPeriod) {
-            position += loopPeriod;
-          }
-          carouselTrack.style.transform = `translateX(${position}px)`;
-          window.mosaicCarouselStates[groupId].position = position;
-        } else {
-          // loop=false: resolve boundary lazily if init setTimeout fired before layout.
-          if (lastSlideOffset === 0) {
-            const offsets = getOriginalSlideOffsets();
-            lastSlideOffset = offsets[offsets.length - 1] ?? 0;
-          }
-          if (lastSlideOffset > 0 && position <= -lastSlideOffset) {
-            // Clamp to last slide and permanently stop autoplay.
-            // Prevents the carousel from drifting into clone territory and
-            // appearing "frozen" (empty space) or looping back to the start.
-            position = -lastSlideOffset;
-            carouselTrack.style.transform = `translateX(${position}px)`;
-            window.mosaicCarouselStates[groupId].position = position;
-            window.mosaicCarouselStates[groupId].isPaused = true;
-            window.mosaicCarouselStates[groupId].manualControl = false;
-            updateArrowVisibility(originalSlidesCount - 1);
-            animationId = requestAnimationFrame(animate);
-            return;
-          }
-          carouselTrack.style.transform = `translateX(${position}px)`;
-          window.mosaicCarouselStates[groupId].position = position;
+        // Seamless infinite loop using modular-arithmetic period reset.
+        // Fires when the track has scrolled exactly one period past originalStartPosition,
+        // i.e. when post_clone_0 is fully aligned with where original_0 was.
+        // Using position += loopPeriod (not = originalStartPosition) so the reset
+        // is always correct regardless of which slide the user last navigated to.
+        if (loopPeriod > 0 && position <= originalStartPosition - loopPeriod) {
+          position += loopPeriod;
         }
+
+        carouselTrack.style.transform = `translateX(${position}px)`;
+        window.mosaicCarouselStates[groupId].position = position;
       } else if (manualControl) {
         // Use position from manual control
         position = window.mosaicCarouselStates[groupId].position;
-      }
-
-      // Always evaluate arrow-hide threshold — runs every frame regardless of pause/autoplay
-      // state. This hides the right arrow as soon as 80% of the last fold is visible so the
-      // user never sees a "dead" arrow that blocks clicks without giving feedback.
-      if (!loop && arrowHideThreshold > 0 && Math.abs(position) >= arrowHideThreshold) {
-        updateArrowVisibility(originalSlidesCount - 1);
       }
 
       animationId = requestAnimationFrame(animate);
@@ -743,21 +707,6 @@ export default async function decorate(block) {
         // Period = exact pixel distance between the two identical visual positions.
         // This naturally includes all gaps, so no formula rounding error.
         loopPeriod = firstPostClone.offsetLeft - firstOriginalSlide.offsetLeft;
-      }
-      // When loop=false, measure the stop boundary and the arrow-hide threshold.
-      if (!loop) {
-        const lastOriginalSlide = allSlideEls[originalSlidesCount]; // 1-based: last original = index N
-        lastSlideOffset = lastOriginalSlide ? lastOriginalSlide.offsetLeft : 0;
-        // arrowHideThreshold: absolute-value of position at which the right arrow should
-        // disappear — 80% into the last fold so the user never sees a dead arrow.
-        // Requires at least 2 original slides to compute a meaningful slide width.
-        if (originalSlidesCount >= 2) {
-          const secondToLast = allSlideEls[originalSlidesCount - 1]; // index N-1 (1-based)
-          if (secondToLast && lastOriginalSlide) {
-            const slideWidth = lastOriginalSlide.offsetLeft - secondToLast.offsetLeft;
-            arrowHideThreshold = secondToLast.offsetLeft + slideWidth * 0.80;
-          }
-        }
       }
       animate();
       // Initial arrow state (always starts at slide 0)
@@ -806,10 +755,6 @@ export default async function decorate(block) {
         const resumeDelay = Math.max(transitionDuration + 100, autoplaySpeed * 2);
         resumeTimeoutId = setTimeout(() => {
           resumeTimeoutId = null;
-          // When loop=false, do NOT resume autoplay if already at the last slide.
-          // This prevents autoplay from re-engaging and scrolling into clone territory
-          // after the user navigates to the end with the arrow buttons.
-          if (!loop && getCurrentSlideIndex() === originalSlidesCount - 1) return;
           // Only resume if no wrap animation is still in flight
           if (!isWrapping) {
             carouselTrack.style.transition = '';
@@ -880,67 +825,41 @@ export default async function decorate(block) {
         prevButton.addEventListener('click', () => {
           if (isWrapping) return; // Block clicks during wrap transition
           const state = window.mosaicCarouselStates[groupId];
+          state.isPaused = true;
+          state.manualControl = true;
           const currentIndex = getCurrentSlideIndex();
 
           if (currentIndex > 0) {
             // Normal prev: smooth animated slide
-            // Set state ONLY when we're actually acting (prevents no-op freeze).
-            state.isPaused = true;
-            state.manualControl = true;
             goToSlide(currentIndex - 1, true);
             updateArrowVisibility(currentIndex - 1);
             resumeAfterInteraction();
           } else if (loop) {
             // Wrap prev (first → last): animate to pre-clone then snap to last original
-            state.isPaused = true;
-            state.manualControl = true;
             animateWrap('prev');
           }
-          // else: no loop, already at first — do nothing.
-          // IMPORTANT: do NOT touch state here; leaving manualControl=true with
-          // no resumeAfterInteraction() call would freeze the carousel permanently.
+          // else: no loop, already at first — do nothing
         });
       }
 
       if (nextButton) {
         nextButton.addEventListener('click', () => {
           if (isWrapping) return; // Block clicks during wrap transition
-          // Block click if we're already past the arrow-hide threshold (70% into last fold).
-          // This keeps the visual hide and the functional disable perfectly in sync.
-          if (!loop && arrowHideThreshold > 0 && Math.abs(position) >= arrowHideThreshold) return;
           const state = window.mosaicCarouselStates[groupId];
-
-          // Use floor-based index (slide we're scrolling FROM), not nearest-based.
-          // getCurrentSlideIndex() uses nearest offset, which flips to the last slide
-          // at the midpoint (~50%) — before the arrow disappears at 70%. This causes
-          // the click to do nothing when visually the button is still active.
-          const offsets = getOriginalSlideOffsets();
-          const absPos = Math.abs(position);
-          let currentIndex = 0;
-          for (let i = offsets.length - 1; i >= 0; i -= 1) {
-            if (absPos >= offsets[i] - 1) { // -1 to handle float rounding
-              currentIndex = i;
-              break;
-            }
-          }
+          state.isPaused = true;
+          state.manualControl = true;
+          const currentIndex = getCurrentSlideIndex();
 
           if (currentIndex < originalSlidesCount - 1) {
             // Normal next: smooth animated slide
-            // Set state ONLY when we're actually acting (prevents no-op freeze).
-            state.isPaused = true;
-            state.manualControl = true;
             goToSlide(currentIndex + 1, true);
             updateArrowVisibility(currentIndex + 1);
             resumeAfterInteraction();
           } else if (loop) {
             // Wrap next (last → first): animate to post-clone of first then snap to first original
-            state.isPaused = true;
-            state.manualControl = true;
             animateWrap('next');
           }
-          // else: no loop, already at last — do nothing.
-          // IMPORTANT: do NOT touch state here; leaving manualControl=true with
-          // no resumeAfterInteraction() call would freeze the carousel permanently.
+          // else: no loop, already at last — do nothing
         });
       }
     }

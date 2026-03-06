@@ -336,13 +336,12 @@ export const HubDestinations = ({
       .filter((c) => c.destinations.length > 0);
 
     if (hasActiveSearch) {
-      const sorted = processed.sort((a, b) => {
+      return processed.sort((a, b) => {
         if (a.destinations.length !== b.destinations.length) {
           return b.destinations.length - a.destinations.length;
         }
         return sortByLabel(a.name, b.name, locale);
       });
-      return sorted;
     }
 
     return processed;
@@ -445,7 +444,7 @@ export const HubDestinations = ({
   return html`
     <section
       data-name="hubDestinations"
-      class="w-full flex flex-col gap-10 overflow-x-hidden ${customClassName}"
+      class="w-full flex flex-col gap-6 ${customClassName}"
       ...${rest}
     >
       <${HeadingDestinations}
@@ -463,10 +462,10 @@ export const HubDestinations = ({
       />
 
       ${visibleCountries.length > 0 ? html`
-        <div class="w-full flex flex-col gap-10">
-          ${visibleCountries.map((country, index) => html`
+        <div class="w-full flex flex-col gap-8">
+          ${visibleCountries.map((country) => html`
             <${CarouselDestinations}
-              key=${`${country.id}-${index}`}
+              key=${country.id}
               title=${getRegionTitle(country.name)}
               totalCount=${getRegionCountLabel(country.destinations.length)}
               destinations=${country.destinations}

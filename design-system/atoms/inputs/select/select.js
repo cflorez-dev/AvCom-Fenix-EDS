@@ -3,7 +3,6 @@ import { h } from '@dropins/tools/preact.js';
 import { useState, useEffect, useRef } from '@dropins/tools/preact-hooks.js';
 import htm from 'htm';
 import { Icon } from '../../icon/icon.js';
-import { Tooltip } from '../../tooltip/tooltip.js';
 
 const html = htm.bind(h);
 
@@ -24,7 +23,6 @@ const html = htm.bind(h);
  * @param {string} [props.iconName] - Icon name to display on the left (e.g., 'action/plane'). If not provided, no icon is shown unless options have flags.
  * @param {boolean} [props.hasPrefixIcon] - Whether the select has a prefix icon (auto-detected if not provided). Set to false to explicitly hide the prefix icon.
  * @param {string|number} [props.dropdownMaxHeight] - Maximum height for the dropdown (e.g., '218px', '256px', or number in pixels). Default: '256px' (max-h-64)
- * @param {boolean} [props.truncateOption=false] - Truncate selected/option text and show tooltip when true
  * @param {string} [props.customClassName=''] - Additional CSS classes
  * @param {string} [props.id] - HTML id attribute
  * @param {string} [props.name] - HTML name attribute for forms
@@ -45,7 +43,6 @@ export const Select = ({
   iconName,
   hasPrefixIcon,
   dropdownMaxHeight,
-  truncateOption = false,
   labelClassName = '',
   customDropdownClassName = '',
   customClassName = '',
@@ -349,25 +346,15 @@ export const Select = ({
 
           <!-- Selected Value -->
           ${selectedOption && html`
-            <div class="relative -bottom-2 flex-1 w-0 min-w-0 text-left block">
-              <${Tooltip}
-                content=${displayText}
-                disabled=${!truncateOption}
-                customClassName="block w-full"
-                triggerClassName="block w-full"
-              >
-                <span
-                  class=${`
-                    block w-full
-                    text-base font-bold font-['Red_Hat_Display'] leading-auto
-                    ${truncateOption ? 'truncate' : ''}
-                    ${actualState === 'disabled' ? 'text-text-input-disabled' : 'text-text-normal-primary'}
-                  `}
-                >
-                  ${displayText}
-                </span>
-              </${Tooltip}>
-            </div>
+            <span
+              class=${`
+                relative -bottom-2 flex-1 text-left
+                text-base font-bold font-['Red_Hat_Display'] leading-auto
+                ${actualState === 'disabled' ? 'text-text-input-disabled' : 'text-text-normal-primary'}
+              `}
+            >
+              ${displayText}
+            </span>
           `}
 
           <!-- Spacer when no value -->
@@ -383,7 +370,7 @@ export const Select = ({
             viewBox="0 0 16 16"
             fill="none"
             class=${`
-              w-4 h-4 flex-shrink-0 ml-2
+              w-4 h-4 flex-shrink-0 ml-[var(--spacing-small)]
               transition-transform duration-200
               ${isOpen ? 'rotate-180' : ''}
               ${actualState === 'disabled' ? 'opacity-50' : ''}
@@ -530,10 +517,7 @@ export const Select = ({
                   ${isPressed ? 'bg-[var(--state-hover-darken)] text-[var(--text-brand-light)]' : 'text-text-normal-primary hover:bg-[var(--bg-hover-light)]'}
                 `}
               >
-                <span class=${`
-                  flex items-center gap-4
-                  ${truncateOption ? 'flex-1 w-0 min-w-0' : ''}
-                `}>
+                <span class="flex items-center gap-4">
                   ${option.flagPath && html`
                     <img
                       src=${option.flagPath}
@@ -544,13 +528,7 @@ export const Select = ({
                   ${option.flag && !option.flagPath && html`
                     <span class="text-xl flex-shrink-0">${option.flag}</span>
                   `}
-                  <span
-                    class=${`
-                      ${truncateOption ? 'truncate block flex-1 w-0 min-w-0' : ''}
-                    `}
-                  >
-                    ${option.label}
-                  </span>
+                  <span>${option.label}</span>
                 </span>
                 ${selectedValue === option.value && html`
                   <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" class="flex-shrink-0">

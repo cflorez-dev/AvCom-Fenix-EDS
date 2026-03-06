@@ -210,14 +210,12 @@ function getDestinationsByCountrie(country, language, i18n, allCitiesData) {
     seenNames.add(nameKey);
     const imageUrl = cityData?.cardImage?._publishUrl || DEFAULT_DESTINATION_IMAGE;
     const iataCityCode = dest.IataCityCode?.trim().toUpperCase() || '';
-    const complementaryText = cityData?.[`complementaryText_${language}`] ? cityData[`complementaryText_${language}`] : null;
     acc.push({
       destinationName: destinationName || '',
       countryName: country.countryName,
       regions: dest.Regions,
       imageUrl,
       iataCityCode,
-      complementaryText,
       href: `/${language}/${preSlug}-${toSlug(destinationName || '')}`,
       onClick: () => {
         setCookie(DESTINATION_IATA_COOKIE, iataCityCode, DESTINATION_IATA_COOKIE_DAYS);

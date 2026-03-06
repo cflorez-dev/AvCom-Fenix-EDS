@@ -177,12 +177,7 @@ export const ModalAviancaLayout = ({
   `;
 
   const aviancaContentClassName = `max-w-[440px] w-full p-8 [&>div:first-child]:px-8 [&>div:first-child]:py-8 ${contentClassName}`.trim();
-  const closeButtonClassName = 'z-10 [&_button]:!bg-transparent [&_button]:hover:!bg-[#D9D9D9] [&_button]:active:!bg-[#B8B8B8] [&_button]:hover:scale-100 [&_button]:active:scale-100 [&_button]:active:translate-y-0 [&_button]:!w-6 [&_button]:!h-6 [&_button]:!min-w-6 [&_button]:!min-h-6 [&_button]:!p-0';
-  const closeIconSlot = html`
-    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
-      <path fill-rule="evenodd" clip-rule="evenodd" d="M12.6666 4.27301L11.7266 3.33301L7.99992 7.05967L4.27325 3.33301L3.33325 4.27301L7.05992 7.99967L3.33325 11.7263L4.27325 12.6663L7.99992 8.93967L11.7266 12.6663L12.6666 11.7263L8.93992 7.99967L12.6666 4.27301Z" fill="var(--icon-normal-primary, #1B1B1B)"/>
-    </svg>
-  `;
+  const closeButtonClassName = 'z-10 [&_button]:bg-white/60 [&_button]:hover:scale-100 [&_button]:active:scale-100';
   return html`
     <${Modal}
       isOpen=${isOpen}
@@ -195,7 +190,6 @@ export const ModalAviancaLayout = ({
       customClassName=${customClassName}
       contentClassName=${aviancaContentClassName}
       closeButtonClassName=${closeButtonClassName}
-      closeIconSlot=${closeIconSlot}
       role=${role}
       ...${rest}
     >

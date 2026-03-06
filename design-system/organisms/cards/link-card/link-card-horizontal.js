@@ -87,8 +87,8 @@ export const LinkCardHorizontal = ({
     + 'overflow-hidden transition-all bg-[var(--bg-card-lighter)] '
     + `${borderClasses} `
     + 'flex flex-col md:flex-row items-start md:items-center justify-center '
-    + `${!isPhotographicCard ? 'hover:shadow-[0_2px_20px_2px_rgba(73,73,73,0.25)] ' : ''}`
-    + `${focusBorderClasses} ${!isPhotographicCard ? 'focus-visible:shadow-[0_2px_20px_2px_rgba(73,73,73,0.25)] ' : ''}`
+    + 'hover:shadow-[0_2px_20px_2px_rgba(73,73,73,0.25)] '
+    + `${focusBorderClasses} focus-visible:shadow-[0_2px_20px_2px_rgba(73,73,73,0.25)] `
     + 'focus-visible:outline focus-visible:outline-2 focus-visible:outline-[var(--focus-primary)] focus-visible:outline-offset-2 '
     + '';
 

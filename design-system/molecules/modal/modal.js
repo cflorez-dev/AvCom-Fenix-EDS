@@ -39,7 +39,6 @@ export const Modal = ({
   customClassName = '',
   contentClassName = '',
   closeButtonClassName = '',
-  closeIconSlot = null,
   role = 'dialog',
   children,
   ...rest
@@ -220,7 +219,7 @@ export const Modal = ({
         ${showCloseButton && html`
           <div class=${closeButtonContainer}>
             <${Button} onClick=${handleCloseClick} variant="transparent" size="xxs" iconOnly=${true}>
-              ${closeIconSlot || html`<${Icon} icon="navigation/close" size="xs" />`}
+              <${Icon} icon="navigation/close" size="xs" />
             </${Button}>
           </div>
         `}

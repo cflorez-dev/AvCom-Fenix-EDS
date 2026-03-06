@@ -151,11 +151,6 @@ export default function decorate(block) {
 
   // Parent-level targeting: hide entire block if targeting doesn't match
   if (!shouldShowByTargeting(props.targetCountries, props.targetLanguages)) {
-    // Add p-0 class to parent section container
-    const sectionContainer = block.closest('.section.cms-promotional-card-carrousel-container');
-    if (sectionContainer) {
-      sectionContainer.classList.add('!p-0');
-    }
     hideBlockWithSection(block);
     return;
   }
@@ -165,11 +160,6 @@ export default function decorate(block) {
   const loadingMode = props.loading || 'lazy';
 
   if (totalCards === 0) {
-    // Add p-0 class to parent section container
-    const sectionContainer = block.closest('.section.cms-promotional-card-carrousel-container');
-    if (sectionContainer) {
-      sectionContainer.classList.add('!p-0');
-    }
     // Hide the block if there are no cards
     block.style.display = 'none';
     return;
