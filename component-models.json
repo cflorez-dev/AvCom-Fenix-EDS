@@ -471,6 +471,10 @@
             "value": "no-padding-top"
           },
           {
+            "name": "padding-bottom-40",
+            "value": "padding-bottom-40"
+          },
+          {
             "name": "no-padding-y",
             "value": "no-padding-y"
           },
@@ -565,6 +569,10 @@
           {
             "name": "Grid 5/5/2",
             "value": "grid-5-5-2"
+          },
+          {
+            "name": "Grid 3/3/3/3",
+            "value": "grid-3-3-3-3"
           },
           {
             "name": "Grid Gap None",
@@ -3932,14 +3940,6 @@
         "label": "CTA Label",
         "value": "",
         "description": "Call-to-action button text (multilanguage, required)"
-      },
-      {
-        "component": "text",
-        "valueType": "string",
-        "name": "supportIcon",
-        "label": "Support Icon",
-        "value": "",
-        "description": "Optional decorative icon name (e.g., airplane, calendar, gift)"
       },
       {
         "component": "text",
