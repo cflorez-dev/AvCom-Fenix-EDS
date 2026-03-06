@@ -542,8 +542,23 @@ function decorateSections(main) {
   main.querySelectorAll(':scope > div').forEach((section) => {
     const wrappers = [];
     let defaultContent = false;
+    const sectionMetaPreCheck = section.querySelector('div.section-metadata');
+    let expectedColumns = 0;
+
+    if (sectionMetaPreCheck) {
+      const metaConfig = readBlockConfig(sectionMetaPreCheck);
+      const styleValue = metaConfig.style || '';
+
+      const gridMatch = styleValue.match(/grid-(\d+(?:-\d+)*)/);
+      if (gridMatch) {
+        const parts = gridMatch[1].split('-');
+        expectedColumns = parts.length;
+      }
+    }
+
     [...section.children].forEach((e) => {
-      if (e.tagName === 'DIV' || !defaultContent) {
+      const shouldSeparate = expectedColumns >= 2 && e.tagName !== 'DIV';
+      if (e.tagName === 'DIV' || !defaultContent || shouldSeparate) {
         const wrapper = document.createElement('div');
         wrappers.push(wrapper);
         defaultContent = e.tagName !== 'DIV';

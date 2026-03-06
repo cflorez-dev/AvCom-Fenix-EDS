@@ -149,11 +149,21 @@ export default function decorate(block) {
 
   // Country/Language filtering
   if (!shouldShowByTargeting(props.targetCountries, props.targetLanguages)) {
+    // Add p-0 class to parent section container
+    const sectionContainer = block.closest('.section.cms-informative-cards-carousel-container');
+    if (sectionContainer) {
+      sectionContainer.classList.add('!p-0');
+    }
     hideBlockWithSection(block);
     return;
   }
 
   if (totalCards === 0) {
+    // Add p-0 class to parent section container
+    const sectionContainer = block.closest('.section.cms-informative-cards-carousel-container');
+    if (sectionContainer) {
+      sectionContainer.classList.add('!p-0');
+    }
     // Hide the block if there are no cards
     block.style.display = 'none';
     return;
