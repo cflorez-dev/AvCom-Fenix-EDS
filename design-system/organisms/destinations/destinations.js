@@ -159,6 +159,9 @@ const InteractiveTabs = ({ destinationData, language = 'es' }) => {
   // Helper function to get localized field
   const getLocalizedField = (fieldName) => {
     const localizedKey = `${fieldName}_${language}`;
+    if (fieldName === 'intro') {
+      const data = destination[localizedKey] || destination[`${fieldName}_es`] || null; 
+    }
     return destination[localizedKey] || destination[`${fieldName}_es`] || null;
   };
 
@@ -187,7 +190,7 @@ const InteractiveTabs = ({ destinationData, language = 'es' }) => {
     {
       label: getTabLabel('discover'),
       content: html`
-        <div class="p-4 md:p-8">
+        <div class="p-4 md:p-8 !pt-6">
           <div class="flex flex-col md:flex-row gap-[28px] items-start">
             <!-- Imagen izquierda: 240px x 240px (desktop), 100% (mobile) -->
             <div class="w-full md:w-auto md:flex-shrink-0">
@@ -216,7 +219,12 @@ const InteractiveTabs = ({ destinationData, language = 'es' }) => {
               </h3>
               
               <div 
-                class="text-[16px] text-[var(--color-text-normal-primary)] prose max-w-none [&_hr]:my-4 [&_.dynamic-information-list]:flex [&_.dynamic-information-list]:flex-wrap [&_.dynamic-information-list]:gap-4 [&_.dynamic-information_item]:flex-[0_0_100%] md:[&_.dynamic-information_item]:flex-[0_0_calc(25%-12px)] [&_.dynamic-information_item]:min-w-0 [&_p]:text-[16px] [&_li_strong]:text-[16px] md:[&_li_strong]:text-[18px]"
+                class="
+                text-[var(--color-text-normal-primary)] prose max-w-none [&_hr]:my-4 [&_.dynamic-information-list]:flex [&_.dynamic-information-list]:flex-wrap [&_.dynamic-information-list]:gap-4 [&_.dynamic-information_item]:flex-[0_0_100%] md:[&_.dynamic-information_item]:flex-[0_0_calc(25%-12px)] 
+                [&_.dynamic-information_item]:min-w-0 
+                [&_li]:flex [&_li]:flex-row md:[&_li]:flex-col [&_li]:gap-[8px] [&_li_strong]:leading-[24px] [&_li_p]:leading-[24px] [&_li_strong]:text-[16px] md:[&_li_strong]:text-[18px]
+                [&_ul]:flex [&_ul]:flex-col [&_ul]:items-center md:[&_ul]:flex-row
+                [&_p]:text-[16px] md:[&_p]:text-[18px]"
                 dangerouslySetInnerHTML=${{ __html: getLocalizedField('intro')?.html || getLocalizedField('intro')?.plaintext || '' }}
               />
             </div>
@@ -298,7 +306,7 @@ const InteractiveTabs = ({ destinationData, language = 'es' }) => {
   }, [activeTab]);
 
   return html`
-    <div class="shadow-[0px_0px_6px_0px_rgba(90,90,90,0.20)] rounded-lg overflow-hidden">
+    <div class="shadow-[0px_2px_20px_2px_rgba(73,73,73,0.25)] rounded-3xl overflow-hidden">
       <!-- Tabs Navigation -->
       <div class="flex gap-0 bg-white overflow-x-auto px-4 md:px-8">
         ${tabs.map((tab, index) => {

@@ -3,6 +3,7 @@
  * Handles cookies, provides country/language lists, and flag icons
  */
 import { ensurePOSDataLoaded, getPOSDataSnapshot } from './get-pos-data.js';
+import { resolveHreflangRedirectUrl } from './hreflang-redirection.js';
 
 // Cookie names
 const COUNTRY_COOKIE = 'selected-country';
@@ -865,18 +866,15 @@ export function navigateToPOS(pos) {
   // Pattern: /{lang}/ - always use language-only path
   const targetPath = `/${language}/`;
 
-  // Check if we're already on the target path
-  if (window.location.pathname.startsWith(targetPath)) {
-    // Same language path but country may have changed - reload to reflect new country content
-    // eslint-disable-next-line no-console
-    console.log('[language-country-selector] Same language, reloading for country change');
-    window.location.reload();
-  } else {
-    // Different language - navigate to new path
-    // eslint-disable-next-line no-console
-    console.log('[language-country-selector] Navigating to:', targetPath);
+  resolveHreflangRedirectUrl(language).then((redirectUrl) => {
+    if (redirectUrl === window.location.pathname) {
+      window.location.reload();
+    } else {
+      window.location.href = redirectUrl;
+    }
+  }).catch(() => {
     window.location.href = targetPath;
-  }
+  });
 }
 
 /**

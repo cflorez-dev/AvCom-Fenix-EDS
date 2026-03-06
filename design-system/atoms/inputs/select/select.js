@@ -530,10 +530,7 @@ export const Select = ({
                   ${isPressed ? 'bg-[var(--state-hover-darken)] text-[var(--text-brand-light)]' : 'text-text-normal-primary hover:bg-[var(--bg-hover-light)]'}
                 `}
               >
-                <span class=${`
-                  flex items-center gap-4
-                  ${truncateOption ? 'flex-1 w-0 min-w-0' : ''}
-                `}>
+                <span class="flex items-center gap-4">
                   ${option.flagPath && html`
                     <img
                       src=${option.flagPath}
@@ -544,11 +541,7 @@ export const Select = ({
                   ${option.flag && !option.flagPath && html`
                     <span class="text-xl flex-shrink-0">${option.flag}</span>
                   `}
-                  <span
-                    class=${`
-                      ${truncateOption ? 'truncate block flex-1 w-0 min-w-0' : ''}
-                    `}
-                  >
+                  <span>
                     ${option.label}
                   </span>
                 </span>
