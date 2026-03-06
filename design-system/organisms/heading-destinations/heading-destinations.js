@@ -41,9 +41,10 @@ export const HeadingDestinations = ({
   return html`
     <div
       data-name="headingDestinations"
-      class="max-w-[1248px] px-[16px] min-[480px]:px-[32px] min-[1248]:px-0 self-center w-full flex flex-col gap-3 min-[1248px]:flex-row min-[1248px]:items-center min-[1248px]:justify-between ${customClassName}"
+      class="max-w-[1248px] px-[16px] min-[480px]:px-[32px] min-[1248px]:px-0 self-center w-full flex flex-col gap-4 min-[1248px]:flex-row min-[1248px]:items-center min-[1248px]:justify-between ${customClassName}"
       ...${rest}
     >
+    <div class="w-auto">
       <${HeadingDropdownSelector}
         label=${headingText}
         value=${selectedOriginLabel}
@@ -51,15 +52,17 @@ export const HeadingDestinations = ({
         onChange=${onOriginChange}
         customClassName="!justify-start !h-auto !self-auto w-auto"
       />
+    </div>
 
-      <div class="w-full flex flex-col md:flex-row gap-3 min-[1248px]:w-[696px]">
+      <div class="w-full flex flex-col md:flex-row gap-4 min-[1248px]:w-[696px]">
         <${Input}
           id="hub-destinations-search"
           label=${searchPlaceholder}
           value=${searchTerm}
           onChange=${onSearchChange}
+          truncateOption=${true}
           prefixIconName="action/search"
-          customClassName="w-full min-[1248px]:!w-[390px]"
+          customClassName="w-full md:max-lg:flex-1 min-[1248px]:!w-[340px] min-[1248px]:min-w-[340px] [&_input]:!font-bold [&>div]:!outline-[var(--color-border-input-default)]"
         />
 
         <${Select}
@@ -68,7 +71,10 @@ export const HeadingDestinations = ({
           value=${selectedGeographicArea}
           onChange=${onGeographicAreaChange}
           hasPrefixIcon=${false}
-          customClassName="w-full min-[1248px]:!w-[390px]"
+          customDropdownClassName="mt-[4px]"
+          labelClassName="left-[1rem]"
+          truncateOption=${true}
+          customClassName="w-full md:max-lg:flex-1 min-[1248px]:!w-[340px] min-[1248px]:min-w-[340px] [&>div]:!outline-[var(--color-border-input-default)]"
         />
       </div>
     </div>

@@ -222,6 +222,9 @@ main div.section.padding-title {
   }
 }
 
+.section.padding-bottom-40 {
+  padding-bottom: 40px;
+}
 .section.no-padding-top {
   padding-top: 0;
 }
