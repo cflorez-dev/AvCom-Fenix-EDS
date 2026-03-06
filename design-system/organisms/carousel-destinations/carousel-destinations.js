@@ -257,6 +257,7 @@ export const CarouselDestinations = ({
             showPagination=${false}
             loop=${loop}
             infiniteMobile=${false}
+            customScrollContainerClassName="pr-[16px] min-[480px]:pr-[32px] min-[1248px]:pr-0"
           >
             ${destinations.map((dest) => html`
               <${DestinationCard}
