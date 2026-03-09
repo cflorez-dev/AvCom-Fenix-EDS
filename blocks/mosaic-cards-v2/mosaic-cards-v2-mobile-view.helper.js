@@ -93,6 +93,15 @@ async function createMobileCarousel(allCards, groupId, config = {}) {
       rows: 1,
     };
 
+    // Photographic cards (image-only, no title/description/CTA) render with h-full + absolute
+    // inset-0 image inside a position:relative card. Without an explicit height on the slide
+    // wrapper the entire h-full chain collapses to 0 and only the pagination dots are visible.
+    // Adding a fixed height here gives the card a proper bounding box so the image fills it.
+    const isPhotographicCard = !props.title && !props.description && !props.linkText;
+    if (isPhotographicCard) {
+      cardSlide.style.height = '328px'; // 326px image area + 2px borders
+    }
+
     // Render LinkCard component
     const LinkCardComponent = html`
       <${LinkCard}
