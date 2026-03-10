@@ -266,7 +266,7 @@ export default async function decorate(block) {
 
   // Create tab navigation wrapper
   const tabNavWrapper = document.createElement('div');
-  tabNavWrapper.className = 'relative flex items-center max-[1024px]:px-4';
+  tabNavWrapper.className = 'relative flex items-center';
 
   // Chevron before (left arrow)
   let chevronBefore = null;

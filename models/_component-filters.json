@@ -53,7 +53,8 @@
       "cms-interactive-banner",
       "html-embed",
       "destination-details",
-      "hub-destinations"
+      "hub-destinations",
+      "accordion-simplified"
     ]
   },
   {
@@ -152,5 +153,11 @@
   {
     "id": "tables",
     "components": []
+  },
+  {
+    "id": "accordion-simplified",
+    "components": [
+      "accordion-simplified-item"
+    ]
   }
 ]
