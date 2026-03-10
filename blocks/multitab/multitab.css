@@ -112,6 +112,154 @@
     display: none;
 }
 
+/* ─── Grid layout support inside tab panels ────────────────────────────────
+ * Grid classes are moved from .section to .multitab-content in JS so the tab
+ * panel renders full-width while internal content still respects the grid
+ * preset configured via Section Metadata → Styles.
+ * Mirrors grid-layout.css but scoped to .multitab-content.
+ * ─────────────────────────────────────────────────────────────────────────── */
+.multitab-content:is(
+    .grid-12, .grid-6-6, .grid-4-8, .grid-8-4,
+    .grid-3-9, .grid-9-3, .grid-5-7, .grid-7-5,
+    .grid-2-10, .grid-10-2, .grid-1-11, .grid-11-1,
+    .grid-4-4-4, .grid-3-3-6, .grid-3-6-3, .grid-6-3-3,
+    .grid-2-5-5, .grid-5-2-5, .grid-5-5-2, .grid-3-3-3-3
+) {
+    --grid-layout-gap: 24px;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--grid-layout-gap);
+    align-items: var(--grid-layout-align-items, start);
+    justify-items: var(--grid-layout-justify-items, stretch);
+}
+
+.multitab-content:is(
+    .grid-12, .grid-6-6, .grid-4-8, .grid-8-4,
+    .grid-3-9, .grid-9-3, .grid-5-7, .grid-7-5,
+    .grid-2-10, .grid-10-2, .grid-1-11, .grid-11-1,
+    .grid-4-4-4, .grid-3-3-6, .grid-3-6-3, .grid-6-3-3,
+    .grid-2-5-5, .grid-5-2-5, .grid-5-5-2
+) > div {
+    min-width: 0;
+}
+
+/* Gap utilities */
+.multitab-content.grid-gap-none { --grid-layout-gap: 0; }
+.multitab-content.grid-gap-sm   { --grid-layout-gap: 12px; }
+.multitab-content.grid-gap-md   { --grid-layout-gap: 16px; }
+.multitab-content.grid-gap-lg   { --grid-layout-gap: 24px; }
+.multitab-content.grid-gap-xl   { --grid-layout-gap: 32px; }
+
+/* Alignment utilities */
+.multitab-content.grid-items-start   { --grid-layout-align-items: start; }
+.multitab-content.grid-items-center  { --grid-layout-align-items: center; }
+.multitab-content.grid-items-end     { --grid-layout-align-items: end; }
+.multitab-content.grid-items-stretch { --grid-layout-align-items: stretch; }
+
+.multitab-content.grid-justify-start   { --grid-layout-justify-items: start; }
+.multitab-content.grid-justify-center  { --grid-layout-justify-items: center; }
+.multitab-content.grid-justify-end     { --grid-layout-justify-items: end; }
+.multitab-content.grid-justify-stretch { --grid-layout-justify-items: stretch; }
+
+/* Column padding */
+.multitab-content.grid-col-pad-sm > div { padding: 12px; }
+.multitab-content.grid-col-pad-md > div { padding: 16px; }
+.multitab-content.grid-col-pad-lg > div { padding: 24px; }
+
+/* Desktop column spans (mirrors grid-layout.css @media min-width: 992px) */
+@media (width >= 992px) {
+    .multitab-content:is(
+        .grid-12, .grid-6-6, .grid-4-8, .grid-8-4,
+        .grid-3-9, .grid-9-3, .grid-5-7, .grid-7-5,
+        .grid-2-10, .grid-10-2, .grid-1-11, .grid-11-1,
+        .grid-4-4-4, .grid-3-3-6, .grid-3-6-3, .grid-6-3-3,
+        .grid-2-5-5, .grid-5-2-5, .grid-5-5-2, .grid-3-3-3-3
+    ) {
+        grid-template-columns: repeat(12, minmax(0, 1fr));
+    }
+
+    .multitab-content.grid-12 > div { grid-column: span 12; }
+
+    .multitab-content.grid-6-6 > div:nth-child(1) { grid-column: span 6; }
+    .multitab-content.grid-6-6 > div:nth-child(2) { grid-column: span 6; }
+
+    .multitab-content.grid-4-8 > div:nth-child(1) { grid-column: span 4; }
+    .multitab-content.grid-4-8 > div:nth-child(2) { grid-column: span 8; }
+
+    .multitab-content.grid-8-4 > div:nth-child(1) { grid-column: span 8; }
+    .multitab-content.grid-8-4 > div:nth-child(2) { grid-column: span 4; }
+
+    .multitab-content.grid-3-9 > div:nth-child(1) { grid-column: span 3; }
+    .multitab-content.grid-3-9 > div:nth-child(2) { grid-column: span 9; }
+
+    .multitab-content.grid-9-3 > div:nth-child(1) { grid-column: span 9; }
+    .multitab-content.grid-9-3 > div:nth-child(2) { grid-column: span 3; }
+
+    .multitab-content.grid-5-7 > div:nth-child(1) { grid-column: span 5; }
+    .multitab-content.grid-5-7 > div:nth-child(2) { grid-column: span 7; }
+
+    .multitab-content.grid-7-5 > div:nth-child(1) { grid-column: span 7; }
+    .multitab-content.grid-7-5 > div:nth-child(2) { grid-column: span 5; }
+
+    .multitab-content.grid-2-10 > div:nth-child(1) { grid-column: span 2; }
+    .multitab-content.grid-2-10 > div:nth-child(2) { grid-column: span 10; }
+
+    .multitab-content.grid-10-2 > div:nth-child(1) { grid-column: span 10; }
+    .multitab-content.grid-10-2 > div:nth-child(2) { grid-column: span 2; }
+
+    .multitab-content.grid-1-11 > div:nth-child(1) { grid-column: span 1; }
+    .multitab-content.grid-1-11 > div:nth-child(2) { grid-column: span 11; }
+
+    .multitab-content.grid-11-1 > div:nth-child(1) { grid-column: span 11; }
+    .multitab-content.grid-11-1 > div:nth-child(2) { grid-column: span 1; }
+
+    .multitab-content.grid-4-4-4 > div:nth-child(1) { grid-column: span 4; }
+    .multitab-content.grid-4-4-4 > div:nth-child(2) { grid-column: span 4; }
+    .multitab-content.grid-4-4-4 > div:nth-child(3) { grid-column: span 4; }
+
+    .multitab-content.grid-3-3-6 > div:nth-child(1) { grid-column: span 3; }
+    .multitab-content.grid-3-3-6 > div:nth-child(2) { grid-column: span 3; }
+    .multitab-content.grid-3-3-6 > div:nth-child(3) { grid-column: span 6; }
+
+    .multitab-content.grid-3-6-3 > div:nth-child(1) { grid-column: span 3; }
+    .multitab-content.grid-3-6-3 > div:nth-child(2) { grid-column: span 6; }
+    .multitab-content.grid-3-6-3 > div:nth-child(3) { grid-column: span 3; }
+
+    .multitab-content.grid-6-3-3 > div:nth-child(1) { grid-column: span 6; }
+    .multitab-content.grid-6-3-3 > div:nth-child(2) { grid-column: span 3; }
+    .multitab-content.grid-6-3-3 > div:nth-child(3) { grid-column: span 3; }
+
+    .multitab-content.grid-2-5-5 > div:nth-child(1) { grid-column: span 2; }
+    .multitab-content.grid-2-5-5 > div:nth-child(2) { grid-column: span 5; }
+    .multitab-content.grid-2-5-5 > div:nth-child(3) { grid-column: span 5; }
+
+    .multitab-content.grid-5-2-5 > div:nth-child(1) { grid-column: span 5; }
+    .multitab-content.grid-5-2-5 > div:nth-child(2) { grid-column: span 2; }
+    .multitab-content.grid-5-2-5 > div:nth-child(3) { grid-column: span 5; }
+
+    .multitab-content.grid-5-5-2 > div:nth-child(1) { grid-column: span 5; }
+    .multitab-content.grid-5-5-2 > div:nth-child(2) { grid-column: span 5; }
+    .multitab-content.grid-5-5-2 > div:nth-child(3) { grid-column: span 2; }
+
+    .multitab-content.grid-3-3-3-3 > div:nth-child(1) { grid-column: span 3; }
+    .multitab-content.grid-3-3-3-3 > div:nth-child(2) { grid-column: span 3; }
+    .multitab-content.grid-3-3-3-3 > div:nth-child(3) { grid-column: span 3; }
+    .multitab-content.grid-3-3-3-3 > div:nth-child(4) { grid-column: span 3; }
+
+    /* Extra children beyond preset count → full width row */
+    .multitab-content:is(
+        .grid-6-6, .grid-4-8, .grid-8-4,
+        .grid-3-9, .grid-9-3, .grid-5-7, .grid-7-5,
+        .grid-2-10, .grid-10-2, .grid-1-11, .grid-11-1
+    ) > div:nth-child(n+3),
+    .multitab-content:is(
+        .grid-4-4-4, .grid-3-3-6, .grid-3-6-3, .grid-6-3-3,
+        .grid-2-5-5, .grid-5-2-5, .grid-5-5-2
+    ) > div:nth-child(n+4) {
+        grid-column: 1 / -1;
+    }
+}
+
 /* Keyframe for Tailwind animate-[fadeIn_0.3s_ease-in-out] */
 @keyframes fadeIn {
     from {

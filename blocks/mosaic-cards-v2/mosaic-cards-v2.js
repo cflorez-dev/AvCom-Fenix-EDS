@@ -532,13 +532,13 @@ export default async function decorate(block) {
             direction="left"
             onClick=${() => prevButton.click()}
             absolute=${true}
-            customClassName="mosaic-v2-nav-left"
+            customClassName="mosaic-v2-nav-left !shadow-none hover:!shadow-none active:!shadow-none focus-visible:!shadow-none"
           />
           <${CarouselNavigationButton}
             direction="right"
             onClick=${() => nextButton.click()}
             absolute=${true}
-            customClassName="mosaic-v2-nav-right"
+            customClassName="mosaic-v2-nav-right !shadow-none hover:!shadow-none active:!shadow-none focus-visible:!shadow-none"
           />
         `,
         navWrapper,

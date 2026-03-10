@@ -501,7 +501,7 @@ export default async function decorate(block) {
     const isActive = index === activeTabIndex;
 
     const tabPanel = document.createElement('div');
-    tabPanel.className = `multitab-panel mt-8 max-[1024px]:px-4 focus:outline-none focus-visible:outline-none animate-[fadeIn_0.3s_ease-in-out] ${isActive ? '' : 'hidden'}`;
+    tabPanel.className = `multitab-panel mt-6 max-[1024px]:px-4 focus:outline-none focus-visible:outline-none animate-[fadeIn_0.3s_ease-in-out] ${isActive ? '' : 'hidden'}`;
     tabPanel.setAttribute('role', 'tabpanel');
     tabPanel.setAttribute('id', `panel-${tabData.id}`);
     tabPanel.setAttribute('aria-labelledby', `btn-${tabData.id}`);
@@ -511,6 +511,15 @@ export default async function decorate(block) {
     // Similar approach to accordion-group
     const contentWrapper = document.createElement('div');
     contentWrapper.className = 'multitab-content';
+
+    // Transfer grid-layout classes from the section to the contentWrapper so
+    // the tab panel renders full-width while internal content respects the grid
+    // preset configured via Section Metadata → Styles.
+    const gridClasses = [...tabData.section.classList].filter((cls) => cls.startsWith('grid-'));
+    gridClasses.forEach((cls) => {
+      tabData.section.classList.remove(cls);
+      contentWrapper.classList.add(cls);
+    });
 
     // Move all children except section-metadata
     const childrenToMove = [...tabData.section.children].filter(
