@@ -273,6 +273,12 @@
     }
 }
 
+@media (max-width: 1024px) {
+    .section.multitab-container {
+        padding: 24px var(--main-section-div-padding, 16px);
+    }
+}
+
 /* Mobile tabs behavior (≤480px) */
 /* stylelint-disable-next-line media-feature-range-notation */
 @media (max-width: 1024px) {

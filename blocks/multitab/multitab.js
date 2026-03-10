@@ -501,7 +501,7 @@ export default async function decorate(block) {
     const isActive = index === activeTabIndex;
 
     const tabPanel = document.createElement('div');
-    tabPanel.className = `multitab-panel mt-6 max-[1024px]:px-4 focus:outline-none focus-visible:outline-none animate-[fadeIn_0.3s_ease-in-out] ${isActive ? '' : 'hidden'}`;
+    tabPanel.className = `multitab-panel mt-6 focus:outline-none focus-visible:outline-none animate-[fadeIn_0.3s_ease-in-out] ${isActive ? '' : 'hidden'}`;
     tabPanel.setAttribute('role', 'tabpanel');
     tabPanel.setAttribute('id', `panel-${tabData.id}`);
     tabPanel.setAttribute('aria-labelledby', `btn-${tabData.id}`);
