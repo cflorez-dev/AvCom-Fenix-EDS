@@ -13,6 +13,56 @@ import { CarouselNavigationButton } from '../../atoms/carousel-navigation-button
 
 const html = htm.bind(h);
 
+/** Duration in ms for programmatic carousel scroll animations */
+const SCROLL_DURATION_MS = 300;
+
+/**
+ * Easing function: ease-in-out (cubic)
+ * @param {number} t - Progress from 0 to 1
+ * @returns {number} Eased value from 0 to 1
+ */
+const easeInOutCubic = (t) => (t < 0.5
+  ? 4 * t * t * t
+  : 1 - ((-2 * t + 2) ** 3) / 2
+);
+
+/**
+ * Animates container.scrollLeft from current position to targetLeft
+ * using requestAnimationFrame for consistent duration across browsers.
+ * @param {HTMLElement} container - The scrollable container element
+ * @param {number} targetLeft - Target scrollLeft value in pixels
+ * @param {number} [duration=SCROLL_DURATION_MS] - Animation duration in ms
+ * @returns {number} The rAF id (can be used with cancelAnimationFrame)
+ */
+const smoothScrollTo = (container, targetLeft, duration = SCROLL_DURATION_MS) => {
+  const startLeft = container.scrollLeft;
+  const delta = targetLeft - startLeft;
+
+  // No movement needed
+  if (Math.abs(delta) < 1) {
+    container.scrollLeft = targetLeft;
+    return 0;
+  }
+
+  const startTime = performance.now();
+  let rafId = 0;
+
+  const step = (now) => {
+    const elapsed = now - startTime;
+    const progress = Math.min(elapsed / duration, 1);
+    const eased = easeInOutCubic(progress);
+
+    container.scrollLeft = startLeft + delta * eased;
+
+    if (progress < 1) {
+      rafId = requestAnimationFrame(step);
+    }
+  };
+
+  rafId = requestAnimationFrame(step);
+  return rafId;
+};
+
 /**
  * CarouselDestinations - Carousel organism for displaying destination cards
  * Matches Figma spec: title header with count badge + navigation buttons,
@@ -64,6 +114,8 @@ export const CarouselDestinations = ({
   ...rest
 }) => {
   const carouselWrapperRef = useRef(null);
+  const targetScrollLeftRef = useRef(null);
+  const animationTimeoutRef = useRef(null);
   const [screenWidth, setScreenWidth] = useState(typeof window !== 'undefined' ? window.innerWidth : 0);
   const [isCarousel, setIsCarousel] = useState(true);
   const [canScrollLeft, setCanScrollLeft] = useState(false);
@@ -191,16 +243,61 @@ export const CarouselDestinations = ({
     if (!loop && !canScrollLeft) return;
     const info = getScrollInfo();
     if (!info) return;
-    info.container.scrollBy({ left: -info.stride, behavior: 'smooth' });
-    window.setTimeout(updateNavigationState, 320);
+
+    const { container, stride } = info;
+
+    // If no animation in progress, snap current position to nearest card boundary
+    if (targetScrollLeftRef.current === null) {
+      targetScrollLeftRef.current = Math.round(container.scrollLeft / stride) * stride;
+    }
+
+    // Move target one stride to the left
+    targetScrollLeftRef.current -= stride;
+
+    // If remaining distance to start is less than one stride, snap to 0
+    if (targetScrollLeftRef.current < stride) {
+      targetScrollLeftRef.current = 0;
+    }
+
+    smoothScrollTo(container, targetScrollLeftRef.current);
+
+    // Reset target ref after scroll animation settles
+    clearTimeout(animationTimeoutRef.current);
+    animationTimeoutRef.current = setTimeout(() => {
+      targetScrollLeftRef.current = null;
+      updateNavigationState();
+    }, SCROLL_DURATION_MS + 50);
   };
 
   const handleNext = () => {
     if (!loop && !canScrollRight) return;
     const info = getScrollInfo();
     if (!info) return;
-    info.container.scrollBy({ left: info.stride, behavior: 'smooth' });
-    window.setTimeout(updateNavigationState, 320);
+
+    const { container, stride } = info;
+    const maxScrollLeft = Math.max(0, container.scrollWidth - container.clientWidth);
+
+    // If no animation in progress, snap current position to nearest card boundary
+    if (targetScrollLeftRef.current === null) {
+      targetScrollLeftRef.current = Math.round(container.scrollLeft / stride) * stride;
+    }
+
+    // Move target one stride to the right
+    targetScrollLeftRef.current += stride;
+
+    // If remaining distance to end is less than one stride, snap to max
+    if (maxScrollLeft - targetScrollLeftRef.current < stride) {
+      targetScrollLeftRef.current = maxScrollLeft;
+    }
+
+    smoothScrollTo(container, targetScrollLeftRef.current);
+
+    // Reset target ref after scroll animation settles
+    clearTimeout(animationTimeoutRef.current);
+    animationTimeoutRef.current = setTimeout(() => {
+      targetScrollLeftRef.current = null;
+      updateNavigationState();
+    }, SCROLL_DURATION_MS + 50);
   };
 
   return html`
@@ -247,7 +344,7 @@ export const CarouselDestinations = ({
       </div>
 
       <!-- Carousel or Grid container -->
-      <div ref=${carouselWrapperRef} class="relative max-w-[1332px] w-[calc(100%-max(0px,(100vw-1248px)/2))] min-[1248px]:p-0 min-[480px]:pl-[32px] pl-[16px] ml-[max(0px,calc((100vw-1260px)/2))] flex">
+      <div ref=${carouselWrapperRef} class="relative w-full flex">
         ${isCarousel ? html`
           <!-- Carousel View -->
           <${Carousel}
@@ -257,7 +354,7 @@ export const CarouselDestinations = ({
             showPagination=${false}
             loop=${loop}
             infiniteMobile=${false}
-            customScrollContainerClassName="pr-[16px] min-[480px]:pr-[32px] min-[1248px]:pr-[clamp(0px,calc(50vw_-_630px),78px)]"
+            customScrollContainerClassName="pl-[16px] pr-[16px] min-[480px]:pl-[32px] min-[480px]:pr-[32px] min-[1248px]:pl-[calc(50%-624px)] min-[1248px]:pr-[calc(50%-624px)]"
           >
             ${destinations.map((dest) => html`
               <${DestinationCard}
@@ -274,7 +371,7 @@ export const CarouselDestinations = ({
           </${Carousel}>
         ` : html`
           <!-- Grid View -->
-          <div class="flex flex-wrap gap-[16px]">
+          <div class="flex flex-wrap gap-[16px] px-[16px] min-[480px]:px-[32px] min-[1248px]:px-[calc(50%-624px)]">
             ${destinations.map((dest) => html`
               <${DestinationCard}
                 key=${dest.destinationName}
