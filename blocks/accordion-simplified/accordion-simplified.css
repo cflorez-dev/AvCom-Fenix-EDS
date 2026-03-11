@@ -101,6 +101,43 @@
     pointer-events: auto;
 }
 
+/* Responsive tables — horizontal scroll when table overflows panel width.
+ * display:block is required: overflow on display:table elements is ignored by browsers.
+ * Internal table layout (rows/cells) is preserved; only the outer element becomes
+ * a scrollable block container. */
+.accordion-simplified-content table {
+    display: block;
+    overflow-x: auto;
+    max-width: 100%;
+    margin: 20px 0;
+    -webkit-overflow-scrolling: touch;
+    border-radius: 12px;
+    border: 1px solid var(--Borders-and-dividers-mail-border-default, #d9d9d9);
+    background: #fff;
+    border-collapse: separate;
+    border-spacing: 0;
+}
+
+.accordion-simplified-content thead th {
+    padding: 24px 20px;
+    border-right: 1px dashed var(--Borders-and-dividers-mail-border-default, #d9d9d9);
+    background: var(--Background-mail-background-default-light, #fafafa);
+}
+
+.accordion-simplified-content thead th:last-child {
+    border-right: none;
+}
+
+.accordion-simplified-content tbody td {
+    padding: 2px 16px;
+    border-right: 1px dashed var(--Borders-and-dividers-mail-border-default, #d9d9d9);
+    background: var(--Background-mail-background-default-lighter, #fff);
+}
+
+.accordion-simplified-content tbody td:last-child {
+    border-right: none;
+}
+
 /* Print: expand all */
 @media print {
     .accordion-simplified-panel {
