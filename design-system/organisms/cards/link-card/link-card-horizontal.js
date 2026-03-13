@@ -2,6 +2,7 @@ import { h } from '@dropins/tools/preact.js';
 import { useState, useEffect } from '@dropins/tools/preact-hooks.js';
 import htm from 'htm';
 import { LinkButton } from '../../../atoms/link-button/link-button.js';
+import { sanitizeSVG } from '../../../../scripts/utils/sanitize.js';
 
 const html = htm.bind(h);
 
@@ -29,7 +30,7 @@ const SvgIcon = ({ src, customClass = '' }) => {
   if (!svgMarkup) return null;
   return html`<span
     class=${`inline-flex items-center justify-center w-[16px] h-[16px] shrink-0 group-hover:scale-125 ${customClass}`}
-    dangerouslySetInnerHTML=${{ __html: svgMarkup }}
+    dangerouslySetInnerHTML=${{ __html: sanitizeSVG(svgMarkup) }}
     aria-hidden="true"
   />`;
 };
