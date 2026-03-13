@@ -3,6 +3,7 @@ import { useState, useEffect } from '@dropins/tools/preact-hooks.js';
 import htm from 'htm';
 import { Accordion } from '../../../molecules/accordion/accordion.js';
 import loadSVGIcon from '../../../../scripts/utils/svg.helper.js';
+import { sanitizeSVG } from '../../../../scripts/utils/sanitize.js';
 
 const html = htm.bind(h);
 
@@ -51,7 +52,7 @@ export const FooterColumns = ({
     if (!openInNewIcon) return null;
     return html`
       <span 
-        dangerouslySetInnerHTML=${{ __html: openInNewIcon.outerHTML }}
+        dangerouslySetInnerHTML=${{ __html: sanitizeSVG(openInNewIcon.outerHTML) }}
         class="flex-shrink-0 footer-column-link-icon inline-flex w-4 h-4 text-[var(--text-normal-light)]"
         aria-hidden="true"
       />

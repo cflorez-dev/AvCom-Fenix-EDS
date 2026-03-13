@@ -325,6 +325,9 @@
 
 /* Desktop 1248px screen */
 @media (min-width: 1248px) {
+    main > .section.is-autoplay {
+        --main-section-div-padding: 16px;
+    }
     /* Apply solid mask to hide partial cards at edges - Desktop only when padding is present */
     .mosaic-v2-container.is-autoplay .mosaic-v2-track {
         gap: 16px !important;

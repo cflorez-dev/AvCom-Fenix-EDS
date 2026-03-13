@@ -11,6 +11,7 @@ import {
   loadSection,
   loadSections,
   loadCSS,
+  loadScript,
 } from './aem.js';
 import { initLocaleGlobals, resolveLocale } from './utils/locale.js';
 import { mapCountryToPos } from './utils/pos-mapping.js';
@@ -326,6 +327,9 @@ async function loadGlobalFallbackContent(main) {
 async function loadEager(doc) {
   // Load OneTrust first to capture consent before other tracking scripts
   loadOneTrust();
+
+  // Load DOMPurify early so sanitizeHTML() is available synchronously in blocks
+  loadScript(`${window.hlx?.codeBasePath || ''}/scripts/dompurify.min.js`);
 
   await initLocaleGlobals();
   decorateTemplateAndTheme();

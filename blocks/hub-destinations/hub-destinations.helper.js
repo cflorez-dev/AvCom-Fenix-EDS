@@ -173,7 +173,7 @@ function getCountriesGropsByRegion(destinationCountriesData, language, rawRegion
   return countryGroups;
 }
 
-function getFiltersByRegion(destinationCountriesData, rawRegions, mainCityCode, countryGroups) {
+function getFiltersByRegion(destinationCountriesData, rawRegions, mainCityCode, countryGroups, language, regionsData) {
   const rawRegionsWithoutMainCity = rawRegions.filter((region) => region.IataCityCode?.trim().toUpperCase() !== mainCityCode?.trim().toUpperCase());
 
   const regionGroups = rawRegionsWithoutMainCity.reduce((acc, dest) => {
@@ -192,10 +192,15 @@ function getFiltersByRegion(destinationCountriesData, rawRegions, mainCityCode, 
   }, []);
 
   return regionGroups.map((group) => {
+    const regionItem = regionsData.find((r) => r.Region === group.Regions);
+    const regionLabel = regionItem?.[`Region_${language.toUpperCase()}`]?.trim()
+      || regionItem?.Region_ES?.trim()
+      || regionItem?.Region?.trim()
+      || group.Regions;
     const destinationsCount = countryGroups
       .filter((c) => group.CountryCode.includes(c.countryCode))
       .reduce((sum, c) => sum + c.destinations.length, 0);
-    return { ...group, destinationsCount };
+    return { ...group, regionLabel, destinationsCount };
   });
 }
 
@@ -253,7 +258,7 @@ function getRegionsForCity(city, language, originData, destinationsByRegionsData
     return true;
   });
   const rawCountriesgroup = getCountriesGropsByRegion(destinationCountriesData, language, rawRegions, mainCityCode);
-  const filtersByRegions = getFiltersByRegion(destinationCountriesData, rawRegions, mainCityCode, rawCountriesgroup);
+  const filtersByRegions = getFiltersByRegion(destinationCountriesData, rawRegions, mainCityCode, rawCountriesgroup, language, regionsData);
   const countriesDestination = rawCountriesgroup.map((country) => {
     const destinationsByCountry = getDestinationsByCountrie(country, language, i18n, allCitiesData )
     return destinationsByCountry

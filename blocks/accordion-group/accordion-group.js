@@ -237,6 +237,15 @@ function transformSectionToAccordionItem(section, index, config, openItems) {
   const contentWrapper = document.createElement('div');
   contentWrapper.className = 'accordion-group-content text-[var(--text-normal-primary,#1b1b1b)] leading-auto';
 
+  // Transfer grid-layout classes from the section to the contentWrapper so
+  // that the accordion card renders at 100% width while the internal content
+  // still respects the grid preset configured via Section Metadata > Styles.
+  const gridClasses = [...section.classList].filter((cls) => cls.startsWith('grid-'));
+  gridClasses.forEach((cls) => {
+    section.classList.remove(cls);
+    contentWrapper.classList.add(cls);
+  });
+
   while (section.firstChild) {
     contentWrapper.appendChild(section.firstChild);
   }
