@@ -4,6 +4,7 @@ import htm from 'htm';
 import { resolveLocale } from '../../../scripts/utils/locale.js';
 import { fetchAEMData } from '../../../scripts/utils/aem-data.js';
 import { BookingBox } from '../booking-box/booking-box.js';
+import { sanitizeHTML } from '../../../scripts/utils/sanitize.js';
 
 const html = htm.bind(h);
 
@@ -225,7 +226,7 @@ const InteractiveTabs = ({ destinationData, language = 'es' }) => {
                 [&_li]:flex [&_li]:flex-row md:[&_li]:flex-col [&_li]:gap-[8px] [&_li_strong]:leading-[24px] [&_li_p]:leading-[24px] [&_li_strong]:text-[16px] md:[&_li_strong]:text-[18px]
                 [&_ul]:flex [&_ul]:flex-col [&_ul]:items-center md:[&_ul]:flex-row
                 [&_p]:text-[16px] md:[&_p]:text-[18px]"
-                dangerouslySetInnerHTML=${{ __html: getLocalizedField('intro')?.html || getLocalizedField('intro')?.plaintext || '' }}
+                dangerouslySetInnerHTML=${{ __html: sanitizeHTML(getLocalizedField('intro')?.html || getLocalizedField('intro')?.plaintext || '') }}
               />
             </div>
           </div>
@@ -264,7 +265,7 @@ const InteractiveTabs = ({ destinationData, language = 'es' }) => {
               
               <div 
                 class="airport text-[16px] text-[var(--color-text-normal-primary)] prose max-w-none [&_hr]:my-4 [&_.dynamic-information-list]:flex [&_.dynamic-information-list]:flex-wrap [&_.dynamic-information-list]:gap-4 [&_.dynamic-information_item]:flex-[0_0_100%] md:[&_.dynamic-information_item]:flex-[0_0_calc(25%-12px)] [&_.dynamic-information_item]:min-w-0 [&_p]:text-[16px] [&_li_strong]:text-[16px] md:[&_li_strong]:text-[18px] [&_a]:underline [&_a]:text-[var(--color-icon-link-default)]"
-                dangerouslySetInnerHTML=${{ __html: getLocalizedField('airportAndTransport')?.html || getLocalizedField('airportAndTransport')?.plaintext || 'No transport information available' }}
+                dangerouslySetInnerHTML=${{ __html: sanitizeHTML(getLocalizedField('airportAndTransport')?.html || getLocalizedField('airportAndTransport')?.plaintext || 'No transport information available') }}
               />
             </div>
           </div>

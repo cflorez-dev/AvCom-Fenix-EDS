@@ -1,4 +1,5 @@
 import { getLinkButtonStyles } from '../../design-system/atoms/link-button/link-button.js';
+import { sanitizeHTML } from '../../scripts/utils/sanitize.js';
 
 /**
  * Processes <a> tags in a DOM element to apply LinkButton styles
@@ -95,7 +96,7 @@ export default function processRichTextContent(blockRaw) {
 
     // Create a temporary container to parse the HTML
     const tempContainer = document.createElement('div');
-    tempContainer.innerHTML = htmlContent;
+    tempContainer.innerHTML = sanitizeHTML(htmlContent);
 
     // Process <a> tags to apply LinkButton styles (informative variant)
     // Process BEFORE moving elements - classes will be preserved when moving
@@ -144,7 +145,7 @@ export default function processRichTextContent(blockRaw) {
 
     // Create a temporary container to parse the HTML
     const tempContainer = document.createElement('div');
-    tempContainer.innerHTML = htmlContent;
+    tempContainer.innerHTML = sanitizeHTML(htmlContent);
 
     // Process <a> tags to apply LinkButton styles (informative variant)
     // Process BEFORE moving elements - classes will be preserved when moving

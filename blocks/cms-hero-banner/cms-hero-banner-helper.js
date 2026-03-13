@@ -1,7 +1,9 @@
+import { sanitizeHTML } from '../../scripts/utils/sanitize.js';
+
 /**
  * Extracts props from a CMS Hero Banner block.
  * Each row is mapped to a specific property name.
- * 
+ *
  * @param {Element} block - The CMS Hero Banner block element
  * @returns {Object} props - Mapped properties object
  */
@@ -43,7 +45,7 @@ export function extractCmsHeroBannerProps(block) {
     // Case: <p> text
     const p = cell.querySelector('p');
     if (p) {
-      props[propName] = p.innerHTML.trim();
+      props[propName] = sanitizeHTML(p.innerHTML.trim());
       return;
     }
 

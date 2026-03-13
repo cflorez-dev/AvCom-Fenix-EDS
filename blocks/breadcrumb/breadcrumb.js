@@ -27,7 +27,8 @@ function getI18nLabel(key) {
 const getPageTitle = async (url) => {
   try {
     const resp = await fetch(url);
-    if (resp.ok) {
+    // Only use title if request was successful AND no redirect occurred
+    if (resp.ok && resp.url === url) {
       const htmlContent = document.createElement('div');
       htmlContent.innerHTML = await resp.text();
       const title = htmlContent.querySelector('title');

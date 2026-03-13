@@ -287,9 +287,10 @@ export const HubDestinations = ({
 
   const geographicAreaOptions = useMemo(() => {
     const filters = selectedOrigin?.filtersByRegions || [];
+    
     return filters.map((filter) => ({
       value: filter.Regions,
-      label: `${filter.Regions} (${filter.destinationsCount})`,
+      label: `${filter.regionLabel} (${filter.destinationsCount})`,
     })).sort((a, b) => sortByLabel(a.label, b.label, locale));
   }, [selectedOrigin, locale]);
 

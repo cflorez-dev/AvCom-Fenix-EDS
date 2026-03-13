@@ -5461,5 +5461,134 @@
         "description": "CSS display property for the container (default: block)"
       }
     ]
+  },
+  {
+    "id": "accordion-simplified",
+    "fields": [
+      {
+        "component": "multiselect",
+        "name": "target-countries",
+        "label": "Target Countries (POS)",
+        "valueType": "string",
+        "description": "Optional: Select target countries/POS. If empty, shows in all. Compared against 'selected-country' cookie (ISO-2 codes).",
+        "options": [
+          { "name": "Argentina", "value": "ar" },
+          { "name": "Bolivia", "value": "bo" },
+          { "name": "Brasil", "value": "br" },
+          { "name": "Canadá", "value": "ca" },
+          { "name": "Chile", "value": "cl" },
+          { "name": "Colombia", "value": "co" },
+          { "name": "Costa Rica", "value": "cr" },
+          { "name": "República Dominicana", "value": "do" },
+          { "name": "Ecuador", "value": "ec" },
+          { "name": "España", "value": "eu" },
+          { "name": "Francia", "value": "fr" },
+          { "name": "Reino Unido", "value": "gb" },
+          { "name": "Guatemala", "value": "gt" },
+          { "name": "Honduras", "value": "hn" },
+          { "name": "México", "value": "mx" },
+          { "name": "Nicaragua", "value": "ni" },
+          { "name": "Otros", "value": "ot" },
+          { "name": "Panamá", "value": "pa" },
+          { "name": "Perú", "value": "pe" },
+          { "name": "Paraguay", "value": "py" },
+          { "name": "El Salvador", "value": "sv" },
+          { "name": "Estados Unidos", "value": "us" },
+          { "name": "Uruguay", "value": "uy" }
+        ]
+      },
+      {
+        "component": "multiselect",
+        "name": "target-languages",
+        "label": "Target Languages",
+        "valueType": "string",
+        "description": "Optional: Select target languages. If empty, shows in all. Compared against 'selected-language' cookie.",
+        "options": [
+          { "name": "English", "value": "en" },
+          { "name": "Spanish", "value": "es" },
+          { "name": "French", "value": "fr" },
+          { "name": "Portuguese", "value": "pt" }
+        ]
+      },
+      {
+        "component": "select",
+        "name": "open-mode",
+        "label": "Open Mode",
+        "options": [
+          {
+            "name": "Exclusive (one open at a time)",
+            "value": "exclusive"
+          },
+          {
+            "name": "Multiple (several can be open)",
+            "value": "multiple"
+          }
+        ],
+        "value": "multiple",
+        "description": "Exclusive: opening an item closes others. Multiple: several items can be open simultaneously."
+      },
+      {
+        "component": "select",
+        "name": "default-open",
+        "label": "Default Open State",
+        "options": [
+          {
+            "name": "None",
+            "value": "none"
+          },
+          {
+            "name": "First item",
+            "value": "first"
+          },
+          {
+            "name": "All items",
+            "value": "all"
+          }
+        ],
+        "value": "none",
+        "description": "Which items should be open when the page loads. Individual items can override with 'Accordion Default Open'."
+      },
+      {
+        "component": "date-time",
+        "valueType": "date-time",
+        "name": "visibility-start-date",
+        "label": "Visibility Start Date",
+        "value": "",
+        "description": "Start date and time for visibility. Accordion hidden before this date. If left empty, shows immediately."
+      },
+      {
+        "component": "date-time",
+        "valueType": "date-time",
+        "name": "visibility-end-date",
+        "label": "Visibility End Date",
+        "value": "",
+        "description": "End date and time for visibility. Accordion hidden after this date. If left empty, no end limit."
+      }
+    ]
+  },
+  {
+    "id": "accordion-simplified-item",
+    "fields": [
+      {
+        "component": "text",
+        "valueType": "string",
+        "name": "accordion-label",
+        "label": "Accordion Label",
+        "value": ""
+      },
+      {
+        "component": "boolean",
+        "name": "accordion-default-open",
+        "label": "Accordion Default Open",
+        "value": false,
+        "description": "If true, this item will be open by default when the page loads. Overrides the 'Default Open State' setting for this specific item."
+      },
+      {
+        "component": "richtext",
+        "name": "content",
+        "label": "Content",
+        "value": ""
+      }
+    ]
   }
 ]
