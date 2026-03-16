@@ -57,9 +57,28 @@ export function mapCmsSecondaryBannerData(block) {
     loading: extractTextValue(divs[15]) || pictureDesktop?.loading || pictureMobile?.loading || 'lazy',
     targetCountries: extractTextValue(divs[16]) || '',
     targetLanguages: extractTextValue(divs[17]) || '',
+    showCondor: (extractShowCondorValue(divs[18]) || 'true') !== 'false',
   };
 
   return mappedData;
+}
+
+/**
+ * Extracts the showCondor toggle value from its div.
+ * AEM renders JCR boolean attributes as bare text (no <p> wrapper),
+ * so we fall back to textContent when no paragraph element is found.
+ * @param {Element} div The div element containing the showCondor value
+ * @returns {string} 'true', 'false', or empty string
+ */
+function extractShowCondorValue(div) {
+  if (!div) return '';
+  const innerDiv = div.querySelector(':scope > div');
+  if (innerDiv) {
+    const paragraph = innerDiv.querySelector('p');
+    if (paragraph) return paragraph.textContent.trim();
+    return innerDiv.textContent.trim();
+  }
+  return '';
 }
 
 /**
@@ -215,6 +234,7 @@ function getDefaultConfig() {
     gradientColorEnd: '',
     condorStrokeColor: '',
     loading: 'lazy',
+    showCondor: true,
   };
 }
 

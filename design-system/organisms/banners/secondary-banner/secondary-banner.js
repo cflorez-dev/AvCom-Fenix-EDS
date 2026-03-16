@@ -33,6 +33,7 @@ const html = htm.bind(h);
  * @param {string} props.gradientColorStart - Color inicial del gradiente hex
  * @param {string} props.gradientColorEnd - Color final del gradiente hex
  * @param {string} props.condorStrokeColor - Color del stroke del condor SVG hex
+ * @param {boolean} props.showCondor - Whether to display the condor SVG decoration (default: true)
  * @param {'lazy'|'eager'} props.loading - Modo de carga de imagen (default: 'lazy')
  * @returns {import('preact').VNode} SecondaryBanner component
  */
@@ -53,6 +54,7 @@ export const SecondaryBanner = ({
   gradientColorStart = '',
   gradientColorEnd = '',
   condorStrokeColor = '',
+  showCondor = true,
   loading = 'lazy',
 }) => {
   // Refs for picture elements (if we need to insert cloned elements)
@@ -132,6 +134,12 @@ export const SecondaryBanner = ({
   const basePath = window.hlx?.codeBasePath || '';
 
   useEffect(() => {
+    if (!showCondor) {
+      setCondorBgSVG(null);
+      setCondorVectorSVG(null);
+      return;
+    }
+
     const loadCondorSVGs = async () => {
       try {
         // Select SVG paths based on screen size
@@ -215,6 +223,7 @@ export const SecondaryBanner = ({
 
     loadCondorSVGs();
   }, [
+    showCondor,
     basePath,
     condorStrokeColor,
     gradientColorStart,
@@ -283,20 +292,33 @@ export const SecondaryBanner = ({
     `;
   };
 
-  // Text color classes based on mode
-  const textColorClasses = mode === 'dark'
-    ? '!text-[var(--color-text-banner-light)]'
-    : '!text-[var(--color-text-banner-dark)]';
+  // When condor is hidden, image covers the full banner (like the legacy layout).
+  // When condor is shown, image stays on the right side with the condor pattern.
+  const fullCoverImage = !showCondor;
+
+   // Text color classes based on mode
+  // In full-cover mode (no condor), always use white for contrast against the image.
+  // In standard mode (condor), keep the existing CSS variable logic untouched.
+  const textColorClasses = fullCoverImage
+    ? '!text-white'
+    : (mode === 'dark'
+      ? '!text-[var(--color-text-banner-light)]'
+      : '!text-[var(--color-text-banner-dark)]');
+
+  // Compute banner background: use gradient when both colors are set, otherwise solid
+  const bannerBackground = (gradientColorStart && gradientColorEnd)
+    ? `background: linear-gradient(to bottom, ${gradientColorStart}, ${gradientColorEnd});`
+    : `background: ${backgroundColor || '#1b1b1b'};`;
 
   return html`
     <!-- Desktop Version -->
     <div 
       class="block max-w-[1248px] w-full h-[216px] min-[1024px]:h-[243px] relative rounded-[24px] shadow-[0px_2px_20px_2px_rgba(73,73,73,0.25)] my-[32px] mx-[16px] min-[1024px]:mx-[32px] overflow-hidden pb-[18px]"
-      style=${`background: linear-gradient(to bottom, ${gradientColorStart}, ${gradientColorEnd});`}
+      style=${bannerBackground}
     >
        <!-- Left content section -->
         <div class="w-full h-[216px] md:h-[230px] lg:h-[243px] p-0 absolute left-0 top-0 inline-flex flex-col justify-between items-start z-2">
-          <div data-banner-mode=${mode} class=" relative w-full min-[1024px]:w-[873px] flex flex-col justify-start items-start gap-10">
+          <div data-banner-mode=${mode} class=${` relative w-full ${fullCoverImage ? '' : 'min-[1024px]:w-[873px]'} flex flex-col justify-start items-start gap-10`}>
           <!-- Background condor pattern -->
             <div class="absolute top-0 w-[100%] pointer-events-none h-[216px] md:h-[230px] lg:h-[243px] z-10">
               ${renderSVG(condorBgSVG)}
@@ -305,9 +327,9 @@ export const SecondaryBanner = ({
             </div>
           <!-- Background condor pattern -->
           <div class="w-full h-full relative z-20 flex flex-row gap-[8px] min-[769px]:gap-0">
-              <div class="flex-1 min-w-0 h-[216px] min-[1024px]:h-[243px] flex flex-col justify-between z-10 p-[16px] min-[1024px]:p-[24px]">
+              <div class=${`min-w-0 h-[216px] min-[1024px]:h-[243px] flex flex-col justify-between z-10 p-[16px] min-[1024px]:p-[24px] ${fullCoverImage ? 'w-full min-[1024px]:max-w-[510px]' : 'flex-1'}`}>
                 <div class="z-10 self-stretch flex flex-col justify-center items-start gap-[4px]">
-                  <h2 class="line-clamp-2 self-stretch justify-start ${textColorClasses} !text-[20px] min-[1024px]:!text-[32px] font-bold font-['Red_Hat_Display']">
+                  <h2 class=${`line-clamp-2 self-stretch justify-start ${textColorClasses} font-bold font-['Red_Hat_Display'] ${fullCoverImage ? 'banner-title-scaled' : '!text-[20px] min-[1024px]:!text-[32px]'}`}>
                     ${title}
                   </h2>
                   <div class="line-clamp-2 self-stretch justify-start ${textColorClasses} leading-[21px] min-[769px]:!leading-[32px] text-[16px] min-[1024px]:text-[24px] font-normal font-['Red_Hat_Display']">
@@ -338,7 +360,7 @@ export const SecondaryBanner = ({
                   </div>
                 ` : ''}
               </div>
-              <div class="spacer w-[181px] lg:w-[271px] shrink-0"></div>
+              ${fullCoverImage ? '' : html`<div class="spacer w-[181px] lg:w-[271px] shrink-0"></div>`}
           </div>
       </div>
 
@@ -347,14 +369,14 @@ export const SecondaryBanner = ({
           
 
         <!-- Right image section - Mobile (< 1024px) -->
-      <div class="absolute max-w-[216px] max-h-[216px] right-0 top-0 h-[216px] md:h-[230px] lg:hidden w-full min-[480px]:w-[50%] z-1 overflow-hidden">
+      <div class=${`absolute right-0 top-0 h-[216px] md:h-[230px] lg:hidden z-1 overflow-hidden ${fullCoverImage ? 'w-full max-w-full max-h-full' : 'max-w-[216px] max-h-[216px] w-full min-[480px]:w-[50%]'}`}>
         <div ref=${mobilePictureRef} class="w-full h-full relative">
           ${pictureMobile?.pictureElement ? '' : buildMobilePicture()}
         </div>
       </div>
 
         <!-- Right image section - Desktop (>= 1024px) -->
-      <div class="hidden lg:block  max-w-[651px] absolute left-0 ml-[597px] top-0 h-[243px] w-[651px] z-1 overflow-hidden">
+      <div class=${`hidden lg:block absolute top-0 h-[243px] z-1 overflow-hidden ${fullCoverImage ? 'left-0 w-full max-w-full' : 'left-0 ml-[597px] max-w-[651px] w-[651px]'}`}>
         <div ref=${desktopPictureRef} class="w-full h-full relative">
           ${pictureDesktop?.pictureElement ? '' : buildDesktopPicture()}
         </div>

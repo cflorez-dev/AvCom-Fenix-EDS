@@ -1,0 +1,63 @@
+/* ─── Migration Card Grid 2×N ────────────────────────────────────────────
+ * Section-level grid for paired image+card layouts migrated from Angular.
+ * Pattern: Each CMS Rich Text block contains image + card content.
+ * 2 blocks → 2-column grid. Card styling is inline in the encoded HTML.
+ * Used by: mascotas-a-bordo and similar context-image card pages.
+ * ─────────────────────────────────────────────────────────────────────── */
+
+/* --- 2-column grid layout (desktop) --- */
+@media (width >= 900px) {
+  .section.card-grid-2 {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr;
+    gap: 0 24px;
+  }
+}
+
+/* --- Wrapper: transparent — card styling is on inner div --- */
+.section.card-grid-2 > .cms-rich-text-wrapper {
+  background: transparent;
+  box-shadow: none;
+  border-radius: 0;
+  padding: 0;
+  margin-bottom: 24px;
+}
+
+/* --- Card content typography --- */
+.section.card-grid-2 .cms-rich-text-wrapper h3 {
+  text-align: left;
+  font-size: 20px;
+  font-weight: 700;
+  margin-top: 0;
+  margin-bottom: var(--spacing-x-small, 8px);
+}
+
+.section.card-grid-2 .cms-rich-text-wrapper li,
+.section.card-grid-2 .cms-rich-text-wrapper p {
+  font-size: 16px;
+  line-height: 1.5;
+}
+
+.section.card-grid-2 .cms-rich-text-wrapper li {
+  margin-bottom: 8px;
+}
+
+.section.card-grid-2 .cms-rich-text-wrapper ul {
+  padding-left: var(--spacing-large, 24px);
+  margin: 8px 0 0;
+  list-style: disc;
+}
+
+/* --- Inline links in migration content sections --- */
+.section.card-grid-2 > .default-content-wrapper a:any-link:not(.button),
+.section.text-center > .default-content-wrapper a:any-link:not(.button),
+.section.card-grid-2 + .section > .default-content-wrapper a:any-link:not(.button) {
+  color: var(--link-color-secondary, #0190a0);
+  text-decoration: underline;
+}
+
+/* --- Spacing between merged heading and carousel/rail block --- */
+main > .section.text-center > .default-content-wrapper:has(+ .cms-informative-cards-rail-wrapper),
+main > .section.text-center > .default-content-wrapper:has(+ .cms-informative-cards-carousel-wrapper) {
+  margin-bottom: 32px;
+}
