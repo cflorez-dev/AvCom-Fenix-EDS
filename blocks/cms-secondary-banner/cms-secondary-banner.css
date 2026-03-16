@@ -18,3 +18,25 @@ main > .section.cms-secondary-banner-container {
   justify-content: center;
   align-items: center;
 }
+
+/* Full-cover mode (no condor): second line smaller, matching legacy avianca.com
+   where <small> (first line) was 82% of the title size.
+   We invert the logic: base is the smaller size, ::first-line is the larger. */
+.cms-secondary-banner-wrapper .banner-title-scaled {
+  font-size: 16px;
+  line-height: 1.3;
+}
+
+.cms-secondary-banner-wrapper .banner-title-scaled::first-line {
+  font-size: 20px;
+}
+
+@media (min-width: 1024px) {
+  .cms-secondary-banner-wrapper .banner-title-scaled {
+    font-size: 24px;
+  }
+
+  .cms-secondary-banner-wrapper .banner-title-scaled::first-line {
+    font-size: 32px;
+  }
+}

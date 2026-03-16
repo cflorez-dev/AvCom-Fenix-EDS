@@ -22,18 +22,94 @@
 .section.multitab-container .multitab-content .columns-text-col + .columns-img-col {
     padding: var(--spacing-large);
     border-radius: var(--border-radius-large);
-    background: var(--bg-page-light);
+    background: var(--bg-page-lighter);
+    box-shadow: 0 0.125rem 0.75rem rgb(27 27 27 / 15%);
+}
+
+/* CMS Rich Text blocks paired with images inside multitab grid (migration content) */
+.section.multitab-container .multitab-content > .default-content-wrapper + .cms-rich-text-wrapper,
+.section.multitab-container .multitab-content > .cms-rich-text-wrapper:has(+ .default-content-wrapper) {
+    padding: var(--spacing-large);
+    border-radius: var(--border-radius-large);
+    background: var(--bg-page-lighter);
+    box-shadow: 0 0.125rem 0.75rem rgb(27 27 27 / 15%);
+}
+
+.section.multitab-container .multitab-content > .default-content-wrapper img,
+.section.multitab-container .multitab-content > .default-content-wrapper + .default-content-wrapper img {
+    border-radius: var(--border-radius-large);
 }
 
 .section.multitab-container .multitab-content .columns-text-col h1,
 .section.multitab-container .multitab-content .columns-text-col h2,
-.section.multitab-container .multitab-content .columns-text-col h3 {
+.section.multitab-container .multitab-content .columns-text-col h3,
+.section.multitab-container .multitab-content > .default-content-wrapper + .cms-rich-text-wrapper h1,
+.section.multitab-container .multitab-content > .default-content-wrapper + .cms-rich-text-wrapper h2,
+.section.multitab-container .multitab-content > .default-content-wrapper + .cms-rich-text-wrapper h3,
+.section.multitab-container .multitab-content > .cms-rich-text-wrapper:has(+ .default-content-wrapper) h1,
+.section.multitab-container .multitab-content > .cms-rich-text-wrapper:has(+ .default-content-wrapper) h2,
+.section.multitab-container .multitab-content > .cms-rich-text-wrapper:has(+ .default-content-wrapper) h3 {
     font-size: var(--heading-h400-size);
     font-style: normal;
     font-weight: var(--heading-h400-weight);
     line-height: var(--heading-h400-line-height);
-    margin-top: 0;
     margin-bottom: var(--spacing-x-small);
+}
+
+/* Card title (first heading) has no top margin; subheadings get proper spacing */
+.section.multitab-container .multitab-content .cms-rich-text-wrapper h3:first-child {
+    margin-top: 0;
+}
+
+.section.multitab-container .multitab-content .cms-rich-text-wrapper h3:not(:first-child) {
+    margin-top: var(--spacing-large);
+}
+
+/* Center the card title (h3:first-child) inside ALL white cards in multitab.
+ * Subheadings deeper in content are :not(:first-child) so they stay left-aligned.
+ * Image-first ordering: */
+.section.multitab-container .multitab-content > .default-content-wrapper:has(picture) + .cms-rich-text-wrapper h3:first-child {
+    text-align: center;
+}
+
+/* Text-first ordering (reversed white card): */
+.section.multitab-container .multitab-content > .cms-rich-text-wrapper:has(+ .default-content-wrapper) h3:first-child {
+    text-align: center;
+}
+
+/* Outlined button styling for CTA links inside multitab white cards.
+ * Matches origin site's horizontal card buttons: white bg, dark border, dark text.
+ * EDS convention: bold-wrapped links (**[text](url)**) get class="button primary"
+ * from decorateButtons. CMS Rich Text merges Tailwind informative-link classes on
+ * top, so we need sufficient specificity to override those. */
+.section.multitab-container .multitab-content .button-container a.button.primary {
+    background-color: var(--color-background-brand-secondary-default, #fff);
+    color: var(--color-text-brand-secondary, #1b1b1b);
+    text-decoration: none;
+    border: 2px solid var(--color-border-brand-secondary-default, #1b1b1b);
+    border-radius: 32px;
+    padding: 0.5rem 1.5rem;
+    font-family: 'Red Hat Display', sans-serif;
+    font-weight: 600;
+    font-size: var(--paragraph-p200-size);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: background-color 0.2s, border-color 0.2s, color 0.2s;
+    cursor: pointer;
+}
+
+.section.multitab-container .multitab-content .button-container a.button.primary:hover {
+    background-color: var(--color-background-brand-secondary-hover, #e9e9e9);
+    border-color: var(--color-border-brand-secondary-default, #1b1b1b);
+    text-decoration: none;
+    color: var(--color-text-brand-secondary, #1b1b1b);
+}
+
+.section.multitab-container .multitab-content .button-container a.button.primary:active {
+    background-color: var(--color-background-brand-primary-default, #1b1b1b);
+    border-color: var(--color-background-brand-primary-default, #1b1b1b);
+    color: var(--color-text-brand-primary, #fff);
 }
 
 /* ul line-height inside accordion */
@@ -123,7 +199,10 @@
     .grid-3-9, .grid-9-3, .grid-5-7, .grid-7-5,
     .grid-2-10, .grid-10-2, .grid-1-11, .grid-11-1,
     .grid-4-4-4, .grid-3-3-6, .grid-3-6-3, .grid-6-3-3,
-    .grid-2-5-5, .grid-5-2-5, .grid-5-5-2, .grid-3-3-3-3
+    .grid-2-5-5, .grid-5-2-5, .grid-5-5-2, .grid-3-3-3-3,
+    .grid-zigzag-4-8, .grid-zigzag-3-9,
+    .grid-repeat-4-8, .grid-repeat-8-4, .grid-repeat-6-6, .grid-repeat-3-9,
+    .grid-repeat-equal-4, .grid-repeat-equal-3, .grid-repeat-equal-6
 ) {
     --grid-layout-gap: 24px;
     display: grid;
@@ -138,7 +217,10 @@
     .grid-3-9, .grid-9-3, .grid-5-7, .grid-7-5,
     .grid-2-10, .grid-10-2, .grid-1-11, .grid-11-1,
     .grid-4-4-4, .grid-3-3-6, .grid-3-6-3, .grid-6-3-3,
-    .grid-2-5-5, .grid-5-2-5, .grid-5-5-2
+    .grid-2-5-5, .grid-5-2-5, .grid-5-5-2,
+    .grid-zigzag-4-8, .grid-zigzag-3-9,
+    .grid-repeat-4-8, .grid-repeat-8-4, .grid-repeat-6-6, .grid-repeat-3-9,
+    .grid-repeat-equal-4, .grid-repeat-equal-3, .grid-repeat-equal-6
 ) > div {
     min-width: 0;
 }
@@ -173,7 +255,10 @@
         .grid-3-9, .grid-9-3, .grid-5-7, .grid-7-5,
         .grid-2-10, .grid-10-2, .grid-1-11, .grid-11-1,
         .grid-4-4-4, .grid-3-3-6, .grid-3-6-3, .grid-6-3-3,
-        .grid-2-5-5, .grid-5-2-5, .grid-5-5-2, .grid-3-3-3-3
+        .grid-2-5-5, .grid-5-2-5, .grid-5-5-2, .grid-3-3-3-3,
+        .grid-zigzag-4-8, .grid-zigzag-3-9,
+        .grid-repeat-4-8, .grid-repeat-8-4, .grid-repeat-6-6, .grid-repeat-3-9,
+        .grid-repeat-equal-4, .grid-repeat-equal-3, .grid-repeat-equal-6
     ) {
         grid-template-columns: repeat(12, minmax(0, 1fr));
     }
@@ -258,6 +343,35 @@
     ) > div:nth-child(n+4) {
         grid-column: 1 / -1;
     }
+
+    /* ── Multi-pair composite grids ───────────────────────────────── */
+
+    /* Zig-zag 4-8: pairs alternate 4-8 / 8-4 / 4-8 / ... */
+    .multitab-content.grid-zigzag-4-8 > div:nth-child(4n+1) { grid-column: span 4; }
+    .multitab-content.grid-zigzag-4-8 > div:nth-child(4n+2) { grid-column: span 8; }
+    .multitab-content.grid-zigzag-4-8 > div:nth-child(4n+3) { grid-column: span 8; }
+    .multitab-content.grid-zigzag-4-8 > div:nth-child(4n)   { grid-column: span 4; }
+
+    /* Zig-zag 3-9: pairs alternate 3-9 / 9-3 / 3-9 / ... */
+    .multitab-content.grid-zigzag-3-9 > div:nth-child(4n+1) { grid-column: span 3; }
+    .multitab-content.grid-zigzag-3-9 > div:nth-child(4n+2) { grid-column: span 9; }
+    .multitab-content.grid-zigzag-3-9 > div:nth-child(4n+3) { grid-column: span 9; }
+    .multitab-content.grid-zigzag-3-9 > div:nth-child(4n)   { grid-column: span 3; }
+
+    /* Repeat same ratio for all pairs */
+    .multitab-content.grid-repeat-4-8 > div:nth-child(odd)  { grid-column: span 4; }
+    .multitab-content.grid-repeat-4-8 > div:nth-child(even) { grid-column: span 8; }
+    .multitab-content.grid-repeat-8-4 > div:nth-child(odd)  { grid-column: span 8; }
+    .multitab-content.grid-repeat-8-4 > div:nth-child(even) { grid-column: span 4; }
+    .multitab-content.grid-repeat-6-6 > div:nth-child(odd)  { grid-column: span 6; }
+    .multitab-content.grid-repeat-6-6 > div:nth-child(even) { grid-column: span 6; }
+    .multitab-content.grid-repeat-3-9 > div:nth-child(odd)  { grid-column: span 3; }
+    .multitab-content.grid-repeat-3-9 > div:nth-child(even) { grid-column: span 9; }
+
+    /* Repeat equal-width columns (e.g. 3-col seats grid repeated) */
+    .multitab-content.grid-repeat-equal-4 > div { grid-column: span 4; }
+    .multitab-content.grid-repeat-equal-3 > div { grid-column: span 3; }
+    .multitab-content.grid-repeat-equal-6 > div { grid-column: span 6; }
 }
 
 /* Keyframe for Tailwind animate-[fadeIn_0.3s_ease-in-out] */

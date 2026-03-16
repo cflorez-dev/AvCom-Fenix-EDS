@@ -49,6 +49,7 @@ export default function decorate(block) {
     loading: mappedConfig.loading || fallbackConfig.loading || 'lazy',
     targetCountries: mappedConfig.targetCountries || fallbackConfig.targetCountries || '',
     targetLanguages: mappedConfig.targetLanguages || fallbackConfig.targetLanguages || '',
+    showCondor: mappedConfig.showCondor !== undefined ? mappedConfig.showCondor : (fallbackConfig.showCondor !== undefined ? fallbackConfig.showCondor : true),
   };
 
   // Country and language filtering
@@ -88,6 +89,7 @@ export default function decorate(block) {
         gradientColorStart=${config.gradientColorStart}
         gradientColorEnd=${config.gradientColorEnd}
         condorStrokeColor=${config.condorStrokeColor}
+        showCondor=${config.showCondor}
         loading=${config.loading}
       />
     `,

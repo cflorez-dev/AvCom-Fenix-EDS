@@ -5049,6 +5049,14 @@
             "value": "pt"
           }
         ]
+      },
+      {
+        "component": "boolean",
+        "name": "showCondor",
+        "label": "Show Condor",
+        "valueType": "boolean",
+        "description": "Display the condor decorative SVG element on the banner. Default: true.",
+        "value": true
       }
     ]
   },
