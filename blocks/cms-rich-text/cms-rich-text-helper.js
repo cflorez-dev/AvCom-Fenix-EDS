@@ -91,8 +91,10 @@ export default function processRichTextContent(blockRaw) {
       return;
     }
 
-    // Fix double-escaped quotes (""color"" -> "color")
-    htmlContent = htmlContent.replace(/""/g, '"');
+    // Fix double-escaped quotes (""color"" -> "color") but preserve
+    // valid empty HTML attributes like alt="" by only replacing ""
+    // when followed by a word character (letter, digit, underscore).
+    htmlContent = htmlContent.replace(/""(?=\w)/g, '"');
 
     // Create a temporary container to parse the HTML
     const tempContainer = document.createElement('div');
@@ -140,8 +142,10 @@ export default function processRichTextContent(blockRaw) {
       return;
     }
 
-    // Fix double-escaped quotes (""color"" -> "color")
-    htmlContent = htmlContent.replace(/""/g, '"');
+    // Fix double-escaped quotes (""color"" -> "color") but preserve
+    // valid empty HTML attributes like alt="" by only replacing ""
+    // when followed by a word character (letter, digit, underscore).
+    htmlContent = htmlContent.replace(/""(?=\w)/g, '"');
 
     // Create a temporary container to parse the HTML
     const tempContainer = document.createElement('div');

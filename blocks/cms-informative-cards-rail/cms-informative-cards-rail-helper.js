@@ -26,6 +26,19 @@ function extractCardFromRow(cells) {
         card.image = img.src;
         card.imageAlt = img.alt || '';
       }
+    } else {
+      // Fallback: external image URLs may be delivered as <a> links
+      const img = cells[0].querySelector('img');
+      if (img) {
+        card.image = img.src;
+        card.imageAlt = img.alt || '';
+      } else {
+        const anchor = cells[0].querySelector('a');
+        if (anchor?.href) {
+          card.image = anchor.href;
+          card.imageAlt = anchor.textContent?.trim() || '';
+        }
+      }
     }
   }
 
