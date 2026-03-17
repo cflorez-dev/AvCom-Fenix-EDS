@@ -114,11 +114,19 @@ export function extractCarouselCards(block) {
       return;
     }
 
-    // Extract image (cell 0) - from <picture> or <img>
+    // Extract image (cell 0) - from <picture>, <img>, or <a> fallback
     const imageCell = cells[0];
     const imgElement = imageCell?.querySelector('img');
-    const image = imgElement?.src || '';
-    const imageAlt = imgElement?.alt || '';
+    let image = imgElement?.src || '';
+    let imageAlt = imgElement?.alt || '';
+    // Fallback: external image URLs may be delivered as <a> links
+    if (!image) {
+      const anchor = imageCell?.querySelector('a');
+      if (anchor?.href) {
+        image = anchor.href;
+        imageAlt = anchor.textContent?.trim() || '';
+      }
+    }
 
     // Extract title (cell 1) - from <p> text
     const title = cells[1]?.textContent?.trim() || '';

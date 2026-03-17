@@ -33,29 +33,98 @@
         "valueType": "string",
         "description": "Optional: Select target countries/POS. If empty, shows in all. Compared against 'selected-country' cookie (ISO-2 codes).",
         "options": [
-          { "name": "Argentina", "value": "ar" },
-          { "name": "Bolivia", "value": "bo" },
-          { "name": "Brasil", "value": "br" },
-          { "name": "Canadá", "value": "ca" },
-          { "name": "Chile", "value": "cl" },
-          { "name": "Colombia", "value": "co" },
-          { "name": "Costa Rica", "value": "cr" },
-          { "name": "República Dominicana", "value": "do" },
-          { "name": "Ecuador", "value": "ec" },
-          { "name": "España", "value": "eu" },
-          { "name": "Francia", "value": "fr" },
-          { "name": "Reino Unido", "value": "gb" },
-          { "name": "Guatemala", "value": "gt" },
-          { "name": "Honduras", "value": "hn" },
-          { "name": "México", "value": "mx" },
-          { "name": "Nicaragua", "value": "ni" },
-          { "name": "Otros", "value": "ot" },
-          { "name": "Panamá", "value": "pa" },
-          { "name": "Perú", "value": "pe" },
-          { "name": "Paraguay", "value": "py" },
-          { "name": "El Salvador", "value": "sv" },
-          { "name": "Estados Unidos", "value": "us" },
-          { "name": "Uruguay", "value": "uy" }
+          {
+            "name": "Argentina",
+            "value": "ar"
+          },
+          {
+            "name": "Bolivia",
+            "value": "bo"
+          },
+          {
+            "name": "Brasil",
+            "value": "br"
+          },
+          {
+            "name": "Canadá",
+            "value": "ca"
+          },
+          {
+            "name": "Chile",
+            "value": "cl"
+          },
+          {
+            "name": "Colombia",
+            "value": "co"
+          },
+          {
+            "name": "Costa Rica",
+            "value": "cr"
+          },
+          {
+            "name": "República Dominicana",
+            "value": "do"
+          },
+          {
+            "name": "Ecuador",
+            "value": "ec"
+          },
+          {
+            "name": "España",
+            "value": "eu"
+          },
+          {
+            "name": "Francia",
+            "value": "fr"
+          },
+          {
+            "name": "Reino Unido",
+            "value": "gb"
+          },
+          {
+            "name": "Guatemala",
+            "value": "gt"
+          },
+          {
+            "name": "Honduras",
+            "value": "hn"
+          },
+          {
+            "name": "México",
+            "value": "mx"
+          },
+          {
+            "name": "Nicaragua",
+            "value": "ni"
+          },
+          {
+            "name": "Otros",
+            "value": "ot"
+          },
+          {
+            "name": "Panamá",
+            "value": "pa"
+          },
+          {
+            "name": "Perú",
+            "value": "pe"
+          },
+          {
+            "name": "Paraguay",
+            "value": "py"
+          },
+          {
+            "name": "El Salvador",
+            "value": "sv"
+          },
+          {
+            "name": "Estados Unidos",
+            "value": "us"
+          },
+          {
+            "name": "Uruguay",
+            "value": "uy"
+          }
         ]
       },
       {
@@ -65,10 +134,22 @@
         "valueType": "string",
         "description": "Optional: Select target languages. If empty, shows in all. Compared against 'selected-language' cookie.",
         "options": [
-          { "name": "English", "value": "en" },
-          { "name": "Spanish", "value": "es" },
-          { "name": "French", "value": "fr" },
-          { "name": "Portuguese", "value": "pt" }
+          {
+            "name": "English",
+            "value": "en"
+          },
+          {
+            "name": "Spanish",
+            "value": "es"
+          },
+          {
+            "name": "French",
+            "value": "fr"
+          },
+          {
+            "name": "Portuguese",
+            "value": "pt"
+          }
         ]
       }
     ]
@@ -111,29 +192,98 @@
         "valueType": "string",
         "description": "Optional: Select target countries/POS. If empty, shows in all. Compared against 'selected-country' cookie (ISO-2 codes).",
         "options": [
-          { "name": "Argentina", "value": "ar" },
-          { "name": "Bolivia", "value": "bo" },
-          { "name": "Brasil", "value": "br" },
-          { "name": "Canadá", "value": "ca" },
-          { "name": "Chile", "value": "cl" },
-          { "name": "Colombia", "value": "co" },
-          { "name": "Costa Rica", "value": "cr" },
-          { "name": "República Dominicana", "value": "do" },
-          { "name": "Ecuador", "value": "ec" },
-          { "name": "España", "value": "eu" },
-          { "name": "Francia", "value": "fr" },
-          { "name": "Reino Unido", "value": "gb" },
-          { "name": "Guatemala", "value": "gt" },
-          { "name": "Honduras", "value": "hn" },
-          { "name": "México", "value": "mx" },
-          { "name": "Nicaragua", "value": "ni" },
-          { "name": "Otros", "value": "ot" },
-          { "name": "Panamá", "value": "pa" },
-          { "name": "Perú", "value": "pe" },
-          { "name": "Paraguay", "value": "py" },
-          { "name": "El Salvador", "value": "sv" },
-          { "name": "Estados Unidos", "value": "us" },
-          { "name": "Uruguay", "value": "uy" }
+          {
+            "name": "Argentina",
+            "value": "ar"
+          },
+          {
+            "name": "Bolivia",
+            "value": "bo"
+          },
+          {
+            "name": "Brasil",
+            "value": "br"
+          },
+          {
+            "name": "Canadá",
+            "value": "ca"
+          },
+          {
+            "name": "Chile",
+            "value": "cl"
+          },
+          {
+            "name": "Colombia",
+            "value": "co"
+          },
+          {
+            "name": "Costa Rica",
+            "value": "cr"
+          },
+          {
+            "name": "República Dominicana",
+            "value": "do"
+          },
+          {
+            "name": "Ecuador",
+            "value": "ec"
+          },
+          {
+            "name": "España",
+            "value": "eu"
+          },
+          {
+            "name": "Francia",
+            "value": "fr"
+          },
+          {
+            "name": "Reino Unido",
+            "value": "gb"
+          },
+          {
+            "name": "Guatemala",
+            "value": "gt"
+          },
+          {
+            "name": "Honduras",
+            "value": "hn"
+          },
+          {
+            "name": "México",
+            "value": "mx"
+          },
+          {
+            "name": "Nicaragua",
+            "value": "ni"
+          },
+          {
+            "name": "Otros",
+            "value": "ot"
+          },
+          {
+            "name": "Panamá",
+            "value": "pa"
+          },
+          {
+            "name": "Perú",
+            "value": "pe"
+          },
+          {
+            "name": "Paraguay",
+            "value": "py"
+          },
+          {
+            "name": "El Salvador",
+            "value": "sv"
+          },
+          {
+            "name": "Estados Unidos",
+            "value": "us"
+          },
+          {
+            "name": "Uruguay",
+            "value": "uy"
+          }
         ]
       },
       {
@@ -143,10 +293,22 @@
         "valueType": "string",
         "description": "Optional: Select target languages. If empty, shows in all. Compared against 'selected-language' cookie.",
         "options": [
-          { "name": "English", "value": "en" },
-          { "name": "Spanish", "value": "es" },
-          { "name": "French", "value": "fr" },
-          { "name": "Portuguese", "value": "pt" }
+          {
+            "name": "English",
+            "value": "en"
+          },
+          {
+            "name": "Spanish",
+            "value": "es"
+          },
+          {
+            "name": "French",
+            "value": "fr"
+          },
+          {
+            "name": "Portuguese",
+            "value": "pt"
+          }
         ]
       }
     ]
@@ -269,7 +431,6 @@
             "name": "Hero Destinations Detail",
             "value": "hero-destinations-detail"
           }
-
         ]
       },
       {
@@ -496,7 +657,9 @@
         ],
         "condition": {
           "===": [
-            { "var": "section-type" },
+            {
+              "var": "section-type"
+            },
             "default"
           ]
         }
@@ -508,7 +671,9 @@
         "description": "Links this section to an Accordion Group block. Must match the Group ID of the Accordion Group controller.",
         "condition": {
           "===": [
-            { "var": "section-type" },
+            {
+              "var": "section-type"
+            },
             "default"
           ]
         }
@@ -520,7 +685,9 @@
         "description": "The clickable title shown in the accordion header when this section is an accordion item.",
         "condition": {
           "===": [
-            { "var": "section-type" },
+            {
+              "var": "section-type"
+            },
             "default"
           ]
         }
@@ -546,7 +713,9 @@
         ],
         "condition": {
           "===": [
-            { "var": "section-type" },
+            {
+              "var": "section-type"
+            },
             "default"
           ]
         }
@@ -558,7 +727,9 @@
         "description": "Whether this accordion item should be expanded by default when the page loads.",
         "condition": {
           "===": [
-            { "var": "section-type" },
+            {
+              "var": "section-type"
+            },
             "default"
           ]
         }
@@ -570,7 +741,9 @@
         "description": "Links this section to a MultiTab block. Must match the Group ID of the MultiTab controller.",
         "condition": {
           "===": [
-            { "var": "section-type" },
+            {
+              "var": "section-type"
+            },
             "default"
           ]
         }
@@ -582,7 +755,9 @@
         "description": "The primary text shown in the tab button for this content.",
         "condition": {
           "===": [
-            { "var": "section-type" },
+            {
+              "var": "section-type"
+            },
             "default"
           ]
         }
@@ -594,7 +769,9 @@
         "description": "Optional secondary text shown below the primary label in the tab button.",
         "condition": {
           "===": [
-            { "var": "section-type" },
+            {
+              "var": "section-type"
+            },
             "default"
           ]
         }
@@ -606,7 +783,9 @@
         "description": "Optional icon path for the tab (e.g., 'action/check', 'alert/info'). Leave empty for no icon.",
         "condition": {
           "===": [
-            { "var": "section-type" },
+            {
+              "var": "section-type"
+            },
             "default"
           ]
         }
@@ -628,7 +807,9 @@
         ],
         "condition": {
           "===": [
-            { "var": "section-type" },
+            {
+              "var": "section-type"
+            },
             "default"
           ]
         }
@@ -640,7 +821,9 @@
         "description": "Whether this tab should be active by default when the page loads.",
         "condition": {
           "===": [
-            { "var": "section-type" },
+            {
+              "var": "section-type"
+            },
             "default"
           ]
         }
@@ -652,7 +835,9 @@
         "description": "Links this section to a Mosaic Cards V2 block. Must match the Group ID of the controller.",
         "condition": {
           "===": [
-            { "var": "section-type" },
+            {
+              "var": "section-type"
+            },
             "default"
           ]
         }
@@ -664,7 +849,9 @@
         "description": "Optional label for this mosaic phase (used for dot indicators or debugging).",
         "condition": {
           "===": [
-            { "var": "section-type" },
+            {
+              "var": "section-type"
+            },
             "default"
           ]
         }
@@ -676,29 +863,98 @@
         "valueType": "string",
         "description": "Optional: Select target countries/POS. If empty, shows in all. Compared against 'selected-country' cookie (ISO-2 codes).",
         "options": [
-          { "name": "Argentina", "value": "ar" },
-          { "name": "Bolivia", "value": "bo" },
-          { "name": "Brasil", "value": "br" },
-          { "name": "Canadá", "value": "ca" },
-          { "name": "Chile", "value": "cl" },
-          { "name": "Colombia", "value": "co" },
-          { "name": "Costa Rica", "value": "cr" },
-          { "name": "República Dominicana", "value": "do" },
-          { "name": "Ecuador", "value": "ec" },
-          { "name": "España", "value": "eu" },
-          { "name": "Francia", "value": "fr" },
-          { "name": "Reino Unido", "value": "gb" },
-          { "name": "Guatemala", "value": "gt" },
-          { "name": "Honduras", "value": "hn" },
-          { "name": "México", "value": "mx" },
-          { "name": "Nicaragua", "value": "ni" },
-          { "name": "Otros", "value": "ot" },
-          { "name": "Panamá", "value": "pa" },
-          { "name": "Perú", "value": "pe" },
-          { "name": "Paraguay", "value": "py" },
-          { "name": "El Salvador", "value": "sv" },
-          { "name": "Estados Unidos", "value": "us" },
-          { "name": "Uruguay", "value": "uy" }
+          {
+            "name": "Argentina",
+            "value": "ar"
+          },
+          {
+            "name": "Bolivia",
+            "value": "bo"
+          },
+          {
+            "name": "Brasil",
+            "value": "br"
+          },
+          {
+            "name": "Canadá",
+            "value": "ca"
+          },
+          {
+            "name": "Chile",
+            "value": "cl"
+          },
+          {
+            "name": "Colombia",
+            "value": "co"
+          },
+          {
+            "name": "Costa Rica",
+            "value": "cr"
+          },
+          {
+            "name": "República Dominicana",
+            "value": "do"
+          },
+          {
+            "name": "Ecuador",
+            "value": "ec"
+          },
+          {
+            "name": "España",
+            "value": "eu"
+          },
+          {
+            "name": "Francia",
+            "value": "fr"
+          },
+          {
+            "name": "Reino Unido",
+            "value": "gb"
+          },
+          {
+            "name": "Guatemala",
+            "value": "gt"
+          },
+          {
+            "name": "Honduras",
+            "value": "hn"
+          },
+          {
+            "name": "México",
+            "value": "mx"
+          },
+          {
+            "name": "Nicaragua",
+            "value": "ni"
+          },
+          {
+            "name": "Otros",
+            "value": "ot"
+          },
+          {
+            "name": "Panamá",
+            "value": "pa"
+          },
+          {
+            "name": "Perú",
+            "value": "pe"
+          },
+          {
+            "name": "Paraguay",
+            "value": "py"
+          },
+          {
+            "name": "El Salvador",
+            "value": "sv"
+          },
+          {
+            "name": "Estados Unidos",
+            "value": "us"
+          },
+          {
+            "name": "Uruguay",
+            "value": "uy"
+          }
         ]
       },
       {
@@ -708,10 +964,22 @@
         "valueType": "string",
         "description": "Optional: Select target languages. If empty, shows in all. Compared against 'selected-language' cookie.",
         "options": [
-          { "name": "English", "value": "en" },
-          { "name": "Spanish", "value": "es" },
-          { "name": "French", "value": "fr" },
-          { "name": "Portuguese", "value": "pt" }
+          {
+            "name": "English",
+            "value": "en"
+          },
+          {
+            "name": "Spanish",
+            "value": "es"
+          },
+          {
+            "name": "French",
+            "value": "fr"
+          },
+          {
+            "name": "Portuguese",
+            "value": "pt"
+          }
         ]
       },
       {
@@ -722,7 +990,9 @@
         "value": false,
         "condition": {
           "===": [
-            { "var": "section-type" },
+            {
+              "var": "section-type"
+            },
             "hero-destinations"
           ]
         }
@@ -1021,29 +1291,98 @@
         "valueType": "string",
         "description": "Optional: Select target countries/POS. If empty, shows in all. Compared against 'selected-country' cookie (ISO-2 codes).",
         "options": [
-          { "name": "Argentina", "value": "ar" },
-          { "name": "Bolivia", "value": "bo" },
-          { "name": "Brasil", "value": "br" },
-          { "name": "Canadá", "value": "ca" },
-          { "name": "Chile", "value": "cl" },
-          { "name": "Colombia", "value": "co" },
-          { "name": "Costa Rica", "value": "cr" },
-          { "name": "República Dominicana", "value": "do" },
-          { "name": "Ecuador", "value": "ec" },
-          { "name": "España", "value": "eu" },
-          { "name": "Francia", "value": "fr" },
-          { "name": "Reino Unido", "value": "gb" },
-          { "name": "Guatemala", "value": "gt" },
-          { "name": "Honduras", "value": "hn" },
-          { "name": "México", "value": "mx" },
-          { "name": "Nicaragua", "value": "ni" },
-          { "name": "Otros", "value": "ot" },
-          { "name": "Panamá", "value": "pa" },
-          { "name": "Perú", "value": "pe" },
-          { "name": "Paraguay", "value": "py" },
-          { "name": "El Salvador", "value": "sv" },
-          { "name": "Estados Unidos", "value": "us" },
-          { "name": "Uruguay", "value": "uy" }
+          {
+            "name": "Argentina",
+            "value": "ar"
+          },
+          {
+            "name": "Bolivia",
+            "value": "bo"
+          },
+          {
+            "name": "Brasil",
+            "value": "br"
+          },
+          {
+            "name": "Canadá",
+            "value": "ca"
+          },
+          {
+            "name": "Chile",
+            "value": "cl"
+          },
+          {
+            "name": "Colombia",
+            "value": "co"
+          },
+          {
+            "name": "Costa Rica",
+            "value": "cr"
+          },
+          {
+            "name": "República Dominicana",
+            "value": "do"
+          },
+          {
+            "name": "Ecuador",
+            "value": "ec"
+          },
+          {
+            "name": "España",
+            "value": "eu"
+          },
+          {
+            "name": "Francia",
+            "value": "fr"
+          },
+          {
+            "name": "Reino Unido",
+            "value": "gb"
+          },
+          {
+            "name": "Guatemala",
+            "value": "gt"
+          },
+          {
+            "name": "Honduras",
+            "value": "hn"
+          },
+          {
+            "name": "México",
+            "value": "mx"
+          },
+          {
+            "name": "Nicaragua",
+            "value": "ni"
+          },
+          {
+            "name": "Otros",
+            "value": "ot"
+          },
+          {
+            "name": "Panamá",
+            "value": "pa"
+          },
+          {
+            "name": "Perú",
+            "value": "pe"
+          },
+          {
+            "name": "Paraguay",
+            "value": "py"
+          },
+          {
+            "name": "El Salvador",
+            "value": "sv"
+          },
+          {
+            "name": "Estados Unidos",
+            "value": "us"
+          },
+          {
+            "name": "Uruguay",
+            "value": "uy"
+          }
         ]
       },
       {
@@ -1053,10 +1392,22 @@
         "valueType": "string",
         "description": "Optional: Select target languages. If empty, shows in all. Compared against 'selected-language' cookie.",
         "options": [
-          { "name": "English", "value": "en" },
-          { "name": "Spanish", "value": "es" },
-          { "name": "French", "value": "fr" },
-          { "name": "Portuguese", "value": "pt" }
+          {
+            "name": "English",
+            "value": "en"
+          },
+          {
+            "name": "Spanish",
+            "value": "es"
+          },
+          {
+            "name": "French",
+            "value": "fr"
+          },
+          {
+            "name": "Portuguese",
+            "value": "pt"
+          }
         ]
       }
     ]
@@ -1071,29 +1422,98 @@
         "valueType": "string",
         "description": "Optional: Select target countries/POS. If empty, shows in all. Compared against 'selected-country' cookie (ISO-2 codes).",
         "options": [
-          { "name": "Argentina", "value": "ar" },
-          { "name": "Bolivia", "value": "bo" },
-          { "name": "Brasil", "value": "br" },
-          { "name": "Canadá", "value": "ca" },
-          { "name": "Chile", "value": "cl" },
-          { "name": "Colombia", "value": "co" },
-          { "name": "Costa Rica", "value": "cr" },
-          { "name": "República Dominicana", "value": "do" },
-          { "name": "Ecuador", "value": "ec" },
-          { "name": "España", "value": "eu" },
-          { "name": "Francia", "value": "fr" },
-          { "name": "Reino Unido", "value": "gb" },
-          { "name": "Guatemala", "value": "gt" },
-          { "name": "Honduras", "value": "hn" },
-          { "name": "México", "value": "mx" },
-          { "name": "Nicaragua", "value": "ni" },
-          { "name": "Otros", "value": "ot" },
-          { "name": "Panamá", "value": "pa" },
-          { "name": "Perú", "value": "pe" },
-          { "name": "Paraguay", "value": "py" },
-          { "name": "El Salvador", "value": "sv" },
-          { "name": "Estados Unidos", "value": "us" },
-          { "name": "Uruguay", "value": "uy" }
+          {
+            "name": "Argentina",
+            "value": "ar"
+          },
+          {
+            "name": "Bolivia",
+            "value": "bo"
+          },
+          {
+            "name": "Brasil",
+            "value": "br"
+          },
+          {
+            "name": "Canadá",
+            "value": "ca"
+          },
+          {
+            "name": "Chile",
+            "value": "cl"
+          },
+          {
+            "name": "Colombia",
+            "value": "co"
+          },
+          {
+            "name": "Costa Rica",
+            "value": "cr"
+          },
+          {
+            "name": "República Dominicana",
+            "value": "do"
+          },
+          {
+            "name": "Ecuador",
+            "value": "ec"
+          },
+          {
+            "name": "España",
+            "value": "eu"
+          },
+          {
+            "name": "Francia",
+            "value": "fr"
+          },
+          {
+            "name": "Reino Unido",
+            "value": "gb"
+          },
+          {
+            "name": "Guatemala",
+            "value": "gt"
+          },
+          {
+            "name": "Honduras",
+            "value": "hn"
+          },
+          {
+            "name": "México",
+            "value": "mx"
+          },
+          {
+            "name": "Nicaragua",
+            "value": "ni"
+          },
+          {
+            "name": "Otros",
+            "value": "ot"
+          },
+          {
+            "name": "Panamá",
+            "value": "pa"
+          },
+          {
+            "name": "Perú",
+            "value": "pe"
+          },
+          {
+            "name": "Paraguay",
+            "value": "py"
+          },
+          {
+            "name": "El Salvador",
+            "value": "sv"
+          },
+          {
+            "name": "Estados Unidos",
+            "value": "us"
+          },
+          {
+            "name": "Uruguay",
+            "value": "uy"
+          }
         ]
       },
       {
@@ -1103,10 +1523,22 @@
         "valueType": "string",
         "description": "Optional: Select target languages. If empty, shows in all. Compared against 'selected-language' cookie.",
         "options": [
-          { "name": "English", "value": "en" },
-          { "name": "Spanish", "value": "es" },
-          { "name": "French", "value": "fr" },
-          { "name": "Portuguese", "value": "pt" }
+          {
+            "name": "English",
+            "value": "en"
+          },
+          {
+            "name": "Spanish",
+            "value": "es"
+          },
+          {
+            "name": "French",
+            "value": "fr"
+          },
+          {
+            "name": "Portuguese",
+            "value": "pt"
+          }
         ]
       },
       {
@@ -1203,11 +1635,13 @@
         "label": "Button Label",
         "value": "",
         "condition": {
-            "===": [
-              { "var": "actionType" },
-              "button"
-            ]
-          }
+          "===": [
+            {
+              "var": "actionType"
+            },
+            "button"
+          ]
+        }
       },
       {
         "component": "text",
@@ -1224,29 +1658,98 @@
         "valueType": "string",
         "description": "Optional: Select target countries/POS. If empty, shows in all. Compared against 'selected-country' cookie (ISO-2 codes).",
         "options": [
-          { "name": "Argentina", "value": "ar" },
-          { "name": "Bolivia", "value": "bo" },
-          { "name": "Brasil", "value": "br" },
-          { "name": "Canadá", "value": "ca" },
-          { "name": "Chile", "value": "cl" },
-          { "name": "Colombia", "value": "co" },
-          { "name": "Costa Rica", "value": "cr" },
-          { "name": "República Dominicana", "value": "do" },
-          { "name": "Ecuador", "value": "ec" },
-          { "name": "España", "value": "eu" },
-          { "name": "Francia", "value": "fr" },
-          { "name": "Reino Unido", "value": "gb" },
-          { "name": "Guatemala", "value": "gt" },
-          { "name": "Honduras", "value": "hn" },
-          { "name": "México", "value": "mx" },
-          { "name": "Nicaragua", "value": "ni" },
-          { "name": "Otros", "value": "ot" },
-          { "name": "Panamá", "value": "pa" },
-          { "name": "Perú", "value": "pe" },
-          { "name": "Paraguay", "value": "py" },
-          { "name": "El Salvador", "value": "sv" },
-          { "name": "Estados Unidos", "value": "us" },
-          { "name": "Uruguay", "value": "uy" }
+          {
+            "name": "Argentina",
+            "value": "ar"
+          },
+          {
+            "name": "Bolivia",
+            "value": "bo"
+          },
+          {
+            "name": "Brasil",
+            "value": "br"
+          },
+          {
+            "name": "Canadá",
+            "value": "ca"
+          },
+          {
+            "name": "Chile",
+            "value": "cl"
+          },
+          {
+            "name": "Colombia",
+            "value": "co"
+          },
+          {
+            "name": "Costa Rica",
+            "value": "cr"
+          },
+          {
+            "name": "República Dominicana",
+            "value": "do"
+          },
+          {
+            "name": "Ecuador",
+            "value": "ec"
+          },
+          {
+            "name": "España",
+            "value": "eu"
+          },
+          {
+            "name": "Francia",
+            "value": "fr"
+          },
+          {
+            "name": "Reino Unido",
+            "value": "gb"
+          },
+          {
+            "name": "Guatemala",
+            "value": "gt"
+          },
+          {
+            "name": "Honduras",
+            "value": "hn"
+          },
+          {
+            "name": "México",
+            "value": "mx"
+          },
+          {
+            "name": "Nicaragua",
+            "value": "ni"
+          },
+          {
+            "name": "Otros",
+            "value": "ot"
+          },
+          {
+            "name": "Panamá",
+            "value": "pa"
+          },
+          {
+            "name": "Perú",
+            "value": "pe"
+          },
+          {
+            "name": "Paraguay",
+            "value": "py"
+          },
+          {
+            "name": "El Salvador",
+            "value": "sv"
+          },
+          {
+            "name": "Estados Unidos",
+            "value": "us"
+          },
+          {
+            "name": "Uruguay",
+            "value": "uy"
+          }
         ]
       },
       {
@@ -1256,10 +1759,22 @@
         "valueType": "string",
         "description": "Optional: Select target languages. If empty, shows in all. Compared against 'selected-language' cookie.",
         "options": [
-          { "name": "English", "value": "en" },
-          { "name": "Spanish", "value": "es" },
-          { "name": "French", "value": "fr" },
-          { "name": "Portuguese", "value": "pt" }
+          {
+            "name": "English",
+            "value": "en"
+          },
+          {
+            "name": "Spanish",
+            "value": "es"
+          },
+          {
+            "name": "French",
+            "value": "fr"
+          },
+          {
+            "name": "Portuguese",
+            "value": "pt"
+          }
         ]
       }
     ]
@@ -1446,29 +1961,98 @@
         "valueType": "string",
         "description": "Optional: Select target countries/POS. If empty, shows in all. Compared against 'selected-country' cookie (ISO-2 codes).",
         "options": [
-          { "name": "Argentina", "value": "ar" },
-          { "name": "Bolivia", "value": "bo" },
-          { "name": "Brasil", "value": "br" },
-          { "name": "Canadá", "value": "ca" },
-          { "name": "Chile", "value": "cl" },
-          { "name": "Colombia", "value": "co" },
-          { "name": "Costa Rica", "value": "cr" },
-          { "name": "República Dominicana", "value": "do" },
-          { "name": "Ecuador", "value": "ec" },
-          { "name": "España", "value": "eu" },
-          { "name": "Francia", "value": "fr" },
-          { "name": "Reino Unido", "value": "gb" },
-          { "name": "Guatemala", "value": "gt" },
-          { "name": "Honduras", "value": "hn" },
-          { "name": "México", "value": "mx" },
-          { "name": "Nicaragua", "value": "ni" },
-          { "name": "Otros", "value": "ot" },
-          { "name": "Panamá", "value": "pa" },
-          { "name": "Perú", "value": "pe" },
-          { "name": "Paraguay", "value": "py" },
-          { "name": "El Salvador", "value": "sv" },
-          { "name": "Estados Unidos", "value": "us" },
-          { "name": "Uruguay", "value": "uy" }
+          {
+            "name": "Argentina",
+            "value": "ar"
+          },
+          {
+            "name": "Bolivia",
+            "value": "bo"
+          },
+          {
+            "name": "Brasil",
+            "value": "br"
+          },
+          {
+            "name": "Canadá",
+            "value": "ca"
+          },
+          {
+            "name": "Chile",
+            "value": "cl"
+          },
+          {
+            "name": "Colombia",
+            "value": "co"
+          },
+          {
+            "name": "Costa Rica",
+            "value": "cr"
+          },
+          {
+            "name": "República Dominicana",
+            "value": "do"
+          },
+          {
+            "name": "Ecuador",
+            "value": "ec"
+          },
+          {
+            "name": "España",
+            "value": "eu"
+          },
+          {
+            "name": "Francia",
+            "value": "fr"
+          },
+          {
+            "name": "Reino Unido",
+            "value": "gb"
+          },
+          {
+            "name": "Guatemala",
+            "value": "gt"
+          },
+          {
+            "name": "Honduras",
+            "value": "hn"
+          },
+          {
+            "name": "México",
+            "value": "mx"
+          },
+          {
+            "name": "Nicaragua",
+            "value": "ni"
+          },
+          {
+            "name": "Otros",
+            "value": "ot"
+          },
+          {
+            "name": "Panamá",
+            "value": "pa"
+          },
+          {
+            "name": "Perú",
+            "value": "pe"
+          },
+          {
+            "name": "Paraguay",
+            "value": "py"
+          },
+          {
+            "name": "El Salvador",
+            "value": "sv"
+          },
+          {
+            "name": "Estados Unidos",
+            "value": "us"
+          },
+          {
+            "name": "Uruguay",
+            "value": "uy"
+          }
         ]
       },
       {
@@ -1478,10 +2062,22 @@
         "valueType": "string",
         "description": "Optional: Select target languages. If empty, shows in all. Compared against 'selected-language' cookie.",
         "options": [
-          { "name": "English", "value": "en" },
-          { "name": "Spanish", "value": "es" },
-          { "name": "French", "value": "fr" },
-          { "name": "Portuguese", "value": "pt" }
+          {
+            "name": "English",
+            "value": "en"
+          },
+          {
+            "name": "Spanish",
+            "value": "es"
+          },
+          {
+            "name": "French",
+            "value": "fr"
+          },
+          {
+            "name": "Portuguese",
+            "value": "pt"
+          }
         ]
       }
     ]
@@ -1607,29 +2203,98 @@
         "valueType": "string",
         "description": "Optional: Select target countries/POS. If empty, shows in all. Compared against 'selected-country' cookie (ISO-2 codes).",
         "options": [
-          { "name": "Argentina", "value": "ar" },
-          { "name": "Bolivia", "value": "bo" },
-          { "name": "Brasil", "value": "br" },
-          { "name": "Canadá", "value": "ca" },
-          { "name": "Chile", "value": "cl" },
-          { "name": "Colombia", "value": "co" },
-          { "name": "Costa Rica", "value": "cr" },
-          { "name": "República Dominicana", "value": "do" },
-          { "name": "Ecuador", "value": "ec" },
-          { "name": "España", "value": "eu" },
-          { "name": "Francia", "value": "fr" },
-          { "name": "Reino Unido", "value": "gb" },
-          { "name": "Guatemala", "value": "gt" },
-          { "name": "Honduras", "value": "hn" },
-          { "name": "México", "value": "mx" },
-          { "name": "Nicaragua", "value": "ni" },
-          { "name": "Otros", "value": "ot" },
-          { "name": "Panamá", "value": "pa" },
-          { "name": "Perú", "value": "pe" },
-          { "name": "Paraguay", "value": "py" },
-          { "name": "El Salvador", "value": "sv" },
-          { "name": "Estados Unidos", "value": "us" },
-          { "name": "Uruguay", "value": "uy" }
+          {
+            "name": "Argentina",
+            "value": "ar"
+          },
+          {
+            "name": "Bolivia",
+            "value": "bo"
+          },
+          {
+            "name": "Brasil",
+            "value": "br"
+          },
+          {
+            "name": "Canadá",
+            "value": "ca"
+          },
+          {
+            "name": "Chile",
+            "value": "cl"
+          },
+          {
+            "name": "Colombia",
+            "value": "co"
+          },
+          {
+            "name": "Costa Rica",
+            "value": "cr"
+          },
+          {
+            "name": "República Dominicana",
+            "value": "do"
+          },
+          {
+            "name": "Ecuador",
+            "value": "ec"
+          },
+          {
+            "name": "España",
+            "value": "eu"
+          },
+          {
+            "name": "Francia",
+            "value": "fr"
+          },
+          {
+            "name": "Reino Unido",
+            "value": "gb"
+          },
+          {
+            "name": "Guatemala",
+            "value": "gt"
+          },
+          {
+            "name": "Honduras",
+            "value": "hn"
+          },
+          {
+            "name": "México",
+            "value": "mx"
+          },
+          {
+            "name": "Nicaragua",
+            "value": "ni"
+          },
+          {
+            "name": "Otros",
+            "value": "ot"
+          },
+          {
+            "name": "Panamá",
+            "value": "pa"
+          },
+          {
+            "name": "Perú",
+            "value": "pe"
+          },
+          {
+            "name": "Paraguay",
+            "value": "py"
+          },
+          {
+            "name": "El Salvador",
+            "value": "sv"
+          },
+          {
+            "name": "Estados Unidos",
+            "value": "us"
+          },
+          {
+            "name": "Uruguay",
+            "value": "uy"
+          }
         ]
       },
       {
@@ -1639,10 +2304,22 @@
         "valueType": "string",
         "description": "Optional: Select target languages. If empty, shows in all. Compared against 'selected-language' cookie.",
         "options": [
-          { "name": "English", "value": "en" },
-          { "name": "Spanish", "value": "es" },
-          { "name": "French", "value": "fr" },
-          { "name": "Portuguese", "value": "pt" }
+          {
+            "name": "English",
+            "value": "en"
+          },
+          {
+            "name": "Spanish",
+            "value": "es"
+          },
+          {
+            "name": "French",
+            "value": "fr"
+          },
+          {
+            "name": "Portuguese",
+            "value": "pt"
+          }
         ]
       }
     ]
@@ -1753,29 +2430,98 @@
         "valueType": "string",
         "description": "Optional: Select target countries/POS. If empty, shows in all. Compared against 'selected-country' cookie (ISO-2 codes).",
         "options": [
-          { "name": "Argentina", "value": "ar" },
-          { "name": "Bolivia", "value": "bo" },
-          { "name": "Brasil", "value": "br" },
-          { "name": "Canadá", "value": "ca" },
-          { "name": "Chile", "value": "cl" },
-          { "name": "Colombia", "value": "co" },
-          { "name": "Costa Rica", "value": "cr" },
-          { "name": "República Dominicana", "value": "do" },
-          { "name": "Ecuador", "value": "ec" },
-          { "name": "España", "value": "eu" },
-          { "name": "Francia", "value": "fr" },
-          { "name": "Reino Unido", "value": "gb" },
-          { "name": "Guatemala", "value": "gt" },
-          { "name": "Honduras", "value": "hn" },
-          { "name": "México", "value": "mx" },
-          { "name": "Nicaragua", "value": "ni" },
-          { "name": "Otros", "value": "ot" },
-          { "name": "Panamá", "value": "pa" },
-          { "name": "Perú", "value": "pe" },
-          { "name": "Paraguay", "value": "py" },
-          { "name": "El Salvador", "value": "sv" },
-          { "name": "Estados Unidos", "value": "us" },
-          { "name": "Uruguay", "value": "uy" }
+          {
+            "name": "Argentina",
+            "value": "ar"
+          },
+          {
+            "name": "Bolivia",
+            "value": "bo"
+          },
+          {
+            "name": "Brasil",
+            "value": "br"
+          },
+          {
+            "name": "Canadá",
+            "value": "ca"
+          },
+          {
+            "name": "Chile",
+            "value": "cl"
+          },
+          {
+            "name": "Colombia",
+            "value": "co"
+          },
+          {
+            "name": "Costa Rica",
+            "value": "cr"
+          },
+          {
+            "name": "República Dominicana",
+            "value": "do"
+          },
+          {
+            "name": "Ecuador",
+            "value": "ec"
+          },
+          {
+            "name": "España",
+            "value": "eu"
+          },
+          {
+            "name": "Francia",
+            "value": "fr"
+          },
+          {
+            "name": "Reino Unido",
+            "value": "gb"
+          },
+          {
+            "name": "Guatemala",
+            "value": "gt"
+          },
+          {
+            "name": "Honduras",
+            "value": "hn"
+          },
+          {
+            "name": "México",
+            "value": "mx"
+          },
+          {
+            "name": "Nicaragua",
+            "value": "ni"
+          },
+          {
+            "name": "Otros",
+            "value": "ot"
+          },
+          {
+            "name": "Panamá",
+            "value": "pa"
+          },
+          {
+            "name": "Perú",
+            "value": "pe"
+          },
+          {
+            "name": "Paraguay",
+            "value": "py"
+          },
+          {
+            "name": "El Salvador",
+            "value": "sv"
+          },
+          {
+            "name": "Estados Unidos",
+            "value": "us"
+          },
+          {
+            "name": "Uruguay",
+            "value": "uy"
+          }
         ]
       },
       {
@@ -1785,10 +2531,22 @@
         "valueType": "string",
         "description": "Optional: Select target languages. If empty, shows in all. Compared against 'selected-language' cookie.",
         "options": [
-          { "name": "English", "value": "en" },
-          { "name": "Spanish", "value": "es" },
-          { "name": "French", "value": "fr" },
-          { "name": "Portuguese", "value": "pt" }
+          {
+            "name": "English",
+            "value": "en"
+          },
+          {
+            "name": "Spanish",
+            "value": "es"
+          },
+          {
+            "name": "French",
+            "value": "fr"
+          },
+          {
+            "name": "Portuguese",
+            "value": "pt"
+          }
         ]
       }
     ]
@@ -1849,29 +2607,98 @@
         "valueType": "string",
         "description": "Optional: Select target countries/POS. If empty, shows in all. Compared against 'selected-country' cookie (ISO-2 codes).",
         "options": [
-          { "name": "Argentina", "value": "ar" },
-          { "name": "Bolivia", "value": "bo" },
-          { "name": "Brasil", "value": "br" },
-          { "name": "Canadá", "value": "ca" },
-          { "name": "Chile", "value": "cl" },
-          { "name": "Colombia", "value": "co" },
-          { "name": "Costa Rica", "value": "cr" },
-          { "name": "República Dominicana", "value": "do" },
-          { "name": "Ecuador", "value": "ec" },
-          { "name": "España", "value": "eu" },
-          { "name": "Francia", "value": "fr" },
-          { "name": "Reino Unido", "value": "gb" },
-          { "name": "Guatemala", "value": "gt" },
-          { "name": "Honduras", "value": "hn" },
-          { "name": "México", "value": "mx" },
-          { "name": "Nicaragua", "value": "ni" },
-          { "name": "Otros", "value": "ot" },
-          { "name": "Panamá", "value": "pa" },
-          { "name": "Perú", "value": "pe" },
-          { "name": "Paraguay", "value": "py" },
-          { "name": "El Salvador", "value": "sv" },
-          { "name": "Estados Unidos", "value": "us" },
-          { "name": "Uruguay", "value": "uy" }
+          {
+            "name": "Argentina",
+            "value": "ar"
+          },
+          {
+            "name": "Bolivia",
+            "value": "bo"
+          },
+          {
+            "name": "Brasil",
+            "value": "br"
+          },
+          {
+            "name": "Canadá",
+            "value": "ca"
+          },
+          {
+            "name": "Chile",
+            "value": "cl"
+          },
+          {
+            "name": "Colombia",
+            "value": "co"
+          },
+          {
+            "name": "Costa Rica",
+            "value": "cr"
+          },
+          {
+            "name": "República Dominicana",
+            "value": "do"
+          },
+          {
+            "name": "Ecuador",
+            "value": "ec"
+          },
+          {
+            "name": "España",
+            "value": "eu"
+          },
+          {
+            "name": "Francia",
+            "value": "fr"
+          },
+          {
+            "name": "Reino Unido",
+            "value": "gb"
+          },
+          {
+            "name": "Guatemala",
+            "value": "gt"
+          },
+          {
+            "name": "Honduras",
+            "value": "hn"
+          },
+          {
+            "name": "México",
+            "value": "mx"
+          },
+          {
+            "name": "Nicaragua",
+            "value": "ni"
+          },
+          {
+            "name": "Otros",
+            "value": "ot"
+          },
+          {
+            "name": "Panamá",
+            "value": "pa"
+          },
+          {
+            "name": "Perú",
+            "value": "pe"
+          },
+          {
+            "name": "Paraguay",
+            "value": "py"
+          },
+          {
+            "name": "El Salvador",
+            "value": "sv"
+          },
+          {
+            "name": "Estados Unidos",
+            "value": "us"
+          },
+          {
+            "name": "Uruguay",
+            "value": "uy"
+          }
         ]
       },
       {
@@ -1881,10 +2708,22 @@
         "valueType": "string",
         "description": "Optional: Select target languages. If empty, shows in all. Compared against 'selected-language' cookie.",
         "options": [
-          { "name": "English", "value": "en" },
-          { "name": "Spanish", "value": "es" },
-          { "name": "French", "value": "fr" },
-          { "name": "Portuguese", "value": "pt" }
+          {
+            "name": "English",
+            "value": "en"
+          },
+          {
+            "name": "Spanish",
+            "value": "es"
+          },
+          {
+            "name": "French",
+            "value": "fr"
+          },
+          {
+            "name": "Portuguese",
+            "value": "pt"
+          }
         ]
       }
     ]
@@ -1899,29 +2738,98 @@
         "valueType": "string",
         "description": "Optional: Select target countries/POS. If empty, shows in all. Compared against 'selected-country' cookie (ISO-2 codes).",
         "options": [
-          { "name": "Argentina", "value": "ar" },
-          { "name": "Bolivia", "value": "bo" },
-          { "name": "Brasil", "value": "br" },
-          { "name": "Canadá", "value": "ca" },
-          { "name": "Chile", "value": "cl" },
-          { "name": "Colombia", "value": "co" },
-          { "name": "Costa Rica", "value": "cr" },
-          { "name": "República Dominicana", "value": "do" },
-          { "name": "Ecuador", "value": "ec" },
-          { "name": "España", "value": "eu" },
-          { "name": "Francia", "value": "fr" },
-          { "name": "Reino Unido", "value": "gb" },
-          { "name": "Guatemala", "value": "gt" },
-          { "name": "Honduras", "value": "hn" },
-          { "name": "México", "value": "mx" },
-          { "name": "Nicaragua", "value": "ni" },
-          { "name": "Otros", "value": "ot" },
-          { "name": "Panamá", "value": "pa" },
-          { "name": "Perú", "value": "pe" },
-          { "name": "Paraguay", "value": "py" },
-          { "name": "El Salvador", "value": "sv" },
-          { "name": "Estados Unidos", "value": "us" },
-          { "name": "Uruguay", "value": "uy" }
+          {
+            "name": "Argentina",
+            "value": "ar"
+          },
+          {
+            "name": "Bolivia",
+            "value": "bo"
+          },
+          {
+            "name": "Brasil",
+            "value": "br"
+          },
+          {
+            "name": "Canadá",
+            "value": "ca"
+          },
+          {
+            "name": "Chile",
+            "value": "cl"
+          },
+          {
+            "name": "Colombia",
+            "value": "co"
+          },
+          {
+            "name": "Costa Rica",
+            "value": "cr"
+          },
+          {
+            "name": "República Dominicana",
+            "value": "do"
+          },
+          {
+            "name": "Ecuador",
+            "value": "ec"
+          },
+          {
+            "name": "España",
+            "value": "eu"
+          },
+          {
+            "name": "Francia",
+            "value": "fr"
+          },
+          {
+            "name": "Reino Unido",
+            "value": "gb"
+          },
+          {
+            "name": "Guatemala",
+            "value": "gt"
+          },
+          {
+            "name": "Honduras",
+            "value": "hn"
+          },
+          {
+            "name": "México",
+            "value": "mx"
+          },
+          {
+            "name": "Nicaragua",
+            "value": "ni"
+          },
+          {
+            "name": "Otros",
+            "value": "ot"
+          },
+          {
+            "name": "Panamá",
+            "value": "pa"
+          },
+          {
+            "name": "Perú",
+            "value": "pe"
+          },
+          {
+            "name": "Paraguay",
+            "value": "py"
+          },
+          {
+            "name": "El Salvador",
+            "value": "sv"
+          },
+          {
+            "name": "Estados Unidos",
+            "value": "us"
+          },
+          {
+            "name": "Uruguay",
+            "value": "uy"
+          }
         ]
       },
       {
@@ -1931,10 +2839,22 @@
         "valueType": "string",
         "description": "Optional: Select target languages. If empty, shows in all. Compared against 'selected-language' cookie.",
         "options": [
-          { "name": "English", "value": "en" },
-          { "name": "Spanish", "value": "es" },
-          { "name": "French", "value": "fr" },
-          { "name": "Portuguese", "value": "pt" }
+          {
+            "name": "English",
+            "value": "en"
+          },
+          {
+            "name": "Spanish",
+            "value": "es"
+          },
+          {
+            "name": "French",
+            "value": "fr"
+          },
+          {
+            "name": "Portuguese",
+            "value": "pt"
+          }
         ]
       }
     ]
@@ -1973,29 +2893,98 @@
         "valueType": "string",
         "description": "Optional: Select target countries/POS. If empty, shows in all. Compared against 'selected-country' cookie (ISO-2 codes).",
         "options": [
-          { "name": "Argentina", "value": "ar" },
-          { "name": "Bolivia", "value": "bo" },
-          { "name": "Brasil", "value": "br" },
-          { "name": "Canadá", "value": "ca" },
-          { "name": "Chile", "value": "cl" },
-          { "name": "Colombia", "value": "co" },
-          { "name": "Costa Rica", "value": "cr" },
-          { "name": "República Dominicana", "value": "do" },
-          { "name": "Ecuador", "value": "ec" },
-          { "name": "España", "value": "eu" },
-          { "name": "Francia", "value": "fr" },
-          { "name": "Reino Unido", "value": "gb" },
-          { "name": "Guatemala", "value": "gt" },
-          { "name": "Honduras", "value": "hn" },
-          { "name": "México", "value": "mx" },
-          { "name": "Nicaragua", "value": "ni" },
-          { "name": "Otros", "value": "ot" },
-          { "name": "Panamá", "value": "pa" },
-          { "name": "Perú", "value": "pe" },
-          { "name": "Paraguay", "value": "py" },
-          { "name": "El Salvador", "value": "sv" },
-          { "name": "Estados Unidos", "value": "us" },
-          { "name": "Uruguay", "value": "uy" }
+          {
+            "name": "Argentina",
+            "value": "ar"
+          },
+          {
+            "name": "Bolivia",
+            "value": "bo"
+          },
+          {
+            "name": "Brasil",
+            "value": "br"
+          },
+          {
+            "name": "Canadá",
+            "value": "ca"
+          },
+          {
+            "name": "Chile",
+            "value": "cl"
+          },
+          {
+            "name": "Colombia",
+            "value": "co"
+          },
+          {
+            "name": "Costa Rica",
+            "value": "cr"
+          },
+          {
+            "name": "República Dominicana",
+            "value": "do"
+          },
+          {
+            "name": "Ecuador",
+            "value": "ec"
+          },
+          {
+            "name": "España",
+            "value": "eu"
+          },
+          {
+            "name": "Francia",
+            "value": "fr"
+          },
+          {
+            "name": "Reino Unido",
+            "value": "gb"
+          },
+          {
+            "name": "Guatemala",
+            "value": "gt"
+          },
+          {
+            "name": "Honduras",
+            "value": "hn"
+          },
+          {
+            "name": "México",
+            "value": "mx"
+          },
+          {
+            "name": "Nicaragua",
+            "value": "ni"
+          },
+          {
+            "name": "Otros",
+            "value": "ot"
+          },
+          {
+            "name": "Panamá",
+            "value": "pa"
+          },
+          {
+            "name": "Perú",
+            "value": "pe"
+          },
+          {
+            "name": "Paraguay",
+            "value": "py"
+          },
+          {
+            "name": "El Salvador",
+            "value": "sv"
+          },
+          {
+            "name": "Estados Unidos",
+            "value": "us"
+          },
+          {
+            "name": "Uruguay",
+            "value": "uy"
+          }
         ]
       },
       {
@@ -2005,10 +2994,22 @@
         "valueType": "string",
         "description": "Optional: Select target languages. If empty, shows in all. Compared against 'selected-language' cookie.",
         "options": [
-          { "name": "English", "value": "en" },
-          { "name": "Spanish", "value": "es" },
-          { "name": "French", "value": "fr" },
-          { "name": "Portuguese", "value": "pt" }
+          {
+            "name": "English",
+            "value": "en"
+          },
+          {
+            "name": "Spanish",
+            "value": "es"
+          },
+          {
+            "name": "French",
+            "value": "fr"
+          },
+          {
+            "name": "Portuguese",
+            "value": "pt"
+          }
         ]
       }
     ]
@@ -2297,29 +3298,98 @@
         "valueType": "string",
         "description": "Optional: Select target countries/POS. If empty, shows in all. Compared against 'selected-country' cookie (ISO-2 codes).",
         "options": [
-          { "name": "Argentina", "value": "ar" },
-          { "name": "Bolivia", "value": "bo" },
-          { "name": "Brasil", "value": "br" },
-          { "name": "Canadá", "value": "ca" },
-          { "name": "Chile", "value": "cl" },
-          { "name": "Colombia", "value": "co" },
-          { "name": "Costa Rica", "value": "cr" },
-          { "name": "República Dominicana", "value": "do" },
-          { "name": "Ecuador", "value": "ec" },
-          { "name": "España", "value": "eu" },
-          { "name": "Francia", "value": "fr" },
-          { "name": "Reino Unido", "value": "gb" },
-          { "name": "Guatemala", "value": "gt" },
-          { "name": "Honduras", "value": "hn" },
-          { "name": "México", "value": "mx" },
-          { "name": "Nicaragua", "value": "ni" },
-          { "name": "Otros", "value": "ot" },
-          { "name": "Panamá", "value": "pa" },
-          { "name": "Perú", "value": "pe" },
-          { "name": "Paraguay", "value": "py" },
-          { "name": "El Salvador", "value": "sv" },
-          { "name": "Estados Unidos", "value": "us" },
-          { "name": "Uruguay", "value": "uy" }
+          {
+            "name": "Argentina",
+            "value": "ar"
+          },
+          {
+            "name": "Bolivia",
+            "value": "bo"
+          },
+          {
+            "name": "Brasil",
+            "value": "br"
+          },
+          {
+            "name": "Canadá",
+            "value": "ca"
+          },
+          {
+            "name": "Chile",
+            "value": "cl"
+          },
+          {
+            "name": "Colombia",
+            "value": "co"
+          },
+          {
+            "name": "Costa Rica",
+            "value": "cr"
+          },
+          {
+            "name": "República Dominicana",
+            "value": "do"
+          },
+          {
+            "name": "Ecuador",
+            "value": "ec"
+          },
+          {
+            "name": "España",
+            "value": "eu"
+          },
+          {
+            "name": "Francia",
+            "value": "fr"
+          },
+          {
+            "name": "Reino Unido",
+            "value": "gb"
+          },
+          {
+            "name": "Guatemala",
+            "value": "gt"
+          },
+          {
+            "name": "Honduras",
+            "value": "hn"
+          },
+          {
+            "name": "México",
+            "value": "mx"
+          },
+          {
+            "name": "Nicaragua",
+            "value": "ni"
+          },
+          {
+            "name": "Otros",
+            "value": "ot"
+          },
+          {
+            "name": "Panamá",
+            "value": "pa"
+          },
+          {
+            "name": "Perú",
+            "value": "pe"
+          },
+          {
+            "name": "Paraguay",
+            "value": "py"
+          },
+          {
+            "name": "El Salvador",
+            "value": "sv"
+          },
+          {
+            "name": "Estados Unidos",
+            "value": "us"
+          },
+          {
+            "name": "Uruguay",
+            "value": "uy"
+          }
         ]
       },
       {
@@ -2329,10 +3399,22 @@
         "valueType": "string",
         "description": "Optional: Select target languages. If empty, shows in all. Compared against 'selected-language' cookie.",
         "options": [
-          { "name": "English", "value": "en" },
-          { "name": "Spanish", "value": "es" },
-          { "name": "French", "value": "fr" },
-          { "name": "Portuguese", "value": "pt" }
+          {
+            "name": "English",
+            "value": "en"
+          },
+          {
+            "name": "Spanish",
+            "value": "es"
+          },
+          {
+            "name": "French",
+            "value": "fr"
+          },
+          {
+            "name": "Portuguese",
+            "value": "pt"
+          }
         ]
       }
     ]
@@ -2347,29 +3429,98 @@
         "valueType": "string",
         "description": "Optional: Select target countries/POS. If empty, shows in all. Compared against 'selected-country' cookie (ISO-2 codes).",
         "options": [
-          { "name": "Argentina", "value": "ar" },
-          { "name": "Bolivia", "value": "bo" },
-          { "name": "Brasil", "value": "br" },
-          { "name": "Canadá", "value": "ca" },
-          { "name": "Chile", "value": "cl" },
-          { "name": "Colombia", "value": "co" },
-          { "name": "Costa Rica", "value": "cr" },
-          { "name": "República Dominicana", "value": "do" },
-          { "name": "Ecuador", "value": "ec" },
-          { "name": "España", "value": "eu" },
-          { "name": "Francia", "value": "fr" },
-          { "name": "Reino Unido", "value": "gb" },
-          { "name": "Guatemala", "value": "gt" },
-          { "name": "Honduras", "value": "hn" },
-          { "name": "México", "value": "mx" },
-          { "name": "Nicaragua", "value": "ni" },
-          { "name": "Otros", "value": "ot" },
-          { "name": "Panamá", "value": "pa" },
-          { "name": "Perú", "value": "pe" },
-          { "name": "Paraguay", "value": "py" },
-          { "name": "El Salvador", "value": "sv" },
-          { "name": "Estados Unidos", "value": "us" },
-          { "name": "Uruguay", "value": "uy" }
+          {
+            "name": "Argentina",
+            "value": "ar"
+          },
+          {
+            "name": "Bolivia",
+            "value": "bo"
+          },
+          {
+            "name": "Brasil",
+            "value": "br"
+          },
+          {
+            "name": "Canadá",
+            "value": "ca"
+          },
+          {
+            "name": "Chile",
+            "value": "cl"
+          },
+          {
+            "name": "Colombia",
+            "value": "co"
+          },
+          {
+            "name": "Costa Rica",
+            "value": "cr"
+          },
+          {
+            "name": "República Dominicana",
+            "value": "do"
+          },
+          {
+            "name": "Ecuador",
+            "value": "ec"
+          },
+          {
+            "name": "España",
+            "value": "eu"
+          },
+          {
+            "name": "Francia",
+            "value": "fr"
+          },
+          {
+            "name": "Reino Unido",
+            "value": "gb"
+          },
+          {
+            "name": "Guatemala",
+            "value": "gt"
+          },
+          {
+            "name": "Honduras",
+            "value": "hn"
+          },
+          {
+            "name": "México",
+            "value": "mx"
+          },
+          {
+            "name": "Nicaragua",
+            "value": "ni"
+          },
+          {
+            "name": "Otros",
+            "value": "ot"
+          },
+          {
+            "name": "Panamá",
+            "value": "pa"
+          },
+          {
+            "name": "Perú",
+            "value": "pe"
+          },
+          {
+            "name": "Paraguay",
+            "value": "py"
+          },
+          {
+            "name": "El Salvador",
+            "value": "sv"
+          },
+          {
+            "name": "Estados Unidos",
+            "value": "us"
+          },
+          {
+            "name": "Uruguay",
+            "value": "uy"
+          }
         ]
       },
       {
@@ -2379,10 +3530,22 @@
         "valueType": "string",
         "description": "Optional: Select target languages. If empty, shows in all. Compared against 'selected-language' cookie.",
         "options": [
-          { "name": "English", "value": "en" },
-          { "name": "Spanish", "value": "es" },
-          { "name": "French", "value": "fr" },
-          { "name": "Portuguese", "value": "pt" }
+          {
+            "name": "English",
+            "value": "en"
+          },
+          {
+            "name": "Spanish",
+            "value": "es"
+          },
+          {
+            "name": "French",
+            "value": "fr"
+          },
+          {
+            "name": "Portuguese",
+            "value": "pt"
+          }
         ]
       }
     ]
@@ -2413,29 +3576,98 @@
         "valueType": "string",
         "description": "Optional: Select target countries/POS. If empty, shows in all. Compared against 'selected-country' cookie (ISO-2 codes).",
         "options": [
-          { "name": "Argentina", "value": "ar" },
-          { "name": "Bolivia", "value": "bo" },
-          { "name": "Brasil", "value": "br" },
-          { "name": "Canadá", "value": "ca" },
-          { "name": "Chile", "value": "cl" },
-          { "name": "Colombia", "value": "co" },
-          { "name": "Costa Rica", "value": "cr" },
-          { "name": "República Dominicana", "value": "do" },
-          { "name": "Ecuador", "value": "ec" },
-          { "name": "España", "value": "eu" },
-          { "name": "Francia", "value": "fr" },
-          { "name": "Reino Unido", "value": "gb" },
-          { "name": "Guatemala", "value": "gt" },
-          { "name": "Honduras", "value": "hn" },
-          { "name": "México", "value": "mx" },
-          { "name": "Nicaragua", "value": "ni" },
-          { "name": "Otros", "value": "ot" },
-          { "name": "Panamá", "value": "pa" },
-          { "name": "Perú", "value": "pe" },
-          { "name": "Paraguay", "value": "py" },
-          { "name": "El Salvador", "value": "sv" },
-          { "name": "Estados Unidos", "value": "us" },
-          { "name": "Uruguay", "value": "uy" }
+          {
+            "name": "Argentina",
+            "value": "ar"
+          },
+          {
+            "name": "Bolivia",
+            "value": "bo"
+          },
+          {
+            "name": "Brasil",
+            "value": "br"
+          },
+          {
+            "name": "Canadá",
+            "value": "ca"
+          },
+          {
+            "name": "Chile",
+            "value": "cl"
+          },
+          {
+            "name": "Colombia",
+            "value": "co"
+          },
+          {
+            "name": "Costa Rica",
+            "value": "cr"
+          },
+          {
+            "name": "República Dominicana",
+            "value": "do"
+          },
+          {
+            "name": "Ecuador",
+            "value": "ec"
+          },
+          {
+            "name": "España",
+            "value": "eu"
+          },
+          {
+            "name": "Francia",
+            "value": "fr"
+          },
+          {
+            "name": "Reino Unido",
+            "value": "gb"
+          },
+          {
+            "name": "Guatemala",
+            "value": "gt"
+          },
+          {
+            "name": "Honduras",
+            "value": "hn"
+          },
+          {
+            "name": "México",
+            "value": "mx"
+          },
+          {
+            "name": "Nicaragua",
+            "value": "ni"
+          },
+          {
+            "name": "Otros",
+            "value": "ot"
+          },
+          {
+            "name": "Panamá",
+            "value": "pa"
+          },
+          {
+            "name": "Perú",
+            "value": "pe"
+          },
+          {
+            "name": "Paraguay",
+            "value": "py"
+          },
+          {
+            "name": "El Salvador",
+            "value": "sv"
+          },
+          {
+            "name": "Estados Unidos",
+            "value": "us"
+          },
+          {
+            "name": "Uruguay",
+            "value": "uy"
+          }
         ]
       },
       {
@@ -2445,10 +3677,22 @@
         "valueType": "string",
         "description": "Optional: Select target languages. If empty, shows in all. Compared against 'selected-language' cookie.",
         "options": [
-          { "name": "English", "value": "en" },
-          { "name": "Spanish", "value": "es" },
-          { "name": "French", "value": "fr" },
-          { "name": "Portuguese", "value": "pt" }
+          {
+            "name": "English",
+            "value": "en"
+          },
+          {
+            "name": "Spanish",
+            "value": "es"
+          },
+          {
+            "name": "French",
+            "value": "fr"
+          },
+          {
+            "name": "Portuguese",
+            "value": "pt"
+          }
         ]
       }
     ]
@@ -2461,13 +3705,34 @@
         "name": "layout",
         "label": "Layout",
         "options": [
-          { "name": "Featured Left Tall (4 cards)", "value": "featured-left-tall" },
-          { "name": "Horizontal + Tall Right (4 cards)", "value": "horizontal-tall-right" },
-          { "name": "Tall Left + Horizontal Stack (4 cards)", "value": "tall-left-horizontal" },
-          { "name": "Horizontal Stack + Tall Right (4 cards)", "value": "horizontal-stack-tall-right" },
-          { "name": "Three Vertical Cards (3 cards)", "value": "three-vertical" },
-          { "name": "Square + Horizontal Left, Tall Right (3 cards)", "value": "square-horizontal-tall" },
-          { "name": "Tall Left, Square + Horizontal Right (3 cards)", "value": "tall-square-horizontal" }
+          {
+            "name": "Featured Left Tall (4 cards)",
+            "value": "featured-left-tall"
+          },
+          {
+            "name": "Horizontal + Tall Right (4 cards)",
+            "value": "horizontal-tall-right"
+          },
+          {
+            "name": "Tall Left + Horizontal Stack (4 cards)",
+            "value": "tall-left-horizontal"
+          },
+          {
+            "name": "Horizontal Stack + Tall Right (4 cards)",
+            "value": "horizontal-stack-tall-right"
+          },
+          {
+            "name": "Three Vertical Cards (3 cards)",
+            "value": "three-vertical"
+          },
+          {
+            "name": "Square + Horizontal Left, Tall Right (3 cards)",
+            "value": "square-horizontal-tall"
+          },
+          {
+            "name": "Tall Left, Square + Horizontal Right (3 cards)",
+            "value": "tall-square-horizontal"
+          }
         ],
         "value": "featured-left-tall",
         "description": "Mosaic layout pattern defining card arrangement and sizes"
@@ -2477,8 +3742,14 @@
         "name": "loading",
         "label": "Loading Mode",
         "options": [
-          { "name": "Lazy", "value": "lazy" },
-          { "name": "Eager", "value": "eager" }
+          {
+            "name": "Lazy",
+            "value": "lazy"
+          },
+          {
+            "name": "Eager",
+            "value": "eager"
+          }
         ],
         "value": "lazy",
         "description": "Image loading strategy for all cards"
@@ -2490,29 +3761,98 @@
         "valueType": "string",
         "description": "Optional: Select target countries/POS. If empty, shows in all. Compared against 'selected-country' cookie (ISO-2 codes).",
         "options": [
-          { "name": "Argentina", "value": "ar" },
-          { "name": "Bolivia", "value": "bo" },
-          { "name": "Brasil", "value": "br" },
-          { "name": "Canadá", "value": "ca" },
-          { "name": "Chile", "value": "cl" },
-          { "name": "Colombia", "value": "co" },
-          { "name": "Costa Rica", "value": "cr" },
-          { "name": "República Dominicana", "value": "do" },
-          { "name": "Ecuador", "value": "ec" },
-          { "name": "España", "value": "eu" },
-          { "name": "Francia", "value": "fr" },
-          { "name": "Reino Unido", "value": "gb" },
-          { "name": "Guatemala", "value": "gt" },
-          { "name": "Honduras", "value": "hn" },
-          { "name": "México", "value": "mx" },
-          { "name": "Nicaragua", "value": "ni" },
-          { "name": "Otros", "value": "ot" },
-          { "name": "Panamá", "value": "pa" },
-          { "name": "Perú", "value": "pe" },
-          { "name": "Paraguay", "value": "py" },
-          { "name": "El Salvador", "value": "sv" },
-          { "name": "Estados Unidos", "value": "us" },
-          { "name": "Uruguay", "value": "uy" }
+          {
+            "name": "Argentina",
+            "value": "ar"
+          },
+          {
+            "name": "Bolivia",
+            "value": "bo"
+          },
+          {
+            "name": "Brasil",
+            "value": "br"
+          },
+          {
+            "name": "Canadá",
+            "value": "ca"
+          },
+          {
+            "name": "Chile",
+            "value": "cl"
+          },
+          {
+            "name": "Colombia",
+            "value": "co"
+          },
+          {
+            "name": "Costa Rica",
+            "value": "cr"
+          },
+          {
+            "name": "República Dominicana",
+            "value": "do"
+          },
+          {
+            "name": "Ecuador",
+            "value": "ec"
+          },
+          {
+            "name": "España",
+            "value": "eu"
+          },
+          {
+            "name": "Francia",
+            "value": "fr"
+          },
+          {
+            "name": "Reino Unido",
+            "value": "gb"
+          },
+          {
+            "name": "Guatemala",
+            "value": "gt"
+          },
+          {
+            "name": "Honduras",
+            "value": "hn"
+          },
+          {
+            "name": "México",
+            "value": "mx"
+          },
+          {
+            "name": "Nicaragua",
+            "value": "ni"
+          },
+          {
+            "name": "Otros",
+            "value": "ot"
+          },
+          {
+            "name": "Panamá",
+            "value": "pa"
+          },
+          {
+            "name": "Perú",
+            "value": "pe"
+          },
+          {
+            "name": "Paraguay",
+            "value": "py"
+          },
+          {
+            "name": "El Salvador",
+            "value": "sv"
+          },
+          {
+            "name": "Estados Unidos",
+            "value": "us"
+          },
+          {
+            "name": "Uruguay",
+            "value": "uy"
+          }
         ]
       },
       {
@@ -2522,10 +3862,22 @@
         "valueType": "string",
         "description": "Optional: Select target languages. If empty, shows in all. Compared against 'selected-language' cookie.",
         "options": [
-          { "name": "English", "value": "en" },
-          { "name": "Spanish", "value": "es" },
-          { "name": "French", "value": "fr" },
-          { "name": "Portuguese", "value": "pt" }
+          {
+            "name": "English",
+            "value": "en"
+          },
+          {
+            "name": "Spanish",
+            "value": "es"
+          },
+          {
+            "name": "French",
+            "value": "fr"
+          },
+          {
+            "name": "Portuguese",
+            "value": "pt"
+          }
         ]
       }
     ]
@@ -2610,8 +3962,14 @@
         "name": "linkOpensIn",
         "label": "Link Opens In",
         "options": [
-          { "name": "Same Tab", "value": "sameTab" },
-          { "name": "New Tab", "value": "newTab" }
+          {
+            "name": "Same Tab",
+            "value": "sameTab"
+          },
+          {
+            "name": "New Tab",
+            "value": "newTab"
+          }
         ],
         "value": "sameTab",
         "description": "Where the link should open (use New Tab for external links)"
@@ -2621,11 +3979,26 @@
         "name": "ctaIconBefore",
         "label": "CTA Icon Before",
         "options": [
-          { "name": "None", "value": "none" },
-          { "name": "Arrow", "value": "arrow" },
-          { "name": "Arrow Left", "value": "arrow-left" },
-          { "name": "Chevron Right", "value": "chevron-right" },
-          { "name": "Arrow Right", "value": "arrow-right" }
+          {
+            "name": "None",
+            "value": "none"
+          },
+          {
+            "name": "Arrow",
+            "value": "arrow"
+          },
+          {
+            "name": "Arrow Left",
+            "value": "arrow-left"
+          },
+          {
+            "name": "Chevron Right",
+            "value": "chevron-right"
+          },
+          {
+            "name": "Arrow Right",
+            "value": "arrow-right"
+          }
         ],
         "value": "none",
         "description": "Optional icon before CTA text"
@@ -2635,11 +4008,26 @@
         "name": "ctaIconAfter",
         "label": "CTA Icon After",
         "options": [
-          { "name": "None", "value": "none" },
-          { "name": "Arrow", "value": "arrow" },
-          { "name": "Arrow Left", "value": "arrow-left" },
-          { "name": "Chevron Right", "value": "chevron-right" },
-          { "name": "Arrow Right", "value": "arrow-right" }
+          {
+            "name": "None",
+            "value": "none"
+          },
+          {
+            "name": "Arrow",
+            "value": "arrow"
+          },
+          {
+            "name": "Arrow Left",
+            "value": "arrow-left"
+          },
+          {
+            "name": "Chevron Right",
+            "value": "chevron-right"
+          },
+          {
+            "name": "Arrow Right",
+            "value": "arrow-right"
+          }
         ],
         "value": "none",
         "description": "Icon after CTA text (commonly arrow icon)"
@@ -2649,8 +4037,14 @@
         "name": "clickBehavior",
         "label": "Click Behavior",
         "options": [
-          { "name": "CTA Only", "value": "ctaOnly" },
-          { "name": "Full Card", "value": "fullCard" }
+          {
+            "name": "CTA Only",
+            "value": "ctaOnly"
+          },
+          {
+            "name": "Full Card",
+            "value": "fullCard"
+          }
         ],
         "value": "fullCard",
         "description": "Whether only the CTA button or the entire card is clickable"
@@ -2662,29 +4056,98 @@
         "valueType": "string",
         "description": "Optional: Select target countries/POS. If empty, shows in all. Compared against 'selected-country' cookie (ISO-2 codes).",
         "options": [
-          { "name": "Argentina", "value": "ar" },
-          { "name": "Bolivia", "value": "bo" },
-          { "name": "Brasil", "value": "br" },
-          { "name": "Canadá", "value": "ca" },
-          { "name": "Chile", "value": "cl" },
-          { "name": "Colombia", "value": "co" },
-          { "name": "Costa Rica", "value": "cr" },
-          { "name": "República Dominicana", "value": "do" },
-          { "name": "Ecuador", "value": "ec" },
-          { "name": "España", "value": "eu" },
-          { "name": "Francia", "value": "fr" },
-          { "name": "Reino Unido", "value": "gb" },
-          { "name": "Guatemala", "value": "gt" },
-          { "name": "Honduras", "value": "hn" },
-          { "name": "México", "value": "mx" },
-          { "name": "Nicaragua", "value": "ni" },
-          { "name": "Otros", "value": "ot" },
-          { "name": "Panamá", "value": "pa" },
-          { "name": "Perú", "value": "pe" },
-          { "name": "Paraguay", "value": "py" },
-          { "name": "El Salvador", "value": "sv" },
-          { "name": "Estados Unidos", "value": "us" },
-          { "name": "Uruguay", "value": "uy" }
+          {
+            "name": "Argentina",
+            "value": "ar"
+          },
+          {
+            "name": "Bolivia",
+            "value": "bo"
+          },
+          {
+            "name": "Brasil",
+            "value": "br"
+          },
+          {
+            "name": "Canadá",
+            "value": "ca"
+          },
+          {
+            "name": "Chile",
+            "value": "cl"
+          },
+          {
+            "name": "Colombia",
+            "value": "co"
+          },
+          {
+            "name": "Costa Rica",
+            "value": "cr"
+          },
+          {
+            "name": "República Dominicana",
+            "value": "do"
+          },
+          {
+            "name": "Ecuador",
+            "value": "ec"
+          },
+          {
+            "name": "España",
+            "value": "eu"
+          },
+          {
+            "name": "Francia",
+            "value": "fr"
+          },
+          {
+            "name": "Reino Unido",
+            "value": "gb"
+          },
+          {
+            "name": "Guatemala",
+            "value": "gt"
+          },
+          {
+            "name": "Honduras",
+            "value": "hn"
+          },
+          {
+            "name": "México",
+            "value": "mx"
+          },
+          {
+            "name": "Nicaragua",
+            "value": "ni"
+          },
+          {
+            "name": "Otros",
+            "value": "ot"
+          },
+          {
+            "name": "Panamá",
+            "value": "pa"
+          },
+          {
+            "name": "Perú",
+            "value": "pe"
+          },
+          {
+            "name": "Paraguay",
+            "value": "py"
+          },
+          {
+            "name": "El Salvador",
+            "value": "sv"
+          },
+          {
+            "name": "Estados Unidos",
+            "value": "us"
+          },
+          {
+            "name": "Uruguay",
+            "value": "uy"
+          }
         ]
       },
       {
@@ -2694,10 +4157,22 @@
         "valueType": "string",
         "description": "Optional: Select target languages. If empty, shows in all. Compared against 'selected-language' cookie.",
         "options": [
-          { "name": "English", "value": "en" },
-          { "name": "Spanish", "value": "es" },
-          { "name": "French", "value": "fr" },
-          { "name": "Portuguese", "value": "pt" }
+          {
+            "name": "English",
+            "value": "en"
+          },
+          {
+            "name": "Spanish",
+            "value": "es"
+          },
+          {
+            "name": "French",
+            "value": "fr"
+          },
+          {
+            "name": "Portuguese",
+            "value": "pt"
+          }
         ]
       }
     ]
@@ -2742,15 +4217,42 @@
         "name": "position",
         "label": "Background Position",
         "options": [
-          { "name": "Center", "value": "center" },
-          { "name": "Top", "value": "top" },
-          { "name": "Bottom", "value": "bottom" },
-          { "name": "Left", "value": "left" },
-          { "name": "Right", "value": "right" },
-          { "name": "Top Left", "value": "top left" },
-          { "name": "Top Right", "value": "top right" },
-          { "name": "Bottom Left", "value": "bottom left" },
-          { "name": "Bottom Right", "value": "bottom right" }
+          {
+            "name": "Center",
+            "value": "center"
+          },
+          {
+            "name": "Top",
+            "value": "top"
+          },
+          {
+            "name": "Bottom",
+            "value": "bottom"
+          },
+          {
+            "name": "Left",
+            "value": "left"
+          },
+          {
+            "name": "Right",
+            "value": "right"
+          },
+          {
+            "name": "Top Left",
+            "value": "top left"
+          },
+          {
+            "name": "Top Right",
+            "value": "top right"
+          },
+          {
+            "name": "Bottom Left",
+            "value": "bottom left"
+          },
+          {
+            "name": "Bottom Right",
+            "value": "bottom right"
+          }
         ],
         "value": "center",
         "description": "Position of the background image"
@@ -2760,8 +4262,14 @@
         "name": "behavior",
         "label": "Scroll Behavior",
         "options": [
-          { "name": "Scroll (moves with content)", "value": "scroll" },
-          { "name": "Fixed (parallax effect)", "value": "fixed" }
+          {
+            "name": "Scroll (moves with content)",
+            "value": "scroll"
+          },
+          {
+            "name": "Fixed (parallax effect)",
+            "value": "fixed"
+          }
         ],
         "value": "scroll",
         "description": "How the background behaves when scrolling"
@@ -2771,8 +4279,14 @@
         "name": "size",
         "label": "Background Size",
         "options": [
-          { "name": "Cover (fill entire area)", "value": "cover" },
-          { "name": "Contain (fit entire image)", "value": "contain" }
+          {
+            "name": "Cover (fill entire area)",
+            "value": "cover"
+          },
+          {
+            "name": "Contain (fit entire image)",
+            "value": "contain"
+          }
         ],
         "value": "cover",
         "description": "How the background image is sized"
@@ -2794,11 +4308,26 @@
         "name": "variant",
         "label": "Alert Type",
         "options": [
-          { "name": "Success (Positiva)", "value": "success" },
-          { "name": "Error (Crítica)", "value": "error" },
-          { "name": "Informative (Informativa)", "value": "informative" },
-          { "name": "Caution (Advertencia)", "value": "caution" },
-          { "name": "Neutral", "value": "neutral" }
+          {
+            "name": "Success (Positiva)",
+            "value": "success"
+          },
+          {
+            "name": "Error (Crítica)",
+            "value": "error"
+          },
+          {
+            "name": "Informative (Informativa)",
+            "value": "informative"
+          },
+          {
+            "name": "Caution (Advertencia)",
+            "value": "caution"
+          },
+          {
+            "name": "Neutral",
+            "value": "neutral"
+          }
         ],
         "value": "informative",
         "description": "Type of alert to display with corresponding icon and colors"
@@ -2825,29 +4354,98 @@
         "valueType": "string",
         "description": "Optional: Select target countries/POS. If empty, shows in all. Compared against 'selected-country' cookie (ISO-2 codes).",
         "options": [
-          { "name": "Argentina", "value": "ar" },
-          { "name": "Bolivia", "value": "bo" },
-          { "name": "Brasil", "value": "br" },
-          { "name": "Canadá", "value": "ca" },
-          { "name": "Chile", "value": "cl" },
-          { "name": "Colombia", "value": "co" },
-          { "name": "Costa Rica", "value": "cr" },
-          { "name": "República Dominicana", "value": "do" },
-          { "name": "Ecuador", "value": "ec" },
-          { "name": "España", "value": "eu" },
-          { "name": "Francia", "value": "fr" },
-          { "name": "Reino Unido", "value": "gb" },
-          { "name": "Guatemala", "value": "gt" },
-          { "name": "Honduras", "value": "hn" },
-          { "name": "México", "value": "mx" },
-          { "name": "Nicaragua", "value": "ni" },
-          { "name": "Otros", "value": "ot" },
-          { "name": "Panamá", "value": "pa" },
-          { "name": "Perú", "value": "pe" },
-          { "name": "Paraguay", "value": "py" },
-          { "name": "El Salvador", "value": "sv" },
-          { "name": "Estados Unidos", "value": "us" },
-          { "name": "Uruguay", "value": "uy" }
+          {
+            "name": "Argentina",
+            "value": "ar"
+          },
+          {
+            "name": "Bolivia",
+            "value": "bo"
+          },
+          {
+            "name": "Brasil",
+            "value": "br"
+          },
+          {
+            "name": "Canadá",
+            "value": "ca"
+          },
+          {
+            "name": "Chile",
+            "value": "cl"
+          },
+          {
+            "name": "Colombia",
+            "value": "co"
+          },
+          {
+            "name": "Costa Rica",
+            "value": "cr"
+          },
+          {
+            "name": "República Dominicana",
+            "value": "do"
+          },
+          {
+            "name": "Ecuador",
+            "value": "ec"
+          },
+          {
+            "name": "España",
+            "value": "eu"
+          },
+          {
+            "name": "Francia",
+            "value": "fr"
+          },
+          {
+            "name": "Reino Unido",
+            "value": "gb"
+          },
+          {
+            "name": "Guatemala",
+            "value": "gt"
+          },
+          {
+            "name": "Honduras",
+            "value": "hn"
+          },
+          {
+            "name": "México",
+            "value": "mx"
+          },
+          {
+            "name": "Nicaragua",
+            "value": "ni"
+          },
+          {
+            "name": "Otros",
+            "value": "ot"
+          },
+          {
+            "name": "Panamá",
+            "value": "pa"
+          },
+          {
+            "name": "Perú",
+            "value": "pe"
+          },
+          {
+            "name": "Paraguay",
+            "value": "py"
+          },
+          {
+            "name": "El Salvador",
+            "value": "sv"
+          },
+          {
+            "name": "Estados Unidos",
+            "value": "us"
+          },
+          {
+            "name": "Uruguay",
+            "value": "uy"
+          }
         ]
       },
       {
@@ -2857,10 +4455,22 @@
         "valueType": "string",
         "description": "Optional: Select target languages. If empty, shows in all. Compared against 'selected-language' cookie.",
         "options": [
-          { "name": "English", "value": "en" },
-          { "name": "Spanish", "value": "es" },
-          { "name": "French", "value": "fr" },
-          { "name": "Portuguese", "value": "pt" }
+          {
+            "name": "English",
+            "value": "en"
+          },
+          {
+            "name": "Spanish",
+            "value": "es"
+          },
+          {
+            "name": "French",
+            "value": "fr"
+          },
+          {
+            "name": "Portuguese",
+            "value": "pt"
+          }
         ]
       }
     ]
@@ -2968,29 +4578,98 @@
         "valueType": "string",
         "description": "Optional: Select target countries/POS. If empty, shows in all. Compared against 'selected-country' cookie (ISO-2 codes).",
         "options": [
-          { "name": "Argentina", "value": "ar" },
-          { "name": "Bolivia", "value": "bo" },
-          { "name": "Brasil", "value": "br" },
-          { "name": "Canadá", "value": "ca" },
-          { "name": "Chile", "value": "cl" },
-          { "name": "Colombia", "value": "co" },
-          { "name": "Costa Rica", "value": "cr" },
-          { "name": "República Dominicana", "value": "do" },
-          { "name": "Ecuador", "value": "ec" },
-          { "name": "España", "value": "eu" },
-          { "name": "Francia", "value": "fr" },
-          { "name": "Reino Unido", "value": "gb" },
-          { "name": "Guatemala", "value": "gt" },
-          { "name": "Honduras", "value": "hn" },
-          { "name": "México", "value": "mx" },
-          { "name": "Nicaragua", "value": "ni" },
-          { "name": "Otros", "value": "ot" },
-          { "name": "Panamá", "value": "pa" },
-          { "name": "Perú", "value": "pe" },
-          { "name": "Paraguay", "value": "py" },
-          { "name": "El Salvador", "value": "sv" },
-          { "name": "Estados Unidos", "value": "us" },
-          { "name": "Uruguay", "value": "uy" }
+          {
+            "name": "Argentina",
+            "value": "ar"
+          },
+          {
+            "name": "Bolivia",
+            "value": "bo"
+          },
+          {
+            "name": "Brasil",
+            "value": "br"
+          },
+          {
+            "name": "Canadá",
+            "value": "ca"
+          },
+          {
+            "name": "Chile",
+            "value": "cl"
+          },
+          {
+            "name": "Colombia",
+            "value": "co"
+          },
+          {
+            "name": "Costa Rica",
+            "value": "cr"
+          },
+          {
+            "name": "República Dominicana",
+            "value": "do"
+          },
+          {
+            "name": "Ecuador",
+            "value": "ec"
+          },
+          {
+            "name": "España",
+            "value": "eu"
+          },
+          {
+            "name": "Francia",
+            "value": "fr"
+          },
+          {
+            "name": "Reino Unido",
+            "value": "gb"
+          },
+          {
+            "name": "Guatemala",
+            "value": "gt"
+          },
+          {
+            "name": "Honduras",
+            "value": "hn"
+          },
+          {
+            "name": "México",
+            "value": "mx"
+          },
+          {
+            "name": "Nicaragua",
+            "value": "ni"
+          },
+          {
+            "name": "Otros",
+            "value": "ot"
+          },
+          {
+            "name": "Panamá",
+            "value": "pa"
+          },
+          {
+            "name": "Perú",
+            "value": "pe"
+          },
+          {
+            "name": "Paraguay",
+            "value": "py"
+          },
+          {
+            "name": "El Salvador",
+            "value": "sv"
+          },
+          {
+            "name": "Estados Unidos",
+            "value": "us"
+          },
+          {
+            "name": "Uruguay",
+            "value": "uy"
+          }
         ]
       },
       {
@@ -3000,10 +4679,22 @@
         "valueType": "string",
         "description": "Optional: Select target languages. If empty, shows in all. Compared against 'selected-language' cookie.",
         "options": [
-          { "name": "English", "value": "en" },
-          { "name": "Spanish", "value": "es" },
-          { "name": "French", "value": "fr" },
-          { "name": "Portuguese", "value": "pt" }
+          {
+            "name": "English",
+            "value": "en"
+          },
+          {
+            "name": "Spanish",
+            "value": "es"
+          },
+          {
+            "name": "French",
+            "value": "fr"
+          },
+          {
+            "name": "Portuguese",
+            "value": "pt"
+          }
         ]
       }
     ]
@@ -3358,6 +5049,14 @@
             "value": "pt"
           }
         ]
+      },
+      {
+        "component": "boolean",
+        "name": "showCondor",
+        "label": "Show Condor",
+        "valueType": "boolean",
+        "description": "Display the condor decorative SVG element on the banner. Default: true.",
+        "value": true
       }
     ]
   },
@@ -3379,29 +5078,98 @@
         "valueType": "string",
         "description": "Optional: Select target countries/POS. If empty, shows in all. Compared against 'selected-country' cookie (ISO-2 codes).",
         "options": [
-          { "name": "Argentina", "value": "ar" },
-          { "name": "Bolivia", "value": "bo" },
-          { "name": "Brasil", "value": "br" },
-          { "name": "Canadá", "value": "ca" },
-          { "name": "Chile", "value": "cl" },
-          { "name": "Colombia", "value": "co" },
-          { "name": "Costa Rica", "value": "cr" },
-          { "name": "República Dominicana", "value": "do" },
-          { "name": "Ecuador", "value": "ec" },
-          { "name": "España", "value": "eu" },
-          { "name": "Francia", "value": "fr" },
-          { "name": "Reino Unido", "value": "gb" },
-          { "name": "Guatemala", "value": "gt" },
-          { "name": "Honduras", "value": "hn" },
-          { "name": "México", "value": "mx" },
-          { "name": "Nicaragua", "value": "ni" },
-          { "name": "Otros", "value": "ot" },
-          { "name": "Panamá", "value": "pa" },
-          { "name": "Perú", "value": "pe" },
-          { "name": "Paraguay", "value": "py" },
-          { "name": "El Salvador", "value": "sv" },
-          { "name": "Estados Unidos", "value": "us" },
-          { "name": "Uruguay", "value": "uy" }
+          {
+            "name": "Argentina",
+            "value": "ar"
+          },
+          {
+            "name": "Bolivia",
+            "value": "bo"
+          },
+          {
+            "name": "Brasil",
+            "value": "br"
+          },
+          {
+            "name": "Canadá",
+            "value": "ca"
+          },
+          {
+            "name": "Chile",
+            "value": "cl"
+          },
+          {
+            "name": "Colombia",
+            "value": "co"
+          },
+          {
+            "name": "Costa Rica",
+            "value": "cr"
+          },
+          {
+            "name": "República Dominicana",
+            "value": "do"
+          },
+          {
+            "name": "Ecuador",
+            "value": "ec"
+          },
+          {
+            "name": "España",
+            "value": "eu"
+          },
+          {
+            "name": "Francia",
+            "value": "fr"
+          },
+          {
+            "name": "Reino Unido",
+            "value": "gb"
+          },
+          {
+            "name": "Guatemala",
+            "value": "gt"
+          },
+          {
+            "name": "Honduras",
+            "value": "hn"
+          },
+          {
+            "name": "México",
+            "value": "mx"
+          },
+          {
+            "name": "Nicaragua",
+            "value": "ni"
+          },
+          {
+            "name": "Otros",
+            "value": "ot"
+          },
+          {
+            "name": "Panamá",
+            "value": "pa"
+          },
+          {
+            "name": "Perú",
+            "value": "pe"
+          },
+          {
+            "name": "Paraguay",
+            "value": "py"
+          },
+          {
+            "name": "El Salvador",
+            "value": "sv"
+          },
+          {
+            "name": "Estados Unidos",
+            "value": "us"
+          },
+          {
+            "name": "Uruguay",
+            "value": "uy"
+          }
         ]
       },
       {
@@ -3411,10 +5179,22 @@
         "valueType": "string",
         "description": "Optional: Select target languages. If empty, shows in all. Compared against 'selected-language' cookie.",
         "options": [
-          { "name": "English", "value": "en" },
-          { "name": "Spanish", "value": "es" },
-          { "name": "French", "value": "fr" },
-          { "name": "Portuguese", "value": "pt" }
+          {
+            "name": "English",
+            "value": "en"
+          },
+          {
+            "name": "Spanish",
+            "value": "es"
+          },
+          {
+            "name": "French",
+            "value": "fr"
+          },
+          {
+            "name": "Portuguese",
+            "value": "pt"
+          }
         ]
       }
     ]
@@ -3429,29 +5209,98 @@
         "valueType": "string",
         "description": "Optional: Select target countries/POS. If empty, shows in all. Compared against 'selected-country' cookie (ISO-2 codes).",
         "options": [
-          { "name": "Argentina", "value": "ar" },
-          { "name": "Bolivia", "value": "bo" },
-          { "name": "Brasil", "value": "br" },
-          { "name": "Canadá", "value": "ca" },
-          { "name": "Chile", "value": "cl" },
-          { "name": "Colombia", "value": "co" },
-          { "name": "Costa Rica", "value": "cr" },
-          { "name": "República Dominicana", "value": "do" },
-          { "name": "Ecuador", "value": "ec" },
-          { "name": "España", "value": "eu" },
-          { "name": "Francia", "value": "fr" },
-          { "name": "Reino Unido", "value": "gb" },
-          { "name": "Guatemala", "value": "gt" },
-          { "name": "Honduras", "value": "hn" },
-          { "name": "México", "value": "mx" },
-          { "name": "Nicaragua", "value": "ni" },
-          { "name": "Otros", "value": "ot" },
-          { "name": "Panamá", "value": "pa" },
-          { "name": "Perú", "value": "pe" },
-          { "name": "Paraguay", "value": "py" },
-          { "name": "El Salvador", "value": "sv" },
-          { "name": "Estados Unidos", "value": "us" },
-          { "name": "Uruguay", "value": "uy" }
+          {
+            "name": "Argentina",
+            "value": "ar"
+          },
+          {
+            "name": "Bolivia",
+            "value": "bo"
+          },
+          {
+            "name": "Brasil",
+            "value": "br"
+          },
+          {
+            "name": "Canadá",
+            "value": "ca"
+          },
+          {
+            "name": "Chile",
+            "value": "cl"
+          },
+          {
+            "name": "Colombia",
+            "value": "co"
+          },
+          {
+            "name": "Costa Rica",
+            "value": "cr"
+          },
+          {
+            "name": "República Dominicana",
+            "value": "do"
+          },
+          {
+            "name": "Ecuador",
+            "value": "ec"
+          },
+          {
+            "name": "España",
+            "value": "eu"
+          },
+          {
+            "name": "Francia",
+            "value": "fr"
+          },
+          {
+            "name": "Reino Unido",
+            "value": "gb"
+          },
+          {
+            "name": "Guatemala",
+            "value": "gt"
+          },
+          {
+            "name": "Honduras",
+            "value": "hn"
+          },
+          {
+            "name": "México",
+            "value": "mx"
+          },
+          {
+            "name": "Nicaragua",
+            "value": "ni"
+          },
+          {
+            "name": "Otros",
+            "value": "ot"
+          },
+          {
+            "name": "Panamá",
+            "value": "pa"
+          },
+          {
+            "name": "Perú",
+            "value": "pe"
+          },
+          {
+            "name": "Paraguay",
+            "value": "py"
+          },
+          {
+            "name": "El Salvador",
+            "value": "sv"
+          },
+          {
+            "name": "Estados Unidos",
+            "value": "us"
+          },
+          {
+            "name": "Uruguay",
+            "value": "uy"
+          }
         ]
       },
       {
@@ -3461,10 +5310,22 @@
         "valueType": "string",
         "description": "Optional: Select target languages. If empty, shows in all. Compared against 'selected-language' cookie.",
         "options": [
-          { "name": "English", "value": "en" },
-          { "name": "Spanish", "value": "es" },
-          { "name": "French", "value": "fr" },
-          { "name": "Portuguese", "value": "pt" }
+          {
+            "name": "English",
+            "value": "en"
+          },
+          {
+            "name": "Spanish",
+            "value": "es"
+          },
+          {
+            "name": "French",
+            "value": "fr"
+          },
+          {
+            "name": "Portuguese",
+            "value": "pt"
+          }
         ]
       },
       {
@@ -3488,8 +5349,14 @@
         "name": "loading",
         "label": "Image Loading Mode",
         "options": [
-          { "name": "Lazy", "value": "lazy" },
-          { "name": "Eager", "value": "eager" }
+          {
+            "name": "Lazy",
+            "value": "lazy"
+          },
+          {
+            "name": "Eager",
+            "value": "eager"
+          }
         ],
         "value": "eager",
         "description": "Image loading strategy (eager for above-the-fold content)"
@@ -3507,12 +5374,30 @@
         "name": "titleLevel",
         "label": "Title Level",
         "options": [
-          { "name": "H1", "value": "h1" },
-          { "name": "H2", "value": "h2" },
-          { "name": "H3", "value": "h3" },
-          { "name": "H4", "value": "h4" },
-          { "name": "H5", "value": "h5" },
-          { "name": "H6", "value": "h6" }
+          {
+            "name": "H1",
+            "value": "h1"
+          },
+          {
+            "name": "H2",
+            "value": "h2"
+          },
+          {
+            "name": "H3",
+            "value": "h3"
+          },
+          {
+            "name": "H4",
+            "value": "h4"
+          },
+          {
+            "name": "H5",
+            "value": "h5"
+          },
+          {
+            "name": "H6",
+            "value": "h6"
+          }
         ],
         "value": "h1",
         "description": "Semantic heading level for the title"
@@ -3530,12 +5415,30 @@
         "name": "subtitleLevel",
         "label": "Subtitle Level",
         "options": [
-          { "name": "H2", "value": "h2" },
-          { "name": "H3", "value": "h3" },
-          { "name": "H4", "value": "h4" },
-          { "name": "H5", "value": "h5" },
-          { "name": "H6", "value": "h6" },
-          { "name": "Paragraph", "value": "p" }
+          {
+            "name": "H2",
+            "value": "h2"
+          },
+          {
+            "name": "H3",
+            "value": "h3"
+          },
+          {
+            "name": "H4",
+            "value": "h4"
+          },
+          {
+            "name": "H5",
+            "value": "h5"
+          },
+          {
+            "name": "H6",
+            "value": "h6"
+          },
+          {
+            "name": "Paragraph",
+            "value": "p"
+          }
         ],
         "value": "p",
         "description": "Semantic level for the subtitle"
@@ -3545,7 +5448,10 @@
         "name": "formType",
         "label": "Form Type",
         "options": [
-          { "name": "Cabin Upgrade Form", "value": "cabin-upgrade" }
+          {
+            "name": "Cabin Upgrade Form",
+            "value": "cabin-upgrade"
+          }
         ],
         "value": "cabin-upgrade",
         "description": "Type of form to display in the banner"
@@ -3562,10 +5468,22 @@
         "name": "alertType",
         "label": "Alert Type",
         "options": [
-          { "name": "Info", "value": "info" },
-          { "name": "Success", "value": "success" },
-          { "name": "Warning", "value": "warning" },
-          { "name": "Error", "value": "error" }
+          {
+            "name": "Info",
+            "value": "info"
+          },
+          {
+            "name": "Success",
+            "value": "success"
+          },
+          {
+            "name": "Warning",
+            "value": "warning"
+          },
+          {
+            "name": "Error",
+            "value": "error"
+          }
         ],
         "value": "info",
         "description": "Visual style of the alert"
@@ -3627,8 +5545,14 @@
         "name": "loading",
         "label": "Image Loading Mode",
         "options": [
-          { "name": "Lazy", "value": "lazy" },
-          { "name": "Eager", "value": "eager" }
+          {
+            "name": "Lazy",
+            "value": "lazy"
+          },
+          {
+            "name": "Eager",
+            "value": "eager"
+          }
         ],
         "value": "eager",
         "description": "Image loading strategy (eager for above-the-fold content)"
@@ -3646,12 +5570,30 @@
         "name": "titleLevel",
         "label": "Title Level",
         "options": [
-          { "name": "H1", "value": "h1" },
-          { "name": "H2", "value": "h2" },
-          { "name": "H3", "value": "h3" },
-          { "name": "H4", "value": "h4" },
-          { "name": "H5", "value": "h5" },
-          { "name": "H6", "value": "h6" }
+          {
+            "name": "H1",
+            "value": "h1"
+          },
+          {
+            "name": "H2",
+            "value": "h2"
+          },
+          {
+            "name": "H3",
+            "value": "h3"
+          },
+          {
+            "name": "H4",
+            "value": "h4"
+          },
+          {
+            "name": "H5",
+            "value": "h5"
+          },
+          {
+            "name": "H6",
+            "value": "h6"
+          }
         ],
         "value": "h1",
         "description": "Semantic heading level for the title"
@@ -3669,12 +5611,30 @@
         "name": "subtitleLevel",
         "label": "Subtitle Level",
         "options": [
-          { "name": "H2", "value": "h2" },
-          { "name": "H3", "value": "h3" },
-          { "name": "H4", "value": "h4" },
-          { "name": "H5", "value": "h5" },
-          { "name": "H6", "value": "h6" },
-          { "name": "Paragraph", "value": "p" }
+          {
+            "name": "H2",
+            "value": "h2"
+          },
+          {
+            "name": "H3",
+            "value": "h3"
+          },
+          {
+            "name": "H4",
+            "value": "h4"
+          },
+          {
+            "name": "H5",
+            "value": "h5"
+          },
+          {
+            "name": "H6",
+            "value": "h6"
+          },
+          {
+            "name": "Paragraph",
+            "value": "p"
+          }
         ],
         "value": "p",
         "description": "Semantic level for the subtitle"
@@ -3691,10 +5651,22 @@
         "name": "alertType",
         "label": "Alert Type",
         "options": [
-          { "name": "Info", "value": "info" },
-          { "name": "Success", "value": "success" },
-          { "name": "Warning", "value": "warning" },
-          { "name": "Error", "value": "error" }
+          {
+            "name": "Info",
+            "value": "info"
+          },
+          {
+            "name": "Success",
+            "value": "success"
+          },
+          {
+            "name": "Warning",
+            "value": "warning"
+          },
+          {
+            "name": "Error",
+            "value": "error"
+          }
         ],
         "value": "info",
         "description": "Visual style of the alert"
@@ -3721,29 +5693,98 @@
         "valueType": "string",
         "description": "Optional: Select target countries/POS. If empty, shows in all. Compared against 'selected-country' cookie (ISO-2 codes).",
         "options": [
-          { "name": "Argentina", "value": "ar" },
-          { "name": "Bolivia", "value": "bo" },
-          { "name": "Brasil", "value": "br" },
-          { "name": "Canadá", "value": "ca" },
-          { "name": "Chile", "value": "cl" },
-          { "name": "Colombia", "value": "co" },
-          { "name": "Costa Rica", "value": "cr" },
-          { "name": "República Dominicana", "value": "do" },
-          { "name": "Ecuador", "value": "ec" },
-          { "name": "España", "value": "eu" },
-          { "name": "Francia", "value": "fr" },
-          { "name": "Reino Unido", "value": "gb" },
-          { "name": "Guatemala", "value": "gt" },
-          { "name": "Honduras", "value": "hn" },
-          { "name": "México", "value": "mx" },
-          { "name": "Nicaragua", "value": "ni" },
-          { "name": "Otros", "value": "ot" },
-          { "name": "Panamá", "value": "pa" },
-          { "name": "Perú", "value": "pe" },
-          { "name": "Paraguay", "value": "py" },
-          { "name": "El Salvador", "value": "sv" },
-          { "name": "Estados Unidos", "value": "us" },
-          { "name": "Uruguay", "value": "uy" }
+          {
+            "name": "Argentina",
+            "value": "ar"
+          },
+          {
+            "name": "Bolivia",
+            "value": "bo"
+          },
+          {
+            "name": "Brasil",
+            "value": "br"
+          },
+          {
+            "name": "Canadá",
+            "value": "ca"
+          },
+          {
+            "name": "Chile",
+            "value": "cl"
+          },
+          {
+            "name": "Colombia",
+            "value": "co"
+          },
+          {
+            "name": "Costa Rica",
+            "value": "cr"
+          },
+          {
+            "name": "República Dominicana",
+            "value": "do"
+          },
+          {
+            "name": "Ecuador",
+            "value": "ec"
+          },
+          {
+            "name": "España",
+            "value": "eu"
+          },
+          {
+            "name": "Francia",
+            "value": "fr"
+          },
+          {
+            "name": "Reino Unido",
+            "value": "gb"
+          },
+          {
+            "name": "Guatemala",
+            "value": "gt"
+          },
+          {
+            "name": "Honduras",
+            "value": "hn"
+          },
+          {
+            "name": "México",
+            "value": "mx"
+          },
+          {
+            "name": "Nicaragua",
+            "value": "ni"
+          },
+          {
+            "name": "Otros",
+            "value": "ot"
+          },
+          {
+            "name": "Panamá",
+            "value": "pa"
+          },
+          {
+            "name": "Perú",
+            "value": "pe"
+          },
+          {
+            "name": "Paraguay",
+            "value": "py"
+          },
+          {
+            "name": "El Salvador",
+            "value": "sv"
+          },
+          {
+            "name": "Estados Unidos",
+            "value": "us"
+          },
+          {
+            "name": "Uruguay",
+            "value": "uy"
+          }
         ]
       },
       {
@@ -3753,10 +5794,22 @@
         "valueType": "string",
         "description": "Optional: Select target languages. If empty, shows in all. Compared against 'selected-language' cookie.",
         "options": [
-          { "name": "English", "value": "en" },
-          { "name": "Spanish", "value": "es" },
-          { "name": "French", "value": "fr" },
-          { "name": "Portuguese", "value": "pt" }
+          {
+            "name": "English",
+            "value": "en"
+          },
+          {
+            "name": "Spanish",
+            "value": "es"
+          },
+          {
+            "name": "French",
+            "value": "fr"
+          },
+          {
+            "name": "Portuguese",
+            "value": "pt"
+          }
         ]
       }
     ]
@@ -3788,29 +5841,98 @@
         "valueType": "string",
         "description": "Optional: Select target countries/POS. If empty, shows in all. Compared against 'selected-country' cookie (ISO-2 codes).",
         "options": [
-          { "name": "Argentina", "value": "ar" },
-          { "name": "Bolivia", "value": "bo" },
-          { "name": "Brasil", "value": "br" },
-          { "name": "Canadá", "value": "ca" },
-          { "name": "Chile", "value": "cl" },
-          { "name": "Colombia", "value": "co" },
-          { "name": "Costa Rica", "value": "cr" },
-          { "name": "República Dominicana", "value": "do" },
-          { "name": "Ecuador", "value": "ec" },
-          { "name": "España", "value": "eu" },
-          { "name": "Francia", "value": "fr" },
-          { "name": "Reino Unido", "value": "gb" },
-          { "name": "Guatemala", "value": "gt" },
-          { "name": "Honduras", "value": "hn" },
-          { "name": "México", "value": "mx" },
-          { "name": "Nicaragua", "value": "ni" },
-          { "name": "Otros", "value": "ot" },
-          { "name": "Panamá", "value": "pa" },
-          { "name": "Perú", "value": "pe" },
-          { "name": "Paraguay", "value": "py" },
-          { "name": "El Salvador", "value": "sv" },
-          { "name": "Estados Unidos", "value": "us" },
-          { "name": "Uruguay", "value": "uy" }
+          {
+            "name": "Argentina",
+            "value": "ar"
+          },
+          {
+            "name": "Bolivia",
+            "value": "bo"
+          },
+          {
+            "name": "Brasil",
+            "value": "br"
+          },
+          {
+            "name": "Canadá",
+            "value": "ca"
+          },
+          {
+            "name": "Chile",
+            "value": "cl"
+          },
+          {
+            "name": "Colombia",
+            "value": "co"
+          },
+          {
+            "name": "Costa Rica",
+            "value": "cr"
+          },
+          {
+            "name": "República Dominicana",
+            "value": "do"
+          },
+          {
+            "name": "Ecuador",
+            "value": "ec"
+          },
+          {
+            "name": "España",
+            "value": "eu"
+          },
+          {
+            "name": "Francia",
+            "value": "fr"
+          },
+          {
+            "name": "Reino Unido",
+            "value": "gb"
+          },
+          {
+            "name": "Guatemala",
+            "value": "gt"
+          },
+          {
+            "name": "Honduras",
+            "value": "hn"
+          },
+          {
+            "name": "México",
+            "value": "mx"
+          },
+          {
+            "name": "Nicaragua",
+            "value": "ni"
+          },
+          {
+            "name": "Otros",
+            "value": "ot"
+          },
+          {
+            "name": "Panamá",
+            "value": "pa"
+          },
+          {
+            "name": "Perú",
+            "value": "pe"
+          },
+          {
+            "name": "Paraguay",
+            "value": "py"
+          },
+          {
+            "name": "El Salvador",
+            "value": "sv"
+          },
+          {
+            "name": "Estados Unidos",
+            "value": "us"
+          },
+          {
+            "name": "Uruguay",
+            "value": "uy"
+          }
         ]
       },
       {
@@ -3820,10 +5942,22 @@
         "valueType": "string",
         "description": "Optional: Select target languages. If empty, shows in all. Compared against 'selected-language' cookie.",
         "options": [
-          { "name": "English", "value": "en" },
-          { "name": "Spanish", "value": "es" },
-          { "name": "French", "value": "fr" },
-          { "name": "Portuguese", "value": "pt" }
+          {
+            "name": "English",
+            "value": "en"
+          },
+          {
+            "name": "Spanish",
+            "value": "es"
+          },
+          {
+            "name": "French",
+            "value": "fr"
+          },
+          {
+            "name": "Portuguese",
+            "value": "pt"
+          }
         ]
       }
     ]
@@ -3909,29 +6043,98 @@
         "valueType": "string",
         "description": "Optional: Select target countries/POS. If empty, shows in all. Compared against 'selected-country' cookie (ISO-2 codes).",
         "options": [
-          { "name": "Argentina", "value": "ar" },
-          { "name": "Bolivia", "value": "bo" },
-          { "name": "Brasil", "value": "br" },
-          { "name": "Canadá", "value": "ca" },
-          { "name": "Chile", "value": "cl" },
-          { "name": "Colombia", "value": "co" },
-          { "name": "Costa Rica", "value": "cr" },
-          { "name": "República Dominicana", "value": "do" },
-          { "name": "Ecuador", "value": "ec" },
-          { "name": "España", "value": "eu" },
-          { "name": "Francia", "value": "fr" },
-          { "name": "Reino Unido", "value": "gb" },
-          { "name": "Guatemala", "value": "gt" },
-          { "name": "Honduras", "value": "hn" },
-          { "name": "México", "value": "mx" },
-          { "name": "Nicaragua", "value": "ni" },
-          { "name": "Otros", "value": "ot" },
-          { "name": "Panamá", "value": "pa" },
-          { "name": "Perú", "value": "pe" },
-          { "name": "Paraguay", "value": "py" },
-          { "name": "El Salvador", "value": "sv" },
-          { "name": "Estados Unidos", "value": "us" },
-          { "name": "Uruguay", "value": "uy" }
+          {
+            "name": "Argentina",
+            "value": "ar"
+          },
+          {
+            "name": "Bolivia",
+            "value": "bo"
+          },
+          {
+            "name": "Brasil",
+            "value": "br"
+          },
+          {
+            "name": "Canadá",
+            "value": "ca"
+          },
+          {
+            "name": "Chile",
+            "value": "cl"
+          },
+          {
+            "name": "Colombia",
+            "value": "co"
+          },
+          {
+            "name": "Costa Rica",
+            "value": "cr"
+          },
+          {
+            "name": "República Dominicana",
+            "value": "do"
+          },
+          {
+            "name": "Ecuador",
+            "value": "ec"
+          },
+          {
+            "name": "España",
+            "value": "eu"
+          },
+          {
+            "name": "Francia",
+            "value": "fr"
+          },
+          {
+            "name": "Reino Unido",
+            "value": "gb"
+          },
+          {
+            "name": "Guatemala",
+            "value": "gt"
+          },
+          {
+            "name": "Honduras",
+            "value": "hn"
+          },
+          {
+            "name": "México",
+            "value": "mx"
+          },
+          {
+            "name": "Nicaragua",
+            "value": "ni"
+          },
+          {
+            "name": "Otros",
+            "value": "ot"
+          },
+          {
+            "name": "Panamá",
+            "value": "pa"
+          },
+          {
+            "name": "Perú",
+            "value": "pe"
+          },
+          {
+            "name": "Paraguay",
+            "value": "py"
+          },
+          {
+            "name": "El Salvador",
+            "value": "sv"
+          },
+          {
+            "name": "Estados Unidos",
+            "value": "us"
+          },
+          {
+            "name": "Uruguay",
+            "value": "uy"
+          }
         ]
       },
       {
@@ -3941,10 +6144,22 @@
         "valueType": "string",
         "description": "Optional: Select target languages. If empty, shows in all. Compared against 'selected-language' cookie.",
         "options": [
-          { "name": "English", "value": "en" },
-          { "name": "Spanish", "value": "es" },
-          { "name": "French", "value": "fr" },
-          { "name": "Portuguese", "value": "pt" }
+          {
+            "name": "English",
+            "value": "en"
+          },
+          {
+            "name": "Spanish",
+            "value": "es"
+          },
+          {
+            "name": "French",
+            "value": "fr"
+          },
+          {
+            "name": "Portuguese",
+            "value": "pt"
+          }
         ]
       }
     ]
@@ -4180,29 +6395,98 @@
         "valueType": "string",
         "description": "Optional: Select target countries/POS. If empty, shows in all. Compared against 'selected-country' cookie (ISO-2 codes).",
         "options": [
-          { "name": "Argentina", "value": "ar" },
-          { "name": "Bolivia", "value": "bo" },
-          { "name": "Brasil", "value": "br" },
-          { "name": "Canadá", "value": "ca" },
-          { "name": "Chile", "value": "cl" },
-          { "name": "Colombia", "value": "co" },
-          { "name": "Costa Rica", "value": "cr" },
-          { "name": "República Dominicana", "value": "do" },
-          { "name": "Ecuador", "value": "ec" },
-          { "name": "España", "value": "eu" },
-          { "name": "Francia", "value": "fr" },
-          { "name": "Reino Unido", "value": "gb" },
-          { "name": "Guatemala", "value": "gt" },
-          { "name": "Honduras", "value": "hn" },
-          { "name": "México", "value": "mx" },
-          { "name": "Nicaragua", "value": "ni" },
-          { "name": "Otros", "value": "ot" },
-          { "name": "Panamá", "value": "pa" },
-          { "name": "Perú", "value": "pe" },
-          { "name": "Paraguay", "value": "py" },
-          { "name": "El Salvador", "value": "sv" },
-          { "name": "Estados Unidos", "value": "us" },
-          { "name": "Uruguay", "value": "uy" }
+          {
+            "name": "Argentina",
+            "value": "ar"
+          },
+          {
+            "name": "Bolivia",
+            "value": "bo"
+          },
+          {
+            "name": "Brasil",
+            "value": "br"
+          },
+          {
+            "name": "Canadá",
+            "value": "ca"
+          },
+          {
+            "name": "Chile",
+            "value": "cl"
+          },
+          {
+            "name": "Colombia",
+            "value": "co"
+          },
+          {
+            "name": "Costa Rica",
+            "value": "cr"
+          },
+          {
+            "name": "República Dominicana",
+            "value": "do"
+          },
+          {
+            "name": "Ecuador",
+            "value": "ec"
+          },
+          {
+            "name": "España",
+            "value": "eu"
+          },
+          {
+            "name": "Francia",
+            "value": "fr"
+          },
+          {
+            "name": "Reino Unido",
+            "value": "gb"
+          },
+          {
+            "name": "Guatemala",
+            "value": "gt"
+          },
+          {
+            "name": "Honduras",
+            "value": "hn"
+          },
+          {
+            "name": "México",
+            "value": "mx"
+          },
+          {
+            "name": "Nicaragua",
+            "value": "ni"
+          },
+          {
+            "name": "Otros",
+            "value": "ot"
+          },
+          {
+            "name": "Panamá",
+            "value": "pa"
+          },
+          {
+            "name": "Perú",
+            "value": "pe"
+          },
+          {
+            "name": "Paraguay",
+            "value": "py"
+          },
+          {
+            "name": "El Salvador",
+            "value": "sv"
+          },
+          {
+            "name": "Estados Unidos",
+            "value": "us"
+          },
+          {
+            "name": "Uruguay",
+            "value": "uy"
+          }
         ]
       },
       {
@@ -4212,10 +6496,22 @@
         "valueType": "string",
         "description": "Optional: Select target languages. If empty, shows in all. Compared against 'selected-language' cookie.",
         "options": [
-          { "name": "English", "value": "en" },
-          { "name": "Spanish", "value": "es" },
-          { "name": "French", "value": "fr" },
-          { "name": "Portuguese", "value": "pt" }
+          {
+            "name": "English",
+            "value": "en"
+          },
+          {
+            "name": "Spanish",
+            "value": "es"
+          },
+          {
+            "name": "French",
+            "value": "fr"
+          },
+          {
+            "name": "Portuguese",
+            "value": "pt"
+          }
         ]
       }
     ]
@@ -4354,29 +6650,98 @@
         "valueType": "string",
         "description": "Optional: Select target countries/POS. If empty, shows in all. Compared against 'selected-country' cookie (ISO-2 codes).",
         "options": [
-          { "name": "Argentina", "value": "ar" },
-          { "name": "Bolivia", "value": "bo" },
-          { "name": "Brasil", "value": "br" },
-          { "name": "Canadá", "value": "ca" },
-          { "name": "Chile", "value": "cl" },
-          { "name": "Colombia", "value": "co" },
-          { "name": "Costa Rica", "value": "cr" },
-          { "name": "República Dominicana", "value": "do" },
-          { "name": "Ecuador", "value": "ec" },
-          { "name": "España", "value": "eu" },
-          { "name": "Francia", "value": "fr" },
-          { "name": "Reino Unido", "value": "gb" },
-          { "name": "Guatemala", "value": "gt" },
-          { "name": "Honduras", "value": "hn" },
-          { "name": "México", "value": "mx" },
-          { "name": "Nicaragua", "value": "ni" },
-          { "name": "Otros", "value": "ot" },
-          { "name": "Panamá", "value": "pa" },
-          { "name": "Perú", "value": "pe" },
-          { "name": "Paraguay", "value": "py" },
-          { "name": "El Salvador", "value": "sv" },
-          { "name": "Estados Unidos", "value": "us" },
-          { "name": "Uruguay", "value": "uy" }
+          {
+            "name": "Argentina",
+            "value": "ar"
+          },
+          {
+            "name": "Bolivia",
+            "value": "bo"
+          },
+          {
+            "name": "Brasil",
+            "value": "br"
+          },
+          {
+            "name": "Canadá",
+            "value": "ca"
+          },
+          {
+            "name": "Chile",
+            "value": "cl"
+          },
+          {
+            "name": "Colombia",
+            "value": "co"
+          },
+          {
+            "name": "Costa Rica",
+            "value": "cr"
+          },
+          {
+            "name": "República Dominicana",
+            "value": "do"
+          },
+          {
+            "name": "Ecuador",
+            "value": "ec"
+          },
+          {
+            "name": "España",
+            "value": "eu"
+          },
+          {
+            "name": "Francia",
+            "value": "fr"
+          },
+          {
+            "name": "Reino Unido",
+            "value": "gb"
+          },
+          {
+            "name": "Guatemala",
+            "value": "gt"
+          },
+          {
+            "name": "Honduras",
+            "value": "hn"
+          },
+          {
+            "name": "México",
+            "value": "mx"
+          },
+          {
+            "name": "Nicaragua",
+            "value": "ni"
+          },
+          {
+            "name": "Otros",
+            "value": "ot"
+          },
+          {
+            "name": "Panamá",
+            "value": "pa"
+          },
+          {
+            "name": "Perú",
+            "value": "pe"
+          },
+          {
+            "name": "Paraguay",
+            "value": "py"
+          },
+          {
+            "name": "El Salvador",
+            "value": "sv"
+          },
+          {
+            "name": "Estados Unidos",
+            "value": "us"
+          },
+          {
+            "name": "Uruguay",
+            "value": "uy"
+          }
         ]
       },
       {
@@ -4386,10 +6751,22 @@
         "valueType": "string",
         "description": "Optional: Select target languages. If empty, shows in all. Compared against 'selected-language' cookie.",
         "options": [
-          { "name": "English", "value": "en" },
-          { "name": "Spanish", "value": "es" },
-          { "name": "French", "value": "fr" },
-          { "name": "Portuguese", "value": "pt" }
+          {
+            "name": "English",
+            "value": "en"
+          },
+          {
+            "name": "Spanish",
+            "value": "es"
+          },
+          {
+            "name": "French",
+            "value": "fr"
+          },
+          {
+            "name": "Portuguese",
+            "value": "pt"
+          }
         ]
       }
     ]
@@ -4495,29 +6872,98 @@
         "valueType": "string",
         "description": "Optional: Select target countries/POS. If empty, shows in all. Compared against 'selected-country' cookie (ISO-2 codes).",
         "options": [
-          { "name": "Argentina", "value": "ar" },
-          { "name": "Bolivia", "value": "bo" },
-          { "name": "Brasil", "value": "br" },
-          { "name": "Canadá", "value": "ca" },
-          { "name": "Chile", "value": "cl" },
-          { "name": "Colombia", "value": "co" },
-          { "name": "Costa Rica", "value": "cr" },
-          { "name": "República Dominicana", "value": "do" },
-          { "name": "Ecuador", "value": "ec" },
-          { "name": "España", "value": "eu" },
-          { "name": "Francia", "value": "fr" },
-          { "name": "Reino Unido", "value": "gb" },
-          { "name": "Guatemala", "value": "gt" },
-          { "name": "Honduras", "value": "hn" },
-          { "name": "México", "value": "mx" },
-          { "name": "Nicaragua", "value": "ni" },
-          { "name": "Otros", "value": "ot" },
-          { "name": "Panamá", "value": "pa" },
-          { "name": "Perú", "value": "pe" },
-          { "name": "Paraguay", "value": "py" },
-          { "name": "El Salvador", "value": "sv" },
-          { "name": "Estados Unidos", "value": "us" },
-          { "name": "Uruguay", "value": "uy" }
+          {
+            "name": "Argentina",
+            "value": "ar"
+          },
+          {
+            "name": "Bolivia",
+            "value": "bo"
+          },
+          {
+            "name": "Brasil",
+            "value": "br"
+          },
+          {
+            "name": "Canadá",
+            "value": "ca"
+          },
+          {
+            "name": "Chile",
+            "value": "cl"
+          },
+          {
+            "name": "Colombia",
+            "value": "co"
+          },
+          {
+            "name": "Costa Rica",
+            "value": "cr"
+          },
+          {
+            "name": "República Dominicana",
+            "value": "do"
+          },
+          {
+            "name": "Ecuador",
+            "value": "ec"
+          },
+          {
+            "name": "España",
+            "value": "eu"
+          },
+          {
+            "name": "Francia",
+            "value": "fr"
+          },
+          {
+            "name": "Reino Unido",
+            "value": "gb"
+          },
+          {
+            "name": "Guatemala",
+            "value": "gt"
+          },
+          {
+            "name": "Honduras",
+            "value": "hn"
+          },
+          {
+            "name": "México",
+            "value": "mx"
+          },
+          {
+            "name": "Nicaragua",
+            "value": "ni"
+          },
+          {
+            "name": "Otros",
+            "value": "ot"
+          },
+          {
+            "name": "Panamá",
+            "value": "pa"
+          },
+          {
+            "name": "Perú",
+            "value": "pe"
+          },
+          {
+            "name": "Paraguay",
+            "value": "py"
+          },
+          {
+            "name": "El Salvador",
+            "value": "sv"
+          },
+          {
+            "name": "Estados Unidos",
+            "value": "us"
+          },
+          {
+            "name": "Uruguay",
+            "value": "uy"
+          }
         ]
       },
       {
@@ -4527,10 +6973,22 @@
         "valueType": "string",
         "description": "Optional: Select target languages. If empty, shows in all. Compared against 'selected-language' cookie.",
         "options": [
-          { "name": "English", "value": "en" },
-          { "name": "Spanish", "value": "es" },
-          { "name": "French", "value": "fr" },
-          { "name": "Portuguese", "value": "pt" }
+          {
+            "name": "English",
+            "value": "en"
+          },
+          {
+            "name": "Spanish",
+            "value": "es"
+          },
+          {
+            "name": "French",
+            "value": "fr"
+          },
+          {
+            "name": "Portuguese",
+            "value": "pt"
+          }
         ]
       }
     ]
@@ -4753,29 +7211,98 @@
         "valueType": "string",
         "description": "Optional: Select target countries/POS. If empty, shows in all. Compared against 'selected-country' cookie (ISO-2 codes).",
         "options": [
-          { "name": "Argentina", "value": "ar" },
-          { "name": "Bolivia", "value": "bo" },
-          { "name": "Brasil", "value": "br" },
-          { "name": "Canadá", "value": "ca" },
-          { "name": "Chile", "value": "cl" },
-          { "name": "Colombia", "value": "co" },
-          { "name": "Costa Rica", "value": "cr" },
-          { "name": "República Dominicana", "value": "do" },
-          { "name": "Ecuador", "value": "ec" },
-          { "name": "España", "value": "eu" },
-          { "name": "Francia", "value": "fr" },
-          { "name": "Reino Unido", "value": "gb" },
-          { "name": "Guatemala", "value": "gt" },
-          { "name": "Honduras", "value": "hn" },
-          { "name": "México", "value": "mx" },
-          { "name": "Nicaragua", "value": "ni" },
-          { "name": "Otros", "value": "ot" },
-          { "name": "Panamá", "value": "pa" },
-          { "name": "Perú", "value": "pe" },
-          { "name": "Paraguay", "value": "py" },
-          { "name": "El Salvador", "value": "sv" },
-          { "name": "Estados Unidos", "value": "us" },
-          { "name": "Uruguay", "value": "uy" }
+          {
+            "name": "Argentina",
+            "value": "ar"
+          },
+          {
+            "name": "Bolivia",
+            "value": "bo"
+          },
+          {
+            "name": "Brasil",
+            "value": "br"
+          },
+          {
+            "name": "Canadá",
+            "value": "ca"
+          },
+          {
+            "name": "Chile",
+            "value": "cl"
+          },
+          {
+            "name": "Colombia",
+            "value": "co"
+          },
+          {
+            "name": "Costa Rica",
+            "value": "cr"
+          },
+          {
+            "name": "República Dominicana",
+            "value": "do"
+          },
+          {
+            "name": "Ecuador",
+            "value": "ec"
+          },
+          {
+            "name": "España",
+            "value": "eu"
+          },
+          {
+            "name": "Francia",
+            "value": "fr"
+          },
+          {
+            "name": "Reino Unido",
+            "value": "gb"
+          },
+          {
+            "name": "Guatemala",
+            "value": "gt"
+          },
+          {
+            "name": "Honduras",
+            "value": "hn"
+          },
+          {
+            "name": "México",
+            "value": "mx"
+          },
+          {
+            "name": "Nicaragua",
+            "value": "ni"
+          },
+          {
+            "name": "Otros",
+            "value": "ot"
+          },
+          {
+            "name": "Panamá",
+            "value": "pa"
+          },
+          {
+            "name": "Perú",
+            "value": "pe"
+          },
+          {
+            "name": "Paraguay",
+            "value": "py"
+          },
+          {
+            "name": "El Salvador",
+            "value": "sv"
+          },
+          {
+            "name": "Estados Unidos",
+            "value": "us"
+          },
+          {
+            "name": "Uruguay",
+            "value": "uy"
+          }
         ]
       },
       {
@@ -4785,10 +7312,22 @@
         "valueType": "string",
         "description": "Optional: Select target languages. If empty, shows in all. Compared against 'selected-language' cookie.",
         "options": [
-          { "name": "English", "value": "en" },
-          { "name": "Spanish", "value": "es" },
-          { "name": "French", "value": "fr" },
-          { "name": "Portuguese", "value": "pt" }
+          {
+            "name": "English",
+            "value": "en"
+          },
+          {
+            "name": "Spanish",
+            "value": "es"
+          },
+          {
+            "name": "French",
+            "value": "fr"
+          },
+          {
+            "name": "Portuguese",
+            "value": "pt"
+          }
         ]
       },
       {
@@ -4898,29 +7437,98 @@
         "valueType": "string",
         "description": "Optional: Select target countries/POS. If empty, shows in all. Compared against 'selected-country' cookie (ISO-2 codes).",
         "options": [
-          { "name": "Argentina", "value": "ar" },
-          { "name": "Bolivia", "value": "bo" },
-          { "name": "Brasil", "value": "br" },
-          { "name": "Canadá", "value": "ca" },
-          { "name": "Chile", "value": "cl" },
-          { "name": "Colombia", "value": "co" },
-          { "name": "Costa Rica", "value": "cr" },
-          { "name": "República Dominicana", "value": "do" },
-          { "name": "Ecuador", "value": "ec" },
-          { "name": "España", "value": "eu" },
-          { "name": "Francia", "value": "fr" },
-          { "name": "Reino Unido", "value": "gb" },
-          { "name": "Guatemala", "value": "gt" },
-          { "name": "Honduras", "value": "hn" },
-          { "name": "México", "value": "mx" },
-          { "name": "Nicaragua", "value": "ni" },
-          { "name": "Otros", "value": "ot" },
-          { "name": "Panamá", "value": "pa" },
-          { "name": "Perú", "value": "pe" },
-          { "name": "Paraguay", "value": "py" },
-          { "name": "El Salvador", "value": "sv" },
-          { "name": "Estados Unidos", "value": "us" },
-          { "name": "Uruguay", "value": "uy" }
+          {
+            "name": "Argentina",
+            "value": "ar"
+          },
+          {
+            "name": "Bolivia",
+            "value": "bo"
+          },
+          {
+            "name": "Brasil",
+            "value": "br"
+          },
+          {
+            "name": "Canadá",
+            "value": "ca"
+          },
+          {
+            "name": "Chile",
+            "value": "cl"
+          },
+          {
+            "name": "Colombia",
+            "value": "co"
+          },
+          {
+            "name": "Costa Rica",
+            "value": "cr"
+          },
+          {
+            "name": "República Dominicana",
+            "value": "do"
+          },
+          {
+            "name": "Ecuador",
+            "value": "ec"
+          },
+          {
+            "name": "España",
+            "value": "eu"
+          },
+          {
+            "name": "Francia",
+            "value": "fr"
+          },
+          {
+            "name": "Reino Unido",
+            "value": "gb"
+          },
+          {
+            "name": "Guatemala",
+            "value": "gt"
+          },
+          {
+            "name": "Honduras",
+            "value": "hn"
+          },
+          {
+            "name": "México",
+            "value": "mx"
+          },
+          {
+            "name": "Nicaragua",
+            "value": "ni"
+          },
+          {
+            "name": "Otros",
+            "value": "ot"
+          },
+          {
+            "name": "Panamá",
+            "value": "pa"
+          },
+          {
+            "name": "Perú",
+            "value": "pe"
+          },
+          {
+            "name": "Paraguay",
+            "value": "py"
+          },
+          {
+            "name": "El Salvador",
+            "value": "sv"
+          },
+          {
+            "name": "Estados Unidos",
+            "value": "us"
+          },
+          {
+            "name": "Uruguay",
+            "value": "uy"
+          }
         ]
       },
       {
@@ -4930,10 +7538,22 @@
         "valueType": "string",
         "description": "Optional: Select target languages. If empty, shows in all. Compared against 'selected-language' cookie.",
         "options": [
-          { "name": "English", "value": "en" },
-          { "name": "Spanish", "value": "es" },
-          { "name": "French", "value": "fr" },
-          { "name": "Portuguese", "value": "pt" }
+          {
+            "name": "English",
+            "value": "en"
+          },
+          {
+            "name": "Spanish",
+            "value": "es"
+          },
+          {
+            "name": "French",
+            "value": "fr"
+          },
+          {
+            "name": "Portuguese",
+            "value": "pt"
+          }
         ]
       },
       {
@@ -4983,29 +7603,98 @@
         "valueType": "string",
         "description": "Optional: Select target countries/POS. If empty, shows in all. Compared against 'selected-country' cookie (ISO-2 codes).",
         "options": [
-          { "name": "Argentina", "value": "ar" },
-          { "name": "Bolivia", "value": "bo" },
-          { "name": "Brasil", "value": "br" },
-          { "name": "Canadá", "value": "ca" },
-          { "name": "Chile", "value": "cl" },
-          { "name": "Colombia", "value": "co" },
-          { "name": "Costa Rica", "value": "cr" },
-          { "name": "República Dominicana", "value": "do" },
-          { "name": "Ecuador", "value": "ec" },
-          { "name": "España", "value": "eu" },
-          { "name": "Francia", "value": "fr" },
-          { "name": "Reino Unido", "value": "gb" },
-          { "name": "Guatemala", "value": "gt" },
-          { "name": "Honduras", "value": "hn" },
-          { "name": "México", "value": "mx" },
-          { "name": "Nicaragua", "value": "ni" },
-          { "name": "Otros", "value": "ot" },
-          { "name": "Panamá", "value": "pa" },
-          { "name": "Perú", "value": "pe" },
-          { "name": "Paraguay", "value": "py" },
-          { "name": "El Salvador", "value": "sv" },
-          { "name": "Estados Unidos", "value": "us" },
-          { "name": "Uruguay", "value": "uy" }
+          {
+            "name": "Argentina",
+            "value": "ar"
+          },
+          {
+            "name": "Bolivia",
+            "value": "bo"
+          },
+          {
+            "name": "Brasil",
+            "value": "br"
+          },
+          {
+            "name": "Canadá",
+            "value": "ca"
+          },
+          {
+            "name": "Chile",
+            "value": "cl"
+          },
+          {
+            "name": "Colombia",
+            "value": "co"
+          },
+          {
+            "name": "Costa Rica",
+            "value": "cr"
+          },
+          {
+            "name": "República Dominicana",
+            "value": "do"
+          },
+          {
+            "name": "Ecuador",
+            "value": "ec"
+          },
+          {
+            "name": "España",
+            "value": "eu"
+          },
+          {
+            "name": "Francia",
+            "value": "fr"
+          },
+          {
+            "name": "Reino Unido",
+            "value": "gb"
+          },
+          {
+            "name": "Guatemala",
+            "value": "gt"
+          },
+          {
+            "name": "Honduras",
+            "value": "hn"
+          },
+          {
+            "name": "México",
+            "value": "mx"
+          },
+          {
+            "name": "Nicaragua",
+            "value": "ni"
+          },
+          {
+            "name": "Otros",
+            "value": "ot"
+          },
+          {
+            "name": "Panamá",
+            "value": "pa"
+          },
+          {
+            "name": "Perú",
+            "value": "pe"
+          },
+          {
+            "name": "Paraguay",
+            "value": "py"
+          },
+          {
+            "name": "El Salvador",
+            "value": "sv"
+          },
+          {
+            "name": "Estados Unidos",
+            "value": "us"
+          },
+          {
+            "name": "Uruguay",
+            "value": "uy"
+          }
         ]
       },
       {
@@ -5015,10 +7704,22 @@
         "valueType": "string",
         "description": "Optional: Select target languages. If empty, shows in all. Compared against 'selected-language' cookie.",
         "options": [
-          { "name": "English", "value": "en" },
-          { "name": "Spanish", "value": "es" },
-          { "name": "French", "value": "fr" },
-          { "name": "Portuguese", "value": "pt" }
+          {
+            "name": "English",
+            "value": "en"
+          },
+          {
+            "name": "Spanish",
+            "value": "es"
+          },
+          {
+            "name": "French",
+            "value": "fr"
+          },
+          {
+            "name": "Portuguese",
+            "value": "pt"
+          }
         ]
       }
     ]
@@ -5062,29 +7763,98 @@
         "valueType": "string",
         "description": "Optional: Select target countries/POS. If empty, shows in all. Compared against 'selected-country' cookie (ISO-2 codes).",
         "options": [
-          { "name": "Argentina", "value": "ar" },
-          { "name": "Bolivia", "value": "bo" },
-          { "name": "Brasil", "value": "br" },
-          { "name": "Canadá", "value": "ca" },
-          { "name": "Chile", "value": "cl" },
-          { "name": "Colombia", "value": "co" },
-          { "name": "Costa Rica", "value": "cr" },
-          { "name": "República Dominicana", "value": "do" },
-          { "name": "Ecuador", "value": "ec" },
-          { "name": "España", "value": "eu" },
-          { "name": "Francia", "value": "fr" },
-          { "name": "Reino Unido", "value": "gb" },
-          { "name": "Guatemala", "value": "gt" },
-          { "name": "Honduras", "value": "hn" },
-          { "name": "México", "value": "mx" },
-          { "name": "Nicaragua", "value": "ni" },
-          { "name": "Otros", "value": "ot" },
-          { "name": "Panamá", "value": "pa" },
-          { "name": "Perú", "value": "pe" },
-          { "name": "Paraguay", "value": "py" },
-          { "name": "El Salvador", "value": "sv" },
-          { "name": "Estados Unidos", "value": "us" },
-          { "name": "Uruguay", "value": "uy" }
+          {
+            "name": "Argentina",
+            "value": "ar"
+          },
+          {
+            "name": "Bolivia",
+            "value": "bo"
+          },
+          {
+            "name": "Brasil",
+            "value": "br"
+          },
+          {
+            "name": "Canadá",
+            "value": "ca"
+          },
+          {
+            "name": "Chile",
+            "value": "cl"
+          },
+          {
+            "name": "Colombia",
+            "value": "co"
+          },
+          {
+            "name": "Costa Rica",
+            "value": "cr"
+          },
+          {
+            "name": "República Dominicana",
+            "value": "do"
+          },
+          {
+            "name": "Ecuador",
+            "value": "ec"
+          },
+          {
+            "name": "España",
+            "value": "eu"
+          },
+          {
+            "name": "Francia",
+            "value": "fr"
+          },
+          {
+            "name": "Reino Unido",
+            "value": "gb"
+          },
+          {
+            "name": "Guatemala",
+            "value": "gt"
+          },
+          {
+            "name": "Honduras",
+            "value": "hn"
+          },
+          {
+            "name": "México",
+            "value": "mx"
+          },
+          {
+            "name": "Nicaragua",
+            "value": "ni"
+          },
+          {
+            "name": "Otros",
+            "value": "ot"
+          },
+          {
+            "name": "Panamá",
+            "value": "pa"
+          },
+          {
+            "name": "Perú",
+            "value": "pe"
+          },
+          {
+            "name": "Paraguay",
+            "value": "py"
+          },
+          {
+            "name": "El Salvador",
+            "value": "sv"
+          },
+          {
+            "name": "Estados Unidos",
+            "value": "us"
+          },
+          {
+            "name": "Uruguay",
+            "value": "uy"
+          }
         ]
       },
       {
@@ -5094,10 +7864,22 @@
         "valueType": "string",
         "description": "Optional: Select target languages. If empty, shows in all. Compared against 'selected-language' cookie.",
         "options": [
-          { "name": "English", "value": "en" },
-          { "name": "Spanish", "value": "es" },
-          { "name": "French", "value": "fr" },
-          { "name": "Portuguese", "value": "pt" }
+          {
+            "name": "English",
+            "value": "en"
+          },
+          {
+            "name": "Spanish",
+            "value": "es"
+          },
+          {
+            "name": "French",
+            "value": "fr"
+          },
+          {
+            "name": "Portuguese",
+            "value": "pt"
+          }
         ]
       }
     ]
@@ -5112,29 +7894,98 @@
         "valueType": "string",
         "description": "Optional: Select target countries/POS. If empty, shows in all. Compared against 'selected-country' cookie (ISO-2 codes).",
         "options": [
-          { "name": "Argentina", "value": "ar" },
-          { "name": "Bolivia", "value": "bo" },
-          { "name": "Brasil", "value": "br" },
-          { "name": "Canadá", "value": "ca" },
-          { "name": "Chile", "value": "cl" },
-          { "name": "Colombia", "value": "co" },
-          { "name": "Costa Rica", "value": "cr" },
-          { "name": "República Dominicana", "value": "do" },
-          { "name": "Ecuador", "value": "ec" },
-          { "name": "España", "value": "eu" },
-          { "name": "Francia", "value": "fr" },
-          { "name": "Reino Unido", "value": "gb" },
-          { "name": "Guatemala", "value": "gt" },
-          { "name": "Honduras", "value": "hn" },
-          { "name": "México", "value": "mx" },
-          { "name": "Nicaragua", "value": "ni" },
-          { "name": "Otros", "value": "ot" },
-          { "name": "Panamá", "value": "pa" },
-          { "name": "Perú", "value": "pe" },
-          { "name": "Paraguay", "value": "py" },
-          { "name": "El Salvador", "value": "sv" },
-          { "name": "Estados Unidos", "value": "us" },
-          { "name": "Uruguay", "value": "uy" }
+          {
+            "name": "Argentina",
+            "value": "ar"
+          },
+          {
+            "name": "Bolivia",
+            "value": "bo"
+          },
+          {
+            "name": "Brasil",
+            "value": "br"
+          },
+          {
+            "name": "Canadá",
+            "value": "ca"
+          },
+          {
+            "name": "Chile",
+            "value": "cl"
+          },
+          {
+            "name": "Colombia",
+            "value": "co"
+          },
+          {
+            "name": "Costa Rica",
+            "value": "cr"
+          },
+          {
+            "name": "República Dominicana",
+            "value": "do"
+          },
+          {
+            "name": "Ecuador",
+            "value": "ec"
+          },
+          {
+            "name": "España",
+            "value": "eu"
+          },
+          {
+            "name": "Francia",
+            "value": "fr"
+          },
+          {
+            "name": "Reino Unido",
+            "value": "gb"
+          },
+          {
+            "name": "Guatemala",
+            "value": "gt"
+          },
+          {
+            "name": "Honduras",
+            "value": "hn"
+          },
+          {
+            "name": "México",
+            "value": "mx"
+          },
+          {
+            "name": "Nicaragua",
+            "value": "ni"
+          },
+          {
+            "name": "Otros",
+            "value": "ot"
+          },
+          {
+            "name": "Panamá",
+            "value": "pa"
+          },
+          {
+            "name": "Perú",
+            "value": "pe"
+          },
+          {
+            "name": "Paraguay",
+            "value": "py"
+          },
+          {
+            "name": "El Salvador",
+            "value": "sv"
+          },
+          {
+            "name": "Estados Unidos",
+            "value": "us"
+          },
+          {
+            "name": "Uruguay",
+            "value": "uy"
+          }
         ]
       },
       {
@@ -5144,10 +7995,22 @@
         "valueType": "string",
         "description": "Optional: Select target languages. If empty, shows in all. Compared against 'selected-language' cookie.",
         "options": [
-          { "name": "English", "value": "en" },
-          { "name": "Spanish", "value": "es" },
-          { "name": "French", "value": "fr" },
-          { "name": "Portuguese", "value": "pt" }
+          {
+            "name": "English",
+            "value": "en"
+          },
+          {
+            "name": "Spanish",
+            "value": "es"
+          },
+          {
+            "name": "French",
+            "value": "fr"
+          },
+          {
+            "name": "Portuguese",
+            "value": "pt"
+          }
         ]
       }
     ]
@@ -5275,29 +8138,98 @@
         "valueType": "string",
         "description": "Optional: Select target countries/POS. If empty, shows in all. Compared against 'selected-country' cookie (ISO-2 codes).",
         "options": [
-          { "name": "Argentina", "value": "ar" },
-          { "name": "Bolivia", "value": "bo" },
-          { "name": "Brasil", "value": "br" },
-          { "name": "Canadá", "value": "ca" },
-          { "name": "Chile", "value": "cl" },
-          { "name": "Colombia", "value": "co" },
-          { "name": "Costa Rica", "value": "cr" },
-          { "name": "República Dominicana", "value": "do" },
-          { "name": "Ecuador", "value": "ec" },
-          { "name": "España", "value": "eu" },
-          { "name": "Francia", "value": "fr" },
-          { "name": "Reino Unido", "value": "gb" },
-          { "name": "Guatemala", "value": "gt" },
-          { "name": "Honduras", "value": "hn" },
-          { "name": "México", "value": "mx" },
-          { "name": "Nicaragua", "value": "ni" },
-          { "name": "Otros", "value": "ot" },
-          { "name": "Panamá", "value": "pa" },
-          { "name": "Perú", "value": "pe" },
-          { "name": "Paraguay", "value": "py" },
-          { "name": "El Salvador", "value": "sv" },
-          { "name": "Estados Unidos", "value": "us" },
-          { "name": "Uruguay", "value": "uy" }
+          {
+            "name": "Argentina",
+            "value": "ar"
+          },
+          {
+            "name": "Bolivia",
+            "value": "bo"
+          },
+          {
+            "name": "Brasil",
+            "value": "br"
+          },
+          {
+            "name": "Canadá",
+            "value": "ca"
+          },
+          {
+            "name": "Chile",
+            "value": "cl"
+          },
+          {
+            "name": "Colombia",
+            "value": "co"
+          },
+          {
+            "name": "Costa Rica",
+            "value": "cr"
+          },
+          {
+            "name": "República Dominicana",
+            "value": "do"
+          },
+          {
+            "name": "Ecuador",
+            "value": "ec"
+          },
+          {
+            "name": "España",
+            "value": "eu"
+          },
+          {
+            "name": "Francia",
+            "value": "fr"
+          },
+          {
+            "name": "Reino Unido",
+            "value": "gb"
+          },
+          {
+            "name": "Guatemala",
+            "value": "gt"
+          },
+          {
+            "name": "Honduras",
+            "value": "hn"
+          },
+          {
+            "name": "México",
+            "value": "mx"
+          },
+          {
+            "name": "Nicaragua",
+            "value": "ni"
+          },
+          {
+            "name": "Otros",
+            "value": "ot"
+          },
+          {
+            "name": "Panamá",
+            "value": "pa"
+          },
+          {
+            "name": "Perú",
+            "value": "pe"
+          },
+          {
+            "name": "Paraguay",
+            "value": "py"
+          },
+          {
+            "name": "El Salvador",
+            "value": "sv"
+          },
+          {
+            "name": "Estados Unidos",
+            "value": "us"
+          },
+          {
+            "name": "Uruguay",
+            "value": "uy"
+          }
         ]
       },
       {
@@ -5307,10 +8239,22 @@
         "valueType": "string",
         "description": "Optional: Select target languages. If empty, shows in all. Compared against 'selected-language' cookie.",
         "options": [
-          { "name": "English", "value": "en" },
-          { "name": "Spanish", "value": "es" },
-          { "name": "French", "value": "fr" },
-          { "name": "Portuguese", "value": "pt" }
+          {
+            "name": "English",
+            "value": "en"
+          },
+          {
+            "name": "Spanish",
+            "value": "es"
+          },
+          {
+            "name": "French",
+            "value": "fr"
+          },
+          {
+            "name": "Portuguese",
+            "value": "pt"
+          }
         ]
       }
     ]
@@ -5325,29 +8269,98 @@
         "valueType": "string",
         "description": "Optional: Select target countries/POS. If empty, shows in all. Compared against 'selected-country' cookie (ISO-2 codes).",
         "options": [
-          { "name": "Argentina", "value": "ar" },
-          { "name": "Bolivia", "value": "bo" },
-          { "name": "Brasil", "value": "br" },
-          { "name": "Canadá", "value": "ca" },
-          { "name": "Chile", "value": "cl" },
-          { "name": "Colombia", "value": "co" },
-          { "name": "Costa Rica", "value": "cr" },
-          { "name": "República Dominicana", "value": "do" },
-          { "name": "Ecuador", "value": "ec" },
-          { "name": "España", "value": "eu" },
-          { "name": "Francia", "value": "fr" },
-          { "name": "Reino Unido", "value": "gb" },
-          { "name": "Guatemala", "value": "gt" },
-          { "name": "Honduras", "value": "hn" },
-          { "name": "México", "value": "mx" },
-          { "name": "Nicaragua", "value": "ni" },
-          { "name": "Otros", "value": "ot" },
-          { "name": "Panamá", "value": "pa" },
-          { "name": "Perú", "value": "pe" },
-          { "name": "Paraguay", "value": "py" },
-          { "name": "El Salvador", "value": "sv" },
-          { "name": "Estados Unidos", "value": "us" },
-          { "name": "Uruguay", "value": "uy" }
+          {
+            "name": "Argentina",
+            "value": "ar"
+          },
+          {
+            "name": "Bolivia",
+            "value": "bo"
+          },
+          {
+            "name": "Brasil",
+            "value": "br"
+          },
+          {
+            "name": "Canadá",
+            "value": "ca"
+          },
+          {
+            "name": "Chile",
+            "value": "cl"
+          },
+          {
+            "name": "Colombia",
+            "value": "co"
+          },
+          {
+            "name": "Costa Rica",
+            "value": "cr"
+          },
+          {
+            "name": "República Dominicana",
+            "value": "do"
+          },
+          {
+            "name": "Ecuador",
+            "value": "ec"
+          },
+          {
+            "name": "España",
+            "value": "eu"
+          },
+          {
+            "name": "Francia",
+            "value": "fr"
+          },
+          {
+            "name": "Reino Unido",
+            "value": "gb"
+          },
+          {
+            "name": "Guatemala",
+            "value": "gt"
+          },
+          {
+            "name": "Honduras",
+            "value": "hn"
+          },
+          {
+            "name": "México",
+            "value": "mx"
+          },
+          {
+            "name": "Nicaragua",
+            "value": "ni"
+          },
+          {
+            "name": "Otros",
+            "value": "ot"
+          },
+          {
+            "name": "Panamá",
+            "value": "pa"
+          },
+          {
+            "name": "Perú",
+            "value": "pe"
+          },
+          {
+            "name": "Paraguay",
+            "value": "py"
+          },
+          {
+            "name": "El Salvador",
+            "value": "sv"
+          },
+          {
+            "name": "Estados Unidos",
+            "value": "us"
+          },
+          {
+            "name": "Uruguay",
+            "value": "uy"
+          }
         ]
       },
       {
@@ -5357,10 +8370,22 @@
         "valueType": "string",
         "description": "Optional: Select target languages. If empty, shows in all. Compared against 'selected-language' cookie.",
         "options": [
-          { "name": "English", "value": "en" },
-          { "name": "Spanish", "value": "es" },
-          { "name": "French", "value": "fr" },
-          { "name": "Portuguese", "value": "pt" }
+          {
+            "name": "English",
+            "value": "en"
+          },
+          {
+            "name": "Spanish",
+            "value": "es"
+          },
+          {
+            "name": "French",
+            "value": "fr"
+          },
+          {
+            "name": "Portuguese",
+            "value": "pt"
+          }
         ]
       },
       {
@@ -5413,7 +8438,9 @@
         "description": "Background color for even rows when zebra rows are enabled. Use hex color code (e.g., #F5F5F5, #FAFAFA).",
         "condition": {
           "===": [
-            { "var": "enable-zebra-rows" },
+            {
+              "var": "enable-zebra-rows"
+            },
             true
           ]
         }
@@ -5472,29 +8499,98 @@
         "valueType": "string",
         "description": "Optional: Select target countries/POS. If empty, shows in all. Compared against 'selected-country' cookie (ISO-2 codes).",
         "options": [
-          { "name": "Argentina", "value": "ar" },
-          { "name": "Bolivia", "value": "bo" },
-          { "name": "Brasil", "value": "br" },
-          { "name": "Canadá", "value": "ca" },
-          { "name": "Chile", "value": "cl" },
-          { "name": "Colombia", "value": "co" },
-          { "name": "Costa Rica", "value": "cr" },
-          { "name": "República Dominicana", "value": "do" },
-          { "name": "Ecuador", "value": "ec" },
-          { "name": "España", "value": "eu" },
-          { "name": "Francia", "value": "fr" },
-          { "name": "Reino Unido", "value": "gb" },
-          { "name": "Guatemala", "value": "gt" },
-          { "name": "Honduras", "value": "hn" },
-          { "name": "México", "value": "mx" },
-          { "name": "Nicaragua", "value": "ni" },
-          { "name": "Otros", "value": "ot" },
-          { "name": "Panamá", "value": "pa" },
-          { "name": "Perú", "value": "pe" },
-          { "name": "Paraguay", "value": "py" },
-          { "name": "El Salvador", "value": "sv" },
-          { "name": "Estados Unidos", "value": "us" },
-          { "name": "Uruguay", "value": "uy" }
+          {
+            "name": "Argentina",
+            "value": "ar"
+          },
+          {
+            "name": "Bolivia",
+            "value": "bo"
+          },
+          {
+            "name": "Brasil",
+            "value": "br"
+          },
+          {
+            "name": "Canadá",
+            "value": "ca"
+          },
+          {
+            "name": "Chile",
+            "value": "cl"
+          },
+          {
+            "name": "Colombia",
+            "value": "co"
+          },
+          {
+            "name": "Costa Rica",
+            "value": "cr"
+          },
+          {
+            "name": "República Dominicana",
+            "value": "do"
+          },
+          {
+            "name": "Ecuador",
+            "value": "ec"
+          },
+          {
+            "name": "España",
+            "value": "eu"
+          },
+          {
+            "name": "Francia",
+            "value": "fr"
+          },
+          {
+            "name": "Reino Unido",
+            "value": "gb"
+          },
+          {
+            "name": "Guatemala",
+            "value": "gt"
+          },
+          {
+            "name": "Honduras",
+            "value": "hn"
+          },
+          {
+            "name": "México",
+            "value": "mx"
+          },
+          {
+            "name": "Nicaragua",
+            "value": "ni"
+          },
+          {
+            "name": "Otros",
+            "value": "ot"
+          },
+          {
+            "name": "Panamá",
+            "value": "pa"
+          },
+          {
+            "name": "Perú",
+            "value": "pe"
+          },
+          {
+            "name": "Paraguay",
+            "value": "py"
+          },
+          {
+            "name": "El Salvador",
+            "value": "sv"
+          },
+          {
+            "name": "Estados Unidos",
+            "value": "us"
+          },
+          {
+            "name": "Uruguay",
+            "value": "uy"
+          }
         ]
       },
       {
@@ -5504,10 +8600,22 @@
         "valueType": "string",
         "description": "Optional: Select target languages. If empty, shows in all. Compared against 'selected-language' cookie.",
         "options": [
-          { "name": "English", "value": "en" },
-          { "name": "Spanish", "value": "es" },
-          { "name": "French", "value": "fr" },
-          { "name": "Portuguese", "value": "pt" }
+          {
+            "name": "English",
+            "value": "en"
+          },
+          {
+            "name": "Spanish",
+            "value": "es"
+          },
+          {
+            "name": "French",
+            "value": "fr"
+          },
+          {
+            "name": "Portuguese",
+            "value": "pt"
+          }
         ]
       },
       {
