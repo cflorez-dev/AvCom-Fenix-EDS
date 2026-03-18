@@ -364,7 +364,20 @@
     .multitab-content.grid-zigzag-3-9 > :nth-child(4n+3) { grid-column: 10 / 13; }
     .multitab-content.grid-zigzag-3-9 > :nth-child(4n)   { grid-column: 1 / 10; }
 
-    /* Zigzag: images fill stretched rows */
+    /* Zigzag: images fill stretched rows — full chain: wrapper > p > picture > img */
+    .section .multitab-content.grid-items-stretch:is(.grid-zigzag-4-8, .grid-zigzag-3-9) > .default-content-wrapper {
+      display: flex;
+      flex-direction: column;
+      padding: 0;
+    }
+
+    .multitab-content.grid-items-stretch:is(.grid-zigzag-4-8, .grid-zigzag-3-9) > .default-content-wrapper > p {
+      flex: 1;
+      margin: 0;
+      min-height: 0;
+      overflow: hidden;
+    }
+
     .multitab-content.grid-items-stretch:is(.grid-zigzag-4-8, .grid-zigzag-3-9) picture,
     .multitab-content.grid-items-stretch:is(.grid-zigzag-4-8, .grid-zigzag-3-9) img {
       width: 100%;
