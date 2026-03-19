@@ -27,7 +27,6 @@
   border: 1px dashed var(--color-border-Borders-and-dividers-mail-border-default);
   border-top: none;
   border-bottom: none;
-  text-align: center;
 }
 
 .tables th:first-child {
@@ -52,7 +51,7 @@
   width: auto;
   box-sizing: border-box;
   transition: background-color 0.15s ease;
-  text-align: center;
+  
 }
 
 .tables tbody tr:hover td {

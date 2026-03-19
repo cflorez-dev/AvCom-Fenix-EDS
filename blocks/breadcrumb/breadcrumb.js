@@ -31,6 +31,8 @@ const getPageTitle = async (url) => {
     if (resp.ok && resp.url === url) {
       const htmlContent = document.createElement('div');
       htmlContent.innerHTML = await resp.text();
+      const h1 = htmlContent.querySelector('h1');
+      if (h1) return h1.innerText;
       const title = htmlContent.querySelector('title');
       return title ? title.innerText : '';
     }
@@ -144,10 +146,11 @@ const buildBreadcrumbItems = async (pathname, customSlug = '') => {
     });
   }
 
-  // Add current page (last segment)
-  const titleElement = document.querySelector('title');
-  if (titleElement && contentSegments.length > 0) {
-    const label = customSlug && customSlug.trim() !== '' ? customSlug : titleElement.innerText;
+  // Add current page (last segment) — prefer H1 (page name) over <title> (may be meta-title)
+  const h1Element = document.querySelector('h1');
+  const pageTitle = h1Element?.innerText || document.title;
+  if (pageTitle && contentSegments.length > 0) {
+    const label = customSlug && customSlug.trim() !== '' ? customSlug : pageTitle;
 
     items.push({
       label,

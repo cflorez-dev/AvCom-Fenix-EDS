@@ -12,7 +12,7 @@ const html = htm.bind(h);
  * @returns {string} Tailwind grid-cols classes for desktop
  */
 function getDesktopGridColumns(cardCount, variant) {
-  if (variant === 'horizontal') {
+  if (variant === 'horizontal' || variant === 'vertical') {
     if (cardCount === 1) {
       return 'md:grid-cols-1';
     }

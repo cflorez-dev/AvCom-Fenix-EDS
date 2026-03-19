@@ -290,59 +290,69 @@ function parseCardDataFromItem(item) {
     targetLanguages: '',
   };
 
+  // Detect format: migration output has 12 cells (no supportIcon, no linkAlt),
+  // Universal Editor output has 14 cells (all fields)
+  const isMigrationFormat = cells.length <= 12;
+
   let cellIndex = 0;
+
+  // Helper: extract image from a cell, handling both <img> and <a> (migration format)
+  function extractImage(cell) {
+    const img = cell.querySelector('img');
+    if (img) return { src: img.src, alt: img.alt || '' };
+    const link = cell.querySelector('a');
+    if (link && link.href) return { src: link.href, alt: link.textContent.trim() };
+    return null;
+  }
 
   // Cell 0: imageDesktop
   if (cells[cellIndex]) {
-    const img = cells[cellIndex].querySelector('img');
-    if (img) {
-      cardData.imageDesktop = img.src;
-      cardData.imageDesktopAlt = img.alt || '';
+    const imgData = extractImage(cells[cellIndex]);
+    if (imgData) {
+      cardData.imageDesktop = imgData.src;
+      cardData.imageDesktopAlt = imgData.alt;
     }
     cellIndex += 1;
   }
 
-  // Cell 1: imageMobile (OPCIONAL)
+  // Cell 1: imageMobile
   if (cells[cellIndex]) {
-    const mobileImg = cells[cellIndex].querySelector('img');
-    if (mobileImg) {
-      cardData.imageMobile = mobileImg.src;
-      cardData.imageMobileAlt = mobileImg.alt || '';
+    const imgData = extractImage(cells[cellIndex]);
+    if (imgData) {
+      cardData.imageMobile = imgData.src;
+      cardData.imageMobileAlt = imgData.alt;
     }
     cellIndex += 1;
   }
 
-  // Now continue with text fields
   // Cell 2: title
   if (cells[cellIndex]) {
     cardData.title = cells[cellIndex].textContent.trim();
     cellIndex += 1;
   }
 
-  // Cell N+1: description
+  // Cell 3: description
   if (cells[cellIndex]) {
     cardData.description = cells[cellIndex].textContent.trim();
     cellIndex += 1;
   }
 
-  // Cell N+2: ctaLabel
+  // Cell 4: ctaLabel
   if (cells[cellIndex]) {
     cardData.ctaLabel = cells[cellIndex].textContent.trim();
     cellIndex += 1;
   }
 
-  // Cell N+3: supportIcon
-  if (cells[cellIndex]) {
+  // Cell 5: supportIcon (only in UE format — migration skips this)
+  if (!isMigrationFormat && cells[cellIndex]) {
     cardData.supportIcon = cells[cellIndex].textContent.trim();
     cellIndex += 1;
   }
 
-  // Cell N+4: linkUrl (has button-container or link)
+  // Cell N: linkUrl
   if (cells[cellIndex]) {
     const link = cells[cellIndex].querySelector('a');
     let linkUrl = link ? link.href : cells[cellIndex].textContent.trim();
-
-    // Process linkUrl to ensure it's a valid URL
     if (linkUrl) {
       if (
         !linkUrl.startsWith('http://')
@@ -357,13 +367,13 @@ function parseCardDataFromItem(item) {
     cellIndex += 1;
   }
 
-  // Cell N+5: linkAlt
-  if (cells[cellIndex]) {
+  // Cell N+1: linkAlt (only in UE format — migration skips this)
+  if (!isMigrationFormat && cells[cellIndex]) {
     cardData.linkAlt = cells[cellIndex].textContent.trim();
     cellIndex += 1;
   }
 
-  // Cell N+6: linkOpensIn
+  // Cell N+2: linkOpensIn
   if (cells[cellIndex]) {
     const opensIn = cells[cellIndex].textContent.trim();
     if (opensIn === 'sameTab' || opensIn === 'newTab') {
@@ -372,7 +382,7 @@ function parseCardDataFromItem(item) {
     cellIndex += 1;
   }
 
-  // Cell N+7: ctaIconBefore
+  // Cell N+3: ctaIconBefore
   if (cells[cellIndex]) {
     const iconBefore = cells[cellIndex].textContent.trim();
     if (iconBefore) {
@@ -381,7 +391,7 @@ function parseCardDataFromItem(item) {
     cellIndex += 1;
   }
 
-  // Cell N+8: ctaIconAfter
+  // Cell N+4: ctaIconAfter
   if (cells[cellIndex]) {
     const iconAfter = cells[cellIndex].textContent.trim();
     if (iconAfter) {
@@ -390,7 +400,7 @@ function parseCardDataFromItem(item) {
     cellIndex += 1;
   }
 
-  // Cell N+9: clickBehavior
+  // Cell N+5: clickBehavior
   if (cells[cellIndex]) {
     const behavior = cells[cellIndex].textContent.trim();
     if (behavior === 'ctaOnly' || behavior === 'fullCard') {
@@ -399,13 +409,13 @@ function parseCardDataFromItem(item) {
     cellIndex += 1;
   }
 
-  // Cell N+10: target-countries (multiselect, comma-separated)
+  // Cell N+6: target-countries
   if (cells[cellIndex]) {
     cardData.targetCountries = cells[cellIndex].textContent.trim();
     cellIndex += 1;
   }
 
-  // Cell N+11: target-languages (multiselect, comma-separated)
+  // Cell N+7: target-languages
   if (cells[cellIndex]) {
     cardData.targetLanguages = cells[cellIndex].textContent.trim();
   }
