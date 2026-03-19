@@ -20,6 +20,7 @@ const html = htm.bind(h);
  * @param {Function} [props.onDismiss] - Callback when dismissed
  * @param {string} [props.dismissIconHTML=''] - Custom HTML for dismiss icon (overrides default Icon)
  * @param {string} [props.dismissButtonClassName=''] - Custom classes for dismiss button
+ * @param {string} [props.dismissButtonAriaLabel=''] - Accessible label for dismiss button
  * @param {string} [props.customClassName=''] - Additional CSS classes
  * @param {boolean} [props.showIcon=true] - Show/hide icon
  * @param {boolean} [props.marqueeMode=true] - Enable marquee scrolling when content overflows,
@@ -51,6 +52,7 @@ export const Alert = ({
   onDismiss,
   dismissIconHTML = '',
   dismissButtonClassName = '',
+  dismissButtonAriaLabel = '',
   customClassName = '',
   showIcon = true,
   shouldMarquee: externalShouldMarquee,
@@ -68,6 +70,11 @@ export const Alert = ({
   const shouldMarquee = externalShouldMarquee !== undefined
     ? externalShouldMarquee
     : internalShouldMarquee;
+
+  const resolvedDismissButtonAriaLabel = dismissButtonAriaLabel
+    || ((typeof document !== 'undefined' && document.documentElement.lang?.toLowerCase().startsWith('es'))
+      ? 'Cerrar alerta'
+      : 'Dismiss alert');
 
   const heightModes = {
     marquee: {
@@ -394,6 +401,7 @@ export const Alert = ({
             variant="transparent" 
             size="xxs" 
             iconOnly=${true}
+            aria-label=${resolvedDismissButtonAriaLabel}
             customClassName="${marqueeMode ? 'self-center' : ''} !h-5 !w-5 !min-h-5 !min-w-5 !p-0 !gap-0 !rounded-full flex items-center justify-center hover:!bg-alert-dismiss-hover active:!bg-alert-dismiss-active ${dismissButtonClassName}"
           >
             ${dismissIconHTML ? html`<span dangerouslySetInnerHTML=${{ __html: dismissIconHTML }} />` : html`

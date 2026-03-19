@@ -343,6 +343,12 @@ export default function decorate(block) {
   config.targetPageTypes = config.targetPageTypes || config.targetpagetypes || config['target page types'] || '';
 
   if (!shouldShowMarquesina(config)) {
+    // Remove placeholder created by bootstrapMarqueeHeight
+    const existingPlaceholder = document.querySelector('.marquesina-global-container');
+    if (existingPlaceholder) {
+      existingPlaceholder.remove();
+      document.documentElement.style.setProperty('--marquee-height', '0px');
+    }
     // Add p-0 class to parent section container
     const sectionContainer = block.closest('.section.marquesina-container');
     if (sectionContainer) {
@@ -383,10 +389,19 @@ export default function decorate(block) {
     return;
   }
 
-  // Production mode: create wrapper and inject before header
-  const marquesinaWrapper = document.createElement('div');
-  marquesinaWrapper.className = 'marquesina-global-container';
-
+  // Production mode: reuse existing placeholder (created by bootstrapMarqueeHeight
+  // to prevent CLS) or create a new wrapper if none exists.
+  let marquesinaWrapper = document.querySelector('.marquesina-global-container');
+  if (!marquesinaWrapper) {
+    marquesinaWrapper = document.createElement('div');
+    marquesinaWrapper.className = 'marquesina-global-container';
+    const header = document.querySelector('header');
+    if (header) {
+      header.parentElement.insertBefore(marquesinaWrapper, header);
+    } else {
+      document.body.insertBefore(marquesinaWrapper, document.body.firstChild);
+    }
+  }
   render(
     html`
       <${Marquesina}
@@ -405,13 +420,16 @@ export default function decorate(block) {
     marquesinaWrapper,
   );
 
-  // Try to inject before header, otherwise inject at top of body
-  const header = document.querySelector('header');
-  if (header) {
-    header.parentElement.insertBefore(marquesinaWrapper, header);
-  } else {
-    document.body.insertBefore(marquesinaWrapper, document.body.firstChild);
-  }
+  // Release placeholder constraints after marquee CSS has settled.
+  // The Preact render initially expands to full content height (~104px) before
+  // the marquee animation constrains it to ~56px. The overflow:hidden/maxHeight
+  // from the placeholder prevents that temporary expansion from causing CLS.
+  // Use setTimeout to wait for the marquee CSS to take effect after layout.
+  setTimeout(() => {
+    marquesinaWrapper.style.minHeight = '';
+    marquesinaWrapper.style.overflow = '';
+    marquesinaWrapper.style.maxHeight = '';
+  }, 200);
 
   const getMarqueeMinHeight = () => {
     const rootStyles = getComputedStyle(document.documentElement);

@@ -238,7 +238,7 @@ function readBlockConfig(block) {
           const hasHeadings = col.querySelector('h1, h2, h3, h4, h5, h6');
           const hasLists = col.querySelector('ul, ol');
           const ps = [...col.querySelectorAll('p')];
-          
+
           // Verificar si hay contenido rich text en los párrafos
           const hasRichTextInParagraphs = ps.some((p) => {
             const html = p.innerHTML.trim();
@@ -247,7 +247,7 @@ function readBlockConfig(block) {
             const hasInlineTags = /<(strong|em|b|i|u|br|span|mark|code|sub|sup|a)\b[^>]*>/i.test(html);
             return html !== text || hasInlineTags;
           });
-          
+
           // Si tiene headings, listas o rich text, retornar innerHTML completo de la celda
           if (hasHeadings || hasLists || hasRichTextInParagraphs) {
             value = col.innerHTML.trim();
@@ -770,13 +770,18 @@ async function loadSection(section, loadCallback) {
 /**
  * Loads all sections.
  * @param {Element} element The parent element of sections to load
- * @param {boolean} autoHideLoader Whether to automatically hide the loader when sections finish loading. Default: false
+ * @param {boolean} autoHideLoader Whether to automatically hide the loader
+ * when sections finish loading. Default: false
+ * @param {boolean} showLoadingOverlay Whether to show the cms-loader overlay
+ * while loading sections. Default: false
  */
 
-async function loadSections(element, autoHideLoader = false) {
-  // Show loader when starting to load sections
-  showLoader(true);
-  
+async function loadSections(element, autoHideLoader = false, showLoadingOverlay = false) {
+  if (showLoadingOverlay) {
+    // Show loader when starting to load sections
+    showLoader(true);
+  }
+
   const sections = [...element.querySelectorAll('div.section')];
   for (let i = 0; i < sections.length; i += 1) {
     // eslint-disable-next-line no-await-in-loop
@@ -785,10 +790,10 @@ async function loadSections(element, autoHideLoader = false) {
       sampleRUM.enhance();
     }
   }
-  
+
   // Only hide loader automatically if explicitly requested
   // This allows the caller to wait for header/footer before hiding
-  if (autoHideLoader) {
+  if (autoHideLoader && showLoadingOverlay) {
     // showLoader(false);
   }
 }

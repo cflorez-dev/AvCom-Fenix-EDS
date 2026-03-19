@@ -59,8 +59,15 @@ function renderLogo(container, logoData) {
   anchor.setAttribute('href', logoData.redirectUrl || '/');
   anchor.className = 'header-logo-link';
 
+  // Ensure the logo link has an accessible name even if author content omits alt text.
+  const accessibleLogoName = (currentLogo.alt && currentLogo.alt.trim()) || 'Avianca';
+  anchor.setAttribute('aria-label', accessibleLogoName);
+
   // Create picture element
-  const picture = createPictureElement(currentLogo);
+  const picture = createPictureElement({
+    ...currentLogo,
+    alt: accessibleLogoName,
+  });
   if (picture) {
     anchor.appendChild(picture);
   }

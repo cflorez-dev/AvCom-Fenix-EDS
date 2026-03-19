@@ -1,5 +1,4 @@
 import {
-  buildBlock,
   loadHeader,
   loadFooter,
   decorateButtons,
@@ -14,22 +13,20 @@ import {
   loadScript,
 } from './aem.js';
 import { initLocaleGlobals, resolveLocale } from './utils/locale.js';
-import { mapCountryToPos } from './utils/pos-mapping.js';
 import { showLoader } from './services/loader/loader.service.js';
-import gtmMartech from './gtm-martech.js';
-import {
-  getEnvironment,
-  isAuthorMode,
-  isTrackingDisabled,
-  ADOBE_LAUNCH_URLS,
-  ONETRUST_CONFIG,
-} from './martech-config.js';
+
+// gtm-martech, martech-config, and pos-mapping are dynamically imported
+// after body.appear to reduce the critical module tree for faster LCP.
+// ES module caching ensures each is fetched/executed only once.
 
 /**
  * Load OneTrust consent banner
  * Must load early to capture consent before other scripts
  */
-function loadOneTrust() {
+async function loadOneTrust() {
+  const {
+    isTrackingDisabled, isAuthorMode, ONETRUST_CONFIG,
+  } = await import('./martech-config.js');
   if (isTrackingDisabled() || isAuthorMode()) return;
 
   // Load OneTrust SDK
@@ -51,7 +48,10 @@ function loadOneTrust() {
 /**
  * Load Adobe Launch script based on environment
  */
-function loadAdobeLaunch() {
+async function loadAdobeLaunch() {
+  const {
+    isTrackingDisabled, isAuthorMode, getEnvironment, ADOBE_LAUNCH_URLS,
+  } = await import('./martech-config.js');
   if (isTrackingDisabled() || isAuthorMode()) return;
 
   const env = getEnvironment();
@@ -71,6 +71,205 @@ async function loadFonts() {
   } catch (e) {
     // do nothing
   }
+}
+
+const INITIAL_VISIBLE_SECTIONS_COUNT = 6;
+
+/**
+ * Read and apply cms-background-image config before its block is loaded.
+ * This avoids late background swaps that hurt LCP/CLS.
+ * @param {Element} main The main element
+ */
+function bootstrapCriticalBackgroundImage(main) {
+  if (!main) return;
+
+  const isAuthorEnv = !!(
+    window.xwalk?.isAuthorEnv
+    || window.hlx?.aue
+    || document.querySelector('meta[name="urn:auecon:aemconnection"]')
+    || (
+      window.location.hostname.includes('author-')
+      && window.location.pathname.startsWith('/content/')
+    )
+  );
+  if (isAuthorEnv) return;
+
+  const featureFlag = document.head.querySelector('meta[name="feature-cms-background-image"]');
+  if (featureFlag && featureFlag.content.toLowerCase() !== 'true') return;
+
+  const block = main.querySelector('.cms-background-image.block');
+  if (!block) return;
+
+  const rows = Array.from(block.children);
+  const getCell = (index) => rows[index]?.children?.[0] || null;
+  const toAbsoluteUrl = (url) => {
+    if (!url) return '';
+    try {
+      return new URL(url, window.location.href).href;
+    } catch (e) {
+      return '';
+    }
+  };
+  const getImageUrl = (index) => {
+    const img = getCell(index)?.querySelector('img');
+    const src = img?.getAttribute('src') || '';
+    const absUrl = toAbsoluteUrl(src);
+    // Use WebP format for smaller payload as CSS background-image
+    return absUrl.replace(/([?&])format=(png|jpg|jpeg)/i, '$1format=webply');
+  };
+  const getCellValue = (index) => {
+    const cell = getCell(index);
+    if (!cell) return '';
+    const link = cell.querySelector('a');
+    if (link) {
+      return (link.getAttribute('href') || link.textContent || '').trim();
+    }
+    return cell.textContent.trim();
+  };
+
+  const config = {
+    mobileImage: getImageUrl(0),
+    tabletImage: getImageUrl(1),
+    desktopImage: getImageUrl(2),
+    fallbackColor: getCellValue(3) || '#f5f5f5',
+    position: getCellValue(4) || 'top right',
+    behavior: (getCellValue(5) || 'scroll').toLowerCase(),
+    size: (getCellValue(6) || 'contain').toLowerCase(),
+    enabled: (getCellValue(7) || 'true').toLowerCase() === 'true',
+  };
+
+  if (!config.enabled) return;
+  if (!config.mobileImage && !config.tabletImage && !config.desktopImage) return;
+  if (!config.tabletImage) config.tabletImage = config.mobileImage;
+  if (!config.desktopImage) config.desktopImage = config.tabletImage || config.mobileImage;
+
+  let imageUrl = config.mobileImage;
+  if (window.matchMedia('(min-width: 1248px)').matches) {
+    imageUrl = config.desktopImage;
+  } else if (window.matchMedia('(min-width: 768px)').matches) {
+    imageUrl = config.tabletImage;
+  }
+
+  if (imageUrl) {
+    let preload = document.head.querySelector('link[data-cms-bg-preload="true"]');
+    if (!preload) {
+      preload = document.createElement('link');
+      preload.setAttribute('data-cms-bg-preload', 'true');
+      preload.rel = 'preload';
+      preload.as = 'image';
+      preload.fetchPriority = 'high';
+      document.head.appendChild(preload);
+    }
+    if (preload.getAttribute('href') !== imageUrl) {
+      preload.setAttribute('href', imageUrl);
+    }
+  }
+
+  main.style.setProperty('--bg-fallback-color', config.fallbackColor);
+  main.style.setProperty('--bg-position', config.position);
+  main.style.setProperty('--bg-behavior', config.behavior);
+  main.style.setProperty('--bg-size', config.size);
+  if (imageUrl) {
+    main.style.setProperty('--bg-current', `url('${imageUrl}')`);
+    main.style.backgroundImage = `url('${imageUrl}')`;
+  }
+  main.style.backgroundColor = config.fallbackColor;
+  main.style.backgroundRepeat = 'no-repeat';
+  main.style.backgroundSize = config.size;
+  main.style.backgroundPosition = config.position;
+  main.style.minHeight = '100vh';
+  main.classList.add('has-background-image', 'loaded');
+  main.setAttribute('data-bg-behavior', config.behavior);
+}
+
+/**
+ * Reserve marquee height before the block is rendered to reduce CLS.
+ * @param {Element} main The main element
+ */
+function bootstrapMarqueeHeight(main) {
+  if (!main) return;
+  const hasMarquesina = !!main.querySelector('.marquesina.block');
+  if (!hasMarquesina) return;
+
+  const rootStyles = getComputedStyle(document.documentElement);
+  const minHeight = rootStyles.getPropertyValue('--marquee-min-height').trim() || '55px';
+  document.documentElement.style.setProperty('--marquee-height', minHeight);
+
+  // Reserve space for marquesina before body.appear to prevent CLS.
+  // The marquesina block decorates later (loadLazy) and inserts itself before
+  // the header, which would push <main> down. By creating the placeholder now,
+  // the space is already occupied when the page first renders.
+  const header = document.querySelector('header');
+  if (header && !document.querySelector('.marquesina-global-container')) {
+    const placeholder = document.createElement('div');
+    placeholder.className = 'marquesina-global-container';
+    placeholder.style.minHeight = minHeight;
+    // Clip overflow so the Preact render (initially ~104px before marquee CSS
+    // constrains it to ~56px) doesn't temporarily expand the container.
+    placeholder.style.overflow = 'hidden';
+    placeholder.style.maxHeight = minHeight;
+    header.parentElement.insertBefore(placeholder, header);
+  }
+}
+
+/**
+ * Gets the first section to load in eager mode.
+ * Excludes the loader section so its GIF is not promoted to eager/LCP candidate.
+ * @param {Element} main The main element
+ * @returns {Element|null}
+ */
+function getFirstEagerSection(main) {
+  if (!main) return null;
+  const sections = Array.from(main.querySelectorAll(':scope > .section'));
+  return sections.find((section) => !section.classList.contains('cms-loader-container'))
+    || sections[0]
+    || null;
+}
+
+function getPendingSections(main) {
+  if (!main) return [];
+  const sections = Array.from(main.querySelectorAll('div.section'));
+  return sections.filter((section) => section.dataset.sectionStatus !== 'loaded');
+}
+
+async function loadInitialVisibleSections(main, maxSections = INITIAL_VISIBLE_SECTIONS_COUNT) {
+  const sections = getPendingSections(main).slice(0, maxSections);
+  for (let i = 0; i < sections.length; i += 1) {
+    // eslint-disable-next-line no-await-in-loop
+    await loadSection(sections[i]);
+  }
+}
+
+function loadRemainingSectionsInBackground(main) {
+  const queue = getPendingSections(main);
+  if (!queue.length) return;
+
+  const processQueue = async () => {
+    for (let i = 0; i < queue.length; i += 1) {
+      const section = queue[i];
+      if (section.dataset.sectionStatus === 'loaded') {
+        // eslint-disable-next-line no-continue
+        continue;
+      }
+      // eslint-disable-next-line no-await-in-loop
+      await loadSection(section);
+      // eslint-disable-next-line no-await-in-loop
+      await new Promise((resolve) => {
+        setTimeout(resolve, 0);
+      });
+    }
+  };
+
+  if ('requestIdleCallback' in window) {
+    window.requestIdleCallback(() => {
+      processQueue();
+    }, { timeout: 3000 });
+    return;
+  }
+
+  setTimeout(() => {
+    processQueue();
+  }, 0);
 }
 
 /**
@@ -157,7 +356,7 @@ function isMainEmpty(main) {
     const blocks = section.querySelectorAll('[data-block-name]');
     const imgs = section.querySelectorAll('img, picture');
     const links = section.querySelectorAll('a[href]');
-    
+
     // Has meaningful content if:
     // - Has non-whitespace text (more than 10 chars to ignore empty divs)
     // - Has blocks
@@ -199,7 +398,10 @@ function getTimezoneGMTOffset() {
  * @returns {Promise<Object>} Page view event data with location, user, and device information
  */
 async function pageViewEventData() {
-  const locale = await resolveLocale();
+  const [{ mapCountryToPos }, locale] = await Promise.all([
+    import('./utils/pos-mapping.js'),
+    resolveLocale(),
+  ]);
 
   return {
     page_location: window.location.href,
@@ -325,91 +527,113 @@ async function loadGlobalFallbackContent(main) {
  * @param {Element} doc The container element
  */
 async function loadEager(doc) {
-  // Load OneTrust first to capture consent before other tracking scripts
-  loadOneTrust();
+  // OneTrust moved to loadLazy() — consent is still captured before GTM/Adobe Launch
+  // Loading it here was making the cookie banner the LCP element on mobile
+
+  // Preload font file ASAP so it arrives before body.appear to avoid CLS from font swap.
+  try {
+    const preload = document.createElement('link');
+    preload.rel = 'preload';
+    preload.href = `${window.hlx?.codeBasePath || ''}/fonts/RedHatDisplay-VariableFont_wght.ttf`;
+    preload.as = 'font';
+    preload.type = 'font/ttf';
+    preload.crossOrigin = '';
+    document.head.appendChild(preload);
+    loadFonts();
+  } catch (e) {
+    // do nothing
+  }
 
   // Load DOMPurify early so sanitizeHTML() is available synchronously in blocks
   loadScript(`${window.hlx?.codeBasePath || ''}/scripts/dompurify.min.js`);
 
-  await initLocaleGlobals();
+  // Start locale resolution early but don't block DOM work that doesn't need it
+  const localeReady = initLocaleGlobals();
+
   decorateTemplateAndTheme();
   const main = doc.querySelector('main');
   if (main) {
     decorateMain(main);
+    bootstrapCriticalBackgroundImage(main);
+    bootstrapMarqueeHeight(main);
 
-    // Check if we need to load global fallback content
-    const loadedGlobal = await loadGlobalFallbackContent(main);
-    
-    const mainIsEmpty = isMainEmpty(main);
-    // eslint-disable-next-line no-console
-    console.log('[Debug] After global fallback - loadedGlobal:', loadedGlobal, 'isMainEmpty:', mainIsEmpty, 'isErrorPage:', window.isErrorPage, 'mainContent:', main.textContent.trim().substring(0, 100));
-    
-    // If we loaded global content, sections need to be loaded
-    if (loadedGlobal) {
-      await loadSections(main);
-    } else if (mainIsEmpty) {
-      // If still empty after global fallback, load 404 content
-      try {
-        // Determine language-based 404 path
-        // ES uses /errors/404, other languages use /errors/404-{lang}
-        const supportedLangs = ['en', 'pt', 'fr'];
-        const lang = window.errorPageLang || 'es';
-        const fragmentPath = supportedLangs.includes(lang)
-          ? `/errors/404-${lang}.plain.html`
-          : '/errors/404.plain.html';
-        
-        // eslint-disable-next-line no-console
-        console.log(`[404 Fallback] Loading 404 content for lang=${lang}, path=${fragmentPath}`);
-        let resp = await fetch(fragmentPath);
-        
-        // Fallback to Spanish if language-specific 404 doesn't exist
-        if (!resp.ok && fragmentPath !== '/errors/404.plain.html') {
+    // Only block on locale/fallback for pages without content (404, empty pages).
+    // Normal pages skip these awaits so body.appear is reached faster → better LCP.
+    if (isMainEmpty(main)) {
+      await localeReady;
+      const loadedGlobal = await loadGlobalFallbackContent(main);
+
+      // eslint-disable-next-line no-console
+      console.log('[Debug] After global fallback - loadedGlobal:', loadedGlobal, 'isMainEmpty:', true, 'isErrorPage:', window.isErrorPage);
+
+      if (loadedGlobal) {
+        await loadSections(main);
+      } else {
+        // Still empty after global fallback — load 404 content
+        try {
+          const supportedLangs = ['en', 'pt', 'fr'];
+          const lang = window.errorPageLang || 'es';
+          const fragmentPath = supportedLangs.includes(lang)
+            ? `/errors/404-${lang}.plain.html`
+            : '/errors/404.plain.html';
+
           // eslint-disable-next-line no-console
-          console.log('[404 Fallback] Language-specific 404 not found, falling back to Spanish');
-          resp = await fetch('/errors/404.plain.html');
-        }
-        if (resp.ok) {
-          const html = await resp.text();
-          const parser = new DOMParser();
-          const doc404 = parser.parseFromString(html, 'text/html');
-          const sections = doc404.body.children;
-          
-          if (sections && sections.length > 0) {
-            main.innerHTML = '';
-            Array.from(sections).forEach((section) => {
-              main.appendChild(section.cloneNode(true));
-            });
-            decorateMain(main);
-            await loadSections(main);
-            
-            // Set window flags for 404
-            window.isErrorPage = true;
-            window.errorCode = '404';
+          console.log(`[404 Fallback] Loading 404 content for lang=${lang}, path=${fragmentPath}`);
+          let resp = await fetch(fragmentPath);
+
+          if (!resp.ok && fragmentPath !== '/errors/404.plain.html') {
+            // eslint-disable-next-line no-console
+            console.log('[404 Fallback] Language-specific 404 not found, falling back to Spanish');
+            resp = await fetch('/errors/404.plain.html');
           }
+          if (resp.ok) {
+            const html = await resp.text();
+            const parser = new DOMParser();
+            const doc404 = parser.parseFromString(html, 'text/html');
+            const sections = doc404.body.children;
+
+            if (sections && sections.length > 0) {
+              main.innerHTML = '';
+              Array.from(sections).forEach((section) => {
+                main.appendChild(section.cloneNode(true));
+              });
+              decorateMain(main);
+              await loadSections(main);
+
+              window.isErrorPage = true;
+              window.errorCode = '404';
+            }
+          }
+        } catch (error) {
+          // eslint-disable-next-line no-console
+          console.error('[404 Fallback] Failed to load 404 content:', error);
         }
-      } catch (error) {
-        // eslint-disable-next-line no-console
-        console.error('[404 Fallback] Failed to load 404 content:', error);
       }
     }
-    
-    document.body.classList.add('appear');
-    await loadSection(main.querySelector('.section'), waitForFirstImage);
-  }
 
-  // Initialize GTM Martech eager phase (disabled in author mode)
-  if (!isAuthorMode()) {
-    await gtmMartech.eager();
-  }
-
-  try {
-    /* if desktop (proxy for fast connection) or fonts already loaded, load fonts.css */
-    if (window.innerWidth >= 900 || sessionStorage.getItem('fonts-loaded')) {
-      loadFonts();
+    const hasLoaderCurtain = !!document.querySelector('.section.cms-loader-container');
+    if (hasLoaderCurtain) {
+      showLoader(true);
     }
-  } catch (e) {
-    // do nothing
+    document.body.classList.add('appear');
+    const firstEagerSection = getFirstEagerSection(main);
+    if (firstEagerSection) {
+      await loadSection(firstEagerSection, waitForFirstImage);
+    }
   }
+
+  // Initialize GTM Martech eager phase (disabled in author mode).
+  // Dynamic imports keep these modules out of the critical path to body.appear.
+  {
+    const [{ isAuthorMode }, { default: gtmMartech }] = await Promise.all([
+      import('./martech-config.js'),
+      import('./gtm-martech.js'),
+    ]);
+    if (!isAuthorMode()) {
+      await gtmMartech.eager();
+    }
+  }
+
 }
 
 /**
@@ -418,14 +642,40 @@ async function loadEager(doc) {
  */
 async function loadLazy(doc) {
   const main = doc.querySelector('main');
-  // Load sections but don't hide loader yet - wait for header/footer
-  await loadSections(main, false);
+  const hasHash = Boolean(window.location.hash);
+  try {
+    // Keep curtain active until visible content is ready.
+    // If deep-linking to a hash, load all sections first for anchor reliability.
+    if (hasHash) {
+      await loadSections(main, false, true);
+    } else {
+      await loadInitialVisibleSections(main);
+    }
 
-  const { hash } = window.location;
-  const element = hash ? doc.getElementById(hash.substring(1)) : false;
-  if (hash && element) element.scrollIntoView();
+    const { hash } = window.location;
+    const element = hash ? doc.getElementById(hash.substring(1)) : false;
+    if (hash && element) element.scrollIntoView();
 
-  // Wait for header and footer to finish loading
+    // For destinations pages with Smartvel, wait for content before hiding loader.
+    // window.__smartvelLoadedPromise is set at module level in destinations.js.
+    if (window.__smartvelLoadedPromise) {
+      await Promise.race([
+        window.__smartvelLoadedPromise,
+        new Promise((resolve) => setTimeout(resolve, 15000)),
+      ]);
+    }
+  } catch (error) {
+    // eslint-disable-next-line no-console
+    console.error('[loadLazy] Error while preparing visible shell:', error);
+  } finally {
+    // Hide loader as soon as main content sections are ready.
+    // Don't wait for header/footer — their space is already reserved
+    // via CSS (--nav-height, --marquee-height) so no CLS.
+    // This dramatically improves Speed Index by showing content earlier.
+    showLoader(false);
+  }
+
+  // Load header and footer without blocking content visibility.
   const headerElement = doc.querySelector('header');
   await Promise.all([
     headerElement ? loadHeader(headerElement) : Promise.resolve(),
@@ -439,7 +689,7 @@ async function loadLazy(doc) {
       // Check if event already fired (containers exist)
       const headerContainer = document.querySelector('.header-wrapper');
       const logoContainer = document.querySelector('.header-logo');
-      
+
       if (headerContainer && logoContainer) {
         // Containers already exist, wait a bit for child blocks to finish rendering
         requestAnimationFrame(() => {
@@ -468,34 +718,42 @@ async function loadLazy(doc) {
     });
   }
 
-  // If on a destinations detail page, wait for Smartvel content before hiding the loader.
-  // window.__smartvelLoadedPromise is set at module level in destinations.js and is only
-  // present when the Destinations organism is on the page. A 15s timeout acts as safety net.
-  if (window.__smartvelLoadedPromise) {
-    await Promise.race([
-      window.__smartvelLoadedPromise,
-      new Promise((resolve) => setTimeout(resolve, 15000)),
+  // Load remaining sections without blocking first paint/interaction.
+  if (!hasHash) {
+    loadRemainingSectionsInBackground(main);
+  }
+
+  {
+    const [{ isAuthorMode }, { default: gtmMartech }] = await Promise.all([
+      import('./martech-config.js'),
+      import('./gtm-martech.js'),
     ]);
+    if (!isAuthorMode()) {
+      // Load consent manager after initial content to reduce startup contention.
+      loadOneTrust();
+
+      // Initialize GTM Martech lazy phase - loads GTM containers
+      await gtmMartech.lazy();
+
+      // Push page_view event to dataLayer after GTM initialization
+      const pageViewData = await pageViewEventData();
+      gtmMartech.pushToDataLayer({
+        event: 'page_view',
+        ...pageViewData,
+      });
+
+      // Load Adobe Launch based on environment (avianca.com = PROD, else DEV)
+      loadAdobeLaunch();
+    }
   }
 
-  // Now hide the loader after everything is loaded (sections + header + footer + header children)
-  showLoader(false);
-
-  if (!isAuthorMode()) {
-    // Initialize GTM Martech lazy phase - loads GTM containers
-    await gtmMartech.lazy();
-
-    // Push page_view event to dataLayer after GTM initialization
-    const pageViewData = await pageViewEventData();
-    gtmMartech.pushToDataLayer({
-      event: 'page_view',
-      ...pageViewData,
-    });
-
-    // Load Adobe Launch based on environment (avianca.com = PROD, else DEV)
-    loadAdobeLaunch();
-  }
-
+  // Non-critical global CSS (moved from head.html to avoid render-blocking)
+  loadCSS(`${window.hlx.codeBasePath}/styles/components/component.css`);
+  loadCSS(`${window.hlx.codeBasePath}/styles/components/custom-scrollbar.css`);
+  loadCSS(`${window.hlx.codeBasePath}/styles/migration-cards.css`);
+  loadCSS(`${window.hlx.codeBasePath}/styles/utilities.css`);
+  loadCSS(`${window.hlx.codeBasePath}/styles/sections.css`);
+  loadCSS(`${window.hlx.codeBasePath}/styles/grid-layout.css`);
   loadCSS(`${window.hlx.codeBasePath}/styles/lazy-styles.css`);
   loadFonts();
 }
@@ -504,7 +762,8 @@ async function loadLazy(doc) {
  * Loads everything that happens a lot later,
  * without impacting the user experience.
  */
-function loadDelayed() {
+async function loadDelayed() {
+  const { isAuthorMode } = await import('./martech-config.js');
   if (isAuthorMode()) {
     return;
   }

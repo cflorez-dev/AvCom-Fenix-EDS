@@ -146,7 +146,7 @@ function getCardDimensions(gridClasses) {
 function createCMSMosaicCards(deps) {
   const { html, LinkCard } = deps;
 
-  return ({ cards = [], template = 'template-1' }) => {
+  return ({ cards = [], template = 'template-1', loading = 'lazy' }) => {
     if (!cards || cards.length === 0) {
       return html`
         <div class="p-6 text-center text-[var(--text-normal-secondary)]">
@@ -154,6 +154,7 @@ function createCMSMosaicCards(deps) {
         </div>
       `;
     }
+    const loadingMode = loading === 'eager' ? 'eager' : 'lazy';
 
     return html`
       <div 
@@ -192,6 +193,7 @@ function createCMSMosaicCards(deps) {
               ctaIconAfter=${card.ctaIconAfter}
               clickBehavior=${card.clickBehavior}
               supportIcon=${card.supportIcon}
+              loading=${loadingMode}
               columns=${columns}
               rows=${rows}
             />
@@ -510,6 +512,7 @@ export default async function decorate(block) {
         <${CMSMosaicCards} 
           cards=${visibleItems} 
           template=${template}
+          loading=${config.loading}
         />
       `,
       container,

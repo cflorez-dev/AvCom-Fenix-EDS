@@ -46,6 +46,8 @@ export const DestinationCard = ({
           alt="${imageAlt || destinationName}"
           class="w-full h-full object-cover"
           loading="lazy"
+          decoding="async"
+          fetchpriority="low"
         />
       </div>
       <div

@@ -61,3 +61,21 @@ main > .section.text-center > .default-content-wrapper:has(+ .cms-informative-ca
 main > .section.text-center > .default-content-wrapper:has(+ .cms-informative-cards-carousel-wrapper) {
   margin-bottom: 32px;
 }
+
+/* --- Inline button group: multiple CMS Buttons in a text-center section --- */
+.section.text-center:has(.cms-button-wrapper + .cms-button-wrapper) {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  gap: 12px;
+}
+
+.section.text-center:has(.cms-button-wrapper + .cms-button-wrapper) > .default-content-wrapper,
+.section.text-center:has(.cms-button-wrapper + .cms-button-wrapper) > .cms-rich-text-wrapper {
+  width: 100%;
+}
+
+.section.text-center:has(.cms-button-wrapper + .cms-button-wrapper) > .section-metadata-container {
+  display: none;
+}
