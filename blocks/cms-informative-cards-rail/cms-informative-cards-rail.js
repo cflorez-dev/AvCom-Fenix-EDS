@@ -116,6 +116,7 @@ export default function decorate(block) {
             details=${card.details}
             image=${card.image}
             imageAlt=${card.imageAlt}
+            loading=${props.loading}
             ActionType=${card.actionType}
             buttonText=${card.buttonText}
             showChevron=${card.showChevron}

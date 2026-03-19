@@ -19,6 +19,17 @@
  */
 
 /**
+ * Optimize an AEM image URL for use as CSS background-image.
+ * Converts PNG/JPG format to WebP for significantly smaller payload.
+ * @param {string} url
+ * @returns {string}
+ */
+function optimizeBgUrl(url) {
+  if (!url) return url;
+  return url.replace(/([?&])format=(png|jpg|jpeg)/i, '$1format=webply');
+}
+
+/**
  * Check if the feature is enabled via feature flag
  * @returns {boolean} True if feature is enabled
  */
@@ -92,13 +103,13 @@ export default function decorate(block) {
 
     if (index === 0 && img) {
       // Row 0: Mobile image
-      config.mobileImage = img.src;
+      config.mobileImage = optimizeBgUrl(img.src);
     } else if (index === 1 && img) {
       // Row 1: Tablet image
-      config.tabletImage = img.src;
+      config.tabletImage = optimizeBgUrl(img.src);
     } else if (index === 2 && img) {
       // Row 2: Desktop image
-      config.desktopImage = img.src;
+      config.desktopImage = optimizeBgUrl(img.src);
     } else if (index === 3) {
       // Row 3: Fallback color (may be authored as a link, paragraph, or plain text)
       const link = cell.querySelector('a');
@@ -167,36 +178,76 @@ export default function decorate(block) {
   main.setAttribute('data-bg-behavior', config.behavior);
 
   /**
-   * Load appropriate background image based on the current viewport size.
-   * This function chooses one source (mobile/tablet/desktop) using matchMedia
-   * and preloads it with a JavaScript Image object so the browser only
-   * downloads the required file for the current resolution.
+   * Ensure LCP background image is requested early.
+   * Keeps a single reusable preload element to avoid duplicates.
+   * @param {string} imageUrl
    */
-  function loadBackgroundImage() {
-    let imageUrl = config.mobileImage; // Default to mobile
+  function preloadBackgroundImage(imageUrl) {
+    if (!imageUrl) return;
 
-    // Check viewport and select appropriate image
-    if (window.matchMedia('(min-width: 1248px)').matches) {
-      imageUrl = config.desktopImage;
-    } else if (window.matchMedia('(min-width: 768px)').matches) {
-      imageUrl = config.tabletImage;
+    let preload = document.head.querySelector('link[data-cms-bg-preload="true"]');
+    if (!preload) {
+      preload = document.createElement('link');
+      preload.setAttribute('data-cms-bg-preload', 'true');
+      preload.rel = 'preload';
+      preload.as = 'image';
+      preload.fetchPriority = 'high';
+      document.head.appendChild(preload);
     }
 
-    // Preload the chosen image before applying it as a CSS background
-    const img = new Image();
-    img.onload = () => {
-      // Apply loaded image to background
-      main.style.setProperty('--bg-current', `url('${imageUrl}')`);
-      main.classList.add('loaded');
-    };
-    img.onerror = () => {
-      main.classList.add('loaded'); // Still mark as loaded to show fallback color
-    };
-    img.src = imageUrl;
+    if (preload.getAttribute('href') !== imageUrl) {
+      preload.setAttribute('href', imageUrl);
+    }
+  }
+
+  /**
+   * Select image URL based on current viewport.
+   * @returns {string}
+   */
+  function getImageForViewport() {
+    if (window.matchMedia('(min-width: 1248px)').matches) {
+      return config.desktopImage;
+    }
+    if (window.matchMedia('(min-width: 768px)').matches) {
+      return config.tabletImage;
+    }
+    return config.mobileImage;
+  }
+
+  /**
+   * Gets viewport tier key to avoid unnecessary work on resize.
+   * @returns {'mobile'|'tablet'|'desktop'}
+   */
+  function getViewportTier() {
+    if (window.matchMedia('(min-width: 1248px)').matches) return 'desktop';
+    if (window.matchMedia('(min-width: 768px)').matches) return 'tablet';
+    return 'mobile';
+  }
+
+  let currentViewportTier = '';
+
+  /**
+   * Load appropriate background image based on the current viewport size.
+   * Uses viewport tiers to avoid redundant updates while resizing.
+   */
+  function loadBackgroundImage(force = false) {
+    const viewportTier = getViewportTier();
+    if (!force && viewportTier === currentViewportTier) {
+      return;
+    }
+    currentViewportTier = viewportTier;
+
+    const imageUrl = getImageForViewport();
+    if (!imageUrl) return;
+
+    preloadBackgroundImage(imageUrl);
+    // Apply immediately so browser can start fetching as soon as possible.
+    main.style.setProperty('--bg-current', `url('${imageUrl}')`);
+    main.classList.add('loaded');
   }
 
   // Load initial image
-  loadBackgroundImage();
+  loadBackgroundImage(true);
 
   // Reload image on viewport resize (debounced)
   let resizeTimeout;

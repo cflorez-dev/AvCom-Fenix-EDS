@@ -58,8 +58,8 @@ export default function decorate(block) {
     return;
   }
 
-  // Validate required fields
-  if (!config.ctaText || !config.ctaUrl) {
+  // Validate required fields — title or image must exist; CTA is optional
+  if (!config.title && !config.imageDesktop) {
     block.style.display = 'none';
     return;
   }

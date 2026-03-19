@@ -35,6 +35,13 @@
     box-shadow: 0 0.125rem 0.75rem rgb(27 27 27 / 15%);
 }
 
+/* Restore inter-block spacing when the padding shorthand above overrides the
+   generic :not(:last-child) padding-bottom rule.  Use margin-bottom for visible
+   gap between blocks that have their own background / box-shadow. */
+.section.multitab-container .multitab-content > .cms-rich-text-wrapper:not(:last-child) {
+    margin-bottom: 24px;
+}
+
 .section.multitab-container .multitab-content > .default-content-wrapper img,
 .section.multitab-container .multitab-content > .default-content-wrapper + .default-content-wrapper img {
     border-radius: var(--border-radius-large);

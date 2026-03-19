@@ -425,7 +425,7 @@ async function createMobileCarousel(allCards, groupId, config = {}) {
   if (showArrows && originalCardsCount > 1) {
     const dotsWrapper = document.createElement('div');
     dotsWrapper.className = 'carousel-dots flex justify-center mt-4';
-    dotsWrapper.setAttribute('role', 'tablist');
+    dotsWrapper.setAttribute('role', 'group');
     dotsWrapper.setAttribute('aria-label', 'Carousel navigation');
 
     // State management for dots

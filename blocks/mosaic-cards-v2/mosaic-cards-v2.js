@@ -4,10 +4,21 @@ import { h, render } from '@dropins/tools/preact.js';
 import { getStoredCountry, getStoredLanguage } from '../../scripts/services/header/language-country-selector.js';
 import { loadBlock } from '../../scripts/aem.js';
 import { registerMosaicGroup, getMosaicStore } from './mosaic-cards-v2.store.js';
-import { initMobileViewHelper } from './mosaic-cards-v2-mobile-view.helper.js';
 import { shouldShowByTargeting } from '../../scripts/utils/target-filter.js';
 
 const html = htm.bind(h);
+let mobileViewHelperModulePromise;
+
+/**
+ * Lazy-load mobile helper to avoid paying its parse/execute cost during initial load.
+ * @returns {Promise<{ initMobileViewHelper: Function }>}
+ */
+function loadMobileViewHelperModule() {
+  if (!mobileViewHelperModulePromise) {
+    mobileViewHelperModulePromise = import('./mosaic-cards-v2-mobile-view.helper.js');
+  }
+  return mobileViewHelperModulePromise;
+}
 
 /**
  * Read mosaic-cards-v2 configuration from block (similar to multitab)
@@ -552,15 +563,70 @@ export default async function decorate(block) {
   mobileContainer.style.display = 'none';
   section.insertAdjacentElement('afterend', mobileContainer);
 
-  initMobileViewHelper({
-    mosaicSections,
-    groupId,
-    container: mobileContainer,
-    autoplay,
-    autoplaySpeed,
-    showArrows,
-    show,
-  });
+  let mobileHelperInitialized = false;
+  let mobileObserver = null;
+  let mobileInitTimeoutId = null;
+
+  async function initializeMobileHelper() {
+    if (mobileHelperInitialized) return;
+    mobileHelperInitialized = true;
+
+    if (mobileObserver) {
+      mobileObserver.disconnect();
+      mobileObserver = null;
+    }
+    if (mobileInitTimeoutId) {
+      clearTimeout(mobileInitTimeoutId);
+      mobileInitTimeoutId = null;
+    }
+    window.removeEventListener('resize', handleMobileResize);
+
+    const { initMobileViewHelper } = await loadMobileViewHelperModule();
+    initMobileViewHelper({
+      mosaicSections,
+      groupId,
+      container: mobileContainer,
+      autoplay,
+      autoplaySpeed,
+      showArrows,
+      show,
+    });
+  }
+
+  function handleMobileResize() {
+    if (window.matchMedia('(max-width: 1023px)').matches) {
+      initializeMobileHelper();
+    }
+  }
+
+  // Initialize immediately on mobile/tablet to preserve current behavior.
+  // On desktop, lazy-init near viewport to reduce startup JS work.
+  if (window.matchMedia('(max-width: 1023px)').matches) {
+    initializeMobileHelper();
+  } else if ('IntersectionObserver' in window) {
+    mobileObserver = new IntersectionObserver((entries) => {
+      const [entry] = entries;
+      if (entry?.isIntersecting) {
+        initializeMobileHelper();
+      }
+    }, {
+      root: null,
+      rootMargin: '350px 0px',
+      threshold: 0,
+    });
+    mobileObserver.observe(carouselContainer);
+    window.addEventListener('resize', handleMobileResize, { passive: true });
+
+    // Safety net: initialize eventually to support long sessions and late viewport switches.
+    mobileInitTimeoutId = setTimeout(() => {
+      initializeMobileHelper();
+    }, 8000);
+  } else {
+    window.addEventListener('resize', handleMobileResize, { passive: true });
+    mobileInitTimeoutId = setTimeout(() => {
+      initializeMobileHelper();
+    }, 1500);
+  }
 
   // Animation control (works for both autoplay and manual navigation)
   if (enableCarouselMode) {

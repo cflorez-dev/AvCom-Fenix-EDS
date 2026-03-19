@@ -18,6 +18,45 @@ function getCellText(el, index) {
 }
 
 /**
+ * Derives a readable label from a URL path/host.
+ * @param {string} value
+ * @returns {string}
+ */
+function deriveNameFromUrl(value) {
+  if (!value) return '';
+  try {
+    const parsed = new URL(value, window.location.origin);
+    const lastPath = parsed.pathname.split('/').filter(Boolean).pop() || '';
+    const base = lastPath || parsed.hostname.replace(/^www\./, '');
+    return decodeURIComponent(base)
+      .replace(/\.[a-z0-9]+$/i, '')
+      .replace(/[-_]+/g, ' ')
+      .trim();
+  } catch (e) {
+    return '';
+  }
+}
+
+/**
+ * Resolves a stable accessible name for partner logos.
+ * @param {Object} item
+ * @param {number} index
+ * @returns {string}
+ */
+function getAccessiblePartnerName(item, index) {
+  const explicitAlt = item.imageAlt?.trim();
+  if (explicitAlt) return explicitAlt;
+
+  const fromLink = deriveNameFromUrl(item.redirectUrl);
+  if (fromLink) return fromLink;
+
+  const fromImage = deriveNameFromUrl(item.imageUrl);
+  if (fromImage) return fromImage;
+
+  return `Partner ${index + 1}`;
+}
+
+/**
  * Maps the footer partners logos block data.
  * Block model fields: 0=target-countries, 1=target-languages
  * Item model fields:  0=image, 1=alt, 2=url, 3=target-countries, 4=target-languages
@@ -70,14 +109,16 @@ export function mapFooterPartnersLogosData(block) {
 export function renderFooterPartnersLogos(items) {
   const fragment = document.createDocumentFragment();
 
-  items.forEach((item) => {
+  items.forEach((item, index) => {
     // Skip if no image URL
     if (!item.imageUrl) return;
+
+    const accessibleName = getAccessiblePartnerName(item, index);
 
     // Create picture element with optimized image
     const picture = createOptimizedPicture(
       item.imageUrl,
-      item.imageAlt || '',
+      item.imageAlt || accessibleName,
       false,
       [{ media: '(min-width: 600px)', width: '2000' }, { width: '750' }],
     );
@@ -86,6 +127,7 @@ export function renderFooterPartnersLogos(items) {
     if (item.redirectUrl) {
       const anchor = document.createElement('a');
       anchor.href = item.redirectUrl;
+      anchor.setAttribute('aria-label', accessibleName);
       anchor.appendChild(picture);
       fragment.appendChild(anchor);
     } else {

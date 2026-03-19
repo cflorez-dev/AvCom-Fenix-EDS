@@ -36,7 +36,7 @@ function renderThreeCardsGrid(cards, loadingMode) {
           variant=${cardData.variant}
           title=${cardData.title}
           description=${stripHtmlTags(cardData.description)}
-          image=${cardData.image}
+          pictureElement=${cardData.pictureElement}
           imageAlt=${cardData.imageAlt}
           buttonText=${cardData.ctaText || ''}
           buttonURL=${cardData.ctaLink || ''}
@@ -68,7 +68,7 @@ function renderThreeCardsCarousel(cards, loadingMode) {
       variant=${cardData.variant}
       title=${cardData.title}
       description=${stripHtmlTags(cardData.description)}
-      image=${cardData.image}
+      pictureElement=${cardData.pictureElement}
       imageAlt=${cardData.imageAlt}
       buttonText=${cardData.ctaText || ''}
       buttonURL=${cardData.ctaLink || ''}
@@ -128,7 +128,7 @@ function renderMultiCardsCarousel(cards, loadingMode) {
           variant=${cardData.variant}
           title=${cardData.title}
           description=${stripHtmlTags(cardData.description)}
-          image=${cardData.image}
+          pictureElement=${cardData.pictureElement}
           imageAlt=${cardData.imageAlt}
           buttonText=${cardData.ctaText || ''}
           buttonURL=${cardData.ctaLink || ''}
@@ -162,7 +162,7 @@ export default function decorate(block) {
 
   const cards = extractCarouselCards(block);
   const totalCards = cards.length;
-  const loadingMode = props.loading || 'lazy';
+  const loadingMode = props.loading === 'eager' ? 'eager' : 'lazy';
 
   if (totalCards === 0) {
     // Add p-0 class to parent section container
