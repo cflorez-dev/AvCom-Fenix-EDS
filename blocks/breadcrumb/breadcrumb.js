@@ -24,17 +24,27 @@ function getI18nLabel(key) {
  * @param {string} url - URL to fetch
  * @returns {Promise<string>} Page title
  */
+/**
+ * Gets page title (jcr:title) from a URL.
+ * Fetches the .plain.html variant which contains raw block content without
+ * the <title> tag (which may hold pageTitle with a brand prefix).
+ * Looks for <h1> first, then falls back to the breadcrumb block content
+ * which always reflects the clean jcr:title.
+ * @param {string} url - URL to fetch
+ * @returns {Promise<string>} Page title
+ */
 const getPageTitle = async (url) => {
   try {
-    const resp = await fetch(url);
-    // Only use title if request was successful AND no redirect occurred
-    if (resp.ok && resp.url === url) {
+    const plainUrl = url.replace(/\/?$/, '.plain.html');
+    const resp = await fetch(plainUrl);
+    if (resp.ok && resp.url === plainUrl) {
       const htmlContent = document.createElement('div');
       htmlContent.innerHTML = await resp.text();
       const h1 = htmlContent.querySelector('h1');
       if (h1) return h1.innerText;
-      const title = htmlContent.querySelector('title');
-      return title ? title.innerText : '';
+      // Breadcrumb block content holds jcr:title (clean, no brand prefix)
+      const breadcrumbDiv = htmlContent.querySelector('.breadcrumb div div');
+      if (breadcrumbDiv) return breadcrumbDiv.textContent.trim();
     }
   } catch (error) {
     // eslint-disable-next-line no-console
@@ -146,11 +156,12 @@ const buildBreadcrumbItems = async (pathname, customSlug = '') => {
     });
   }
 
-  // Add current page (last segment) — prefer H1 (page name) over <title> (may be meta-title)
+  // Add current page (last segment) — customSlug comes from the breadcrumb block
+  // content which reflects jcr:title (clean, without brand prefix).
   const h1Element = document.querySelector('h1');
-  const pageTitle = h1Element?.innerText || document.title;
-  if (pageTitle && contentSegments.length > 0) {
-    const label = customSlug && customSlug.trim() !== '' ? customSlug : pageTitle;
+  const currentTitle = h1Element?.innerText || document.title;
+  if (currentTitle && contentSegments.length > 0) {
+    const label = customSlug && customSlug.trim() !== '' ? customSlug : currentTitle;
 
     items.push({
       label,
