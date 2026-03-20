@@ -12,17 +12,17 @@ const html = htm.bind(h);
  * @returns {string} Tailwind grid-cols classes for desktop
  */
 function getDesktopGridColumns(cardCount, variant) {
-  if (variant === 'horizontal' || variant === 'vertical') {
-    if (cardCount === 1) {
-      return 'md:grid-cols-1';
-    }
-    if (cardCount === 2) {
-      return 'md:grid-cols-2';
-    }
-    // 3 or more cards: use 3 columns, extras wrap to new rows
+  if (variant === 'horizontal') {
+    if (cardCount === 1) return 'md:grid-cols-1';
+    if (cardCount === 2) return 'md:grid-cols-2';
     return 'md:grid-cols-3';
   }
-  // Vertical variant: always 4 columns on desktop
+  if (variant === 'vertical') {
+    if (cardCount === 1) return 'md:grid-cols-1';
+    if (cardCount === 2) return 'md:grid-cols-2';
+    if (cardCount === 3) return 'md:grid-cols-3';
+    return 'md:grid-cols-4';
+  }
   return 'md:grid-cols-4';
 }
 

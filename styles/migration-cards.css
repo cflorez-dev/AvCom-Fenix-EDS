@@ -56,10 +56,7 @@
  * ──────────────────────────────────────────────────────────────────── */
 
 .section .cms-rich-text-wrapper a:any-link:not(.button):not([data-button]),
-.section.card-grid-2 > .default-content-wrapper a:any-link:not(.button),
-.section.text-center > .default-content-wrapper a:any-link:not(.button),
-.section.card-grid-2 + .section > .default-content-wrapper a:any-link:not(.button),
-.section.accordion-item > .default-content-wrapper a:any-link:not(.button) {
+.section > .default-content-wrapper a:any-link:not(.button) {
   color: var(--text-link-default, #177f8c);
   text-decoration: underline;
   text-decoration-skip-ink: none;
@@ -69,18 +66,13 @@
 }
 
 .section .cms-rich-text-wrapper a:any-link:not(.button):not([data-button]):hover,
-.section.card-grid-2 > .default-content-wrapper a:any-link:not(.button):hover,
-.section.text-center > .default-content-wrapper a:any-link:not(.button):hover,
-.section.card-grid-2 + .section > .default-content-wrapper a:any-link:not(.button):hover,
-.section.accordion-item > .default-content-wrapper a:any-link:not(.button):hover {
+.section > .default-content-wrapper a:any-link:not(.button):hover {
   color: var(--text-link-active, #0e4c54);
   font-weight: 700;
 }
 
 .section .cms-rich-text-wrapper a:any-link:not(.button):not([data-button]):focus-visible,
-.section.card-grid-2 > .default-content-wrapper a:any-link:not(.button):focus-visible,
-.section.text-center > .default-content-wrapper a:any-link:not(.button):focus-visible,
-.section.accordion-item > .default-content-wrapper a:any-link:not(.button):focus-visible {
+.section > .default-content-wrapper a:any-link:not(.button):focus-visible {
   outline: 2px solid var(--border-stroke-focus, #1d9bf0);
   outline-offset: 2px;
   border-radius: 2px;
@@ -160,4 +152,66 @@ main > .section.text-center > .default-content-wrapper:has(+ .cms-informative-ca
   box-shadow: 0 1px 6px 0 rgb(0 0 0 / 8%);
   padding: 24px;
   margin-bottom: 16px;
+}
+
+/* ─── 8. Migration Content Font Size ────────────────────────────────────
+ * Original site uses 16px base paragraph text; EDS default is 18px/22px.
+ * Override with --body-font-size-s (16px desktop / 19px mobile).
+ * ──────────────────────────────────────────────────────────────────── */
+
+.section .default-content-wrapper p,
+.section .default-content-wrapper li,
+.section .cms-rich-text-wrapper p,
+.section .cms-rich-text-wrapper li {
+  font-size: var(--body-font-size-s, 16px);
+  line-height: 1.5;
+}
+
+/* ─── 9. Image Centering in Content ─────────────────────────────────────
+ * Center standalone images in default content wrappers.
+ * ──────────────────────────────────────────────────────────────────── */
+
+.section .default-content-wrapper p:has(> picture) {
+  text-align: center;
+}
+
+.section .default-content-wrapper p > picture img {
+  max-width: 100%;
+  height: auto;
+}
+
+/* ─── 10. CTA Button Weight ──────────────────────────────────────────────
+ * CTA buttons (markdown auto-buttons) should use bold text.
+ * ──────────────────────────────────────────────────────────────────── */
+
+.section .button-container a.button,
+.section.accordion-item .accordion-group-content .button-container a.button {
+  font-weight: 700;
+}
+
+/* ─── 11. Link Active State ──────────────────────────────────────────────
+ * Active (pressed) state for migration content links.
+ * ──────────────────────────────────────────────────────────────────── */
+
+.section .cms-rich-text-wrapper a:any-link:not(.button):not([data-button]):active,
+.section > .default-content-wrapper a:any-link:not(.button):active {
+  color: var(--text-link-active, #0e4c54);
+  font-weight: 700;
+}
+
+/* ─── 12. Card Rail Height Equalization ──────────────────────────────────
+ * Stretch cards to equal height within each rail on mobile (horizontal
+ * scroll) so cards with varying text lengths match the tallest card.
+ * Desktop grid already equalizes via grid-auto-rows.
+ * Override h-full (height:100%) which creates a circular reference in
+ * flex containers; use align-self:stretch + height:auto instead.
+ * ──────────────────────────────────────────────────────────────────── */
+
+.cms-informative-cards-rail-wrapper .self-stretch.inline-flex {
+  align-items: stretch;
+}
+
+.cms-informative-cards-rail-wrapper .self-stretch.inline-flex > [class*="bg-background-card"] {
+  height: auto;
+  align-self: stretch;
 }

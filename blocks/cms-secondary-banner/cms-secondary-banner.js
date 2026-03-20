@@ -64,6 +64,15 @@ export default function decorate(block) {
     return;
   }
 
+  // Fallback: use desktop image for mobile when mobile image is not provided
+  if (!config.pictureMobile && config.pictureDesktop) {
+    config.pictureMobile = {
+      ...config.pictureDesktop,
+      pictureElement: config.pictureDesktop.pictureElement.cloneNode(true),
+    };
+    config.imageMobile = config.imageDesktop;
+  }
+
   // Create container for the banner
   const container = document.createElement('div');
   container.className = 'cms-secondary-banner-wrapper w-[100%]';
