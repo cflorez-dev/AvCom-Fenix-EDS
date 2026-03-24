@@ -494,6 +494,58 @@ export default async function decorate(block) {
       }
     }
 
+    // Fallback: discover sibling link-card blocks in the same section (migration format)
+    if (childItems.length === 0) {
+      const parentSection = block.closest('.section');
+      if (parentSection) {
+        const siblingCards = parentSection.querySelectorAll('.link-card');
+        siblingCards.forEach((card) => {
+          const rows = [...card.querySelectorAll(':scope > div > div')];
+          if (rows.length === 0) return;
+          const val = (idx) => rows[idx]?.textContent?.trim() || '';
+          const imgAt = (idx) => {
+            if (!rows[idx]) return { src: '', alt: '' };
+            const img = rows[idx].querySelector('img');
+            if (img) return { src: img.src, alt: img.alt || '' };
+            const a = rows[idx].querySelector('a');
+            if (a && a.href) return { src: a.href, alt: a.textContent.trim() };
+            const pic = rows[idx].querySelector('picture');
+            if (pic) {
+              const pImg = pic.querySelector('img');
+              if (pImg) return { src: pImg.src, alt: pImg.alt || '' };
+            }
+            return { src: val(idx), alt: '' };
+          };
+
+          const desktop = imgAt(0);
+          const mobile = imgAt(2);
+          const cardData = {
+            imageDesktop: desktop.src,
+            imageDesktopAlt: val(1) || desktop.alt,
+            imageMobile: mobile.src,
+            imageMobileAlt: val(3) || mobile.alt,
+            title: val(4),
+            description: val(5),
+            ctaLabel: val(6),
+            supportIcon: '',
+            linkUrl: val(7),
+            linkAlt: val(8),
+            linkOpensIn: val(9) || 'sameTab',
+            ctaIconBefore: val(10) || 'none',
+            ctaIconAfter: val(11) || 'none',
+            clickBehavior: val(12) || 'fullCard',
+            targetCountries: val(13) || '',
+            targetLanguages: val(14) || '',
+          };
+
+          if (cardData.imageDesktop || cardData.title) {
+            childItems.push(cardData);
+            card.style.display = 'none';
+          }
+        });
+      }
+    }
+
     // Filter cards by targeting
     const filteredItems = filterItemsByTargeting(childItems);
     const visibleItems = filteredItems.slice(0, maxTemplateCards);

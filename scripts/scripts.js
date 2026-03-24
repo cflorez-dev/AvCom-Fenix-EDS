@@ -253,6 +253,8 @@ function loadRemainingSectionsInBackground(main) {
       }
       // eslint-disable-next-line no-await-in-loop
       await loadSection(section);
+      stripInternalTrailingSlashes(section);
+      forceVisibleLazyImages(section);
       // eslint-disable-next-line no-await-in-loop
       await new Promise((resolve) => {
         setTimeout(resolve, 0);
@@ -334,6 +336,47 @@ export function decorateMain(main) {
   buildAutoBlocks(main);
   decorateSections(main);
   decorateBlocks(main);
+  stripInternalTrailingSlashes(main);
+}
+
+/**
+ * Strips trailing slashes from internal links.
+ * AEM Franklin delivery adds trailing slashes when resolving JCR paths to HTML,
+ * but EDS serves /path → 200 and /path/ → 404.
+ * @param {Element} root The root element to process
+ */
+function stripInternalTrailingSlashes(root) {
+  root.querySelectorAll('a[href]').forEach((a) => {
+    try {
+      const url = new URL(a.href, window.location.origin);
+      if (url.origin === window.location.origin
+        && url.pathname.endsWith('/')
+        && url.pathname.length > 1) {
+        a.href = url.pathname.slice(0, -1) + url.search + url.hash;
+      }
+    } catch (e) { /* ignore malformed URLs */ }
+  });
+}
+
+/**
+ * Forces lazy images that are already in the viewport to load eagerly.
+ * Browser IntersectionObserver may not trigger for images inside CSS grid/flex
+ * containers with certain layout configurations (e.g., grid-3-9 sections).
+ * @param {Element} root The root element to process
+ * @param {boolean} [all=false] When true, forces ALL lazy images regardless of position
+ */
+function forceVisibleLazyImages(root, all = false) {
+  root.querySelectorAll('img[loading="lazy"]').forEach((img) => {
+    if (img.complete && img.naturalWidth > 0) return;
+    if (all) {
+      img.loading = 'eager';
+      return;
+    }
+    const rect = img.getBoundingClientRect();
+    if (rect.top < window.innerHeight * 2) {
+      img.loading = 'eager';
+    }
+  });
 }
 
 /**
@@ -664,6 +707,17 @@ async function loadLazy(doc) {
         new Promise((resolve) => setTimeout(resolve, 15000)),
       ]);
     }
+    // Re-strip trailing slashes after blocks have rendered their content.
+    // decorateMain catches static HTML links, but web component blocks
+    // (cms-rich-text, cards, etc.) populate links after initial decoration.
+    stripInternalTrailingSlashes(main);
+    // Force lazy images that are already in viewport to load eagerly.
+    // Browser's IntersectionObserver may not trigger for images inside
+    // CSS grid/flex containers with certain layout configurations.
+    forceVisibleLazyImages(main);
+    // Second pass after a delay: force ALL remaining lazy images.
+    // By this point sections are loaded; no performance benefit to keeping them lazy.
+    setTimeout(() => forceVisibleLazyImages(main, true), 2000);
   } catch (error) {
     // eslint-disable-next-line no-console
     console.error('[loadLazy] Error while preparing visible shell:', error);

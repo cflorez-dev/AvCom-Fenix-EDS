@@ -243,7 +243,7 @@ export default async function decorate(block) {
   // CRITICAL: Decorate blocks FIRST before moving content
   const blocksToDecorate = [];
   mosaicSections.forEach((mosaicData) => {
-    if (mosaicData.block && mosaicData.block.dataset.blockStatus === 'initialized') {
+    if (mosaicData.block && mosaicData.block.dataset.blockStatus !== 'loaded') {
       blocksToDecorate.push(mosaicData.block);
     }
   });
@@ -251,6 +251,32 @@ export default async function decorate(block) {
   if (blocksToDecorate.length > 0) {
     const decorationPromises = blocksToDecorate.map((blk) => loadBlock(blk));
     await Promise.all(decorationPromises);
+  }
+
+  // Wait for cms-mosaic-cards-rendered siblings to appear (handles race with parallel decoration)
+  const waitForRendered = (blk, maxWait = 3000) => new Promise((resolve) => {
+    const check = () => {
+      const sib = blk.nextElementSibling;
+      if (sib && sib.classList.contains('cms-mosaic-cards-rendered')) return resolve(sib);
+      return null;
+    };
+    if (check()) return;
+    const interval = 50;
+    let elapsed = 0;
+    const timer = setInterval(() => {
+      elapsed += interval;
+      if (check() || elapsed >= maxWait) {
+        clearInterval(timer);
+        resolve(null);
+      }
+    }, interval);
+  });
+
+  const pendingBlocks = mosaicSections.filter(
+    (m) => m.block && !m.block.nextElementSibling?.classList.contains('cms-mosaic-cards-rendered'),
+  );
+  if (pendingBlocks.length > 0) {
+    await Promise.all(pendingBlocks.map((m) => waitForRendered(m.block)));
   }
 
   // Create carousel container
@@ -332,11 +358,18 @@ export default async function decorate(block) {
 
           // Cell 0: imageDesktop
           // AEM fusiona imageDesktopAlt en esta celda: el alt queda embebido en <picture><img alt="">
+          // Fallback: external URLs may be rendered as <a href="url"> links instead of <img>.
           if (cells[cellIndex]) {
             const img = cells[cellIndex].querySelector('img');
             if (img) {
               cardData.imageDesktop = img.src;
               cardData.imageDesktopAlt = img.alt || '';
+            } else {
+              const link = cells[cellIndex].querySelector('a[href]');
+              if (link && /\.(jpe?g|png|gif|webp|svg|avif)/i.test(link.href)) {
+                cardData.imageDesktop = link.href;
+                cardData.imageDesktopAlt = link.title || link.textContent.trim() || '';
+              }
             }
             cellIndex += 1;
           }
@@ -347,6 +380,12 @@ export default async function decorate(block) {
             if (mobileImg) {
               cardData.imageMobile = mobileImg.src;
               cardData.imageMobileAlt = mobileImg.alt || '';
+            } else {
+              const link = cells[cellIndex].querySelector('a[href]');
+              if (link && /\.(jpe?g|png|gif|webp|svg|avif)/i.test(link.href)) {
+                cardData.imageMobile = link.href;
+                cardData.imageMobileAlt = link.title || link.textContent.trim() || '';
+              }
             }
             cellIndex += 1;
           }
@@ -439,10 +478,12 @@ export default async function decorate(block) {
     }
   });
 
-  // Register all cards data in the store
-  // Check if already registered to prevent duplicates on re-decoration
+  // Register all cards data in the store (only if we extracted cards).
+  // When cards live in sibling link-card blocks, cms-mosaic-cards.js extracts
+  // and registers them — skip here to avoid a 0-card registration that blocks
+  // the later real registration.
   const store = getMosaicStore();
-  if (!store.hasGroup(groupId)) {
+  if (allCardsData.length > 0 && !store.hasGroup(groupId)) {
     registerMosaicGroup(groupId, allCardsData, {
       autoplay,
       autoplaySpeed,

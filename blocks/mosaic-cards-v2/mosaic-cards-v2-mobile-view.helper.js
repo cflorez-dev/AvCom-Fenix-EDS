@@ -730,15 +730,26 @@ async function showMobileView(mosaicSections, container, groupId, config = {}) {
     }
   });
 
-  // Get cards from store
-  const storeCards = getMosaicCards(groupId);
+  // Get cards from store — poll if initially empty (race: cms-mosaic-cards registers later)
+  let storeCards = getMosaicCards(groupId);
+  if (storeCards.length === 0) {
+    const maxPoll = 5000;
+    const pollInterval = 200;
+    let waited = 0;
+    while (waited < maxPoll && storeCards.length === 0) {
+      // eslint-disable-next-line no-await-in-loop
+      await new Promise((r) => { setTimeout(r, pollInterval); });
+      waited += pollInterval;
+      storeCards = getMosaicCards(groupId);
+    }
+  }
 
   // Create a copy of all cards to prevent mutations to the store
   let allCards = storeCards.map((card) => ({ ...card }));
 
   if (allCards.length === 0) {
     // eslint-disable-next-line no-console
-    console.warn(`MobileViewHelper: No cards found in store for group "${groupId}"`);
+    console.warn(`MobileViewHelper: No cards found in store for group "${groupId}" after polling`);
     // Fallback: collect from mosaicSections if available
     mosaicSections.forEach((mosaicData) => {
       if (mosaicData.cards && Array.isArray(mosaicData.cards)) {
