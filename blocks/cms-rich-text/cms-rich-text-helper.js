@@ -4,7 +4,8 @@ import { sanitizeHTML } from '../../scripts/utils/sanitize.js';
 // DOMPurify config that preserves inline styles from encoded CMS Rich Text
 const ENCODED_SANITIZE_CONFIG = {
   USE_PROFILES: { html: true },
-  ADD_ATTR: ['style', 'target', 'rel'],
+  ADD_TAGS: ['iframe'],
+  ADD_ATTR: ['style', 'target', 'rel', 'src', 'title', 'loading', 'frameborder', 'allow', 'allowfullscreen', 'scrolling'],
 };
 
 /**

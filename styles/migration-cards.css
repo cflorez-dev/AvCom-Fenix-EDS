@@ -215,3 +215,367 @@ main > .section.text-center > .default-content-wrapper:has(+ .cms-informative-ca
   height: auto;
   align-self: stretch;
 }
+
+/* ─── 13. Text-Center Section Images ─────────────────────────────────────
+ * Center block-level images in sections with text-center style.
+ * Also adds decorative lines around standalone brand logos.
+ * ──────────────────────────────────────────────────────────────────── */
+
+.section.text-center .default-content-wrapper img {
+  margin-inline: auto;
+}
+
+.section.text-center .default-content-wrapper p:has(> picture:only-child) {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+}
+
+.section.text-center .default-content-wrapper p:has(> picture:only-child)::before,
+.section.text-center .default-content-wrapper p:has(> picture:only-child)::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background-color: #ddd;
+}
+
+/* ─── 14. Plusgrade / Form Footnote ──────────────────────────────────────
+ * Style the plain-text paragraph inside the Form Header Banner section
+ * as a small-print footnote matching the original context-footnote class.
+ * ──────────────────────────────────────────────────────────────────── */
+
+.section.form-header-banner-container > .default-content-wrapper {
+  max-width: 1248px;
+  margin-inline: auto;
+  padding: 16px 20px 0;
+}
+
+.section.form-header-banner-container > .default-content-wrapper p {
+  font-size: 0.75rem !important;
+  line-height: 1.5;
+  color: #6c6c6c;
+  text-align: left;
+}
+
+.section.form-header-banner-container > .default-content-wrapper a:any-link {
+  font-size: 0.75rem;
+}
+
+/* ─── 15. Primary Button in Rich Text ────────────────────────────────────
+ * Links with class="button btn-primary" in rich text need explicit
+ * overrides because the CMS helper adds Tailwind utility classes
+ * (underline, link colors, font-normal) that conflict with button
+ * appearance.  Use !important to override utility hover/active states.
+ * ──────────────────────────────────────────────────────────────────── */
+
+.section .cms-rich-text-wrapper a.btn-primary,
+.section .cms-rich-text-wrapper a.button.btn-primary {
+  display: inline-block !important;
+  background-color: #1b1b1b !important;
+  color: #fff !important;
+  padding: 12px 24px !important;
+  border-radius: 32px !important;
+  border: 2px solid #1b1b1b !important;
+  font-weight: 700 !important;
+  font-size: 14px !important;
+  text-decoration: none !important;
+  text-align: center;
+  cursor: pointer;
+  transition: background-color 0.2s ease-in-out, border-color 0.2s ease-in-out;
+}
+
+.section .cms-rich-text-wrapper a.btn-primary:hover,
+.section .cms-rich-text-wrapper a.button.btn-primary:hover {
+  background-color: #494949 !important;
+  border-color: #494949 !important;
+  color: #fff !important;
+  text-decoration: none !important;
+  font-weight: 700 !important;
+}
+
+.section .cms-rich-text-wrapper a.btn-primary:active,
+.section .cms-rich-text-wrapper a.button.btn-primary:active {
+  background-color: #6c6c6c !important;
+  border-color: #6c6c6c !important;
+  color: #fff !important;
+}
+
+.section .cms-rich-text-wrapper a.btn-primary:focus-visible,
+.section .cms-rich-text-wrapper a.button.btn-primary:focus-visible {
+  outline: 2px solid var(--border-stroke-focus, #1d9bf0) !important;
+  outline-offset: 2px;
+}
+
+/* ─── 15b. CMS Rich Text Icon Grid Spacing ───────────────────────────────
+ * Icon image containers (div with images) inside CMS Rich Text need
+ * top-margin so they don't sit flush against the paragraph above.
+ * ──────────────────────────────────────────────────────────────────── */
+
+.section:is(.grid-6-6, .grid-6-6-reverse) .cms-rich-text-content div div div div:has(> div img) {
+  margin-top: 16px;
+}
+
+/* ─── 15c. Routes Footnote Below Grid ────────────────────────────────────
+ * The "*La experiencia Business Class..." footnote sits inside the
+ * text column of the grid-6-6 section.  On desktop, use relative
+ * positioning to extend it visually below both columns.
+ * ──────────────────────────────────────────────────────────────────── */
+
+.section:is(.grid-6-6, .grid-6-6-reverse) .cms-rich-text-content > div > div > div > div:not([style*="background"]) > p:last-child {
+  font-size: 0.75rem !important;
+  color: #6c6c6c !important;
+  line-height: 1.5 !important;
+  margin-top: 12px !important;
+}
+
+@media (min-width: 992px) {
+  .section.grid-6-6:not(.grid-6-6-reverse) .cms-rich-text-content > div > div > div > div:not([style*="background"]) > p:last-child {
+    position: relative !important;
+    /* compensate for parent 10px padding: +30px left, +40px width */
+    left: calc(-100% - var(--grid-layout-gap, 24px) - 30px) !important;
+    width: calc(200% + var(--grid-layout-gap, 24px) + 40px) !important;
+    margin-top: 56px !important;
+  }
+}
+
+/* ─── 16. Business Class Experience Carousel ─────────────────────────────
+ * CSS-only infinite marquee for the experience image carousel.
+ * Duplicated content in the track allows seamless loop via translateX.
+ * ──────────────────────────────────────────────────────────────────── */
+
+@keyframes bc-carousel-scroll {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+
+.bc-carousel {
+  overflow: hidden;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.bc-carousel .bc-carousel-track {
+  display: flex;
+  gap: 15px;
+  width: max-content;
+  animation: bc-carousel-scroll 40s linear infinite;
+  will-change: transform;
+}
+
+.bc-carousel .bc-carousel-track > div {
+  flex: 0 0 380px;
+}
+
+.bc-carousel .bc-carousel-track:hover {
+  animation-play-state: paused;
+}
+
+@media (max-width: 767px) {
+  .bc-carousel .bc-carousel-track > div {
+    flex: 0 0 260px !important;
+    min-width: 260px !important;
+    width: 260px !important;
+  }
+
+  .bc-carousel .bc-carousel-track {
+    animation-duration: 25s;
+  }
+
+  .bc-carousel {
+    max-height: 420px;
+  }
+}
+
+/* ─── 17. Insignia Carousel iframe scroll fix ─────────────────────────────
+ * Hide scrollbar on embedded carousel iframes inside CMS Rich Text.
+ * Firefox uses scrollbar-width, WebKit/Blink uses ::-webkit-scrollbar.
+ * Also hide overflow on the wrapper div to prevent container scroll.
+ * ──────────────────────────────────────────────────────────────────── */
+
+.section.grid-6-6 .cms-rich-text-content iframe {
+  overflow: hidden;
+  scrollbar-width: none;
+  border: none;
+}
+
+.section.grid-6-6 .cms-rich-text-content iframe::-webkit-scrollbar {
+  display: none;
+}
+
+.section.grid-6-6 .cms-rich-text-content div[style*="overflow"] {
+  overflow: hidden !important;
+  scrollbar-width: none;
+}
+
+.section.grid-6-6 .cms-rich-text-content div[style*="overflow"]::-webkit-scrollbar {
+  display: none;
+}
+
+/* ─── 18. "Así se siente volar" flush grid ─────────────────────────────────
+ * Remove gap between dark-red text box and cabin image so they appear
+ * edge-to-edge as in the original. Also force image to cover its column.
+ * Scoped to grid-6-6 + grid-items-stretch sections containing a
+ * CMS Rich Text block followed by an image.
+ * ──────────────────────────────────────────────────────────────────── */
+
+:is(main, .fragment-wrapper) > .section.grid-6-6.grid-items-stretch {
+  --grid-layout-gap: 0px;
+}
+
+:is(main, .fragment-wrapper) > .section.grid-6-6.grid-items-stretch .default-content-wrapper {
+  padding: 0;
+  margin: 0;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+:is(main, .fragment-wrapper) > .section.grid-6-6.grid-items-stretch .default-content-wrapper p {
+  margin: 0;
+  padding: 0;
+  line-height: 0;
+  flex: 1;
+  display: flex;
+}
+
+:is(main, .fragment-wrapper) > .section.grid-6-6.grid-items-stretch .default-content-wrapper picture {
+  display: flex;
+  width: 100%;
+  height: 100%;
+}
+
+:is(main, .fragment-wrapper) > .section.grid-6-6.grid-items-stretch .default-content-wrapper img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+/* ─── 19. Tab panel flex image symmetry ──────────────────────────────────
+ * Override hardcoded pixel heights on images inside flex containers
+ * within tab panels so they stretch to match their sibling flex items.
+ * ──────────────────────────────────────────────────────────────────── */
+
+[role="tabpanel"] .cms-rich-text-content div[style*="display:flex"] > div > img {
+  height: 100% !important;
+  object-fit: cover;
+}
+
+/* ─── 20. Mobile: grid-6-6 carousel + intro stacking ────────────────────
+ * On mobile, the intro paragraph column in the carousel section
+ * needs proper spacing and overflow handling.
+ * ──────────────────────────────────────────────────────────────────── */
+
+@media (max-width: 899px) {
+  .section.grid-6-6.grid-gap-lg .cms-rich-text-wrapper {
+    overflow: hidden;
+  }
+
+  .section.grid-6-6.grid-gap-lg .cms-rich-text-content iframe {
+    min-height: 300px;
+    max-height: 350px;
+  }
+}
+
+/* ─── 21. Contrato de transporte — Código compartido airline grid ────
+ * Original layout: 4 col-lg-3 columns (25% each).
+ * Markdown alternating -/* markers produce 4 <ul> in one wrapper.
+ * Selector anchors on h3#código-compartido (unique to this page).
+ * ──────────────────────────────────────────────────────────────────── */
+.section:has(h3#código-compartido) + .section > .default-content-wrapper {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0 2rem;
+}
+
+.section:has(h3#código-compartido) + .section > .default-content-wrapper ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.section:has(h3#código-compartido) + .section > .default-content-wrapper ul li {
+  padding: 0.35rem 0;
+}
+
+.section:has(h3#código-compartido) + .section > .default-content-wrapper ul li a {
+  color: var(--link-color, #1473e6);
+  text-decoration: none;
+}
+
+.section:has(h3#código-compartido) + .section > .default-content-wrapper ul li a:hover {
+  text-decoration: underline;
+}
+
+@media (max-width: 1199px) {
+  .section:has(h3#código-compartido) + .section > .default-content-wrapper {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 767px) {
+  .section:has(h3#código-compartido) + .section > .default-content-wrapper {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ──────────────────────────────────────────────────────────────────────
+ * Mobile overflow prevention (KI-018 / P6)
+ *
+ * Root causes: long URLs, inline-flex cards-rail, nowrap links in
+ * flex-display list items, and long h3 text at 34px+ font-size.
+ * ──────────────────────────────────────────────────────────────────── */
+
+/* Long text: break words/URLs that exceed container width */
+.cms-rich-text-wrapper a:any-link,
+.section .default-content-wrapper a:any-link,
+.cms-rich-text-wrapper h3,
+.section .default-content-wrapper h3,
+.cms-rich-text-content h3 {
+  overflow-wrap: break-word;
+  word-break: break-word;
+}
+
+/* Flex list items (EDS renders <li> as display:flex): constrain children */
+.cms-rich-text-wrapper li,
+.section .default-content-wrapper li {
+  min-width: 0;
+  flex-wrap: wrap;
+}
+
+/* Cards-rail: horizontal scroll on mobile instead of overflow */
+@media (max-width: 767px) {
+  .cms-informative-cards-rail-wrapper .self-stretch.inline-flex {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    max-width: 100vw;
+  }
+}
+
+/* Lists inside rich text: allow line breaks on links */
+.cms-rich-text-wrapper li a,
+.section .default-content-wrapper li a {
+  white-space: normal;
+}
+
+/* Prevent grid sections from overflowing viewport on mobile */
+@media (max-width: 767px) {
+  :is(main, .fragment-wrapper) > .section[class*="grid-"] {
+    max-width: 100vw;
+    overflow-x: hidden;
+  }
+}
+
+/* Breadcrumb container: clip overflow from long last-item text on mobile */
+@media (max-width: 767px) {
+  .section.breadcrumb-container {
+    overflow-x: hidden;
+  }
+}
+
+/* Large headings: break long words that exceed mobile viewport */
+.section h1,
+.section h2 {
+  overflow-wrap: break-word;
+  word-break: break-word;
+}
