@@ -1,4 +1,5 @@
 import { filterItemsByTargeting } from '../../scripts/utils/target-filter.js';
+import { createOptimizedPicture } from '../../scripts/aem.js';
 
 /**
  * Extracts props from a CMS Promotional Card Carrousel block.
@@ -90,15 +91,16 @@ export function extractCarouselCards(block) {
     // Extract image (cell 0)
     const imageCell = cells[0];
     const imgElement = imageCell?.querySelector('img');
-    const image = imgElement?.src || '';
+    const imageSrc = imgElement?.src || '';
+    const imageAlt = imgElement?.alt || '';
+    const pictureElement = imageSrc
+      ? createOptimizedPicture(imageSrc, imageAlt, false, [{ width: '240' }, { width: '180' }])
+      : null;
 
     // Extract backgroundColor (cell 1) - the href from the link inside button-container
     const backgroundColorCell = cells[1];
     const backgroundColorLink = backgroundColorCell?.querySelector('a');
     const backgroundColor = backgroundColorLink?.href?.split('#')[1] ? `#${backgroundColorLink.href.split('#')[1]}` : backgroundColorLink?.textContent?.trim() || '#1b1b1b';
-
-    // Extract imageAlt from img element
-    const imageAlt = imgElement?.alt || '';
 
     // Extract variant (cell 2)
     const variant = cells[2]?.textContent?.trim() || 'dark';
@@ -118,7 +120,7 @@ export function extractCarouselCards(block) {
     const ctaLink = ctaLinkElement?.href || ctaLinkCell?.textContent?.trim() || '';
 
     // Validate required fields
-    if (!image) {
+    if (!pictureElement) {
       return;
     }
 
@@ -132,7 +134,7 @@ export function extractCarouselCards(block) {
 
     // Create card object
     const card = {
-      image,
+      pictureElement,
       imageAlt,
       backgroundColor,
       variant,

@@ -204,6 +204,9 @@ const InteractiveTabs = ({ destinationData, language = 'es' }) => {
                     src=${heroImageUrl}
                     alt=${destination.cityName_en}
                     class="w-full md:w-[240px] h-[240px] object-cover rounded-lg"
+                    loading="lazy"
+                    decoding="async"
+                    fetchpriority="low"
                   />
                 ` : html`
                   <div class="w-full md:w-[240px] h-[240px] bg-gray-200 rounded-lg flex items-center justify-center text-gray-400">
@@ -248,6 +251,9 @@ const InteractiveTabs = ({ destinationData, language = 'es' }) => {
                     src=${airportImageUrl}
                     alt=${getLocalizedField('airportName')}
                     class="w-full md:w-[240px] h-[240px] object-cover rounded-lg"
+                    loading="lazy"
+                    decoding="async"
+                    fetchpriority="low"
                   />
                 ` : html`
                   <div class="w-full md:w-[240px] h-[240px] bg-gray-200 rounded-lg flex items-center justify-center text-gray-400">
@@ -572,6 +578,8 @@ export const Destinations = ({
                 />
                 <img 
                   loading="eager" 
+                  decoding="sync"
+                  fetchpriority="high"
                   alt="${cityName} hero banner" 
                   src="${bannerImageUrl}?width=750&format=png&optimize=medium"
                   width="772" 

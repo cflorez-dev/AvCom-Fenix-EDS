@@ -1,6 +1,13 @@
 import { getLinkButtonStyles } from '../../design-system/atoms/link-button/link-button.js';
 import { sanitizeHTML } from '../../scripts/utils/sanitize.js';
 
+// DOMPurify config that preserves inline styles from encoded CMS Rich Text
+const ENCODED_SANITIZE_CONFIG = {
+  USE_PROFILES: { html: true },
+  ADD_TAGS: ['iframe'],
+  ADD_ATTR: ['style', 'target', 'rel', 'src', 'title', 'loading', 'frameborder', 'allow', 'allowfullscreen', 'scrolling'],
+};
+
 /**
  * Processes <a> tags in a DOM element to apply LinkButton styles
  * Always uses 'informative' color variant
@@ -79,11 +86,11 @@ export default function processRichTextContent(blockRaw) {
   const preElements = blockRaw.querySelectorAll('pre');
 
   preElements.forEach((preElement) => {
+    // md2jcr may strip the <code> wrapper — fall back to <pre> textContent
     const codeElement = preElement.querySelector('code');
-    if (!codeElement) return;
-
-    // Get the HTML content (which contains HTML entities like &lt; &gt;)
-    let htmlContent = codeElement.textContent || codeElement.innerText;
+    let htmlContent = codeElement
+      ? (codeElement.textContent || codeElement.innerText)
+      : (preElement.textContent || preElement.innerText);
 
     if (!htmlContent.trim()) {
       // If empty, remove the entire pre element
@@ -98,7 +105,7 @@ export default function processRichTextContent(blockRaw) {
 
     // Create a temporary container to parse the HTML
     const tempContainer = document.createElement('div');
-    tempContainer.innerHTML = sanitizeHTML(htmlContent);
+    tempContainer.innerHTML = sanitizeHTML(htmlContent, ENCODED_SANITIZE_CONFIG);
 
     // Process <a> tags to apply LinkButton styles (informative variant)
     // Process BEFORE moving elements - classes will be preserved when moving
@@ -149,7 +156,7 @@ export default function processRichTextContent(blockRaw) {
 
     // Create a temporary container to parse the HTML
     const tempContainer = document.createElement('div');
-    tempContainer.innerHTML = sanitizeHTML(htmlContent);
+    tempContainer.innerHTML = sanitizeHTML(htmlContent, ENCODED_SANITIZE_CONFIG);
 
     // Process <a> tags to apply LinkButton styles (informative variant)
     // Process BEFORE moving elements - classes will be preserved when moving

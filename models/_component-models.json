@@ -11,6 +11,12 @@
       {
         "component": "text",
         "valueType": "string",
+        "name": "pageTitle",
+        "label": "Page Title"
+      },
+      {
+        "component": "text",
+        "valueType": "string",
         "name": "jcr:description",
         "label": "Description"
       },

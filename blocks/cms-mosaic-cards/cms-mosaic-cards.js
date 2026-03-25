@@ -146,7 +146,7 @@ function getCardDimensions(gridClasses) {
 function createCMSMosaicCards(deps) {
   const { html, LinkCard } = deps;
 
-  return ({ cards = [], template = 'template-1' }) => {
+  return ({ cards = [], template = 'template-1', loading = 'lazy' }) => {
     if (!cards || cards.length === 0) {
       return html`
         <div class="p-6 text-center text-[var(--text-normal-secondary)]">
@@ -154,6 +154,7 @@ function createCMSMosaicCards(deps) {
         </div>
       `;
     }
+    const loadingMode = loading === 'eager' ? 'eager' : 'lazy';
 
     return html`
       <div 
@@ -192,6 +193,7 @@ function createCMSMosaicCards(deps) {
               ctaIconAfter=${card.ctaIconAfter}
               clickBehavior=${card.clickBehavior}
               supportIcon=${card.supportIcon}
+              loading=${loadingMode}
               columns=${columns}
               rows=${rows}
             />
@@ -288,59 +290,69 @@ function parseCardDataFromItem(item) {
     targetLanguages: '',
   };
 
+  // Detect format: migration output has 12 cells (no supportIcon, no linkAlt),
+  // Universal Editor output has 14 cells (all fields)
+  const isMigrationFormat = cells.length <= 12;
+
   let cellIndex = 0;
+
+  // Helper: extract image from a cell, handling both <img> and <a> (migration format)
+  function extractImage(cell) {
+    const img = cell.querySelector('img');
+    if (img) return { src: img.src, alt: img.alt || '' };
+    const link = cell.querySelector('a');
+    if (link && link.href) return { src: link.href, alt: link.textContent.trim() };
+    return null;
+  }
 
   // Cell 0: imageDesktop
   if (cells[cellIndex]) {
-    const img = cells[cellIndex].querySelector('img');
-    if (img) {
-      cardData.imageDesktop = img.src;
-      cardData.imageDesktopAlt = img.alt || '';
+    const imgData = extractImage(cells[cellIndex]);
+    if (imgData) {
+      cardData.imageDesktop = imgData.src;
+      cardData.imageDesktopAlt = imgData.alt;
     }
     cellIndex += 1;
   }
 
-  // Cell 1: imageMobile (OPCIONAL)
+  // Cell 1: imageMobile
   if (cells[cellIndex]) {
-    const mobileImg = cells[cellIndex].querySelector('img');
-    if (mobileImg) {
-      cardData.imageMobile = mobileImg.src;
-      cardData.imageMobileAlt = mobileImg.alt || '';
+    const imgData = extractImage(cells[cellIndex]);
+    if (imgData) {
+      cardData.imageMobile = imgData.src;
+      cardData.imageMobileAlt = imgData.alt;
     }
     cellIndex += 1;
   }
 
-  // Now continue with text fields
   // Cell 2: title
   if (cells[cellIndex]) {
     cardData.title = cells[cellIndex].textContent.trim();
     cellIndex += 1;
   }
 
-  // Cell N+1: description
+  // Cell 3: description
   if (cells[cellIndex]) {
     cardData.description = cells[cellIndex].textContent.trim();
     cellIndex += 1;
   }
 
-  // Cell N+2: ctaLabel
+  // Cell 4: ctaLabel
   if (cells[cellIndex]) {
     cardData.ctaLabel = cells[cellIndex].textContent.trim();
     cellIndex += 1;
   }
 
-  // Cell N+3: supportIcon
-  if (cells[cellIndex]) {
+  // Cell 5: supportIcon (only in UE format — migration skips this)
+  if (!isMigrationFormat && cells[cellIndex]) {
     cardData.supportIcon = cells[cellIndex].textContent.trim();
     cellIndex += 1;
   }
 
-  // Cell N+4: linkUrl (has button-container or link)
+  // Cell N: linkUrl
   if (cells[cellIndex]) {
     const link = cells[cellIndex].querySelector('a');
     let linkUrl = link ? link.href : cells[cellIndex].textContent.trim();
-
-    // Process linkUrl to ensure it's a valid URL
     if (linkUrl) {
       if (
         !linkUrl.startsWith('http://')
@@ -355,13 +367,13 @@ function parseCardDataFromItem(item) {
     cellIndex += 1;
   }
 
-  // Cell N+5: linkAlt
-  if (cells[cellIndex]) {
+  // Cell N+1: linkAlt (only in UE format — migration skips this)
+  if (!isMigrationFormat && cells[cellIndex]) {
     cardData.linkAlt = cells[cellIndex].textContent.trim();
     cellIndex += 1;
   }
 
-  // Cell N+6: linkOpensIn
+  // Cell N+2: linkOpensIn
   if (cells[cellIndex]) {
     const opensIn = cells[cellIndex].textContent.trim();
     if (opensIn === 'sameTab' || opensIn === 'newTab') {
@@ -370,7 +382,7 @@ function parseCardDataFromItem(item) {
     cellIndex += 1;
   }
 
-  // Cell N+7: ctaIconBefore
+  // Cell N+3: ctaIconBefore
   if (cells[cellIndex]) {
     const iconBefore = cells[cellIndex].textContent.trim();
     if (iconBefore) {
@@ -379,7 +391,7 @@ function parseCardDataFromItem(item) {
     cellIndex += 1;
   }
 
-  // Cell N+8: ctaIconAfter
+  // Cell N+4: ctaIconAfter
   if (cells[cellIndex]) {
     const iconAfter = cells[cellIndex].textContent.trim();
     if (iconAfter) {
@@ -388,7 +400,7 @@ function parseCardDataFromItem(item) {
     cellIndex += 1;
   }
 
-  // Cell N+9: clickBehavior
+  // Cell N+5: clickBehavior
   if (cells[cellIndex]) {
     const behavior = cells[cellIndex].textContent.trim();
     if (behavior === 'ctaOnly' || behavior === 'fullCard') {
@@ -397,13 +409,13 @@ function parseCardDataFromItem(item) {
     cellIndex += 1;
   }
 
-  // Cell N+10: target-countries (multiselect, comma-separated)
+  // Cell N+6: target-countries
   if (cells[cellIndex]) {
     cardData.targetCountries = cells[cellIndex].textContent.trim();
     cellIndex += 1;
   }
 
-  // Cell N+11: target-languages (multiselect, comma-separated)
+  // Cell N+7: target-languages
   if (cells[cellIndex]) {
     cardData.targetLanguages = cells[cellIndex].textContent.trim();
   }
@@ -482,6 +494,58 @@ export default async function decorate(block) {
       }
     }
 
+    // Fallback: discover sibling link-card blocks in the same section (migration format)
+    if (childItems.length === 0) {
+      const parentSection = block.closest('.section');
+      if (parentSection) {
+        const siblingCards = parentSection.querySelectorAll('.link-card');
+        siblingCards.forEach((card) => {
+          const rows = [...card.querySelectorAll(':scope > div > div')];
+          if (rows.length === 0) return;
+          const val = (idx) => rows[idx]?.textContent?.trim() || '';
+          const imgAt = (idx) => {
+            if (!rows[idx]) return { src: '', alt: '' };
+            const img = rows[idx].querySelector('img');
+            if (img) return { src: img.src, alt: img.alt || '' };
+            const a = rows[idx].querySelector('a');
+            if (a && a.href) return { src: a.href, alt: a.textContent.trim() };
+            const pic = rows[idx].querySelector('picture');
+            if (pic) {
+              const pImg = pic.querySelector('img');
+              if (pImg) return { src: pImg.src, alt: pImg.alt || '' };
+            }
+            return { src: val(idx), alt: '' };
+          };
+
+          const desktop = imgAt(0);
+          const mobile = imgAt(2);
+          const cardData = {
+            imageDesktop: desktop.src,
+            imageDesktopAlt: val(1) || desktop.alt,
+            imageMobile: mobile.src,
+            imageMobileAlt: val(3) || mobile.alt,
+            title: val(4),
+            description: val(5),
+            ctaLabel: val(6),
+            supportIcon: '',
+            linkUrl: val(7),
+            linkAlt: val(8),
+            linkOpensIn: val(9) || 'sameTab',
+            ctaIconBefore: val(10) || 'none',
+            ctaIconAfter: val(11) || 'none',
+            clickBehavior: val(12) || 'fullCard',
+            targetCountries: val(13) || '',
+            targetLanguages: val(14) || '',
+          };
+
+          if (cardData.imageDesktop || cardData.title) {
+            childItems.push(cardData);
+            card.style.display = 'none';
+          }
+        });
+      }
+    }
+
     // Filter cards by targeting
     const filteredItems = filterItemsByTargeting(childItems);
     const visibleItems = filteredItems.slice(0, maxTemplateCards);
@@ -510,6 +574,7 @@ export default async function decorate(block) {
         <${CMSMosaicCards} 
           cards=${visibleItems} 
           template=${template}
+          loading=${config.loading}
         />
       `,
       container,

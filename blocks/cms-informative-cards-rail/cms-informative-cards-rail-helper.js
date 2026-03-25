@@ -251,6 +251,7 @@ export function extractCmsInformativeCardsRailProps(block) {
     cards: [],
     targetCountries: config.targetCountries,
     targetLanguages: config.targetLanguages,
+    loading: config.loading === 'eager' ? 'eager' : 'lazy',
   };
 
   // Extract cards starting from the row after config rows

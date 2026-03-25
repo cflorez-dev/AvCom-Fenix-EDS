@@ -19,10 +19,14 @@ export const PromotionCard = ({
   showLifemilesChip = false,
   lifemilesTag = '',
   lifemilesTagVariant = "lifemiles",
+  loading = 'lazy',
   onClick,
 }) => {
   const focusClasses = 'focus:outline focus:outline-2 focus:outline-border-stroke-focus focus:outline-offset-2';
   const cursorClass = 'cursor-pointer';
+  const loadingMode = loading === 'eager' ? 'eager' : 'lazy';
+  const imageDecoding = loadingMode === 'eager' ? 'sync' : 'async';
+  const imageFetchPriority = loadingMode === 'eager' ? 'high' : 'low';
 
   const handleKeyDown = (e) => {
     if (onClick && (e.key === 'Enter' || e.key === ' ')) {
@@ -39,7 +43,14 @@ export const PromotionCard = ({
       tabIndex=${onClick ? 0 : undefined}
     >
       <div className="self-stretch h-[264px] rounded-2xl flex flex-col justify-center items-center overflow-hidden relative">
-        <img className="absolute inset-0 w-full h-full object-cover object-center transition-transform duration-300 ease-in-out group-hover:scale-[1.04]" src=${image} alt=${imageAlt} />
+        <img
+          className="absolute inset-0 w-full h-full object-cover object-center transition-transform duration-300 ease-in-out group-hover:scale-[1.04]"
+          src=${image}
+          alt=${imageAlt}
+          loading=${loadingMode}
+          decoding=${imageDecoding}
+          fetchpriority=${imageFetchPriority}
+        />
       </div>
       <div className="absolute w-full self-stretch p-3 bg-[var(--color-background-card-lighter-alpha)] rounded-bl-2xl rounded-br-2xl backdrop-blur-[3px] flex flex-col justify-start items-start">
         <div className="self-stretch p-3 bg-[var(--color-background-card-lighter)] rounded-2xl flex flex-col justify-end items-start gap-2">

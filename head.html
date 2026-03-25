@@ -5,11 +5,61 @@
 <link rel="dns-prefetch" href="https://assets.adobedtm.com"/>
 <link rel="preconnect" href="https://cdn.cookielaw.org"/>
 <link rel="dns-prefetch" href="https://cdn.cookielaw.org"/>
+<link rel="preconnect" href="https://publish-p34631-e1321407.adobeaemcloud.com"/>
+<link rel="dns-prefetch" href="https://publish-p34631-e1321407.adobeaemcloud.com"/>
 <link rel="preconnect" href="https://cdn.jsdelivr.net"/>
 <link rel="dns-prefetch" href="https://cdn.jsdelivr.net"/>
 <link rel="dns-prefetch" href="https://avianca-help.centribal.com"/>
 
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
+
+<!-- Critical CSS (render-blocking) -->
+<link rel="stylesheet" href="/styles/styles.css" />
+<link rel="stylesheet" href="/styles/tw.css" />
+
+<!-- Early LCP preload: detect the cms-background-image block as the HTML
+     parser builds the DOM and inject a <link rel="preload"> for the
+     background-image immediately — well before the deferred module scripts
+     execute bootstrapCriticalBackgroundImage(). This eliminates the JS
+     execution delay from the LCP critical path.
+     The original <img> tags have loading="lazy", so the browser's preload
+     scanner ignores them; this observer compensates for that. -->
+<script nonce="aem">
+(function(){
+  var idx=window.matchMedia('(min-width:1248px)').matches?2:window.matchMedia('(min-width:768px)').matches?1:0;
+  var done=false;
+  var mo=new MutationObserver(function(muts){
+    if(done)return;
+    for(var i=0;i<muts.length;i++){
+      for(var j=0;j<muts[i].addedNodes.length;j++){
+        var n=muts[i].addedNodes[j];
+        if(n.nodeType!==1)continue;
+        var b=n.classList&&n.classList.contains('cms-background-image')?n:n.querySelector&&n.querySelector('.cms-background-image');
+        if(!b)continue;
+        var row=b.children[idx]||b.children[0];
+        if(!row)continue;
+        var img=row.querySelector('img');
+        if(!img)continue;
+        var src=img.getAttribute('src');
+        if(!src)continue;
+        src=src.replace(/([?&])format=(png|jpg|jpeg)/i,'$1format=webply');
+        var link=document.createElement('link');
+        link.rel='preload';
+        link.as='image';
+        link.href=src;
+        link.fetchPriority='high';
+        link.setAttribute('data-cms-bg-preload','true');
+        document.head.appendChild(link);
+        done=true;
+        mo.disconnect();
+        return;
+      }
+    }
+  });
+  mo.observe(document.documentElement,{childList:true,subtree:true});
+  setTimeout(function(){if(!done)mo.disconnect();},5000);
+})();
+</script>
 
 <!-- Import maps para dependencias de dropins -->
 <script nonce="aem" type="importmap">
@@ -29,11 +79,11 @@
 }
 </script>
 
+<!-- Modulepreload critical sub-dependencies so they start fetching in parallel
+     with the top-level modules instead of waiting for scripts.js to be parsed. -->
+<link rel="modulepreload" href="/scripts/utils/locale.js" />
+<link rel="modulepreload" href="/scripts/services/loader/loader.service.js" />
+
 <script nonce="aem" src="/scripts/aem.js" type="module"></script>
 <script nonce="aem" src="/scripts/scripts.js" type="module"></script>
 
-<!-- CSS de AEM (carga primero con mayor prioridad) -->
-<link rel="stylesheet" href="/styles/styles.css" />
-
-<!-- Tailwind CSS (carga después, solo para Design System) -->
-<link rel="stylesheet" href="/styles/tw.css" />

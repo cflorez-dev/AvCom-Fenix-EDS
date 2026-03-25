@@ -104,25 +104,48 @@ function extractTextValue(div) {
 function extractPictureElement(div) {
   if (!div) return null;
   const picture = div.querySelector('picture');
-  if (!picture) return null;
+  if (picture) {
+    const img = picture.querySelector('img');
+    if (!img) return null;
 
-  const img = picture.querySelector('img');
-  if (!img) return null;
+    // Extract sources for responsive images
+    const sources = Array.from(picture.querySelectorAll('source')).map(source => ({
+      type: source.getAttribute('type'),
+      srcset: source.getAttribute('srcset'),
+      media: source.getAttribute('media'),
+    }));
 
-  // Extract sources for responsive images
-  const sources = Array.from(picture.querySelectorAll('source')).map(source => ({
-    type: source.getAttribute('type'),
-    srcset: source.getAttribute('srcset'),
-    media: source.getAttribute('media'),
-  }));
+    return {
+      src: img.getAttribute('src') || '',
+      alt: img.getAttribute('alt') || '',
+      loading: img.getAttribute('loading') || 'lazy',
+      sources,
+      pictureElement: picture.cloneNode(true),
+    };
+  }
 
-  return {
-    src: img.getAttribute('src') || '',
-    alt: img.getAttribute('alt') || '',
-    loading: img.getAttribute('loading') || 'lazy',
-    sources,
-    pictureElement: picture.cloneNode(true), // Clone for direct use
-  };
+  // Fallback: AEM renders external URLs as <a> tags instead of <picture>.
+  // Extract href and build a synthetic picture element for the image.
+  const link = div.querySelector('a[href]');
+  if (link) {
+    const href = link.getAttribute('href') || '';
+    if (/\.(jpe?g|png|webp|gif|svg|avif)(\?|$)/i.test(href)) {
+      const syntheticPicture = div.ownerDocument.createElement('picture');
+      const syntheticImg = div.ownerDocument.createElement('img');
+      syntheticImg.setAttribute('src', href);
+      syntheticImg.setAttribute('loading', 'lazy');
+      syntheticPicture.append(syntheticImg);
+      return {
+        src: href,
+        alt: '',
+        loading: 'lazy',
+        sources: [],
+        pictureElement: syntheticPicture,
+      };
+    }
+  }
+
+  return null;
 }
 
 /**

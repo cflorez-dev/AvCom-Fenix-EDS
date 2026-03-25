@@ -121,7 +121,6 @@ const InteractiveBanner = ({
         onMouseEnter=${() => handlePanelInteraction(side, true)}
         onMouseLeave=${() => handlePanelInteraction(side, false)}
         onClick=${() => toggleActiveState(side)}
-        aria-expanded=${isActive ? 'true' : 'false'}
       >
         <!-- Default background - Mobile -->
         <div

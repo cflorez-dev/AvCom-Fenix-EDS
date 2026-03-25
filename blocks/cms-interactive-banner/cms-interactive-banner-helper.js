@@ -3,6 +3,27 @@
  */
 
 /**
+ * Optimizes image URL for better performance
+ * @param {string} imageUrl - Original image URL
+ * @returns {string} Optimized image URL
+ */
+function optimizeImageUrl(imageUrl) {
+  if (!imageUrl) return imageUrl;
+
+  let optimizedUrl = imageUrl;
+
+  if (optimizedUrl.includes('format=png')) {
+    optimizedUrl = optimizedUrl.replace('format=png', 'format=webply');
+  }
+
+  if (!optimizedUrl.includes('format=') && !optimizedUrl.toLowerCase().endsWith('.gif')) {
+    optimizedUrl += optimizedUrl.includes('?') ? '&format=webply' : '?format=webply';
+  }
+
+  return optimizedUrl;
+}
+
+/**
  * Extract text content from a cell
  * @param {Element[]} cells - Array of cell elements
  * @param {number} index - Cell index
@@ -151,10 +172,10 @@ export default function extractPanelData(section) {
     defaultDescriptionLine2: getText(cells, 2),
     // Cell 3: Default Media (image/SVG)
     defaultMedia: getImageSrc(cells, 3),
-    // Cell 4: Default Background Image (Desktop)
-    defaultBackgroundImage: getImageSrc(cells, defaultBgIndex),
-    // Cell 5: Default Background Image (Mobile) - new field
-    defaultBackgroundImageMobile: defaultBgMobileIndex !== null ? getImageSrc(cells, defaultBgMobileIndex) : '',
+    // Cell 4: Default Background Image (Desktop) - optimized
+    defaultBackgroundImage: optimizeImageUrl(getImageSrc(cells, defaultBgIndex)),
+    // Cell 5: Default Background Image (Mobile) - optimized
+    defaultBackgroundImageMobile: defaultBgMobileIndex !== null ? optimizeImageUrl(getImageSrc(cells, defaultBgMobileIndex)) : '',
     // Cell 5 or 6: Interactive Description (richtext - may contain HTML)
     interactiveDescription: getHTML(cells, hasMobileImages ? 6 : 5),
     // Cell 6 or 7: Interactive Button Text
@@ -165,10 +186,10 @@ export default function extractPanelData(section) {
     interactiveButtonOpenInNewTab: openInNewTab,
     // Cell 9 or 10: Interactive Overlay Background (CSS value)
     interactiveOverlayBackground: overlayBackground,
-    // Cell 10/11 or 8/9: Interactive Background Image (Desktop)
-    interactiveBackgroundImage: getImageSrc(cells, interactiveBgIndex),
-    // Cell 11/12 or 9/10: Interactive Background Image (Mobile) - new field
-    interactiveBackgroundImageMobile: interactiveBgMobileIndex !== null ? getImageSrc(cells, interactiveBgMobileIndex) : '',
+    // Cell 10/11 or 8/9: Interactive Background Image (Desktop) - optimized
+    interactiveBackgroundImage: optimizeImageUrl(getImageSrc(cells, interactiveBgIndex)),
+    // Cell 11/12 or 9/10: Interactive Background Image (Mobile) - optimized
+    interactiveBackgroundImageMobile: interactiveBgMobileIndex !== null ? optimizeImageUrl(getImageSrc(cells, interactiveBgMobileIndex)) : '',
     // Targeting fields
     'target-countries': getText(cells, targetCountriesIndex),
     'target-languages': getText(cells, targetLanguagesIndex),

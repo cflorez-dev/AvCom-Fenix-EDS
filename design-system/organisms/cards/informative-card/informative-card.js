@@ -26,13 +26,23 @@ export const InformativeCard = ({
   details,
   image,
   imageAlt = '',
+  loading = 'lazy',
   ActionType = 'none', // 'button', 'chevron', 'none', 'both' (only for dev)
   buttonText = null,
   onClick,
 }) => {
-  const focusClasses = 'focus-visible:!outline focus-visible:!outline-2 focus-visible:!outline-border-stroke-focus focus-visible:!outline-offset-2';
-
-  const cursorClass = ((ActionType === 'chevron' || ActionType === 'none') && onClick) ? 'cursor-pointer' : '';
+  const hasInteractiveAction = typeof onClick === 'function';
+  const isCardClickable = (ActionType === 'chevron' || ActionType === 'none') && hasInteractiveAction;
+  const focusClasses = isCardClickable
+    ? 'focus-visible:!outline focus-visible:!outline-2 focus-visible:!outline-border-stroke-focus focus-visible:!outline-offset-2'
+    : '';
+  const hoverClasses = hasInteractiveAction
+    ? 'hover:shadow-[0px_2px_20px_2px_rgba(73,73,73,0.25)] transition-shadow'
+    : '';
+  const cursorClass = isCardClickable ? 'cursor-pointer' : '';
+  const loadingMode = loading === 'eager' ? 'eager' : 'lazy';
+  const imageDecoding = loadingMode === 'eager' ? 'sync' : 'async';
+  const imageFetchPriority = loadingMode === 'eager' ? 'high' : 'low';
 
   return html`
     ${(variant === 'horizontal') ? html`
@@ -40,12 +50,19 @@ export const InformativeCard = ({
         data-button="${ActionType === 'button' ? 'true' : ''}" 
         data-chevronicon="${ActionType === 'chevron' ? 'true' : ''}" 
         data-direction="${ActionType === 'horizontal' ? 'horizontal' : 'vertical'}" 
-        class="w-80 min-w-72 h-full bg-background-card-lighter rounded-2xl outline outline-1 outline-offset-[-1px] outline-border-brand-primary-disable inline-flex justify-start items-center overflow-hidden hover:shadow-[0px_2px_20px_2px_rgba(73,73,73,0.25)] transition-shadow mdlg:w-full mdlg:min-w-0 ${focusClasses} ${cursorClass}"
-        tabIndex=${0}
-        onClick=${(ActionType === 'chevron' || ActionType === 'none') ? onClick : undefined}
+        class="w-80 min-w-72 h-full bg-background-card-lighter rounded-2xl outline outline-1 outline-offset-[-1px] outline-border-brand-primary-disable inline-flex justify-start items-center overflow-hidden mdlg:w-full mdlg:min-w-0 ${hoverClasses} ${focusClasses} ${cursorClass}"
+        tabIndex=${isCardClickable ? 0 : undefined}
+        onClick=${isCardClickable ? onClick : undefined}
       >
         <div class="self-stretch max-w-48 px-6 rounded-tl-2xl rounded-bl-2xl flex justify-center items-center">
-          <img class="w-20 h-20 relative" src=${image} alt=${imageAlt} />
+          <img
+            class="w-20 h-20 relative"
+            src=${image}
+            alt=${imageAlt}
+            loading=${loadingMode}
+            decoding=${imageDecoding}
+            fetchpriority=${imageFetchPriority}
+          />
         </div>
         <div class="flex-1 pr-5 rounded-tr-2xl rounded-br-2xl flex justify-start items-center gap-3">
           <div class="flex-1 min-h-40 py-5 inline-flex flex-col justify-center items-start gap-3">
@@ -74,12 +91,19 @@ export const InformativeCard = ({
       </div>
     ` : html`
       <div 
-        class="w-80 min-w-80 h-full bg-background-card-lighter rounded-2xl outline outline-1 outline-offset-[-1px] outline-border-brand-primary-disable inline-flex flex-col justify-center items-center overflow-hidden hover:shadow-[0px_2px_20px_2px_rgba(73,73,73,0.25)] transition-shadow mdlg:w-full mdlg:min-w-0 ${focusClasses} ${cursorClass}"
-        tabIndex=${0}
-        onClick=${(ActionType === 'chevron' || ActionType === 'none') ? onClick : undefined}
+        class="w-80 min-w-80 h-full bg-background-card-lighter rounded-2xl outline outline-1 outline-offset-[-1px] outline-border-brand-primary-disable inline-flex flex-col justify-center items-center overflow-hidden mdlg:w-full mdlg:min-w-0 ${hoverClasses} ${focusClasses} ${cursorClass}"
+        tabIndex=${isCardClickable ? 0 : undefined}
+        onClick=${isCardClickable ? onClick : undefined}
       >
         <div class="w-full h-32 max-w-48 px-6 rounded-tl-2xl rounded-bl-2xl inline-flex justify-center items-center">
-            <img class="w-20 h-20 relative" src=${image} alt=${imageAlt} />
+            <img
+              class="w-20 h-20 relative"
+              src=${image}
+              alt=${imageAlt}
+              loading=${loadingMode}
+              decoding=${imageDecoding}
+              fetchpriority=${imageFetchPriority}
+            />
         </div>
         <div class="self-stretch p-6 rounded-tr-2xl rounded-br-2xl inline-flex justify-start items-center gap-3">
             <div class="flex-1 inline-flex flex-col justify-center items-center gap-3">

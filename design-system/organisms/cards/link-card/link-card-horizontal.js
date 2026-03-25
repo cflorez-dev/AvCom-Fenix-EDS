@@ -68,6 +68,7 @@ export const LinkCardHorizontal = ({
   ctaIconAfter = 'arrow',
   clickBehavior = 'fullCard',
   linkOpensIn = 'sameTab',
+  loading = 'lazy',
   ...rest
 }) => {
   const [isHovered, setIsHovered] = useState(false);
@@ -169,6 +170,9 @@ export const LinkCardHorizontal = ({
 
   const iconBeforeSrc = getIconSrc(ctaIconBefore);
   const iconAfterSrc = getIconSrc(ctaIconAfter);
+  const loadingMode = loading === 'eager' ? 'eager' : 'lazy';
+  const imageDecoding = loadingMode === 'eager' ? 'sync' : 'async';
+  const imageFetchPriority = loadingMode === 'eager' ? 'high' : 'low';
 
   // Determine image source (priority: specific responsive images > fallback image prop)
   const finalImageDesktop = imageDesktop || image;
@@ -187,6 +191,9 @@ export const LinkCardHorizontal = ({
         <img
           src=${finalImageDesktop}
           alt=${finalImageDesktopAlt}
+          loading=${loadingMode}
+          decoding=${imageDecoding}
+          fetchpriority=${imageFetchPriority}
           class="inset-0 max-w-none object-cover object-[top_center] pointer-events-none !w-full !h-full rounded-[16px]"
         />
       </picture>
@@ -256,6 +263,9 @@ export const LinkCardHorizontal = ({
             <img
               src=${finalImageDesktop}
               alt=${finalImageDesktopAlt}
+              loading=${loadingMode}
+              decoding=${imageDecoding}
+              fetchpriority=${imageFetchPriority}
               class="inset-0 object-cover object-center pointer-events-none !w-full !h-full rounded-[24px]"
             />
           </picture>
@@ -279,6 +289,9 @@ export const LinkCardHorizontal = ({
           <img
             src=${finalImageDesktop}
             alt=${finalImageDesktopAlt}
+            loading=${loadingMode}
+            decoding=${imageDecoding}
+            fetchpriority=${imageFetchPriority}
             class="inset-0 object-cover object-center pointer-events-none !w-full !h-full rounded-[24px]"
           />
         </picture>
