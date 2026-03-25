@@ -230,6 +230,6 @@ export default function decorate(block) {
   // Apply styles to the section container using Tailwind
   const sectionContainer = block.closest('.section.cms-promotional-card-carrousel-container');
   if (sectionContainer) {
-    sectionContainer.classList.add('!p-0', '!m-0', 'w-full', 'justify-self-center');
+    sectionContainer.classList.add('!p-0', 'w-full');
   }
 }
