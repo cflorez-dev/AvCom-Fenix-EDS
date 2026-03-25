@@ -74,6 +74,7 @@
 /* Grid item alignment utilities (section-wide) */
 :is(main, .fragment-wrapper) > .section.grid-items-start { --grid-layout-align-items: start; }
 :is(main, .fragment-wrapper) > .section.grid-items-center { --grid-layout-align-items: center; }
+:is(main, .fragment-wrapper) > .section.grid-items-center picture > img { margin-inline: auto; }
 :is(main, .fragment-wrapper) > .section.grid-items-end { --grid-layout-align-items: end; }
 :is(main, .fragment-wrapper) > .section.grid-items-stretch { --grid-layout-align-items: stretch; }
 
