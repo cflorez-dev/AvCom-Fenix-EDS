@@ -175,6 +175,7 @@ async function renderCards(container, ofertas, blockConfig) {
       html`
         <${PromotionCard}
           ...${cardProps}
+          loading="lazy"
           onClick=${() => {
     if (destinationUrl && destinationUrl !== '#') {
       window.location.href = destinationUrl;

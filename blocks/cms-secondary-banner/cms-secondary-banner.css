@@ -1,4 +1,4 @@
-/* Override main > .section styles to allow full width */
+/* Override main > .section styles to allow full width (single banner) */
 main > .section.cms-secondary-banner-container {
   max-width: 100% !important;
   width: 100% !important;
@@ -9,6 +9,30 @@ main > .section.cms-secondary-banner-container {
   flex-direction: column;
   justify-content: center;
   align-items: center;
+}
+
+/* When secondary banners are in a grid layout (e.g. grid-6-6), restore the
+   standard section alignment so they sit inside the 1248px content column.
+   Use the global section-padding variable so mobile/tablet get horizontal
+   insets (16 / 32 px) matching the original avianca.com grid gutters. */
+main > .section.cms-secondary-banner-container[class*="grid-"] {
+  max-width: 1248px !important;
+  margin: 0 auto !important;
+  padding: 32px var(--main-section-div-padding, 16px) !important;
+}
+
+/* Remove the rendered block's built-in margin/mx so banners fill the grid
+   cell edge-to-edge, matching the alignment of surrounding content. */
+main > .section.cms-secondary-banner-container[class*="grid-"] .cms-secondary-banner-wrapper > .block:not([data-block-name]) {
+  margin: 0 !important;
+  width: 100%;
+  max-width: 100%;
+}
+
+/* Dark gradient overlay on the image so white text stands out
+   (mimics the original linear-gradient mask from avianca.com). */
+main > .section.cms-secondary-banner-container[class*="grid-"] .cms-secondary-banner-wrapper > .block:not([data-block-name]) > div > div > div:first-child {
+  background: linear-gradient(to bottom, rgba(0,0,0,0) 0%, rgba(0,0,0,0.25) 50%, rgba(0,0,0,0.7) 100%);
 }
 
 .cms-secondary-banner-wrapper {

@@ -40,11 +40,17 @@ class MosaicCardsV2Store {
       return;
     }
 
-    // CRITICAL: Only register ONCE - ignore subsequent calls to prevent duplication
+    // Allow re-registration ONLY when existing group has 0 cards (race condition fix:
+    // mosaic-cards-v2 may pre-register with 0 cards before cms-mosaic-cards extracts real data)
     if (this.groups.has(groupId)) {
+      const existing = this.groups.get(groupId);
+      if (existing.cards.length > 0) {
+        // eslint-disable-next-line no-console
+        console.log(`[STORE] registerGroup("${groupId}") SKIPPED - already registered with ${existing.cards.length} cards`);
+        return;
+      }
       // eslint-disable-next-line no-console
-      console.log(`[STORE] registerGroup("${groupId}") SKIPPED - already registered with ${this.groups.get(groupId).cards.length} cards`);
-      return;
+      console.log(`[STORE] registerGroup("${groupId}") UPDATING from 0 to ${(data.cards || []).length} cards`);
     }
 
     // CRITICAL: Store a FROZEN COPY of cards to prevent any external mutations

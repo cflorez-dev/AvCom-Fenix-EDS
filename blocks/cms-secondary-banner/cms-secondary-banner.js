@@ -58,10 +58,19 @@ export default function decorate(block) {
     return;
   }
 
-  // Validate required fields
-  if (!config.ctaText || !config.ctaUrl) {
+  // Validate required fields — title or image must exist; CTA is optional
+  if (!config.title && !config.imageDesktop) {
     block.style.display = 'none';
     return;
+  }
+
+  // Fallback: use desktop image for mobile when mobile image is not provided
+  if (!config.pictureMobile && config.pictureDesktop) {
+    config.pictureMobile = {
+      ...config.pictureDesktop,
+      pictureElement: config.pictureDesktop.pictureElement.cloneNode(true),
+    };
+    config.imageMobile = config.imageDesktop;
   }
 
   // Create container for the banner

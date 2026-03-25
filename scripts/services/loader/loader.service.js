@@ -11,6 +11,74 @@
  */
 let loaderSection = null;
 
+function updateQueryParam(url, key, value) {
+  try {
+    const parsed = new URL(url, window.location.href);
+    parsed.searchParams.set(key, value);
+    return parsed.toString();
+  } catch (e) {
+    return url;
+  }
+}
+
+function optimizeSrcset(srcset, targetWidth) {
+  if (!srcset) return srcset;
+
+  return srcset
+    .split(',')
+    .map((candidate) => candidate.trim())
+    .filter(Boolean)
+    .map((candidate) => {
+      const [url, ...descriptorParts] = candidate.split(/\s+/);
+      if (!url) return candidate;
+
+      const optimizedUrl = updateQueryParam(url, 'width', targetWidth);
+      if (!descriptorParts.length) return optimizedUrl;
+
+      const descriptor = descriptorParts.join(' ');
+      const normalizedDescriptor = /\d+w$/.test(descriptor)
+        ? `${targetWidth}w`
+        : descriptor;
+      return `${optimizedUrl} ${normalizedDescriptor}`;
+    })
+    .join(', ');
+}
+
+function optimizeLoaderImagePayload(loader) {
+  if (!loader || loader.dataset.loaderImageOptimized === 'true') return;
+
+  const picture = loader.querySelector('.cms-loader picture') || loader.querySelector('picture');
+  const img = loader.querySelector('.cms-loader img') || loader.querySelector('img');
+  if (!img) return;
+
+  const sources = picture ? picture.querySelectorAll('source') : [];
+  sources.forEach((source) => {
+    const srcset = source.getAttribute('srcset');
+    if (!srcset) return;
+
+    const isDesktop = (source.getAttribute('media') || '').includes('min-width: 600px');
+    const optimizedWidth = isDesktop ? '200' : '200';
+    source.setAttribute('srcset', optimizeSrcset(srcset, optimizedWidth));
+  });
+
+  const imgSrcset = img.getAttribute('srcset');
+  if (imgSrcset) {
+    img.setAttribute('srcset', optimizeSrcset(imgSrcset, '200'));
+  }
+
+  const src = img.getAttribute('src');
+  if (src) {
+    img.setAttribute('src', updateQueryParam(src, 'width', '200'));
+  }
+  img.setAttribute('sizes', '200px');
+  img.setAttribute('width', '100');
+  img.setAttribute('height', '100');
+  img.setAttribute('loading', 'eager');
+  img.setAttribute('decoding', 'async');
+  img.setAttribute('fetchpriority', 'high');
+
+  loader.dataset.loaderImageOptimized = 'true';
+}
 
 /**
  * Finds and caches the cms-loader section in the DOM
@@ -56,16 +124,27 @@ export function showLoader(show) {
   }
 
   if (show) {
-    // Show loader with smooth transition
-    // First set display to block, then add class for opacity transition
+    optimizeLoaderImagePayload(loader);
+
+    // Show loader
     loader.style.display = 'block';
-    // Use requestAnimationFrame to ensure display is applied before adding class
-    requestAnimationFrame(() => {
+    document.body.classList.add('loader-curtain-active');
+
+    // Avoid initial 1-frame flicker: if body is not visible yet, show immediately.
+    if (!document.body.classList.contains('appear')) {
       loader.classList.add('is-visible');
-    });
+    } else {
+      // Keep smooth transition for subsequent shows
+      requestAnimationFrame(() => {
+        loader.classList.add('is-visible');
+      });
+    }
+
     // Prevent body scroll when loader is visible
     document.body.style.overflow = 'hidden';
   } else {
+    document.body.classList.remove('loader-curtain-active');
+
     // Hide loader with smooth fade-out transition
     loader.classList.remove('is-visible');
     // Wait for transition to complete before hiding completely

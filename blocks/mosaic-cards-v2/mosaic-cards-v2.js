@@ -4,10 +4,21 @@ import { h, render } from '@dropins/tools/preact.js';
 import { getStoredCountry, getStoredLanguage } from '../../scripts/services/header/language-country-selector.js';
 import { loadBlock } from '../../scripts/aem.js';
 import { registerMosaicGroup, getMosaicStore } from './mosaic-cards-v2.store.js';
-import { initMobileViewHelper } from './mosaic-cards-v2-mobile-view.helper.js';
 import { shouldShowByTargeting } from '../../scripts/utils/target-filter.js';
 
 const html = htm.bind(h);
+let mobileViewHelperModulePromise;
+
+/**
+ * Lazy-load mobile helper to avoid paying its parse/execute cost during initial load.
+ * @returns {Promise<{ initMobileViewHelper: Function }>}
+ */
+function loadMobileViewHelperModule() {
+  if (!mobileViewHelperModulePromise) {
+    mobileViewHelperModulePromise = import('./mosaic-cards-v2-mobile-view.helper.js');
+  }
+  return mobileViewHelperModulePromise;
+}
 
 /**
  * Read mosaic-cards-v2 configuration from block (similar to multitab)
@@ -232,7 +243,7 @@ export default async function decorate(block) {
   // CRITICAL: Decorate blocks FIRST before moving content
   const blocksToDecorate = [];
   mosaicSections.forEach((mosaicData) => {
-    if (mosaicData.block && mosaicData.block.dataset.blockStatus === 'initialized') {
+    if (mosaicData.block && mosaicData.block.dataset.blockStatus !== 'loaded') {
       blocksToDecorate.push(mosaicData.block);
     }
   });
@@ -240,6 +251,32 @@ export default async function decorate(block) {
   if (blocksToDecorate.length > 0) {
     const decorationPromises = blocksToDecorate.map((blk) => loadBlock(blk));
     await Promise.all(decorationPromises);
+  }
+
+  // Wait for cms-mosaic-cards-rendered siblings to appear (handles race with parallel decoration)
+  const waitForRendered = (blk, maxWait = 3000) => new Promise((resolve) => {
+    const check = () => {
+      const sib = blk.nextElementSibling;
+      if (sib && sib.classList.contains('cms-mosaic-cards-rendered')) return resolve(sib);
+      return null;
+    };
+    if (check()) return;
+    const interval = 50;
+    let elapsed = 0;
+    const timer = setInterval(() => {
+      elapsed += interval;
+      if (check() || elapsed >= maxWait) {
+        clearInterval(timer);
+        resolve(null);
+      }
+    }, interval);
+  });
+
+  const pendingBlocks = mosaicSections.filter(
+    (m) => m.block && !m.block.nextElementSibling?.classList.contains('cms-mosaic-cards-rendered'),
+  );
+  if (pendingBlocks.length > 0) {
+    await Promise.all(pendingBlocks.map((m) => waitForRendered(m.block)));
   }
 
   // Create carousel container
@@ -321,11 +358,18 @@ export default async function decorate(block) {
 
           // Cell 0: imageDesktop
           // AEM fusiona imageDesktopAlt en esta celda: el alt queda embebido en <picture><img alt="">
+          // Fallback: external URLs may be rendered as <a href="url"> links instead of <img>.
           if (cells[cellIndex]) {
             const img = cells[cellIndex].querySelector('img');
             if (img) {
               cardData.imageDesktop = img.src;
               cardData.imageDesktopAlt = img.alt || '';
+            } else {
+              const link = cells[cellIndex].querySelector('a[href]');
+              if (link && /\.(jpe?g|png|gif|webp|svg|avif)/i.test(link.href)) {
+                cardData.imageDesktop = link.href;
+                cardData.imageDesktopAlt = link.title || link.textContent.trim() || '';
+              }
             }
             cellIndex += 1;
           }
@@ -336,6 +380,12 @@ export default async function decorate(block) {
             if (mobileImg) {
               cardData.imageMobile = mobileImg.src;
               cardData.imageMobileAlt = mobileImg.alt || '';
+            } else {
+              const link = cells[cellIndex].querySelector('a[href]');
+              if (link && /\.(jpe?g|png|gif|webp|svg|avif)/i.test(link.href)) {
+                cardData.imageMobile = link.href;
+                cardData.imageMobileAlt = link.title || link.textContent.trim() || '';
+              }
             }
             cellIndex += 1;
           }
@@ -428,10 +478,12 @@ export default async function decorate(block) {
     }
   });
 
-  // Register all cards data in the store
-  // Check if already registered to prevent duplicates on re-decoration
+  // Register all cards data in the store (only if we extracted cards).
+  // When cards live in sibling link-card blocks, cms-mosaic-cards.js extracts
+  // and registers them — skip here to avoid a 0-card registration that blocks
+  // the later real registration.
   const store = getMosaicStore();
-  if (!store.hasGroup(groupId)) {
+  if (allCardsData.length > 0 && !store.hasGroup(groupId)) {
     registerMosaicGroup(groupId, allCardsData, {
       autoplay,
       autoplaySpeed,
@@ -552,15 +604,70 @@ export default async function decorate(block) {
   mobileContainer.style.display = 'none';
   section.insertAdjacentElement('afterend', mobileContainer);
 
-  initMobileViewHelper({
-    mosaicSections,
-    groupId,
-    container: mobileContainer,
-    autoplay,
-    autoplaySpeed,
-    showArrows,
-    show,
-  });
+  let mobileHelperInitialized = false;
+  let mobileObserver = null;
+  let mobileInitTimeoutId = null;
+
+  async function initializeMobileHelper() {
+    if (mobileHelperInitialized) return;
+    mobileHelperInitialized = true;
+
+    if (mobileObserver) {
+      mobileObserver.disconnect();
+      mobileObserver = null;
+    }
+    if (mobileInitTimeoutId) {
+      clearTimeout(mobileInitTimeoutId);
+      mobileInitTimeoutId = null;
+    }
+    window.removeEventListener('resize', handleMobileResize);
+
+    const { initMobileViewHelper } = await loadMobileViewHelperModule();
+    initMobileViewHelper({
+      mosaicSections,
+      groupId,
+      container: mobileContainer,
+      autoplay,
+      autoplaySpeed,
+      showArrows,
+      show,
+    });
+  }
+
+  function handleMobileResize() {
+    if (window.matchMedia('(max-width: 1023px)').matches) {
+      initializeMobileHelper();
+    }
+  }
+
+  // Initialize immediately on mobile/tablet to preserve current behavior.
+  // On desktop, lazy-init near viewport to reduce startup JS work.
+  if (window.matchMedia('(max-width: 1023px)').matches) {
+    initializeMobileHelper();
+  } else if ('IntersectionObserver' in window) {
+    mobileObserver = new IntersectionObserver((entries) => {
+      const [entry] = entries;
+      if (entry?.isIntersecting) {
+        initializeMobileHelper();
+      }
+    }, {
+      root: null,
+      rootMargin: '350px 0px',
+      threshold: 0,
+    });
+    mobileObserver.observe(carouselContainer);
+    window.addEventListener('resize', handleMobileResize, { passive: true });
+
+    // Safety net: initialize eventually to support long sessions and late viewport switches.
+    mobileInitTimeoutId = setTimeout(() => {
+      initializeMobileHelper();
+    }, 8000);
+  } else {
+    window.addEventListener('resize', handleMobileResize, { passive: true });
+    mobileInitTimeoutId = setTimeout(() => {
+      initializeMobileHelper();
+    }, 1500);
+  }
 
   // Animation control (works for both autoplay and manual navigation)
   if (enableCarouselMode) {

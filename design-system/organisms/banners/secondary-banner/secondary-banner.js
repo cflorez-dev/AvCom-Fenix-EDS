@@ -70,6 +70,9 @@ export const SecondaryBanner = ({
 
   // State for detecting desktop viewport (>= 1024px)
   const [isDesktop, setIsDesktop] = useState(false);
+  const loadingMode = loading === 'eager' ? 'eager' : 'lazy';
+  const imageDecoding = loadingMode === 'eager' ? 'sync' : 'async';
+  const imageFetchPriority = loadingMode === 'eager' ? 'high' : 'low';
 
   // Unique gradient id per component instance
   const gradientId = useMemo(
@@ -105,13 +108,13 @@ export const SecondaryBanner = ({
       if (img) {
         img.className = 'w-full h-full object-cover object-[right_top]';
         // Preserve loading attribute for SEO lazy loading
-        if (loading) {
-          img.setAttribute('loading', loading);
-        }
+        img.setAttribute('loading', loadingMode);
+        img.setAttribute('decoding', imageDecoding);
+        if (imageFetchPriority) img.setAttribute('fetchpriority', imageFetchPriority);
       }
       container.appendChild(clonedPicture);
     }
-  }, [pictureDesktop, loading]);
+  }, [pictureDesktop, loadingMode, imageDecoding, imageFetchPriority]);
 
   useEffect(() => {
     if (pictureMobile?.pictureElement && mobilePictureRef.current) {
@@ -123,13 +126,13 @@ export const SecondaryBanner = ({
       if (img) {
         img.className = 'w-full h-full object-cover object-[right_top]';
         // Preserve loading attribute for SEO lazy loading
-        if (loading) {
-          img.setAttribute('loading', loading);
-        }
+        img.setAttribute('loading', loadingMode);
+        img.setAttribute('decoding', imageDecoding);
+        if (imageFetchPriority) img.setAttribute('fetchpriority', imageFetchPriority);
       }
       container.appendChild(clonedPicture);
     }
-  }, [pictureMobile, loading]);
+  }, [pictureMobile, loadingMode, imageDecoding, imageFetchPriority]);
 
   const basePath = window.hlx?.codeBasePath || '';
 
@@ -260,7 +263,9 @@ export const SecondaryBanner = ({
         <img
           src=${src}
           alt=${alt}
-          loading=${loading}
+          loading=${loadingMode}
+          decoding=${imageDecoding}
+          fetchpriority=${imageFetchPriority}
           class=" w-full h-full object-cover object-[right_top]"
         />
       </picture>
@@ -285,7 +290,9 @@ export const SecondaryBanner = ({
         <img
           src=${src}
           alt=${alt}
-          loading=${loading}
+          loading=${loadingMode}
+          decoding=${imageDecoding}
+          fetchpriority=${imageFetchPriority}
           class="w-full h-full object-cover object-[right_top]"
         />
       </picture>

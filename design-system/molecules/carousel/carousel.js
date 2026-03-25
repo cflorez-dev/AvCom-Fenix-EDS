@@ -62,8 +62,8 @@ const CarouselPaginationDots = ({
         type="button"
         class=${dotClasses}
         onClick=${onDotClick ? () => onDotClick(index) : null}
-        aria-label=${`Page ${index + 1}`}
-        aria-current=${isSelected}
+        aria-label=${isSelected ? `Page ${index + 1}, current` : `Go to page ${index + 1}`}
+        aria-pressed=${isSelected}
         data-selected="${isSelected}"
       >
         <div
@@ -79,7 +79,8 @@ const CarouselPaginationDots = ({
       class="inline-flex justify-start items-start gap-[4px] ${customClassName}"
       data-name="carouselPaginationDots"
       data-pages="${totalPages}"
-      role="tablist"
+      role="group"
+      aria-label="Carousel pagination"
     >
       ${dots}
     </div>

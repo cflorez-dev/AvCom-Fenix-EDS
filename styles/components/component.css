@@ -1,5 +1,3 @@
-@import "./custom-scrollbar.css";
-
 /* Button Component - Custom pseudo-class styles using CSS custom properties */
 [data-button]:active {
   border-color: var(--button-border-active, inherit) !important;

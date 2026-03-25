@@ -13,16 +13,16 @@ const html = htm.bind(h);
  */
 function getDesktopGridColumns(cardCount, variant) {
   if (variant === 'horizontal') {
-    if (cardCount === 1) {
-      return 'md:grid-cols-1';
-    }
-    if (cardCount === 2) {
-      return 'md:grid-cols-2';
-    }
-    // 3 or more cards: use 3 columns, extras wrap to new rows
+    if (cardCount === 1) return 'md:grid-cols-1';
+    if (cardCount === 2) return 'md:grid-cols-2';
     return 'md:grid-cols-3';
   }
-  // Vertical variant: always 4 columns on desktop
+  if (variant === 'vertical') {
+    if (cardCount === 1) return 'md:grid-cols-1';
+    if (cardCount === 2) return 'md:grid-cols-2';
+    if (cardCount === 3) return 'md:grid-cols-3';
+    return 'md:grid-cols-4';
+  }
   return 'md:grid-cols-4';
 }
 
@@ -102,11 +102,15 @@ export default function decorate(block) {
       data-variant=${props.variant}
     >
       ${props.cards.map((card, index) => {
-    const handleCardClick = () => {
+    const hasCardLink = typeof card.buttonUrl === 'string'
+      && card.buttonUrl.trim() !== ''
+      && card.buttonUrl !== '#';
+
+    const handleCardClick = hasCardLink ? () => {
       if (card.buttonUrl) {
         window.location.href = card.buttonUrl;
       }
-    };
+    } : undefined;
 
     return html`
           <${InformativeCard}
@@ -116,6 +120,7 @@ export default function decorate(block) {
             details=${card.details}
             image=${card.image}
             imageAlt=${card.imageAlt}
+            loading=${props.loading}
             ActionType=${card.actionType}
             buttonText=${card.buttonText}
             showChevron=${card.showChevron}

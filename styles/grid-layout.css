@@ -11,6 +11,7 @@
 :is(main, .fragment-wrapper) > .section:is(
   .grid-12,
   .grid-6-6,
+  .grid-6-6-reverse,
   .grid-4-8,
   .grid-8-4,
   .grid-3-9,
@@ -41,6 +42,7 @@
 :is(main, .fragment-wrapper) > .section:is(
   .grid-12,
   .grid-6-6,
+  .grid-6-6-reverse,
   .grid-4-8,
   .grid-8-4,
   .grid-3-9,
@@ -115,6 +117,7 @@
   :is(main, .fragment-wrapper) > .section:is(
     .grid-12,
     .grid-6-6,
+    .grid-6-6-reverse,
     .grid-4-8,
     .grid-8-4,
     .grid-3-9,
@@ -143,6 +146,10 @@
 
   :is(main, .fragment-wrapper) > .section.grid-6-6 > div:nth-child(1) { grid-column: span 6; }
   :is(main, .fragment-wrapper) > .section.grid-6-6 > div:nth-child(2) { grid-column: span 6; }
+
+  /* Reverse: swap visual order so 1st child renders right, 2nd child renders left */
+  :is(main, .fragment-wrapper) > .section.grid-6-6-reverse > div:nth-child(1) { grid-column: 7 / span 6; grid-row: 1; }
+  :is(main, .fragment-wrapper) > .section.grid-6-6-reverse > div:nth-child(2) { grid-column: 1 / span 6; grid-row: 1; }
 
   :is(main, .fragment-wrapper) > .section.grid-4-8 > div:nth-child(1) { grid-column: span 4; }
   :is(main, .fragment-wrapper) > .section.grid-4-8 > div:nth-child(2) { grid-column: span 8; }
@@ -213,6 +220,7 @@
    */
   :is(main, .fragment-wrapper) > .section:is(
     .grid-6-6,
+    .grid-6-6-reverse,
     .grid-4-8,
     .grid-8-4,
     .grid-3-9,
