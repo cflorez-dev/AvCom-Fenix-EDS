@@ -54,10 +54,6 @@
   
 }
 
-.tables tbody tr:hover td {
-  background-color: rgba(0, 0, 0, 0.03);
-}
-
 .tables th[data-last-column],
 .tables td[data-last-column] {
   border-right: none;

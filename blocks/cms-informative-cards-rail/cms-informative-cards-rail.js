@@ -102,11 +102,15 @@ export default function decorate(block) {
       data-variant=${props.variant}
     >
       ${props.cards.map((card, index) => {
-    const handleCardClick = () => {
+    const hasCardLink = typeof card.buttonUrl === 'string'
+      && card.buttonUrl.trim() !== ''
+      && card.buttonUrl !== '#';
+
+    const handleCardClick = hasCardLink ? () => {
       if (card.buttonUrl) {
         window.location.href = card.buttonUrl;
       }
-    };
+    } : undefined;
 
     return html`
           <${InformativeCard}
