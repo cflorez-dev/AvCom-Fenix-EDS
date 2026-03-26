@@ -363,11 +363,12 @@ export default function decorate(block) {
   }
 
   if (isAuthorEnv) {
-    block.style.display = 'none';
+    // Clear block and render INSIDE (compatible with editor-support.js re-decoration)
+    block.textContent = '';
 
     const previewContainer = document.createElement('div');
-    previewContainer.className = 'marquesina-author-preview';
-    block.parentNode.insertBefore(previewContainer, block.nextSibling);
+    previewContainer.className = 'marquesina-content';
+    block.appendChild(previewContainer);
 
     render(
       html`

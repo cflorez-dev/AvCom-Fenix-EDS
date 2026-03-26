@@ -53,10 +53,14 @@
  * Links inside migrated rich-text and default-content should match
  * the design system: teal color, underline, hover darkening + bold,
  * transition, and focus ring.
+ *
+ * .cms-rich-text-wrapper uses descendant selector (works everywhere).
+ * .default-content-wrapper also uses descendant to cover nested contexts
+ * like accordion-group-content, multitab panels, etc.
  * ──────────────────────────────────────────────────────────────────── */
 
 .section .cms-rich-text-wrapper a:any-link:not(.button):not([data-button]),
-.section > .default-content-wrapper a:any-link:not(.button) {
+.section .default-content-wrapper a:any-link:not(.button) {
   color: var(--text-link-default, #177f8c);
   text-decoration: underline;
   text-decoration-skip-ink: none;
@@ -66,13 +70,13 @@
 }
 
 .section .cms-rich-text-wrapper a:any-link:not(.button):not([data-button]):hover,
-.section > .default-content-wrapper a:any-link:not(.button):hover {
+.section .default-content-wrapper a:any-link:not(.button):hover {
   color: var(--text-link-active, #0e4c54);
   font-weight: 700;
 }
 
 .section .cms-rich-text-wrapper a:any-link:not(.button):not([data-button]):focus-visible,
-.section > .default-content-wrapper a:any-link:not(.button):focus-visible {
+.section .default-content-wrapper a:any-link:not(.button):focus-visible {
   outline: 2px solid var(--border-stroke-focus, #1d9bf0);
   outline-offset: 2px;
   border-radius: 2px;
@@ -461,6 +465,44 @@ main > .section.text-center > .default-content-wrapper:has(+ .cms-informative-ca
   object-fit: cover;
 }
 
+/* ─── 19b. Multitab grid image–text symmetry ─────────────────────────────
+ * In grid-4-8 / grid-zigzag-4-8 with grid-items-stretch, the image
+ * wrapper stretches to match text height. Center the image vertically
+ * and use object-fit:cover + border-radius so it fills the space
+ * without distortion or empty gaps.
+ * ──────────────────────────────────────────────────────────────────── */
+
+.multitab-content.grid-items-stretch .default-content-wrapper {
+  display: flex;
+  flex-direction: column;
+}
+
+.section.multitab-container .multitab-content.grid-items-stretch > .default-content-wrapper:not(:last-child) {
+  padding-bottom: 0;
+}
+
+.multitab-content.grid-items-stretch .default-content-wrapper p {
+  margin: 0;
+  display: flex;
+  flex: 1;
+  width: 100%;
+  min-height: 0;
+}
+
+.multitab-content.grid-items-stretch .default-content-wrapper picture {
+  display: flex;
+  width: 100%;
+  flex: 1;
+  min-height: 0;
+}
+
+.multitab-content.grid-items-stretch .default-content-wrapper img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 16px;
+}
+
 /* ─── 20. Mobile: grid-6-6 carousel + intro stacking ────────────────────
  * On mobile, the intro paragraph column in the carousel section
  * needs proper spacing and overflow handling.
@@ -578,4 +620,72 @@ main > .section.text-center > .default-content-wrapper:has(+ .cms-informative-ca
 .section h2 {
   overflow-wrap: break-word;
   word-break: break-word;
+}
+
+/* ──────────────────────────────────────────────────────────────────────
+ * Multitab content-link styles (KI-019)
+ *
+ * When the multitab JS relocates section content into tab panels the
+ * existing EDS selectors (.section > .default-content-wrapper a) no
+ * longer match because the wrapper is no longer a direct child of
+ * .section. Tailwind's reset (`a { color: inherit }`) then cascades
+ * the parent text colour (#1b1b1b) and drops hover/focus effects.
+ *
+ * Fix: mirror the full EDS link design system (default + hover + focus)
+ * for all plain-text links inside multitab panels.
+ * ────────────────────────────────────────────────────────────────────── */
+.section.multitab-container .multitab-content a:any-link:not(.button):not([class*="button"]):not([data-button]) {
+  color: var(--text-link-default, #177f8c);
+  text-decoration: underline;
+  text-decoration-skip-ink: none;
+  text-underline-offset: from-font;
+  transition: color var(--transition-normal, 0.2s) var(--ease-in-out, ease-in-out),
+              font-weight var(--transition-normal, 0.2s) var(--ease-in-out, ease-in-out);
+}
+
+.section.multitab-container .multitab-content a:any-link:not(.button):not([class*="button"]):not([data-button]):hover {
+  color: var(--text-link-active, #0e4c54);
+  font-weight: 700;
+}
+
+.section.multitab-container .multitab-content a:any-link:not(.button):not([class*="button"]):not([data-button]):focus-visible {
+  outline: 2px solid var(--border-stroke-focus, #1d9bf0);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
+/* Keep CTA button text decoration clean inside multitab */
+.section.multitab-container .multitab-content .button-container a {
+  text-decoration: none;
+}
+
+/* ─── KI-020: Inline-styled CTA buttons in CMS Rich Text ────────────────
+ * Links with inline background-color inside CMS Rich Text are meant to
+ * be buttons (e.g., "Quiero compensar"). Suppress link underline and
+ * add EDS hover/active/focus states. Inline styles take precedence for
+ * base appearance; these rules only add interaction states.
+ * ──────────────────────────────────────────────────────────────────── */
+
+.section .cms-rich-text-wrapper a[style*="background-color"],
+.section .cms-rich-text-wrapper a[style*="border-radius"] {
+  text-decoration: none !important;
+  cursor: pointer;
+  transition: opacity 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+}
+
+.section .cms-rich-text-wrapper a[style*="background-color"]:hover,
+.section .cms-rich-text-wrapper a[style*="border-radius"]:hover {
+  opacity: 0.85;
+}
+
+.section .cms-rich-text-wrapper a[style*="background-color"]:active,
+.section .cms-rich-text-wrapper a[style*="border-radius"]:active {
+  opacity: 0.7;
+}
+
+.section .cms-rich-text-wrapper a[style*="background-color"]:focus-visible,
+.section .cms-rich-text-wrapper a[style*="border-radius"]:focus-visible {
+  outline: 2px solid var(--border-stroke-focus, #1d9bf0);
+  outline-offset: 2px;
+  border-radius: inherit;
 }
