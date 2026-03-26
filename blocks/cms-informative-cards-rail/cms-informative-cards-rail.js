@@ -31,31 +31,11 @@ function getDesktopGridColumns(cardCount, variant) {
  * @param {Element} block The informative cards rail block element
  */
 export default function decorate(block) {
-  // Detect if we're in Universal Editor author environment
-  const isAuthorEnv = window.xwalk?.isAuthorEnv;
-
-  if (isAuthorEnv) {
-    // In author mode: preserve original editable content
-    block.classList.add('cms-informative-cards-rail-author-mode');
-
-    // Add visual indicator for author
-    const authorIndicator = document.createElement('div');
-    authorIndicator.className = 'cms-informative-cards-rail-author-indicator';
-    authorIndicator.textContent = 'ℹ️ CMS Informative Cards Rail (Author Mode - Edit below)';
-    authorIndicator.style.cssText = 'background: #f0f0f0; padding: 8px; border: 1px dashed #0066cc; margin-bottom: 8px; font-size: 12px; color: #666;';
-    block.insertBefore(authorIndicator, block.firstChild);
-
-    // Don't transform the block - keep it editable
-    return;
-  }
-
-  // Production mode: extract props and render with Preact
+  // 1. Extract props BEFORE clearing the block
   const props = extractCmsInformativeCardsRailProps(block);
 
-  // Country/Language filtering
-  const shouldShow = shouldShowByTargeting(props.targetCountries, props.targetLanguages);
-  if (!shouldShow) {
-    // Add p-0 class to parent section container
+  // 2. Country/Language filtering
+  if (!shouldShowByTargeting(props.targetCountries, props.targetLanguages)) {
     const sectionContainer = block.closest('.section.cms-informative-cards-rail-container');
     if (sectionContainer) {
       sectionContainer.classList.add('!p-0');
@@ -64,38 +44,43 @@ export default function decorate(block) {
     return;
   }
 
-  // Apply Tailwind classes to the wrapper (parent of block)
+  // 3. Apply Tailwind classes to the wrapper (parent of block)
   const wrapper = block.parentElement;
   if (wrapper && wrapper.classList.contains('cms-informative-cards-rail-wrapper')) {
     wrapper.classList.add(
       'flex',
       'overflow-x-auto',
-      'mdlg:overflow-visible', // Desktop: remove scroll
+      'mdlg:overflow-visible',
       'scrollbar-none',
-      '[scrollbar-width:none]', // Firefox
-      '[-ms-overflow-style:none]', // IE/Edge
-      '[&::-webkit-scrollbar]:hidden', // Chrome/Safari
+      '[scrollbar-width:none]',
+      '[-ms-overflow-style:none]',
+      '[&::-webkit-scrollbar]:hidden',
     );
   }
 
-  // Validate props in development
+  // 4. Validate props
   const validation = validateCmsInformativeCardsRailProps(props);
   if (!validation.isValid) {
-    // Add p-0 class to parent section container
     const sectionContainer = block.closest('.section.cms-informative-cards-rail-container');
     if (sectionContainer) {
       sectionContainer.classList.add('!p-0');
     }
-    // Hide the block if validation fails
     block.style.display = 'none';
     return;
   }
 
-  // Create container for the rail
+  // 5. Hide original children (preserve data-aue-* for Universal Editor sub-block editing)
+  //    and render Preact INSIDE the block (compatible with editor-support.js re-decoration)
+  Array.from(block.children).forEach((child) => {
+    child.style.display = 'none';
+  });
+  block.classList.add('w-full');
+
   const railContainer = document.createElement('div');
   railContainer.className = 'w-full';
+  block.appendChild(railContainer);
 
-  // Render the rail component using Preact
+  // 6. Render Preact component inside the block
   const RailComponent = () => html`
     <div
       class="self-stretch inline-flex justify-start items-start gap-4 overflow-hidden pt-[4px] pb-[4px] pl-[4px] pr-[4px] mdlg:p-0 mdlg:grid mdlg:w-full mdlg:overflow-visible ${getDesktopGridColumns(props.cards?.length || 0, props.variant)}"
@@ -131,10 +116,5 @@ export default function decorate(block) {
     </div>
   `;
 
-  // Render component into container
   render(html`<${RailComponent} />`, railContainer);
-
-  // Hide original block and insert transformed content as sibling
-  block.style.display = 'none';
-  block.parentNode.insertBefore(railContainer, block.nextSibling);
 }
