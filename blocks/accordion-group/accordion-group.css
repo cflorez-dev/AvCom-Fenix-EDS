@@ -100,6 +100,20 @@
     pointer-events: auto;
 }
 
+/* hover/focus: match design system link behavior (fw 700 + active color) */
+.section.accordion-item .accordion-group-content .columns-text-col a:any-link:hover,
+.section.accordion-item .accordion-group-content > .default-content-wrapper a:any-link:hover {
+    color: var(--text-link-active, #0e4c54);
+    font-weight: 700;
+}
+
+.section.accordion-item .accordion-group-content .columns-text-col a:any-link:focus-visible,
+.section.accordion-item .accordion-group-content > .default-content-wrapper a:any-link:focus-visible {
+    outline: 2px solid var(--border-stroke-focus, #1d9bf0);
+    outline-offset: 2px;
+    border-radius: 2px;
+}
+
 /* override banner secondary important styles */
 .section.accordion-item.columns-container.cms-secondary-banner-container {
     max-width: 1248px !important; /* override section styles */
