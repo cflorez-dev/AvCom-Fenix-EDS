@@ -50,36 +50,23 @@ function isFeatureEnabled() {
 }
 
 export default function decorate(block) {
+  const isAuthorEnv = !!(
+    window.xwalk?.isAuthorEnv
+    || window.hlx?.aue
+    || document.querySelector('meta[name="urn:auecon:aemconnection"]')
+    || (window.location.hostname.includes('author-')
+      && window.location.pathname.startsWith('/content/'))
+  );
+
   // Check feature flag first
   if (!isFeatureEnabled()) {
     // eslint-disable-next-line no-console
     console.log('CMS Background Image: Feature is disabled via feature flag.');
-    block.remove();
+    if (!isAuthorEnv) block.remove();
     return;
   }
 
-  // 1. Detect if we are running inside the Universal Editor (Author Mode)
-  // We heuristically detect authoring by hostname and path pattern.
-  const isAuthorEnv = window.location.hostname.includes('author-')
-    && window.location.pathname.startsWith('/content/');
-
-  if (isAuthorEnv) {
-    // In author mode: preserve editable DOM and show a compact indicator.
-    // Do not transform the block so the Universal Editor can keep references
-    // to the child items and allow in-place editing.
-    block.textContent = '';
-
-    const authorIndicator = document.createElement('div');
-    authorIndicator.className = 'cms-background-image-author-indicator';
-    authorIndicator.textContent = 'CMS Background Image';
-    authorIndicator.style.cssText = 'background: #e3f2fd; padding: 8px 12px; border-left: 3px solid #2196f3; font-size: 13px; color: #1565c0; font-weight: 500;';
-    block.appendChild(authorIndicator);
-
-    // Exit without transforming the block: authoring UI manages the content.
-    return;
-  }
-
-  // 2. Production mode: parse configuration from the block DOM
+  // 1. Parse configuration from the block DOM BEFORE clearing
   const rows = Array.from(block.children);
   const config = {
     mobileImage: '',
@@ -140,7 +127,7 @@ export default function decorate(block) {
   if (!config.enabled) {
     // eslint-disable-next-line no-console
     console.log('CMS Background Image: Block instance is disabled.');
-    block.remove();
+    if (!isAuthorEnv) block.remove();
     return;
   }
 
@@ -148,7 +135,7 @@ export default function decorate(block) {
   if (!config.mobileImage && !config.tabletImage && !config.desktopImage) {
     // eslint-disable-next-line no-console
     console.warn('CMS Background Image: No images provided. Block will not be applied.');
-    block.remove();
+    if (!isAuthorEnv) block.remove();
     return;
   }
 
@@ -161,7 +148,7 @@ export default function decorate(block) {
   if (!main) {
     // eslint-disable-next-line no-console
     console.warn('CMS Background Image: <main> element not found.');
-    block.remove();
+    if (!isAuthorEnv) block.remove();
     return;
   }
 
@@ -258,13 +245,19 @@ export default function decorate(block) {
     }, 250);
   });
 
-  // Hide the block element (only used for configuration)
-  block.style.display = 'none';
-  block.setAttribute('aria-hidden', 'true');
-
-  // Remove spacing from controller section container
-  const controllerSection = block.closest('.section');
-  if (controllerSection) {
-    controllerSection.classList.add('!p-0', '!m-0', '!h-0', '!overflow-hidden');
+  // In production: clear the block and collapse section (no visual output needed)
+  // In editor: show a styled indicator so authors can see/select the block
+  if (isAuthorEnv) {
+    block.textContent = '';
+    const indicator = document.createElement('div');
+    indicator.className = 'p-3 bg-gray-100 border border-dashed border-gray-300 rounded text-center text-xs text-gray-500';
+    indicator.textContent = 'Background Image';
+    block.appendChild(indicator);
+  } else {
+    block.textContent = '';
+    const controllerSection = block.closest('.section');
+    if (controllerSection) {
+      controllerSection.classList.add('!p-0', '!m-0', '!h-0', '!overflow-hidden');
+    }
   }
 }

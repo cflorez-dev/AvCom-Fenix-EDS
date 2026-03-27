@@ -126,6 +126,13 @@ function mapBlockOptions(block) {
           return;
         }
 
+        // 10. alertContent (plain text fallback — rich text handled below)
+        if (currentIndex === 9) {
+          mappedOptions.alertContent = textContent;
+          currentIndex += 1;
+          return;
+        }
+
         // 11. targetCountries (comma-separated country codes)
         if (currentIndex === 10) {
           mappedOptions.targetCountries = textContent;
@@ -141,15 +148,16 @@ function mapBlockOptions(block) {
         }
       }
 
-      // 10. alertContent (richtext HTML) - always advance past index 9
+      // 10. alertContent (richtext HTML or plain text) - always advance past index 9
       // Must advance even if empty, otherwise targeting values at indices 10-11
       // get misinterpreted as alertContent (their <p>text</p> contains '<').
       if (currentIndex === 9) {
-        const isRichContent = innerHTML
-          && innerHTML.includes('<')
-          && innerHTML !== `<p>${textContent}</p>`;
-        if (isRichContent) {
+        if (innerHTML && innerHTML.includes('<')) {
+          // Rich or plain HTML — capture as-is (e.g. <p>text</p> or <p><strong>text</strong></p>)
           mappedOptions.alertContent = innerHTML;
+        } else if (textContent) {
+          // Plain text without HTML wrapper
+          mappedOptions.alertContent = textContent;
         }
         currentIndex += 1;
       }
@@ -164,10 +172,7 @@ function mapBlockOptions(block) {
  * @param {Element} block The form-hero-header-banner block element
  */
 export default function decorate(block) {
-  // 1. Detect if we are in Universal Editor (Author Mode)
-  const isAuthorEnv = window.xwalk?.isAuthorEnv;
-
-  // 2. Map block options from HTML
+  // 1. Map block options from HTML
   const mappedOptions = mapBlockOptions(block);
 
   // Targeting: hide banner if it doesn't match the user's market/language
@@ -207,39 +212,17 @@ export default function decorate(block) {
     alertContent,
   };
 
-  // 5. Hide & Render Sibling Pattern
-  if (isAuthorEnv) {
-    // In author mode: hide original block and create preview as sibling
-    block.style.display = 'none';
+  // 5. Clear block and render INSIDE (compatible with editor-support.js re-decoration)
+  block.textContent = '';
 
-    // Create preview container as sibling
-    const previewContainer = document.createElement('div');
-    previewContainer.className = 'form-hero-header-banner-author-preview';
-    block.parentNode.insertBefore(previewContainer, block.nextSibling);
+  const container = document.createElement('div');
+  container.className = 'form-hero-header-banner-content';
+  block.appendChild(container);
 
-    // Render component in preview container
-    render(
-      html`
-        <${FormHeroHeaderBanner} ...${componentProps} />
-      `,
-      previewContainer,
-    );
-    return;
-  }
-
-  // Production mode: hide original block and render component as sibling
-  block.style.display = 'none';
-
-  // Create production container as sibling
-  const productionContainer = document.createElement('div');
-  productionContainer.className = 'form-hero-header-banner-production';
-  block.parentNode.insertBefore(productionContainer, block.nextSibling);
-
-  // Render the component
   render(
     html`
       <${FormHeroHeaderBanner} ...${componentProps} />
     `,
-    productionContainer,
+    container,
   );
 }

@@ -97,7 +97,7 @@ async function loadCitiesFromBriefofertas(posCode) {
 
 export default function decorate(block) {
   // Async function to initialize author preview
-  async function initializeAuthorPreview(posCode, label) {
+  async function initializeAuthorPreview(posCode, label, authoredDefault = '') {
     const cities = await loadCitiesFromBriefofertas(posCode);
     if (cities.length === 0) {
       // eslint-disable-next-line no-console
@@ -105,11 +105,19 @@ export default function decorate(block) {
       return;
     }
 
-    // Hide original block content but keep it in DOM for Universal Editor
-    block.style.display = 'none';
+    // Hide original children to preserve data-aue-* for editor (Pattern B)
+    Array.from(block.children).forEach((child) => {
+      child.style.display = 'none';
+    });
 
-    // Get main city from countrieslist based on current POS
-    const mainCityCode = await getMainCityForCurrentPos();
+    // Priority: authored default (if valid) > POS main city > first city in list
+    let mainCityCode = await getMainCityForCurrentPos();
+    if (authoredDefault) {
+      const authoredMatch = cities.find(
+        (city) => city.value.toLowerCase() === authoredDefault.toLowerCase(),
+      );
+      if (authoredMatch) mainCityCode = authoredDefault;
+    }
 
     let defaultCity = cities[0]; // Fallback to first city
     const foundCity = cities.find(
@@ -128,10 +136,10 @@ export default function decorate(block) {
     }
     const dropdownOptions = cities.map((city) => city.label);
 
-    // Create preview container as sibling
+    // Render INSIDE the block (compatible with editor-support.js re-decoration)
     const previewContainer = document.createElement('div');
     previewContainer.className = 'origin-dropdown-selector-author-preview';
-    block.parentNode.insertBefore(previewContainer, block.nextSibling);
+    block.appendChild(previewContainer);
 
     render(
       html`
@@ -148,7 +156,7 @@ export default function decorate(block) {
   }
 
   // Async function to initialize dropdown
-  async function initializeDropdown(posCode, label) {
+  async function initializeDropdown(posCode, label, authoredDefault = '') {
     // Load cities from briefofertas
     const dynamicCities = await loadCitiesFromBriefofertas(posCode);
     // If there are more than 3 offers, use dynamic cities
@@ -162,8 +170,14 @@ export default function decorate(block) {
       return;
     }
 
-    // Get main city from countrieslist based on current POS
-    const mainCityCode = await getMainCityForCurrentPos();
+    // Priority: authored default (if valid) > POS main city > first city in list
+    let mainCityCode = await getMainCityForCurrentPos();
+    if (authoredDefault) {
+      const authoredMatch = finalCities.find(
+        (city) => city.value.toLowerCase() === authoredDefault.toLowerCase(),
+      );
+      if (authoredMatch) mainCityCode = authoredDefault;
+    }
 
     let defaultCity = finalCities[0]; // Fallback to first city
     const foundCity = finalCities.find(
@@ -271,21 +285,27 @@ export default function decorate(block) {
     || window.location.href.includes('author-p')
     || window.location.href.includes('universal-editor');
 
-  // Extract label from first div
+  // Extract label and defaultValue from block divs
   const divs = Array.from(block.querySelectorAll(':scope > div'));
   let label = '';
+  let authoredDefaultCity = '';
 
   if (divs.length > 0) {
     // First div: label
     const labelDiv = divs[0].querySelector('p');
     label = labelDiv ? (labelDiv.textContent || labelDiv.innerText).trim() : '';
   }
+  if (divs.length > 1) {
+    // Second div: defaultValue (IATA code, e.g. CLO, MDE, BOG)
+    const defaultDiv = divs[1].querySelector('p');
+    authoredDefaultCity = defaultDiv ? (defaultDiv.textContent || defaultDiv.innerText).trim().toUpperCase() : '';
+  }
 
   // In author mode, hide DOM and show only preview
   if (isAuthorEnv) {
     // Load cities dynamically even in author mode
     const posCode = getCountryFromCookie();
-    initializeAuthorPreview(posCode, label);
+    initializeAuthorPreview(posCode, label, authoredDefaultCity);
     return;
   }
 
@@ -296,5 +316,5 @@ export default function decorate(block) {
   block.classList.add('opacity-0', 'min-h-[32.8px]', 'transition-opacity', 'duration-200', 'ease-in-out');
 
   // Call async function
-  initializeDropdown(posCode, label);
+  initializeDropdown(posCode, label, authoredDefaultCity);
 }
