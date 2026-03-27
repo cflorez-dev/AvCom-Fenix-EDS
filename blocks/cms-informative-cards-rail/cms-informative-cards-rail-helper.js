@@ -50,12 +50,9 @@ function extractCardFromRow(cells) {
     }
   }
 
-  // Cell 2: Details
+  // Cell 2: Details - preserve HTML for rich text support
   if (cells[2]) {
-    const detailsP = cells[2].querySelector('p');
-    if (detailsP) {
-      card.details = detailsP.textContent.trim();
-    }
+    card.details = cells[2].innerHTML?.trim() || '';
   }
 
   // Cell 3: Action Type (can be "none", "chevron", or empty)

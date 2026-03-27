@@ -2,6 +2,7 @@ import { h } from '@dropins/tools/preact.js';
 import htm from 'htm';
 import { Button } from '../../../atoms/button/button.js';
 import { Icon } from '../../../atoms/icon/icon.js';
+import { processContentHTML } from '../../../helpers/process-content-html.js';
 
 const html = htm.bind(h);
 
@@ -44,6 +45,11 @@ export const InformativeCard = ({
   const imageDecoding = loadingMode === 'eager' ? 'sync' : 'async';
   const imageFetchPriority = loadingMode === 'eager' ? 'high' : 'low';
 
+  // Process details content with shared rich text mapper (LinkButton styles, lists, etc.)
+  const processedDetails = processContentHTML(details, 'informative', {
+    pClassName: 'text-base',
+  });
+
   return html`
     ${(variant === 'horizontal') ? html`
       <div 
@@ -68,7 +74,10 @@ export const InformativeCard = ({
           <div class="flex-1 min-h-40 py-5 inline-flex flex-col justify-center items-start gap-3">
             <div class="flex-1 flex flex-col justify-center items-start gap-2">
               <div class="justify-start text-text-normal-primary text-xl font-bold">${title}</div>
-              <div class="self-stretch justify-start text-text-normal-primary text-base font-normal leading-6">${details}</div>
+              <div
+                class="self-stretch justify-start text-text-normal-primary text-base font-normal leading-6"
+                dangerouslySetInnerHTML=${{ __html: processedDetails }}
+              />
             </div>
             ${(ActionType === 'button' || ActionType === 'both') && buttonText ? html`
               <div class="self-stretch inline-flex justify-end items-center gap-2">
@@ -109,7 +118,10 @@ export const InformativeCard = ({
             <div class="flex-1 inline-flex flex-col justify-center items-center gap-3">
                 <div class="self-stretch flex flex-col justify-start items-center gap-2">
                     <div class="justify-start text-text-normal-primary text-xl font-bold">${title}</div>
-                    <div class="self-stretch text-center justify-start text-text-normal-primary text-base font-normal leading-6">${details}</div>
+                    <div
+                      class="self-stretch text-center justify-start text-text-normal-primary text-base font-normal leading-6"
+                      dangerouslySetInnerHTML=${{ __html: processedDetails }}
+                    />
                 </div>
                 ${(ActionType === 'button' || ActionType === 'both') && buttonText ? html`
                   <div class="self-stretch inline-flex justify-center items-center gap-2">

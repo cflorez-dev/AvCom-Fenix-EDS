@@ -1,6 +1,7 @@
 import { h } from '@dropins/tools/preact.js';
 import htm from 'htm';
 import { Button } from '../../../atoms/button/button.js';
+import { processContentHTML } from '../../../helpers/process-content-html.js';
 
 const html = htm.bind(h);
 
@@ -23,43 +24,6 @@ const buildRelAttribute = (targetAttribute, relAttribute) => {
 
   // If target is not _blank, return the rel attribute as-is (or null)
   return relAttribute;
-};
-
-/**
- * Processes HTML content and adds m-0 class to all <p> elements
- * @param {string} htmlContent - HTML content string
- * @returns {string} Processed HTML with m-0 class added to <p> elements
- */
-const processDetailsContent = (htmlContent) => {
-  if (!htmlContent || typeof htmlContent !== 'string') {
-    return htmlContent;
-  }
-
-  // Match <p> tags (opening tags) with or without existing class attribute
-  // Pattern matches: <p>, <p class="...">, <p class='...'>, <p class=...>
-  return htmlContent.replace(
-    /<p(\s+[^>]*)?>/gi,
-    (match, attributes = '') => {
-      // Check if class attribute already exists
-      const classMatch = attributes.match(/class\s*=\s*["']([^"']*)["']/i);
-      if (classMatch) {
-        // If class exists, check if m-0 is already present
-        const existingClasses = classMatch[1];
-        if (!existingClasses.includes('m-0')) {
-          // Add m-0 to existing classes
-          return match.replace(
-            /class\s*=\s*["']([^"']*)["']/i,
-            `class="${existingClasses} !m-0"`
-          );
-        }
-        // m-0 already exists, return as-is
-        return match;
-      } else {
-        // No class attribute, add it with m-0
-        return `<p${attributes} class="!m-0">`;
-      }
-    }
-  );
 };
 
 /**
@@ -109,8 +73,10 @@ export const InformativePhotoCard = ({
   // Build rel attribute using helper function
   const computedRelAttribute = buildRelAttribute(targetAttribute, relAttribute);
 
-  // Process details content to add m-0 class to <p> elements
-  const processedDetails = processDetailsContent(details);
+  // Process details content with shared rich text mapper (LinkButton styles, lists, etc.)
+  const processedDetails = processContentHTML(details, 'informative', {
+    pClassName: 'text-base',
+  });
 
   // Focus classes only apply when card is clickable (no button)
   const focusClasses = isCardClickable

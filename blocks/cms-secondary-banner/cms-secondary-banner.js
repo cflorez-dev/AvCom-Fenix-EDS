@@ -12,18 +12,7 @@ const html = htm.bind(h);
  * @param {Element} block The cms-secondary-banner block element
  */
 export default function decorate(block) {
-  const isAuthorEnv = window.xwalk?.isAuthorEnv;
-  if (isAuthorEnv) {
-    block.classList.add('cms-secondary-banner-author-mode');
-    const authorIndicator = document.createElement('div');
-    authorIndicator.className = 'cms-secondary-banner-author-indicator';
-    authorIndicator.textContent = '🎨 CMS Secondary Banner (Author Mode - Edit below)';
-    authorIndicator.style.cssText = 'background: #f0f0f0; padding: 8px; border: 1px dashed #0066cc; margin-bottom: 8px; font-size: 12px; color: #666; font-family: system-ui;';
-    block.insertBefore(authorIndicator, block.firstChild);
-
-    return;
-  }
-
+  // 1. Extract data BEFORE clearing the block
   const mappedConfig = mapCmsSecondaryBannerData(block);
   const fallbackConfig = readBlockConfig(block);
 
@@ -73,11 +62,14 @@ export default function decorate(block) {
     config.imageMobile = config.imageDesktop;
   }
 
-  // Create container for the banner
-  const container = document.createElement('div');
-  container.className = 'cms-secondary-banner-wrapper w-[100%]';
+  // 3. Clear block and render INSIDE (compatible with editor-support.js re-decoration)
+  block.textContent = '';
 
-  // Render the SecondaryBanner organism
+  const container = document.createElement('div');
+  container.className = 'cms-secondary-banner-content w-[100%]';
+  block.appendChild(container);
+
+  // 4. Render the SecondaryBanner organism
   render(
     html`
       <${SecondaryBanner}
@@ -104,8 +96,4 @@ export default function decorate(block) {
     `,
     container,
   );
-
-  // Hide the original block and insert the rendered banner
-  block.style.display = 'none';
-  block.parentNode.insertBefore(container, block.nextSibling);
 }
