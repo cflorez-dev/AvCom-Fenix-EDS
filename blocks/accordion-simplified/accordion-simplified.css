@@ -101,6 +101,17 @@
     pointer-events: auto;
 }
 
+.accordion-simplified-content a:any-link:hover {
+    color: var(--text-link-active, #0e4c54);
+    font-weight: 700;
+}
+
+.accordion-simplified-content a:any-link:focus-visible {
+    outline: 2px solid var(--border-stroke-focus, #1d9bf0);
+    outline-offset: 2px;
+    border-radius: 2px;
+}
+
 /* Responsive tables — horizontal scroll when table overflows panel width.
  * display:block is required: overflow on display:table elements is ignored by browsers.
  * Internal table layout (rows/cells) is preserved; only the outer element becomes

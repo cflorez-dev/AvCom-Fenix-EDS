@@ -1,0 +1,70 @@
+/* Tables inside CMS Rich Text (e.g. accordion <details> in multitab) */
+.cms-rich-text-content details table {
+  width: 100%;
+  border-collapse: collapse;
+  background-color: var(--color-background-mail-background-default-lighter, #fff);
+  table-layout: auto;
+  margin: 8px 0 16px;
+}
+
+.cms-rich-text-content details table thead th,
+.cms-rich-text-content details table tr:first-child th {
+  padding: 16px 20px;
+  font-weight: 700;
+  font-size: 14px;
+  line-height: 1.4;
+  color: var(--color-text-normal-primary, #1b1b1b);
+  background-color: var(--color-background-mail-background-default-light, #fafafa);
+  border-bottom: 1px solid var(--color-border-Borders-and-dividers-mail-border-default, #d9d9d9);
+  border-right: 1px dashed var(--color-border-Borders-and-dividers-mail-border-default, #d9d9d9);
+  text-align: left;
+  white-space: normal;
+}
+
+.cms-rich-text-content details table thead th:last-child,
+.cms-rich-text-content details table tr:first-child th:last-child {
+  border-right: none;
+}
+
+.cms-rich-text-content details table td {
+  padding: 12px 16px;
+  font-weight: 400;
+  font-size: 14px;
+  line-height: 1.4;
+  color: var(--color-text-normal-primary, #1b1b1b);
+  border-right: 1px dashed var(--color-border-Borders-and-dividers-mail-border-default, #d9d9d9);
+  border-bottom: 1px dashed var(--color-border-Borders-and-dividers-mail-border-default, #d9d9d9);
+  vertical-align: top;
+}
+
+.cms-rich-text-content details table td:last-child {
+  border-right: none;
+}
+
+.cms-rich-text-content details table tr:last-child td {
+  border-bottom: none;
+}
+
+.cms-rich-text-content details table a {
+  color: var(--color-text-cyan-600, #0078a3);
+  text-decoration: underline;
+}
+
+/* Overflow wrapper for wide tables in details */
+.cms-rich-text-content details > div {
+  overflow-x: auto;
+}
+
+/* Responsive: stack columns on small screens */
+@media (max-width: 767px) {
+  .cms-rich-text-content details table {
+    font-size: 12px;
+  }
+
+  .cms-rich-text-content details table thead th,
+  .cms-rich-text-content details table tr:first-child th,
+  .cms-rich-text-content details table td {
+    padding: 8px 10px;
+    font-size: 12px;
+  }
+}

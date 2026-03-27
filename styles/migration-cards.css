@@ -582,7 +582,24 @@ main > .section.text-center > .default-content-wrapper:has(+ .cms-informative-ca
 .cms-rich-text-wrapper li,
 .section .default-content-wrapper li {
   min-width: 0;
-  flex-wrap: wrap;
+}
+
+/* Custom-bullet flex <li> (dot-span + text): convert to block layout so
+   inline links and text flow naturally instead of becoming flex items.
+   Targets <li style="display: flex"> used by the original CMS for
+   styled bullet-dot patterns. */
+.cms-rich-text-content li[style*="display: flex"],
+.cms-rich-text-content li[style*="display:flex"] {
+  display: block !important;
+  position: relative;
+  padding-left: 20px;
+}
+
+.cms-rich-text-content li[style*="display: flex"] > span:first-child,
+.cms-rich-text-content li[style*="display:flex"] > span:first-child {
+  position: absolute;
+  left: 0;
+  top: 7px;
 }
 
 /* Cards-rail: horizontal scroll on mobile instead of overflow */
