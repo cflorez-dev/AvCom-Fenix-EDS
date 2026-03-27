@@ -1,4 +1,111 @@
-/* Tables inside CMS Rich Text (e.g. accordion <details> in multitab) */
+/* ── Accordion-like <details> inside CMS Rich Text ── */
+/* Mirrors .accordion-simplified-item-inner / .accordion-group-item-inner */
+.cms-rich-text-content details {
+  background: var(--color-background-brand-primary-lighter, #fff);
+  border: 1px solid var(--color-border-brand-secondary-disable, #d9d9d9);
+  border-radius: var(--border-radius-medium, 12px);
+  overflow: hidden;
+  margin-bottom: 8px;
+  box-sizing: border-box;
+  text-align: left;
+}
+
+@media (width >= 900px) {
+  .cms-rich-text-content details:hover {
+    box-shadow: 0 2px 20px 2px rgb(73 73 73 / 25%);
+  }
+}
+
+/* Summary — mirrors .accordion-group-trigger */
+.cms-rich-text-content details > summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: var(--spacing-x-large, 24px);
+  cursor: pointer;
+  list-style: none;
+  font-family: var(--family-red-hat-display, "Red Hat Display"), sans-serif;
+  font-size: 18px;
+  font-weight: 700;
+  line-height: 24px;
+  color: var(--text-normal-primary, #1b1b1b);
+  border: none;
+  background: transparent;
+  transition:
+    background-color var(--transition-fast, 150ms) var(--ease-in-out, ease-in-out),
+    box-shadow var(--transition-fast, 150ms) var(--ease-in-out, ease-in-out);
+}
+
+/* Hide default marker in all browsers */
+.cms-rich-text-content details > summary::-webkit-details-marker { display: none; }
+
+/* Chevron via CSS (matches the accordion-group SVG chevron) */
+.cms-rich-text-content details > summary::after {
+  content: "";
+  flex-shrink: 0;
+  width: 16px;
+  height: 16px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 16 16' fill='none'%3E%3Cg transform='translate(4,5.5)'%3E%3Cpath fill-rule='evenodd' clip-rule='evenodd' d='M7.06 0L4 3.05333L0.94 0L0 0.94L4 4.94L8 0.94L7.06 0Z' fill='%231B1B1B'/%3E%3C/g%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: center;
+  transition: transform var(--transition-fast, 150ms) var(--ease-in-out, ease-in-out);
+}
+
+.cms-rich-text-content details[open] > summary::after {
+  transform: rotate(180deg);
+}
+
+/* Open state: reduce bottom padding */
+.cms-rich-text-content details[open] > summary {
+  padding-bottom: var(--spacing-large, 20px);
+}
+
+/* Content area — mirrors .accordion-group-content / .accordion-simplified-content */
+.cms-rich-text-content details > div {
+  padding: 0 var(--spacing-x-large, 24px) var(--spacing-x-large, 24px);
+  font-size: var(--paragraph-p300-size, 16px);
+  font-weight: var(--paragraph-p300-weight, 400);
+  color: var(--text-normal-primary, #1b1b1b);
+  overflow-x: auto;
+}
+
+.cms-rich-text-content details > div p {
+  margin: 0 0 12px;
+  line-height: 150%;
+}
+
+.cms-rich-text-content details > div ul {
+  padding-left: 28px;
+  margin: 0 0 12px;
+  list-style: disc;
+  line-height: var(--line-height-auto);
+}
+
+.cms-rich-text-content details > div li {
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 150%;
+  margin: 0 0 10px;
+}
+
+.cms-rich-text-content details > div li:last-child {
+  margin-bottom: 0;
+}
+
+.cms-rich-text-content details > div a:any-link {
+  color: var(--link-color-secondary);
+  font-weight: 400;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.cms-rich-text-content details > div a:any-link:hover {
+  color: var(--text-link-active, #0e4c54);
+  font-weight: 700;
+}
+
+/* ── Tables inside <details> (e.g. accordion in multitab) ── */
 .cms-rich-text-content details table {
   width: 100%;
   border-collapse: collapse;

@@ -90,12 +90,28 @@ export function extractCarouselCards(block) {
 
     // Extract image (cell 0)
     const imageCell = cells[0];
+    const originalPicture = imageCell?.querySelector('picture');
     const imgElement = imageCell?.querySelector('img');
     const imageSrc = imgElement?.src || '';
     const imageAlt = imgElement?.alt || '';
-    const pictureElement = imageSrc
-      ? createOptimizedPicture(imageSrc, imageAlt, false, [{ width: '240' }, { width: '180' }])
-      : null;
+
+    // Use original picture from DOM (already optimized by AEM EDS).
+    // createOptimizedPicture strips the domain (pathname only), which breaks
+    // cross-origin images in the Universal Editor canvas.
+    let pictureElement = null;
+    if (originalPicture) {
+      pictureElement = originalPicture.cloneNode(true);
+    } else if (imageSrc) {
+      pictureElement = createOptimizedPicture(imageSrc, imageAlt, false, [{ width: '240' }, { width: '180' }]);
+    }
+
+    // Safety: ensure img inside always has a valid src
+    if (pictureElement && imageSrc) {
+      const picImg = pictureElement.querySelector('img');
+      if (picImg && !picImg.getAttribute('src')) {
+        picImg.setAttribute('src', imageSrc);
+      }
+    }
 
     // Extract backgroundColor (cell 1) - the href from the link inside button-container
     const backgroundColorCell = cells[1];

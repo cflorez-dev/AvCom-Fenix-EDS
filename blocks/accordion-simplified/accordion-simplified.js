@@ -332,7 +332,15 @@ export default function decorate(block) {
 
   if (items.length === 0) return;
 
+  // Hide original children to preserve data-aue-* for editor (Pattern B)
+  Array.from(block.children).forEach((child) => {
+    child.style.display = 'none';
+  });
+
+  // Render INSIDE the block (compatible with editor-support.js re-decoration)
   const container = document.createElement('div');
+  container.className = 'accordion-simplified-content-wrapper';
+  block.appendChild(container);
 
   render(
     html`
@@ -344,9 +352,4 @@ export default function decorate(block) {
     `,
     container,
   );
-
-  // Hide original AEM block (keeps DOM intact for Universal Editor)
-  // Insert rendered Preact component right after the original block
-  block.style.display = 'none';
-  block.parentNode.insertBefore(container, block.nextSibling);
 }

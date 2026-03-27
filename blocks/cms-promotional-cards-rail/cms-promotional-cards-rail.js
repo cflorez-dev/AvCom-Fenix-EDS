@@ -1,7 +1,7 @@
 import { h, render } from '@dropins/tools/preact.js';
 import htm from 'htm';
 import { fetchAEMData } from '../../scripts/utils/aem-data.js';
-import { CITY_FROM_ORIGIN_DROPDOWN_EVENT } from '../../scripts/utils/event-constants.js';
+import { CITY_FROM_ORIGIN_DROPDOWN_EVENT, getLastOriginDropdownCity } from '../../scripts/utils/event-constants.js';
 import { ArrowRightIcon } from '../../design-system/atoms/icons/arrow-right-icon.js';
 import { LinkButton } from '../../design-system/atoms/link-button/link-button.js';
 import { PromotionCard } from '../../design-system/organisms/cards/promotion-card/promotion-card.js';
@@ -268,17 +268,25 @@ export default async function decorate(block) {
   // Initialize data caches
   await initializeDataCaches();
 
-  // Obtener origen por defecto desde countrieslist basado en POS del usuario
-  const defaultOrigin = await getMainCityForCurrentPos();
+  // Check if origin-dropdown already dispatched a city (handles race condition)
+  const lastDropdownCity = getLastOriginDropdownCity();
+  const defaultOrigin = lastDropdownCity?.originIataCode || await getMainCityForCurrentPos();
+  const defaultOriginName = lastDropdownCity?.originName || defaultOrigin;
 
   // Estado del origen actual
   const currentOrigin = {
     originIataCode: defaultOrigin,
-    originName: defaultOrigin,
+    originName: defaultOriginName,
   };
+
+  // Hide original children to preserve data-aue-* for editor (Pattern B)
+  Array.from(block.children).forEach((child) => {
+    child.style.display = 'none';
+  });
 
   // Create DOM structure
   const wrapper = document.createElement('div');
+  wrapper.className = 'cms-promotional-cards-rail-content';
 
   const container = document.createElement('ul');
   container.className = 'flex flex-col gap-[var(--spacing-4)] !m-0 min-[769px]:flex-row';
@@ -319,7 +327,6 @@ export default async function decorate(block) {
   // Set up listeners
   setupOriginChangeListener(container, currentOrigin, blockConfig);
 
-  // Replace original block with new content
-  block.style.display = 'none';
-  block.parentNode.insertBefore(wrapper, block.nextSibling);
+  // Render INSIDE the block (compatible with editor-support.js re-decoration)
+  block.appendChild(wrapper);
 }
