@@ -77,24 +77,7 @@ function mapAlertData(block) {
  * @param {Element} block The cms-alert block element
  */
 export default function decorate(block) {
-  // 1. Detect Author Mode (Universal Editor compatibility)
-  const isAuthorEnv = window.xwalk?.isAuthorEnv;
-
-  if (isAuthorEnv) {
-    // Preserve editable content in author mode
-    block.classList.add('cms-alert-author-mode');
-
-    // Add visual indicator for authors
-    const authorIndicator = document.createElement('div');
-    authorIndicator.textContent = '🔔 CMS Alert (Author Mode - Edit below)';
-    authorIndicator.className = 'bg-gray-100 p-2 border border-dashed border-blue-600 mb-2 text-xs text-gray-600';
-    block.insertBefore(authorIndicator, block.firstChild);
-
-    // Exit without transforming - keep editable
-    return;
-  }
-
-  // 2. Production Mode: Extract targeting from positional rows
+  // 1. Extract targeting from positional rows BEFORE clearing the block
   // Model field order: 0=variant, 1=content, 2=dismissible, 3=target-countries, 4=target-languages
   const rows = [...block.children];
   const getRowText = (rowIndex) => {
@@ -113,7 +96,7 @@ export default function decorate(block) {
     return;
   }
 
-  // 3. Map HTML structure to alert data object
+  // 2. Map HTML structure to alert data object
   const mappedData = mapAlertData(block);
 
   // Use mapped data with defaults
@@ -122,8 +105,14 @@ export default function decorate(block) {
   const showDismissbutton = mappedData.showDismissbutton !== undefined
     ? mappedData.showDismissbutton
     : true;
+
+  // 3. Clear block and render INSIDE (compatible with editor-support.js re-decoration)
+  const blockWrapper = block.parentNode;
+  block.textContent = '';
+
   const container = document.createElement('div');
-  container.className = 'cms-alert-container';
+  container.className = 'cms-alert-content';
+  block.appendChild(container);
 
   const alerts = [];
 
@@ -135,9 +124,7 @@ export default function decorate(block) {
     });
   }
 
-  // 6. Render Alert components with Preact
-  const wrapper = block.parentNode;
-
+  // 4. Render Alert components with Preact
   alerts.forEach((alertData) => {
     const alertElement = document.createElement('div');
     alertElement.className = 'cms-alert-item';
@@ -156,7 +143,7 @@ export default function decorate(block) {
     alertElement.remove();
     if (container.children.length === 0) {
       container.remove();
-      wrapper?.remove();
+      blockWrapper?.remove();
     }
   }}
         />
@@ -166,15 +153,4 @@ export default function decorate(block) {
 
     container.appendChild(alertElement);
   });
-
-  // 7. Add metadata as data attributes
-  container.dataset.variant = variant;
-  container.dataset.dismissible = showDismissbutton;
-
-  // 8. Hide & Render Sibling Pattern (Universal Editor compatibility)
-  // Hide original block (DO NOT remove - preserve for Universal Editor)
-  block.classList.add('hidden');
-
-  // Insert transformed content as sibling element
-  block.parentNode.insertBefore(container, block.nextSibling);
 }

@@ -43,6 +43,30 @@ main > .section.cms-secondary-banner-container[class*="grid-"] .cms-secondary-ba
   align-items: center;
 }
 
+.cms-secondary-banner-wrapper > .cms-secondary-banner {
+  width: 100%;
+  max-width: 100%;
+}
+
+/* Fix: component uses w-full (width:100%) + mx margins, which causes overflow.
+   width:auto lets the block element fill parent minus margins naturally.
+   margin-inline:auto centers the banner when max-width (1248px) kicks in.
+   Parent padding provides the minimum edge spacing instead of component margins. */
+.cms-secondary-banner .cms-secondary-banner-content {
+  padding-inline: 16px;
+}
+
+@media (min-width: 1024px) {
+  .cms-secondary-banner .cms-secondary-banner-content {
+    padding-inline: 32px;
+  }
+}
+
+.cms-secondary-banner .cms-secondary-banner-content > div:first-child {
+  width: auto;
+  margin-inline: auto;
+}
+
 /* Full-cover mode (no condor): second line smaller, matching legacy avianca.com
    where <small> (first line) was 82% of the title size.
    We invert the logic: base is the smaller size, ::first-line is the larger. */

@@ -8,6 +8,88 @@ import { shouldShowByTargeting, hideBlockWithSection } from '../../scripts/utils
 const html = htm.bind(h);
 
 /**
+ * Modal wrapper component that manages open/close state.
+ * Extracted as a top-level component to work with UI.render and receive props.
+ */
+const ModalWrapper = ({
+  modalData,
+  autoOpen,
+  variant,
+  showDismissButton,
+  clickOutsideToClose,
+  escapeToClose,
+  role,
+}) => {
+  const [isOpen, setIsOpen] = useState(autoOpen);
+
+  const handleClose = () => {
+    setIsOpen(false);
+  };
+
+  const handlePrimaryClick = (e) => {
+    if (modalData.primaryButtonTarget === '_blank') {
+      window.open(modalData.primaryButtonHref, '_blank', 'noopener,noreferrer');
+      e.preventDefault();
+    }
+    if (!modalData.primaryButtonHref) {
+      handleClose();
+    }
+  };
+
+  const handleSecondaryClick = (e) => {
+    if (!modalData.secondaryButtonHref) {
+      e.preventDefault();
+      handleClose();
+      return;
+    }
+    if (modalData.secondaryButtonTarget === '_blank') {
+      window.open(modalData.secondaryButtonHref, '_blank', 'noopener,noreferrer');
+      e.preventDefault();
+      handleClose();
+    }
+  };
+
+  const TriggerButton = !autoOpen && html`
+    <${Button}
+      variant="primary"
+      onClick=${() => setIsOpen(true)}
+      aria-label="Open modal"
+      customClassName="m-2"
+    >
+      ${modalData.title || 'Open Modal'}
+    </${Button}>
+  `;
+
+  return html`
+    <div>
+      ${!autoOpen && TriggerButton}
+      <${ModalAviancaLayout}
+        isOpen=${isOpen}
+        onClose=${handleClose}
+        title=${modalData.title}
+        description=${modalData.description}
+        primaryButtonLabel=${modalData.primaryButtonLabel}
+        secondaryButtonLabel=${modalData.secondaryButtonLabel}
+        icon=${modalData.icon}
+        coverImage=${modalData.coverImage}
+        coverImageAlt=${modalData.coverImageAlt}
+        image=${modalData.image}
+        imageAlt=${modalData.imageAlt}
+        onPrimaryClick=${handlePrimaryClick}
+        onSecondaryClick=${handleSecondaryClick}
+        primaryButtonHref=${modalData.primaryButtonHref || undefined}
+        secondaryButtonHref=${modalData.secondaryButtonHref || undefined}
+        showCloseButton=${showDismissButton}
+        clickOutsideToClose=${clickOutsideToClose}
+        escapeToClose=${escapeToClose}
+        variant=${variant}
+        role=${role}
+      />
+    </div>
+  `;
+};
+
+/**
  * Extracts and maps CMS Modal data from block structure
  * Expected HTML structure (based on component model):
  * <!-- Col 0: Title -->
@@ -195,25 +277,15 @@ function extractCmsModalData(block) {
  * @param {Element} block The cms-modal block element
  */
 export default function decorate(block) {
-  const isAuthorEnv = window.xwalk?.isAuthorEnv;
-  if (isAuthorEnv) {
-    block.classList.add('cms-modal-author-mode');
-    const authorIndicator = document.createElement('div');
-    authorIndicator.className = 'cms-modal-author-indicator';
-    authorIndicator.textContent = '💬 CMS Modal (Author Mode - Configure below)';
-    authorIndicator.style.cssText = 'background: #f0f0f0; padding: 12px; border: 2px dashed #0066cc; margin-bottom: 8px; font-size: 14px; color: #333; font-weight: 600; border-radius: 4px;';
-    block.insertBefore(authorIndicator, block.firstChild);
-    return;
-  }
-
-  // Extract data from block structure
+  // 1. Extract data BEFORE clearing the block
   const config = extractCmsModalData(block);
 
-  // Targeting: hide modal if it doesn't match the user's market/language
+  // 2. Targeting: hide modal if it doesn't match the user's market/language
   if (!shouldShowByTargeting(config.targetCountries, config.targetLanguages)) {
     hideBlockWithSection(block);
     return;
   }
+
   const {
     autoOpen,
     variant = 'center',
@@ -239,77 +311,22 @@ export default function decorate(block) {
     coverImage: config.coverImage || '',
     coverImageAlt: config.coverImageAlt || '',
   };
+
+  // 3. Clear block content and render INSIDE (compatible with editor-support.js re-decoration)
+  block.textContent = '';
+
   const container = document.createElement('div');
-  container.className = 'cms-modal-wrapper';
-  container.dataset.blockName = 'cms-modal';
-  const ModalWrapper = () => {
-    const [isOpen, setIsOpen] = useState(autoOpen);
-    const handleClose = () => {
-      setIsOpen(false);
-    };
-    const handlePrimaryClick = (e) => {
-      if (modalData.primaryButtonTarget === '_blank') {
-        window.open(modalData.primaryButtonHref, '_blank', 'noopener,noreferrer');
-        e.preventDefault();
-      }
-      if (!modalData.primaryButtonHref) {
-        handleClose();
-      }
-    };
-    const handleSecondaryClick = (e) => {
-      if (!modalData.secondaryButtonHref) {
-        e.preventDefault();
-        handleClose();
-        return;
-      }
-      if (modalData.secondaryButtonTarget === '_blank') {
-        window.open(modalData.secondaryButtonHref, '_blank', 'noopener,noreferrer');
-        e.preventDefault();
-        handleClose();
-      }
-    };
-    const TriggerButton = !autoOpen && html`
-      <${Button}
-        variant="primary"
-        onClick=${() => setIsOpen(true)}
-        aria-label="Open modal"
-        customClassName="m-2"
-      >
-        ${modalData.title || 'Open Modal'}
-      </${Button}>
-    `;
-    return html`
-      <div>
-        ${!autoOpen && TriggerButton}
-        <${ModalAviancaLayout}
-          isOpen=${isOpen}
-          onClose=${handleClose}
-          title=${modalData.title}
-          description=${modalData.description}
-          primaryButtonLabel=${modalData.primaryButtonLabel}
-          secondaryButtonLabel=${modalData.secondaryButtonLabel}
-          icon=${modalData.icon}
-          coverImage=${modalData.coverImage}
-          coverImageAlt=${modalData.coverImageAlt}
-          image=${modalData.image}
-          imageAlt=${modalData.imageAlt}
-          onPrimaryClick=${handlePrimaryClick}
-          onSecondaryClick=${handleSecondaryClick}
-          primaryButtonHref=${modalData.primaryButtonHref || undefined}
-          secondaryButtonHref=${modalData.secondaryButtonHref || undefined}
-          showCloseButton=${showDismissButton}
-          clickOutsideToClose=${clickOutsideToClose}
-          escapeToClose=${escapeToClose}
-          variant=${variant}
-          role=${role}
-        />
-      </div>
-    `;
-  };
-  render(html`<${ModalWrapper} />`, container);
-  container.dataset.autoOpen = autoOpen;
-  container.dataset.variant = variant;
-  container.dataset.showDismissButton = showDismissButton;
-  block.style.display = 'none';
-  block.parentNode.insertBefore(container, block.nextSibling);
+  container.className = 'cms-modal-content';
+  block.appendChild(container);
+
+  // 4. Mount Preact component inside the block (not as sibling)
+  render(html`<${ModalWrapper}
+    modalData=${modalData}
+    autoOpen=${autoOpen}
+    variant=${variant}
+    showDismissButton=${showDismissButton}
+    clickOutsideToClose=${clickOutsideToClose}
+    escapeToClose=${escapeToClose}
+    role=${role}
+  />`, container);
 }
