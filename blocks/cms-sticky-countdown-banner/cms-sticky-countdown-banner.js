@@ -122,6 +122,7 @@ export default async function decorate(block) {
     container,
   );
 
-  block.classList.add('hidden');
-  block.parentNode.insertBefore(container, block.nextSibling);
+  // Clear block and render INSIDE (compatible with editor-support.js re-decoration)
+  block.textContent = '';
+  block.appendChild(container);
 }

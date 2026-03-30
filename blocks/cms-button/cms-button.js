@@ -174,24 +174,7 @@ export { mapBlockData };
  * @param {Element} block The cms-button block element
  */
 export default function decorate(block) {
-  // 1. Detect Author Mode (Universal Editor)
-  const isAuthorEnv = window.xwalk?.isAuthorEnv;
-
-  if (isAuthorEnv) {
-    // Preserve editable content for Universal Editor
-    block.classList.add('cms-button-author-mode');
-
-    // Add visual indicator for the author
-    const authorIndicator = document.createElement('div');
-    authorIndicator.textContent = '🔘 CMS Button (Author Mode - Edit below)';
-    authorIndicator.style.cssText = 'background: #f0f0f0; padding: 8px; border: 1px dashed #0066cc; margin-bottom: 8px; font-size: 12px; color: #666;';
-    block.insertBefore(authorIndicator, block.firstChild);
-
-    // Exit without transforming - keep content editable
-    return;
-  }
-
-  // 2. Production Mode: Map block data
+  // 1. Extract data BEFORE clearing the block
   const mappedData = mapBlockData(block);
 
   // Extract targeting from positional rows
@@ -236,9 +219,11 @@ export default function decorate(block) {
     }
   }
 
-  // 3. Create main container
+  // 3. Clear block and render INSIDE (compatible with editor-support.js re-decoration)
+  block.textContent = '';
+
   const container = document.createElement('div');
-  container.className = 'cms-button-container';
+  container.className = 'cms-button-content';
 
   // 4. Determine if it's Button or LinkButton
   const isTertiary = variant === 'tertiary';
@@ -449,14 +434,6 @@ export default function decorate(block) {
     container,
   );
 
-  // 8. Block metadata
-  container.dataset.variant = variant;
-  container.dataset.linkType = linkType;
-
-  // 9. Hide & Render Sibling Pattern:
-  // Hide original block (DO NOT delete - preserve for Universal Editor)
-  block.style.display = 'none';
-
-  // Insert transformed content as sibling element
-  block.parentNode.insertBefore(container, block.nextSibling);
+  // 8. Append container inside block
+  block.appendChild(container);
 }

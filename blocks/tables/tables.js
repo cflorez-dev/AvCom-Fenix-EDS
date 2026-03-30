@@ -1,5 +1,6 @@
 import { fetchAEMData } from '../../scripts/utils/aem-data.js';
 import { shouldShowByTargeting, hideBlockWithSection } from '../../scripts/utils/target-filter.js';
+import { applyRteLabFilter, isRteLabEnabled } from '../../scripts/utils/rte-lab.js';
 
 let environmentConfig = null;
 const DEFAULT_CONFIG = {
@@ -985,9 +986,25 @@ export default async function decorate(block) {
     zebraRowColor,
   } = extractTableData(block);
 
+  const rteLabActive = isRteLabEnabled('tables');
+  if (rteLabActive) {
+    applyRteLabFilter(block, {
+      componentName: 'tables',
+      filterId: 'rte-lab-table',
+    });
+  }
+
   // Check targeting (country/language filtering)
   if (!shouldShowByTargeting(targetCountries, targetLanguages)) {
     hideBlockWithSection(block);
+    return;
+  }
+
+  if (isAuthorEnvironment() && rteLabActive) {
+    const authorIndicator = document.createElement('div');
+    authorIndicator.className = 'tables-author-indicator bg-gray-100 p-2 border border-dashed border-blue-600 mb-2 text-xs text-gray-600';
+    authorIndicator.textContent = 'Tables (Author Mode - RTE Lab active, edit the rich text field below)';
+    block.insertBefore(authorIndicator, block.firstChild);
     return;
   }
 

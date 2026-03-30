@@ -25,8 +25,6 @@ export default async function decorate(block) {
 
     return;
   }
-  const container = document.createElement('div');
-
   // Priority: Cookie first, then URL, then default
   const cookieLanguage = getStoredLanguage();
   const locale = await resolveLocale();
@@ -56,6 +54,14 @@ export default async function decorate(block) {
     mainCityCode: destinationsData?.mainCityCode || '',
     firstOrigin: origins[0]?.code || null,
   });
+  // Hide original children to preserve data-aue-* for editor (Pattern B)
+  Array.from(block.children).forEach((child) => {
+    child.style.display = 'none';
+  });
+
+  // Render INSIDE the block (compatible with editor-support.js re-decoration)
+  const container = document.createElement('div');
+  container.className = 'hub-destinations-content';
   render(
     html`
       <${HubDestinations}
@@ -67,7 +73,5 @@ export default async function decorate(block) {
     `,
     container,
   );
-
-  block.style.display = 'none';
-  block.parentNode.insertBefore(container, block.nextSibling);
+  block.appendChild(container);
 }

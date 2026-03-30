@@ -11,8 +11,6 @@ const html = htm.bind(h);
  * @param {Element} block The booking-box block element
  */
 export default async function decorate(block) {
-  const container = document.createElement('div');
-
   const rows = [...block.children];
   const actionButtons = [];
 
@@ -54,6 +52,14 @@ export default async function decorate(block) {
     config.data.map(({ Key, Text }) => [Key, Text]),
   );
 
+  // Hide original children to preserve data-aue-* for editor (Pattern B)
+  Array.from(block.children).forEach((child) => {
+    child.style.display = 'none';
+  });
+
+  // Render INSIDE the block (compatible with editor-support.js re-decoration)
+  const container = document.createElement('div');
+  container.className = 'booking-box-content';
   render(
     html`
       <${BookingBox}
@@ -64,8 +70,5 @@ export default async function decorate(block) {
     `,
     container,
   );
-
-  block.style.display = 'none';
-
-  block.parentNode.insertBefore(container, block.nextSibling);
+  block.appendChild(container);
 }

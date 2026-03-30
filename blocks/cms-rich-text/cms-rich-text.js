@@ -2,6 +2,7 @@ import processRichTextContent from './cms-rich-text-helper.js';
 import { getLinkButtonStyles } from '../../design-system/atoms/link-button/link-button.js';
 import loadSVGIcon from '../../scripts/utils/svg.helper.js';
 import { shouldShowByTargeting, hideBlockWithSection } from '../../scripts/utils/target-filter.js';
+import { applyRteLabFilter, isRteLabEnabled } from '../../scripts/utils/rte-lab.js';
 
 /**
  * Processes <a> tags in a container to apply LinkButton styles
@@ -150,13 +151,23 @@ export default function decorate(block) {
   const isAuthorEnv = window.xwalk?.isAuthorEnv;
 
   if (isAuthorEnv) {
+    const rteLabActive = isRteLabEnabled('cms-rich-text');
+    if (rteLabActive) {
+      applyRteLabFilter(block, {
+        componentName: 'cms-rich-text',
+        filterId: 'rte-lab-richtext',
+      });
+    }
+
     // In author mode: preserve editable content
     block.classList.add('cms-rich-text-author-mode');
 
     // Add visual indicator for the author
     const authorIndicator = document.createElement('div');
     authorIndicator.className = 'cms-rich-text-author-indicator bg-gray-100 p-2 border border-dashed border-blue-600 mb-2 text-xs text-gray-600';
-    authorIndicator.textContent = '📝 CMS Rich Text (Author Mode - Edit below)';
+    authorIndicator.textContent = rteLabActive
+      ? 'CMS Rich Text (Author Mode - RTE Lab active, edit below)'
+      : 'CMS Rich Text (Author Mode - Edit below)';
     block.insertBefore(authorIndicator, block.firstChild);
 
     // Exit WITHOUT transforming the block - keep it editable

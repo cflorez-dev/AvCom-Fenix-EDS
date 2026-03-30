@@ -24,9 +24,14 @@ export default function decorate(block) {
   const cards = extractTipsCards(block);
   const loadingMode = config.loading || 'lazy';
 
-  // Create container
-  const container = document.createElement('div');
+  // Hide original children to preserve data-aue-* for editor (Pattern B)
+  Array.from(block.children).forEach((child) => {
+    child.style.display = 'none';
+  });
 
+  // Render INSIDE the block (compatible with editor-support.js re-decoration)
+  const container = document.createElement('div');
+  container.className = 'tips-cards-content';
   render(
     html`
       <${TipsCards}
@@ -37,8 +42,5 @@ export default function decorate(block) {
     `,
     container,
   );
-
-  // Hide & Render Sibling Pattern (keeps original DOM intact for AEM editor)
-  block.style.display = 'none';
-  block.parentNode.insertBefore(container, block.nextSibling);
+  block.appendChild(container);
 }

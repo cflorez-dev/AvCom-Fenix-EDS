@@ -175,9 +175,14 @@ export default function decorate(block) {
     return;
   }
 
-  // Create container
+  // Hide original children to preserve data-aue-* for editor (Pattern B)
+  Array.from(block.children).forEach((child) => {
+    child.style.display = 'none';
+  });
+
+  // Render INSIDE the block (compatible with editor-support.js re-decoration)
   const container = document.createElement('div');
-  container.className = 'w-full pt-4 pb-8';
+  container.className = 'cms-promotional-card-carrousel-content w-full pt-4 pb-8';
   container.dataset.loading = loadingMode;
 
   /**
@@ -223,9 +228,7 @@ export default function decorate(block) {
 
   window.addEventListener('resize', handleResize);
 
-  // Hide & Render Sibling Pattern
-  block.style.display = 'none';
-  block.parentNode.insertBefore(container, block.nextSibling);
+  block.appendChild(container);
 
   // Apply styles to the section container using Tailwind
   const sectionContainer = block.closest('.section.cms-promotional-card-carrousel-container');

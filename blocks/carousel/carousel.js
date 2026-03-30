@@ -5,25 +5,7 @@ import { createOptimizedPicture, readBlockConfig } from '../../scripts/aem.js';
  * @param {Element} block The carousel block element
  */
 export default function decorate(block) {
-  // Detect if we're in Universal Editor author environment
-  const isAuthorEnv = window.xwalk?.isAuthorEnv;
-
-  if (isAuthorEnv) {
-    // In author mode: preserve original editable content
-    block.classList.add('carousel-author-mode');
-
-    // Add visual indicator for author
-    const authorIndicator = document.createElement('div');
-    authorIndicator.className = 'carousel-author-indicator';
-    authorIndicator.textContent = '🎠 Carousel (Author Mode - Edit below)';
-    authorIndicator.style.cssText = 'background: #f0f0f0; padding: 8px; border: 1px dashed #0066cc; margin-bottom: 8px; font-size: 12px; color: #666;';
-    block.insertBefore(authorIndicator, block.firstChild);
-
-    // Don't transform the block - keep it editable
-    return;
-  }
-
-  // Production mode: transform block into carousel
+  // 1. Extract data BEFORE clearing the block
   const config = readBlockConfig(block);
   const loadingMode = config.loading || 'lazy'; // 'lazy' or 'eager'
   const speed = config.speed || 'normal'; // 'slow', 'normal', 'fast'
@@ -128,7 +110,7 @@ export default function decorate(block) {
     });
   }
 
-  // Hide original block and insert transformed content as sibling
-  block.style.display = 'none';
-  block.parentNode.insertBefore(carouselContainer, block.nextSibling);
+  // 2. Clear block and render INSIDE (compatible with editor-support.js re-decoration)
+  block.textContent = '';
+  block.appendChild(carouselContainer);
 }
