@@ -353,6 +353,7 @@ export const BookingBox = ({
       ccd: destination.iataCityCode,
       fi: formatDateToDdMMM(departureDate),
       ...(tripType !== 'round-trip' ? {} : { fr: formatDateToDdMMM(returnDate) }),
+      tv: tripType === 'round-trip',
       na: passengers.adults,
       nn: passengers.children,
       ni: passengers.infants,
