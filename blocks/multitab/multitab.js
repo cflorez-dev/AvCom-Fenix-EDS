@@ -630,6 +630,16 @@ export default async function decorate(block) {
     tabPanels.forEach((panel, i) => {
       if (i === newIndex) {
         panel.classList.remove('hidden');
+        // Replace deferred iframes with fresh copies so embedded JS (e.g. Swiper)
+        // initialises with correct layout dimensions
+        panel.querySelectorAll('iframe[data-src]').forEach((old) => {
+          const fresh = document.createElement('iframe');
+          Array.from(old.attributes).forEach((attr) => {
+            if (attr.name !== 'src') fresh.setAttribute(attr.name, attr.value);
+          });
+          fresh.src = old.dataset.src;
+          old.replaceWith(fresh);
+        });
       } else {
         panel.classList.add('hidden');
       }
