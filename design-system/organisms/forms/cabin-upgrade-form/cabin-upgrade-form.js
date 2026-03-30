@@ -10,6 +10,7 @@ import { getStoredLanguage } from '../../../../scripts/services/header/language-
 const html = htm.bind(h);
 
 let i18Cache = null;
+let i18FallbackCache = null;
 const DEFAULT_CONFIG = {
   apiUrl: '',
   apiKey: '',
@@ -32,15 +33,21 @@ async function getEnvironmentConfig() {
 }
 
 /**
- * Gets i18n label from cache
+ * Gets i18n label from cache, falling back to Spanish if not found
  * @param {string} key - i18n key
  * @param {string} fallback - Fallback text if key not found
  * @returns {string} Translated text or fallback
  */
 function getI18nLabel(key, fallback = '') {
-  if (!i18Cache) return fallback;
-  const labelData = i18Cache.find((item) => item.Key === key);
-  return labelData?.Text || fallback;
+  if (i18Cache) {
+    const labelData = i18Cache.find((item) => item.Key === key);
+    if (labelData?.Text) return labelData.Text;
+  }
+  if (i18FallbackCache) {
+    const labelData = i18FallbackCache.find((item) => item.Key === key);
+    if (labelData?.Text) return labelData.Text;
+  }
+  return fallback;
 }
 
 /**
@@ -85,6 +92,12 @@ export const CabinUpgradeForm = ({
         const cookieLanguage = getStoredLanguage() || 'es';
         const i18Data = await fetchAEMData(`${cookieLanguage}`);
         i18Cache = i18Data?.data || [];
+
+        // Load Spanish as fallback for missing translations
+        if (cookieLanguage !== 'es' && !i18FallbackCache) {
+          const esFallback = await fetchAEMData('es');
+          i18FallbackCache = esFallback?.data || [];
+        }
       }
 
       setLabels({

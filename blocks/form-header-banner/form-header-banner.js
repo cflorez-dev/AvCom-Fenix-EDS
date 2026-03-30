@@ -2,7 +2,7 @@
 import { h, render } from '@dropins/tools/preact.js';
 import htm from 'htm';
 import { FormHeaderBanner } from '../../design-system/templates/form-header-banner/form-header-banner.js';
-import { getStoredCountry, getStoredLanguage } from '../../scripts/services/header/language-country-selector.js';
+import { shouldShowByTargeting, hideBlockWithSection } from '../../scripts/utils/target-filter.js';
 
 const html = htm.bind(h);
 
@@ -204,32 +204,12 @@ function mapBlockOptions(block) {
  * @param {Element} block The form-header-banner block element
  */
 export default function decorate(block) {
-  // 1. Detect if we are in Universal Editor (Author Mode)
-  const isAuthorEnv = window.xwalk?.isAuthorEnv;
-
-  // 2. Map block options from HTML
+  // 1. Map block options from HTML
   const mappedOptions = mapBlockOptions(block);
 
-  // 3. Country/Language filtering (BEFORE rendering)
-  const targetCountries = mappedOptions['target-countries']
-    ? mappedOptions['target-countries'].split(',').map((country) => country.trim().toLowerCase())
-    : [];
-  const targetLanguages = mappedOptions['target-languages']
-    ? mappedOptions['target-languages'].split(',').map((lang) => lang.trim().toLowerCase())
-    : [];
-
-  const currentCountry = getStoredCountry()?.toLowerCase() || '';
-  const currentLang = getStoredLanguage()?.toLowerCase() || document.documentElement.lang?.toLowerCase() || 'en';
-
-  // If targetCountries configured and current country doesn't match: hide block
-  if (targetCountries.length > 0 && currentCountry && !targetCountries.includes(currentCountry)) {
-    block.style.display = 'none';
-    return;
-  }
-
-  // If targetLanguages configured and current language doesn't match: hide block
-  if (targetLanguages.length > 0 && currentLang && !targetLanguages.includes(currentLang)) {
-    block.style.display = 'none';
+  // 2. Country/Language filtering (bypasses targeting in author mode)
+  if (!shouldShowByTargeting(mappedOptions['target-countries'], mappedOptions['target-languages'])) {
+    hideBlockWithSection(block);
     return;
   }
 
@@ -273,38 +253,20 @@ export default function decorate(block) {
     modalDescription,
   };
 
-  // 5. Hide & Render Sibling Pattern
-  if (isAuthorEnv) {
-    // In author mode: hide original block and create preview as sibling
-    block.style.display = 'none';
+  // 5. Hide original children to preserve data-aue-* for editor (Pattern B)
+  Array.from(block.children).forEach((child) => {
+    child.style.display = 'none';
+  });
 
-    // Create preview container as sibling
-    const previewContainer = document.createElement('div');
-    previewContainer.className = 'form-header-banner-author-preview';
-    block.parentNode.insertBefore(previewContainer, block.nextSibling);
+  // 6. Render INSIDE the block (compatible with editor-support.js re-decoration)
+  const container = document.createElement('div');
+  container.className = 'form-header-banner-content';
+  block.appendChild(container);
 
-    // Render component in preview container
-    render(
-      html`
-        <${FormHeaderBanner} ...${componentProps} />
-      `,
-      previewContainer,
-    );
-    return;
-  }
-
-  // Production mode: hide original block and render component as sibling
-  block.style.display = 'none';
-
-  // Create container for rendered component
-  const componentContainer = document.createElement('div');
-  block.parentNode.insertBefore(componentContainer, block.nextSibling);
-
-  // Render component
   render(
     html`
       <${FormHeaderBanner} ...${componentProps} />
     `,
-    componentContainer,
+    container,
   );
 }

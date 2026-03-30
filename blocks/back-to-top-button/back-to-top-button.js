@@ -91,14 +91,13 @@ export default async function decorate(block) {
     const html = htm.bind(h);
     const { BackToTopButton } = backToTopModule;
 
-    // Hide original block content (keep for Universal Editor)
-    block.style.display = 'none';
-    block.setAttribute('aria-hidden', 'true');
+    // Clear block and render INSIDE (compatible with editor-support.js re-decoration)
+    block.textContent = '';
 
     // Create container for Preact component
     const container = document.createElement('div');
-    container.className = 'back-to-top-button-rendered';
-    block.parentNode.insertBefore(container, block.nextSibling);
+    container.className = 'back-to-top-button-content';
+    block.appendChild(container);
 
     // Prepare icon element if custom icon provided
     let iconElement = null;

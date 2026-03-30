@@ -90,8 +90,14 @@ export default function decorate(block) {
     return;
   }
 
-  const container = document.createElement('div');
+  // Hide original children to preserve data-aue-* for editor (Pattern B)
+  Array.from(block.children).forEach((child) => {
+    child.style.display = 'none';
+  });
 
+  // Render INSIDE the block (compatible with editor-support.js re-decoration)
+  const container = document.createElement('div');
+  container.className = 'cms-interactive-banner-content';
   render(
     html`
       <${InteractiveBanner}
@@ -101,7 +107,5 @@ export default function decorate(block) {
     `,
     container,
   );
-
-  block.style.display = 'none';
-  block.parentNode.insertBefore(container, block.nextSibling);
+  block.appendChild(container);
 }
