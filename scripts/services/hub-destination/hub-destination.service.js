@@ -118,11 +118,10 @@ const fetchJson = async (url, options = {}) => {
  * @returns {string} - URL completa del endpoint
  */
 const buildEndpointUrl = (dataType) => {
-  const baseUrl = '/data-destinations';
   const endpoints = {
-    regions: `${baseUrl}/regions.json`,
+    regions: `/regions.json`,
     destinationbyregions: `/destinationbyregions.json`,
-    destinationsbyorigin: `${baseUrl}/destinationsbyorigin.json`,
+    destinationsbyorigin: `/destinationsbyorigin.json`,
     destinationcountries: `/destinationcountries.json`,
     iata: '/iata.json',
   };
