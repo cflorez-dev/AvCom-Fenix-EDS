@@ -159,5 +159,29 @@
     "components": [
       "accordion-simplified-item"
     ]
+  },
+  {
+    "id": "rte-lab-richtext",
+    "components": [
+      "richtext"
+    ],
+    "rte": {
+      "unsupportedHtml": true
+    }
+  },
+  {
+    "id": "rte-lab-table",
+    "components": [
+      "richtext"
+    ],
+    "rte": {
+      "unsupportedHtml": true,
+      "actions": {
+        "table": {
+          "wrapInParagraphs": false,
+          "label": "Insert Table"
+        }
+      }
+    }
   }
 ]
