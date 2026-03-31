@@ -218,11 +218,7 @@ const InteractiveTabs = ({ destinationData, language = 'es' }) => {
             
             <!-- Contenido derecha: Título, descripción, moneda e idioma (100% mobile) -->
             <div class="w-full md:flex-1 flex flex-col gap-4">
-              <h3 class="text-2xl font-bold text-[var(--text-normal-primary)]">
-                ${getLocalizedField('cityName') || 'City'}
-              </h3>
-              
-              <div 
+              <div
                 class="
                 text-[var(--color-text-normal-primary)] prose max-w-none [&_hr]:my-4 [&_.dynamic-information-list]:flex [&_.dynamic-information-list]:flex-wrap [&_.dynamic-information-list]:gap-4 [&_.dynamic-information_item]:flex-[0_0_100%] md:[&_.dynamic-information_item]:flex-[0_0_calc(25%-12px)] 
                 [&_.dynamic-information_item]:min-w-0 
