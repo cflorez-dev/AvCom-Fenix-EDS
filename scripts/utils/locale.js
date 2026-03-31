@@ -83,7 +83,12 @@ export async function resolveLocale() {
       } catch (error) {
         // eslint-disable-next-line no-console
         console.warn('[Locale] Failed to load getDefaultCountryForLanguage, using fallback:', error);
-        country = 'co'; // Fallback to Colombia if import fails
+        try {
+          const { getDefaultCountryIsoCode } = await import('../services/header/get-pos-data.js');
+          country = getDefaultCountryIsoCode();
+        } catch (_) {
+          country = 'co';
+        }
       }
     }
 
@@ -125,22 +130,34 @@ export async function resolveLocale() {
 
     // eslint-disable-next-line no-console
     console.log(`[Locale] Resolved: lang=${urlLangNorm} (URL), country=${country} (${cookieCountry ? 'cookie' : 'default'}), cookieLanguage=${cookieLanguage || 'none'}${languageMismatch ? ' [MISMATCH - will sync]' : ''}`);
-  } else if (cookieCountry) {
-    // No URL locale but have cookie - use defaults with cookie country
-    resolvedLocale = {
-      country: cookieCountry,
-      language: 'es',
-      prefix: '/es',
-      source: 'cookie',
-    };
   } else {
-    // Full default fallback
-    resolvedLocale = {
-      country: 'co',
-      language: 'es',
-      prefix: '/es',
-      source: 'default',
-    };
+    // No URL locale - use dynamic defaults from spreadsheet
+    let defaultCountry = 'co';
+    let defaultLanguage = 'es';
+    try {
+      const { getDefaultCountryIsoCode, getDefaultLanguageRow } = await import('../services/header/get-pos-data.js');
+      defaultCountry = getDefaultCountryIsoCode();
+      const langRow = getDefaultLanguageRow();
+      if (langRow) {
+        defaultLanguage = String(langRow.languageCode || '').trim().toLowerCase() || 'es';
+      }
+    } catch (_) { /* keep hardcoded defaults */ }
+
+    if (cookieCountry) {
+      resolvedLocale = {
+        country: cookieCountry,
+        language: defaultLanguage,
+        prefix: `/${defaultLanguage}`,
+        source: 'cookie',
+      };
+    } else {
+      resolvedLocale = {
+        country: defaultCountry,
+        language: defaultLanguage,
+        prefix: `/${defaultLanguage}`,
+        source: 'default',
+      };
+    }
   }
 
   return resolvedLocale;
