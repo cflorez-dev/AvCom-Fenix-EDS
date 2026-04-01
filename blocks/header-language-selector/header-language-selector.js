@@ -211,10 +211,10 @@ export default async function decorate(block) {
   const config = readBlockConfig(block);
 
   // Get default POS from block data (only used for setting default if cookies don't exist)
-  const rawDefaultPos = mappedData.defaultPos || config['default-pos'] || 'es-col';
+  const rawDefaultPos = mappedData.defaultPos || config['default-pos'] || '';
 
   // Normalize and validate the default POS using the mapper
-  const defaultPos = normalizePos(rawDefaultPos, 'es-col');
+  const defaultPos = normalizePos(rawDefaultPos);
 
   // eslint-disable-next-line no-console
   console.log('[header-language-selector] Initializing with:', {
@@ -232,7 +232,7 @@ export default async function decorate(block) {
   if (!storedPos || !storedCountry || !storedLanguage) {
     // eslint-disable-next-line no-console
     console.log('[header-language-selector] No valid stored POS found, setting default:', defaultPos);
-    setStoredPos(defaultPos, 'es-col');
+    setStoredPos(defaultPos);
   } else {
     // Validate stored POS and re-normalize if needed
     const normalizedStoredPos = normalizePos(storedPos, defaultPos);
