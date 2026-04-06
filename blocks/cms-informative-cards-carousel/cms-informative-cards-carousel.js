@@ -84,7 +84,8 @@ function renderFourCardsCarousel(cards, loadingMode) {
       loop=${false}
       infiniteMobile=${true}
       paginateByGroup=${true}
-      customScrollContainerClassName="gap-4 min-[480px]:px-[32px]"
+      customScrollContainerClassName="gap-4 min-[480px]:px-[32px] !items-stretch"
+      itemContainerClassName="flex"
     >
       ${cardElements}
     </${Carousel}>
@@ -102,8 +103,8 @@ function renderFourCardsCarousel(cards, loadingMode) {
  */
 function renderMultiCardsCarousel(cards, loadingMode) {
   const cardClassName = 'w-[300px] min-w-[300px] max-w-[300px]';
-  const itemContainerClassName = 'w-[300px]';
-  const scrollContainerClassName = 'gap-4 min-[480px]:px-[32px]';
+  const itemContainerClassName = 'w-[300px] flex';
+  const scrollContainerClassName = 'gap-4 min-[480px]:px-[32px] !items-stretch';
   return html`
     <${Carousel}
       itemsPerView=${1}

@@ -12,6 +12,24 @@ import {
 } from './get-pos-data.js';
 import { resolveHreflangRedirectUrl } from './hreflang-redirection.js';
 
+/**
+ * Detect if the page is running in AEM author / Universal Editor mode.
+ * Redirects and POS validation are skipped in author mode to avoid
+ * interfering with content editing.
+ * @returns {boolean}
+ */
+function isAuthorEnvironment() {
+  try {
+    return !!(
+      window.xwalk?.isAuthorEnv
+      || window.hlx?.aue
+      || document.querySelector('meta[name="urn:auecon:aemconnection"]')
+    );
+  } catch (e) {
+    return false;
+  }
+}
+
 // Cookie names
 const COUNTRY_COOKIE = 'selected-country';
 const LANGUAGE_COOKIE = 'selected-language';
@@ -270,6 +288,11 @@ export function ensureLanguageDataLoaded(options = {}) {
  * @returns {boolean} True if stored POS was valid, false if replaced.
  */
 export function validateAndFixStoredPos() {
+  // Skip validation/redirects in author mode to avoid interfering with Universal Editor
+  if (typeof window !== 'undefined' && isAuthorEnvironment()) {
+    return true;
+  }
+
   const storedPos = getStoredPos();
   const languages = getLanguageData();
 
@@ -389,7 +412,8 @@ setLanguageDataSnapshot(cachedLanguageData);
 scheduleLanguageDataLoad();
 
 // Once both datasets are loaded, validate URL language and stored POS against active lists
-if (typeof window !== 'undefined') {
+// Skip entirely in author mode — redirects break the Universal Editor
+if (typeof window !== 'undefined' && !isAuthorEnvironment()) {
   Promise.all([
     scheduleCountryDataLoad(),
     scheduleLanguageDataLoad(),
@@ -401,7 +425,8 @@ if (typeof window !== 'undefined') {
 
     // 1. Check URL language is active
     const urlLang = window.location.pathname.match(/^\/([a-z]{2})\//)?.[1] || '';
-    if (urlLang && !languages[urlLang]) {
+    if (!urlLang) return; // Non-language URLs (e.g. /development/) — skip validation
+    if (!languages[urlLang]) {
       if (defaultLang && defaultLang !== urlLang) {
         // eslint-disable-next-line no-console
         console.warn('[language-country-selector] URL language inactive, redirecting:', { urlLang, defaultPos });
@@ -1041,6 +1066,9 @@ export function setStoredPos(pos, fallback) {
  */
 export function navigateToPOS(pos) {
   if (!pos) return;
+
+  // Skip navigation in author mode to avoid breaking the Universal Editor
+  if (typeof window !== 'undefined' && isAuthorEnvironment()) return;
 
   const normalizedPos = normalizePos(pos);
   if (!normalizedPos) return;
