@@ -2,8 +2,33 @@
  * Service for managing country and language selection
  * Handles cookies, provides country/language lists, and flag icons
  */
-import { ensurePOSDataLoaded, getPOSDataSnapshot } from './get-pos-data.js';
+import {
+  ensurePOSDataLoaded,
+  getPOSDataSnapshot,
+  ensureLanguagesDataLoaded,
+  getLanguagesDataSnapshot,
+  getDefaultPos,
+  getDefaultCountryIsoCode,
+} from './get-pos-data.js';
 import { resolveHreflangRedirectUrl } from './hreflang-redirection.js';
+
+/**
+ * Detect if the page is running in AEM author / Universal Editor mode.
+ * Redirects and POS validation are skipped in author mode to avoid
+ * interfering with content editing.
+ * @returns {boolean}
+ */
+function isAuthorEnvironment() {
+  try {
+    return !!(
+      window.xwalk?.isAuthorEnv
+      || window.hlx?.aue
+      || document.querySelector('meta[name="urn:auecon:aemconnection"]')
+    );
+  } catch (e) {
+    return false;
+  }
+}
 
 // Cookie names
 const COUNTRY_COOKIE = 'selected-country';
@@ -247,13 +272,185 @@ export function ensureCountryDataLoaded(options = {}) {
   return scheduleCountryDataLoad(options);
 }
 
-// Language data mapping: code -> {label}
-const LANGUAGE_DATA = {
+/**
+ * Ensure latest language data is loaded from AEM spreadsheet.
+ * @param {Object} [options] - Loading options
+ * @returns {Promise<Object>} Resolved language data snapshot
+ */
+export function ensureLanguageDataLoaded(options = {}) {
+  return scheduleLanguageDataLoad(options);
+}
+
+/**
+ * Validate stored POS against active country/language lists.
+ * If stored POS references an inactive entry, switch to the dynamic default.
+ * Called after fresh data loads from AEM.
+ * @returns {boolean} True if stored POS was valid, false if replaced.
+ */
+export function validateAndFixStoredPos() {
+  // Skip validation/redirects in author mode to avoid interfering with Universal Editor
+  if (typeof window !== 'undefined' && isAuthorEnvironment()) {
+    return true;
+  }
+
+  const storedPos = getStoredPos();
+  const languages = getLanguageData();
+
+  // Detect current URL language
+  const urlLang = typeof window !== 'undefined'
+    ? (window.location.pathname.match(/^\/([a-z]{2})\//)?.[1] || '')
+    : '';
+
+  // If URL language is not in the active list, redirect to default
+  if (urlLang && !languages[urlLang]) {
+    const dynamicDefault = normalizePos('');
+    const { language: defaultLang } = parsePos(dynamicDefault);
+
+    // eslint-disable-next-line no-console
+    console.warn(
+      '[language-country-selector] URL language is inactive, redirecting to default:',
+      { urlLang, dynamicDefault },
+    );
+    setStoredPos(dynamicDefault);
+
+    if (defaultLang && defaultLang !== urlLang) {
+      navigateToPOS(dynamicDefault);
+    }
+    return false;
+  }
+
+  // Validate stored POS against active lists
+  if (!storedPos) return true;
+
+  const { language, country } = parsePos(storedPos);
+  const countries = getCountryData();
+
+  const isLanguageActive = !!languages[language];
+  const isCountryActive = !!countries[country];
+
+  if (isLanguageActive && isCountryActive) {
+    return true;
+  }
+
+  const dynamicDefault = normalizePos('');
+  const { language: defaultLang } = parsePos(dynamicDefault);
+
+  // eslint-disable-next-line no-console
+  console.warn(
+    '[language-country-selector] Stored POS references inactive country/language, switching to default:',
+    { storedPos, dynamicDefault, isLanguageActive, isCountryActive },
+  );
+  setStoredPos(dynamicDefault);
+
+  if (
+    defaultLang
+    && defaultLang !== language
+    && typeof window !== 'undefined'
+  ) {
+    navigateToPOS(dynamicDefault);
+  }
+
+  return false;
+}
+
+// Default language data (fallback when AEM data is not loaded)
+const DEFAULT_LANGUAGE_DATA = {
   es: { label: 'Español' },
   en: { label: 'English' },
   pt: { label: 'Português' },
   fr: { label: 'Français' },
 };
+
+let languageDataSnapshot = { ...DEFAULT_LANGUAGE_DATA };
+let languageDataLoadPromise = null;
+
+function hasLanguageData(data) {
+  return !!data && typeof data === 'object' && Object.keys(data).length > 0;
+}
+
+function setLanguageDataSnapshot(nextData) {
+  if (!hasLanguageData(nextData)) return;
+  languageDataSnapshot = nextData;
+}
+
+function scheduleLanguageDataLoad(options = {}) {
+  if (typeof window === 'undefined') {
+    return Promise.resolve(languageDataSnapshot);
+  }
+
+  if (languageDataLoadPromise) {
+    return languageDataLoadPromise;
+  }
+
+  languageDataLoadPromise = ensureLanguagesDataLoaded({
+    preferStale: false,
+    ...options,
+  })
+    .then((remoteData) => {
+      setLanguageDataSnapshot(remoteData);
+      return languageDataSnapshot;
+    })
+    .catch((error) => {
+      // eslint-disable-next-line no-console
+      console.error('[language-country-selector] Error loading language data:', error);
+      return languageDataSnapshot;
+    })
+    .finally(() => {
+      languageDataLoadPromise = null;
+    });
+
+  return languageDataLoadPromise;
+}
+
+function getLanguageData() {
+  scheduleLanguageDataLoad();
+  return languageDataSnapshot;
+}
+
+const cachedLanguageData = getLanguagesDataSnapshot();
+setLanguageDataSnapshot(cachedLanguageData);
+scheduleLanguageDataLoad();
+
+// Once both datasets are loaded, validate URL language and stored POS against active lists
+// Skip entirely in author mode — redirects break the Universal Editor
+if (typeof window !== 'undefined' && !isAuthorEnvironment()) {
+  Promise.all([
+    scheduleCountryDataLoad(),
+    scheduleLanguageDataLoad(),
+  ]).then(() => {
+    const languages = getLanguageData();
+    const countries = getCountryData();
+    const defaultPos = normalizePos('');
+    const { language: defaultLang } = parsePos(defaultPos);
+
+    // 1. Check URL language is active
+    const urlLang = window.location.pathname.match(/^\/([a-z]{2})\//)?.[1] || '';
+    if (!urlLang) return; // Non-language URLs (e.g. /development/) — skip validation
+    if (!languages[urlLang]) {
+      if (defaultLang && defaultLang !== urlLang) {
+        // eslint-disable-next-line no-console
+        console.warn('[language-country-selector] URL language inactive, redirecting:', { urlLang, defaultPos });
+        setStoredPos(defaultPos);
+        window.location.href = `/${defaultLang}/`;
+        return;
+      }
+    }
+
+    // 2. Check stored cookies reference active country/language
+    const storedLang = getStoredLanguage();
+    const storedCountry = getStoredCountry();
+    if (!storedLang && !storedCountry) return; // No cookies, nothing to fix
+    const langActive = !storedLang || !!languages[storedLang];
+    const countryActive = !storedCountry || !!countries[storedCountry];
+    if (langActive && countryActive) return; // Both active, nothing to do
+    // eslint-disable-next-line no-console
+    console.warn('[language-country-selector] Stored POS inactive, switching to default:', { storedLang, storedCountry, defaultPos });
+    setStoredPos(defaultPos);
+    if (defaultLang && defaultLang !== urlLang) {
+      window.location.href = `/${defaultLang}/`;
+    }
+  });
+}
 
 // Default country mapping per language
 // Used when no country cookie exists to provide logical defaults
@@ -383,7 +580,7 @@ export function mapPosToStandard(pos) {
     const [lang, country] = parts;
     const countryData = getCountryData();
     // If language and country exist in our data, return normalized format
-    if (LANGUAGE_DATA[lang] && countryData[country]) {
+    if (getLanguageData()[lang] && countryData[country]) {
       return `${lang}-${country}`;
     }
   }
@@ -441,19 +638,21 @@ export function validatePos(pos) {
   const { language, country } = parsePos(normalizedPos);
   const countryData = getCountryData();
   // Check if language and country exist in our data
-  return !!(language && country && LANGUAGE_DATA[language] && countryData[country]);
+  return !!(language && country && getLanguageData()[language] && countryData[country]);
 }
 
 /**
  * Normalize and validate POS value
  * Returns a valid POS or fallback to default
  * @param {string} pos - POS value to normalize
- * @param {string} [fallback='es-col'] - Fallback POS if normalization fails
+ * @param {string} [fallback] - Fallback POS if normalization fails
  * @returns {string} Normalized and validated POS value
  */
-export function normalizePos(pos, fallback = 'es-col') {
+export function normalizePos(pos, fallback) {
+  const ULTIMATE_FALLBACK = 'es-col';
+
   if (!pos || typeof pos !== 'string') {
-    return fallback;
+    return fallback || getDefaultPos() || ULTIMATE_FALLBACK;
   }
 
   const normalizedPos = mapPosToStandard(pos);
@@ -461,14 +660,25 @@ export function normalizePos(pos, fallback = 'es-col') {
     return normalizedPos;
   }
 
-  // If normalization failed, try to use fallback
-  const normalizedFallback = mapPosToStandard(fallback);
-  if (normalizedFallback && validatePos(normalizedFallback)) {
-    return normalizedFallback;
+  // Try explicit fallback
+  if (fallback) {
+    const normalizedFallback = mapPosToStandard(fallback);
+    if (normalizedFallback && validatePos(normalizedFallback)) {
+      return normalizedFallback;
+    }
   }
 
-  // Last resort: return 'es-col' if everything fails
-  return 'es-col';
+  // Try dynamic default from spreadsheet
+  const dynamicDefault = getDefaultPos();
+  if (dynamicDefault && dynamicDefault !== ULTIMATE_FALLBACK) {
+    const normalizedDynamic = mapPosToStandard(dynamicDefault);
+    if (normalizedDynamic && validatePos(normalizedDynamic)) {
+      return normalizedDynamic;
+    }
+  }
+
+  // Last resort
+  return ULTIMATE_FALLBACK;
 }
 
 /**
@@ -510,11 +720,11 @@ export function mapIsoToCountryCode(isoCode) {
  */
 export function getDefaultCountryForLanguage(language) {
   if (!language || typeof language !== 'string') {
-    return 'co'; // Default to Colombia if invalid input
+    return getDefaultCountryIsoCode();
   }
 
   const normalizedLang = language.toLowerCase().trim();
-  return LANGUAGE_DEFAULT_COUNTRY[normalizedLang] || 'co';
+  return LANGUAGE_DEFAULT_COUNTRY[normalizedLang] || getDefaultCountryIsoCode();
 }
 
 /**
@@ -544,7 +754,7 @@ export function getCountries() {
  * @returns {Array<{value: string, label: string}>} Array of languages
  */
 export function getLanguages() {
-  return Object.entries(LANGUAGE_DATA)
+  return Object.entries(getLanguageData())
     .map(([code, data]) => ({
       value: code,
       label: data.label,
@@ -588,7 +798,7 @@ export function getCountryLabel(countryCode, includeCurrency = true) {
  * @returns {string} Language label or empty string
  */
 export function getLanguageLabel(languageCode) {
-  return LANGUAGE_DATA[languageCode]?.label || '';
+  return getLanguageData()[languageCode]?.label || '';
 }
 
 /**
@@ -777,9 +987,9 @@ export function setStoredLanguage(languageCode) {
  * Also sets currency cookie based on country
  * Normalizes and validates POS before setting
  * @param {string} pos - POS value in format "language-country" (e.g., "es-col")
- * @param {string} [fallback='es-col'] - Fallback POS if validation fails
+ * @param {string} [fallback] - Fallback POS if validation fails
  */
-export function setStoredPos(pos, fallback = 'es-col') {
+export function setStoredPos(pos, fallback) {
   if (!pos) {
     // eslint-disable-next-line no-console
     console.warn('[language-country-selector] setStoredPos called with empty value, using fallback:', fallback);
@@ -809,7 +1019,7 @@ export function setStoredPos(pos, fallback = 'es-col') {
   }
 
   // Validate that language and country exist in our data
-  if (!LANGUAGE_DATA[language] || !countryData[country]) {
+  if (!getLanguageData()[language] || !countryData[country]) {
     // eslint-disable-next-line no-console
     console.error('[language-country-selector] Invalid language or country:', { language, country });
     return;
@@ -857,7 +1067,10 @@ export function setStoredPos(pos, fallback = 'es-col') {
 export function navigateToPOS(pos) {
   if (!pos) return;
 
-  const normalizedPos = normalizePos(pos, 'es-col');
+  // Skip navigation in author mode to avoid breaking the Universal Editor
+  if (typeof window !== 'undefined' && isAuthorEnvironment()) return;
+
+  const normalizedPos = normalizePos(pos);
   if (!normalizedPos) return;
 
   const { language } = parsePos(normalizedPos);
