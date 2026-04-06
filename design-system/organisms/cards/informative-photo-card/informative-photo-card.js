@@ -108,7 +108,7 @@ export const InformativePhotoCard = ({
 
   return html`
     <div 
-      class="${widthClass} h-[325px] rounded-2xl outline-1 outline-border-stroke-default inline-flex flex-col justify-center items-center transition-shadow duration-300 ${buttonText ? '' : 'cursor-pointer'} ${focusClasses} ${customClassName}"
+      class="${widthClass} min-h-[325px] rounded-2xl outline-1 outline-border-stroke-default inline-flex flex-col items-center transition-shadow duration-300 ${buttonText ? '' : 'cursor-pointer'} ${focusClasses} ${customClassName}"
       onClick=${isCardClickable ? handleCardClick : null}
       tabIndex=${isCardClickable ? '0' : null}
       role=${isCardClickable ? 'button' : null}
@@ -122,7 +122,7 @@ export const InformativePhotoCard = ({
         <div class="self-stretch h-44 bg-background-card-lighter rounded-tl-2xl rounded-tr-2xl inline-flex justify-center items-center overflow-hidden">
             <img class="flex-1 object-cover object-top" src="${image}" alt="${imageAlt}" loading="${loading}" />
         </div>
-        <div class="self-stretch min-h-[149px] bg-background-card-lighter rounded-bl-2xl rounded-br-2xl flex flex-col justify-start items-start gap-2.5">
+        <div class="self-stretch flex-1 min-h-[149px] bg-background-card-lighter rounded-bl-2xl rounded-br-2xl flex flex-col justify-start items-start gap-2.5">
             <div class="self-stretch min-w-0 p-6 flex flex-col justify-center items-center gap-3">
                 <div class="self-stretch inline-flex justify-center items-center gap-2">
                     <div class="flex-1 inline-flex flex-col justify-center items-center gap-2">

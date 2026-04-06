@@ -117,7 +117,7 @@ export const InformativeCard = ({
         <div class="self-stretch p-6 rounded-tr-2xl rounded-br-2xl inline-flex justify-start items-center gap-3">
             <div class="flex-1 inline-flex flex-col justify-center items-center gap-3">
                 <div class="self-stretch flex flex-col justify-start items-center gap-2">
-                    <div class="justify-start text-text-normal-primary text-xl font-bold">${title}</div>
+                    <div class="text-center justify-start text-text-normal-primary text-xl font-bold">${title}</div>
                     <div
                       class="self-stretch text-center justify-start text-text-normal-primary text-base font-normal leading-6"
                       dangerouslySetInnerHTML=${{ __html: processedDetails }}
