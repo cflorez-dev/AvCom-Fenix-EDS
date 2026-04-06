@@ -5,6 +5,8 @@ const USE_CACHE = false;
 const COUNTRIES_LIST_CACHE_KEY = `${CACHE_KEY_PREFIX}countries_list`;
 const COUNTRIES_LIST_PERSISTENT_CACHE_KEY = `${CACHE_KEY_PREFIX}countries_list_persistent`;
 const COUNTRIES_LIST_DATASETS = ['countireslist', 'countrieslist'];
+const LANGUAGES_LIST_PERSISTENT_CACHE_KEY = `${CACHE_KEY_PREFIX}languages_list_persistent`;
+const LANGUAGES_LIST_DATASETS = ['languageslist'];
 const LANGUAGE_COOKIE = 'selected-language';
 const SUPPORTED_LANGUAGES = ['es', 'en', 'pt', 'fr'];
 const COUNTRIES_LIST_CACHE_TTL_MS = 12 * 60 * 60 * 1000;
@@ -13,6 +15,11 @@ let countriesListSnapshot = [];
 let countriesListSnapshotExpiresAt = 0;
 let countriesListLoadPromise = null;
 let persistentCacheHydrated = false;
+
+let languagesListSnapshot = [];
+let languagesListSnapshotExpiresAt = 0;
+let languagesListLoadPromise = null;
+let persistentLanguagesCacheHydrated = false;
 
 const safeParse = (value, fallback) => {
   try {
@@ -218,6 +225,109 @@ const resolveCountriesList = async ({
   return countriesListLoadPromise;
 };
 
+const fetchLanguagesListFromAEM = async () => {
+  const responses = await Promise.all(
+    LANGUAGES_LIST_DATASETS.map(async (dataset) => {
+      try {
+        const response = await fetchAEMData(dataset);
+        const rows = normalizeRows(response);
+        return rows.length > 0 ? rows : null;
+      } catch (error) {
+        return null;
+      }
+    }),
+  );
+
+  return responses.find((rows) => Array.isArray(rows) && rows.length > 0) || [];
+};
+
+const writePersistentLanguagesListCache = (rows, ttlMs = COUNTRIES_LIST_CACHE_TTL_MS) => {
+  if (!isValidCountriesList(rows)) return;
+  const now = Date.now();
+  const normalizedTtl = toPositiveNumber(ttlMs, COUNTRIES_LIST_CACHE_TTL_MS);
+  setLocalCache(LANGUAGES_LIST_PERSISTENT_CACHE_KEY, {
+    data: rows,
+    fetchedAt: now,
+    expiresAt: now + normalizedTtl,
+  });
+};
+
+const readPersistentLanguagesListCache = () => {
+  const cached = getLocalCache(LANGUAGES_LIST_PERSISTENT_CACHE_KEY);
+  if (!cached || !Array.isArray(cached.data)) return null;
+
+  return {
+    data: cached.data,
+    fetchedAt: Number(cached.fetchedAt) || 0,
+    expiresAt: Number(cached.expiresAt) || 0,
+  };
+};
+
+const setLanguagesListSnapshot = (rows, expiresAt = 0) => {
+  if (!Array.isArray(rows)) return;
+  languagesListSnapshot = rows;
+  languagesListSnapshotExpiresAt = Number(expiresAt) || 0;
+};
+
+const hydrateLanguagesSnapshotFromPersistentCache = () => {
+  if (persistentLanguagesCacheHydrated) return;
+  persistentLanguagesCacheHydrated = true;
+
+  const cached = readPersistentLanguagesListCache();
+  if (!cached || !isValidCountriesList(cached.data)) return;
+  setLanguagesListSnapshot(cached.data, cached.expiresAt);
+};
+
+const isLanguagesSnapshotFresh = () => isValidCountriesList(languagesListSnapshot)
+  && languagesListSnapshotExpiresAt > Date.now();
+
+const resolveLanguagesList = async ({
+  forceRefresh = false,
+  preferStale = true,
+  ttlMs = COUNTRIES_LIST_CACHE_TTL_MS,
+} = {}) => {
+  hydrateLanguagesSnapshotFromPersistentCache();
+
+  if (!forceRefresh && isLanguagesSnapshotFresh()) {
+    return languagesListSnapshot;
+  }
+
+  if (!forceRefresh && isValidCountriesList(languagesListSnapshot) && preferStale) {
+    if (!languagesListLoadPromise) {
+      languagesListLoadPromise = (async () => {
+        const rows = await fetchLanguagesListFromAEM();
+        if (isValidCountriesList(rows)) {
+          const now = Date.now();
+          const normalizedTtl = toPositiveNumber(ttlMs, COUNTRIES_LIST_CACHE_TTL_MS);
+          setLanguagesListSnapshot(rows, now + normalizedTtl);
+          writePersistentLanguagesListCache(rows, normalizedTtl);
+        }
+        return languagesListSnapshot;
+      })().finally(() => {
+        languagesListLoadPromise = null;
+      });
+    }
+    return languagesListSnapshot;
+  }
+
+  if (!languagesListLoadPromise) {
+    languagesListLoadPromise = (async () => {
+      const rows = await fetchLanguagesListFromAEM();
+      if (isValidCountriesList(rows)) {
+        const now = Date.now();
+        const normalizedTtl = toPositiveNumber(ttlMs, COUNTRIES_LIST_CACHE_TTL_MS);
+        setLanguagesListSnapshot(rows, now + normalizedTtl);
+        writePersistentLanguagesListCache(rows, normalizedTtl);
+      }
+      return languagesListSnapshot;
+    })().finally(() => {
+      languagesListLoadPromise = null;
+    });
+  }
+
+  return languagesListLoadPromise;
+};
+
 /**
  * Obtiene countriesList desde AEM (con cache opcional)
  * @param {boolean} useCache
@@ -241,6 +351,9 @@ export const fetchCountriesList = async (useCache = USE_CACHE) => {
 const toCountryDataEntry = (item, language = 'es') => {
   const countryCode = String(item?.countryCode || '').trim().toLowerCase();
   if (!countryCode) return null;
+
+  const active = String(item?.active || '').trim().toLowerCase() === 'true';
+  if (!active) return null;
 
   const labelByLanguage = {
     es: item?.countryName_es,
@@ -269,6 +382,29 @@ export const mapCountriesListToCountryData = (countriesList = [], language = 'es
     return acc;
   }, {});
 
+const toLanguageDataEntry = (item) => {
+  const languageCode = String(item?.languageCode || '').trim().toLowerCase();
+  if (!languageCode) return null;
+
+  const active = String(item?.active || '').trim().toLowerCase() === 'true';
+  if (!active) return null;
+
+  return {
+    key: languageCode,
+    value: {
+      label: item?.languageName || '',
+    },
+  };
+};
+
+export const mapLanguagesListToLanguageData = (languagesList = []) => languagesList
+  .map((item) => toLanguageDataEntry(item))
+  .filter(Boolean)
+  .reduce((acc, entry) => {
+    acc[entry.key] = entry.value;
+    return acc;
+  }, {});
+
 const normalizeLanguageForMapping = (language) => normalizeLanguageCode(language) || 'es';
 
 export const getPOSDataSnapshot = (language = getCurrentLanguage()) => {
@@ -285,6 +421,69 @@ export const ensurePOSDataLoaded = async ({
   const countriesList = await resolveCountriesList({ forceRefresh, preferStale, ttlMs });
   const language = getCurrentLanguage();
   return mapCountriesListToCountryData(countriesList, language);
+};
+
+export const getLanguagesDataSnapshot = () => {
+  hydrateLanguagesSnapshotFromPersistentCache();
+  return mapLanguagesListToLanguageData(languagesListSnapshot);
+};
+
+export const ensureLanguagesDataLoaded = async ({
+  forceRefresh = false,
+  preferStale = true,
+  ttlMs = COUNTRIES_LIST_CACHE_TTL_MS,
+} = {}) => {
+  const languagesList = await resolveLanguagesList({ forceRefresh, preferStale, ttlMs });
+  return mapLanguagesListToLanguageData(languagesList);
+};
+
+const HARDCODED_FALLBACK_POS = 'es-col';
+
+const findDefaultRow = (rows) => rows.find(
+  (row) => String(row?.default || '').trim().toLowerCase() === 'true'
+    && String(row?.active || '').trim().toLowerCase() === 'true',
+) || null;
+
+export const getDefaultCountryRow = () => {
+  hydrateSnapshotFromPersistentCache();
+  return findDefaultRow(countriesListSnapshot);
+};
+
+export const getDefaultLanguageRow = () => {
+  hydrateLanguagesSnapshotFromPersistentCache();
+  return findDefaultRow(languagesListSnapshot);
+};
+
+export const getDefaultPos = () => {
+  const defaultLangRow = getDefaultLanguageRow();
+  const defaultCountryRow = getDefaultCountryRow();
+
+  if (!defaultLangRow || !defaultCountryRow) {
+    return HARDCODED_FALLBACK_POS;
+  }
+
+  const lang = String(defaultLangRow.languageCode || '').trim().toLowerCase();
+  const country = String(defaultCountryRow.countryCode || '').trim().toLowerCase();
+
+  if (!lang || !country) {
+    return HARDCODED_FALLBACK_POS;
+  }
+
+  return `${lang}-${country}`;
+};
+
+export const getDefaultCountryIsoCode = () => {
+  const row = getDefaultCountryRow();
+  if (!row) return 'co';
+  const iso = String(row.pos || '').trim().toLowerCase();
+  return iso || 'co';
+};
+
+export const getDefaultCountryCode = () => {
+  const row = getDefaultCountryRow();
+  if (!row) return 'col';
+  const code = String(row.countryCode || '').trim().toLowerCase();
+  return code || 'col';
 };
 
 export const getPOSData = async (useCache = USE_CACHE) => {

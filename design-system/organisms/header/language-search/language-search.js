@@ -124,29 +124,27 @@ export const LanguageSearch = ({
           // Normalize and validate the stored POS
           let initialPos = storedPosValue;
           if (initialPos && validatePos(initialPos)) {
-            initialPos = normalizePos(initialPos, 'es-col');
+            initialPos = normalizePos(initialPos);
           } else {
             // If stored POS is invalid, use defaultPos
             initialPos = defaultPos;
           }
-          
+
           // Normalize and validate defaultPos
           if (initialPos) {
-            initialPos = normalizePos(initialPos, 'es-col');
+            initialPos = normalizePos(initialPos);
             if (validatePos(initialPos)) {
               setSelectedPos(initialPos);
               // eslint-disable-next-line no-console
               console.log('[LanguageSearch] Initialized with POS:', initialPos);
             } else {
-              // Fallback to es-col if defaultPos is also invalid
-              const fallbackPos = 'es-col';
+              const fallbackPos = normalizePos('');
               setSelectedPos(fallbackPos);
               // eslint-disable-next-line no-console
               console.warn('[LanguageSearch] Invalid defaultPos, using fallback:', fallbackPos);
             }
           } else {
-            // No POS available, use fallback
-            const fallbackPos = 'es-col';
+            const fallbackPos = normalizePos('');
             setSelectedPos(fallbackPos);
             // eslint-disable-next-line no-console
             console.warn('[LanguageSearch] No POS available, using fallback:', fallbackPos);
@@ -203,7 +201,7 @@ export const LanguageSearch = ({
   // Parse current selected POS to get current country and language
   // (updates when selectedPos changes)
   // Ensure we always have valid values by normalizing and validating
-  const normalizedSelectedPos = selectedPos ? normalizePos(selectedPos, 'es-col') : 'es-col';
+  const normalizedSelectedPos = normalizePos(selectedPos || '');
   const parsedPos = parsePos(normalizedSelectedPos);
   const currentLanguage = parsedPos.language || 'es';
   const currentCountry = parsedPos.country || 'col';
@@ -240,21 +238,19 @@ export const LanguageSearch = ({
     
     // Normalize and validate the POS before setting
     if (newPos) {
-      newPos = normalizePos(newPos, 'es-col');
+      newPos = normalizePos(newPos);
       if (validatePos(newPos)) {
         setSelectedPos(newPos);
         // eslint-disable-next-line no-console
         console.log('[LanguageSearch] Updated selectedPos:', newPos);
       } else {
-        // Use fallback if validation fails
-        const fallbackPos = 'es-col';
+        const fallbackPos = normalizePos('');
         setSelectedPos(fallbackPos);
         // eslint-disable-next-line no-console
         console.warn('[LanguageSearch] Invalid POS, using fallback:', fallbackPos);
       }
     } else {
-      // No POS available, use fallback
-      const fallbackPos = 'es-col';
+      const fallbackPos = normalizePos('');
       setSelectedPos(fallbackPos);
       // eslint-disable-next-line no-console
       console.warn('[LanguageSearch] No POS available, using fallback:', fallbackPos);
@@ -373,11 +369,11 @@ export const LanguageSearch = ({
     const newPos = buildPos(language, country);
 
     // Normalize and validate before setting
-    const normalizedPos = normalizePos(newPos, 'es-col');
+    const normalizedPos = normalizePos(newPos);
     if (validatePos(normalizedPos)) {
       setSelectedPos(normalizedPos);
       // Save to cookies
-      setStoredPos(normalizedPos, 'es-col');
+      setStoredPos(normalizedPos);
       setIsDropdownOpen(false);
       setShowPosForm(false);
 
@@ -402,11 +398,11 @@ export const LanguageSearch = ({
 
   const handlePosSelect = (pos) => {
     // Normalize and validate before setting
-    const normalizedPos = normalizePos(pos, 'es-col');
+    const normalizedPos = normalizePos(pos);
     if (validatePos(normalizedPos)) {
       setSelectedPos(normalizedPos);
       // Save to cookies
-      setStoredPos(normalizedPos, 'es-col');
+      setStoredPos(normalizedPos);
       setIsDropdownOpen(false);
       setShowPosForm(false);
       if (onPosChange) {
