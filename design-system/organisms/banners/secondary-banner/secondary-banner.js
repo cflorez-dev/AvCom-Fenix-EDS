@@ -205,7 +205,7 @@ export const SecondaryBanner = ({
             path.setAttribute('style', `fill: ${solidColor};`);
           });
         }
-        bgSVG.setAttribute('class', 'absolute top-0 right-0 min-[1024px]:right-[89px] min-[1024px]:h-[243px] min-[1024px]:w-auto');
+        bgSVG.setAttribute('class', 'absolute top-0 right-0 min-[1024px]:right-[87px] min-[1024px]:h-[243px] min-[1024px]:w-auto');
         setCondorBgSVG(bgSVG);
 
         const vectorSVG = await loadSVGIcon(vectorPath);
