@@ -20,32 +20,36 @@ function getI18nLabel(key) {
 }
 
 /**
- * Gets page title from URL
- * @param {string} url - URL to fetch
- * @returns {Promise<string>} Page title
- */
-/**
  * Gets page title (jcr:title) from a URL.
- * Fetches the .plain.html variant which contains raw block content without
- * the <title> tag (which may hold pageTitle with a brand prefix).
- * Looks for <h1> first, then falls back to the breadcrumb block content
- * which always reflects the clean jcr:title.
+ * Fetches the full page HTML and extracts og:title which reflects the clean
+ * jcr:title configured in AEM page properties.
+ * Verifies the canonical URL matches the request to discard redirect/rewrite
+ * pages whose content belongs to a different URL.
  * @param {string} url - URL to fetch
- * @returns {Promise<string>} Page title
+ * @returns {Promise<string>} Page title or empty string
  */
 const getPageTitle = async (url) => {
   try {
-    const plainUrl = url.replace(/\/?$/, '.plain.html');
-    const resp = await fetch(plainUrl);
-    if (resp.ok && resp.url === plainUrl) {
-      const htmlContent = document.createElement('div');
-      htmlContent.innerHTML = await resp.text();
-      const h1 = htmlContent.querySelector('h1');
-      if (h1) return h1.innerText;
-      // Breadcrumb block content holds jcr:title (clean, no brand prefix)
-      const breadcrumbDiv = htmlContent.querySelector('.breadcrumb div div');
-      if (breadcrumbDiv) return breadcrumbDiv.textContent.trim();
+    const resp = await fetch(url);
+    if (!resp.ok) return '';
+
+    const text = await resp.text();
+
+    // Discard if canonical points elsewhere (redirect/rewrite page)
+    const canonicalMatch = text.match(/<link[^>]+rel="canonical"[^>]+href="([^"]+)"/);
+    if (canonicalMatch) {
+      const canonical = new URL(canonicalMatch[1], url).pathname.replace(/\/$/, '');
+      const requested = new URL(url).pathname.replace(/\/$/, '');
+      if (canonical !== requested) return '';
     }
+
+    // Prefer og:title (clean jcr:title without brand prefix)
+    const ogMatch = text.match(/<meta[^>]+property="og:title"[^>]+content="([^"]+)"/);
+    if (ogMatch) return ogMatch[1];
+
+    // Fallback to <title>
+    const titleMatch = text.match(/<title>([^<]+)<\/title>/);
+    if (titleMatch) return titleMatch[1];
   } catch (error) {
     // eslint-disable-next-line no-console
     console.error('Error fetching page title:', error);
@@ -146,20 +150,21 @@ const buildBreadcrumbItems = async (pathname, customSlug = '') => {
     const url = `${window.location.origin}/${language}/${parentPath}`;
 
     /* eslint-disable-next-line no-await-in-loop */
-    const name = await getPageTitle(url);
+    const name = await getPageTitle(url)
+      || pathPart.replace(/-/g, ' ').replace(/\b\w/g, (l) => l.toUpperCase());
 
     items.push({
-      label: name || pathPart.replace(/-/g, ' ').replace(/\b\w/g, (l) => l.toUpperCase()),
+      label: name,
       url,
       isHome: false,
       isActive: false,
     });
   }
 
-  // Add current page (last segment) — customSlug comes from the breadcrumb block
-  // content which reflects jcr:title (clean, without brand prefix).
-  const h1Element = document.querySelector('h1');
-  const currentTitle = h1Element?.innerText || document.title;
+  // Add current page — prefer og:title (jcr:title) over H1 because the visible
+  // heading may differ from the navigation title configured in AEM.
+  const ogTitle = document.querySelector('meta[property="og:title"]')?.getAttribute('content');
+  const currentTitle = ogTitle || document.title;
   if (currentTitle && contentSegments.length > 0) {
     const label = customSlug && customSlug.trim() !== '' ? customSlug : currentTitle;
 
