@@ -438,10 +438,12 @@ if (typeof window !== 'undefined' && !isAuthorEnvironment()) {
 
     // 2. Check stored cookies reference active country/language
     const storedLang = getStoredLanguage();
-    const storedCountry = getStoredCountry();
+    const storedCountry = getStoredCountry(); // ISO code from cookie (e.g. "fr", "co")
     if (!storedLang && !storedCountry) return; // No cookies, nothing to fix
+    // countries map is keyed by countryCode ("fra", "col"), not ISO — convert before lookup
+    const storedCountryCode = storedCountry ? mapIsoToCountryCode(storedCountry) : null;
     const langActive = !storedLang || !!languages[storedLang];
-    const countryActive = !storedCountry || !!countries[storedCountry];
+    const countryActive = !storedCountry || (!!storedCountryCode && !!countries[storedCountryCode]);
     if (langActive && countryActive) return; // Both active, nothing to do
     // eslint-disable-next-line no-console
     console.warn('[language-country-selector] Stored POS inactive, switching to default:', { storedLang, storedCountry, defaultPos });

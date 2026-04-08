@@ -22,18 +22,14 @@ setTimeout(() => {
 }, 15000);
 
 /**
- * Obtiene el preSlug dinámico desde el archivo de idioma JSON del sitio
- * @param {string} lang - Código de idioma (ej: 'es', 'en', 'fr', 'pt')
- * @returns {Promise<string|null>} preSlug o null
- */
-/**
- * @param {string} lang - Código de idioma (ej: 'es', 'en', 'fr', 'pt')
- * @returns {Promise<string|null>} preSlug o null
+ * Fetches the dynamic preSlug from the site's language JSON file.
+ * @param {string} lang - Language code (e.g. 'es', 'en', 'fr', 'pt')
+ * @returns {Promise<string|null>} preSlug or null
  */
 async function fetchPreSlugFromLangFile(lang = 'es') {
   try {
     const { origin } = window.location;
-    // Soporta es, en, fr, pt
+    // Supported languages: es, en, fr, pt
     const langPrefix = ['es', 'en', 'fr', 'pt'].includes(lang) ? lang : 'es';
     const langJsonUrl = `${origin}/${langPrefix}.json`;
     const res = await fetch(langJsonUrl);
@@ -49,9 +45,9 @@ async function fetchPreSlugFromLangFile(lang = 'es') {
 }
 
 /**
- * Extrae el slug del destino desde la URL actual usando el preSlug
- * @param {string} preSlug - Prefijo de la URL (ej: 'destinos/que-hacer-en')
- * @returns {string|null} Slug limpio del destino o null
+ * Extracts the destination slug from the current URL using the preSlug.
+ * @param {string} preSlug - URL prefix (e.g. 'destinos/que-hacer-en')
+ * @returns {string|null} Clean destination slug or null
  */
 function extractSlugFromUrl(preSlug = '') {
   try {
@@ -136,7 +132,7 @@ const Accordion = ({ title, children, isOpen: defaultOpen = false }) => {
 /**
  * InteractiveTabs - Functional tabs with destination content
  */
-const InteractiveTabs = ({ destinationData, language = 'es' }) => {
+const InteractiveTabs = ({ destinationData, language = 'es', i18n = {} }) => {
   const [activeTab, setActiveTab] = useState(0);
 
   if (!destinationData) {
@@ -160,9 +156,6 @@ const InteractiveTabs = ({ destinationData, language = 'es' }) => {
   // Helper function to get localized field
   const getLocalizedField = (fieldName) => {
     const localizedKey = `${fieldName}_${language}`;
-    if (fieldName === 'intro') {
-      const data = destination[localizedKey] || destination[`${fieldName}_es`] || null; 
-    }
     return destination[localizedKey] || destination[`${fieldName}_es`] || null;
   };
 
@@ -193,11 +186,10 @@ const InteractiveTabs = ({ destinationData, language = 'es' }) => {
       content: html`
         <div class="p-4 md:p-8 !pt-6">
           <div class="flex flex-col md:flex-row gap-[28px] items-start">
-            <!-- Imagen izquierda: 240px x 240px (desktop), 100% (mobile) -->
+            <!-- Left image: 240px x 240px (desktop), 100% (mobile) -->
             <div class="w-full md:w-auto md:flex-shrink-0">
               ${(() => {
     // eslint-disable-next-line dot-notation
-    const des = destination
     const heroImageUrl = destination.introImage?.['_publishUrl'];
     return heroImageUrl ? html`
                   <img
@@ -216,15 +208,15 @@ const InteractiveTabs = ({ destinationData, language = 'es' }) => {
   })()}
             </div>
             
-            <!-- Contenido derecha: Título, descripción, moneda e idioma (100% mobile) -->
+            <!-- Right content: title, description, currency and language (100% mobile) -->
             <div class="w-full md:flex-1 flex flex-col gap-4">
               <div
                 class="
-                text-[var(--color-text-normal-primary)] prose max-w-none [&_hr]:my-4 [&_.dynamic-information-list]:flex [&_.dynamic-information-list]:flex-wrap [&_.dynamic-information-list]:gap-4 [&_.dynamic-information_item]:flex-[0_0_100%] md:[&_.dynamic-information_item]:flex-[0_0_calc(25%-12px)] 
+                text-[var(--color-text-normal-primary)] prose max-w-none [&_hr]:my-4 [&_.dynamic-information-list]:flex [&_.dynamic-information-list]:flex-wrap [&_.dynamic-information-list]:gap-4 [&_.dynamic-information_item]:flex-[0_0_100%] md:[&_.dynamic-information_item]:flex-[0_0_calc(25%-12px)]
                 [&_.dynamic-information_item]:min-w-0 
-                [&_li]:flex [&_li]:flex-row md:[&_li]:flex-col [&_li]:gap-[8px] [&_li_strong]:leading-[24px] [&_li_p]:leading-[24px] [&_li_strong]:text-[16px] md:[&_li_strong]:text-[18px]
+                [&_li]:flex [&_li]:flex-row md:[&_li]:flex-col [&_li]:gap-[8px] [&_li_strong]:leading-[24px] [&_li_p]:leading-[24px] [&_li_strong]:text-[16px]
                 [&_ul]:flex [&_ul]:flex-col [&_ul]:items-center md:[&_ul]:flex-row
-                [&_p]:text-[16px] md:[&_p]:text-[18px]"
+                [&>p]:text-[16px] md:[&>p]:text-[18px] [&_li_p]:text-[16px]"
                 dangerouslySetInnerHTML=${{ __html: sanitizeHTML(getLocalizedField('intro')?.html || getLocalizedField('intro')?.plaintext || '') }}
               />
             </div>
@@ -237,7 +229,7 @@ const InteractiveTabs = ({ destinationData, language = 'es' }) => {
       content: html`
         <div class="p-4 md:p-8">
           <div class="flex flex-col md:flex-row gap-[28px] items-start">
-            <!-- Imagen izquierda: 240px x 240px (desktop), 100% (mobile) -->
+            <!-- Left image: 240px x 240px (desktop), 100% (mobile) -->
             <div class="w-full md:w-auto md:flex-shrink-0">
               ${(() => {
     // eslint-disable-next-line dot-notation
@@ -259,14 +251,10 @@ const InteractiveTabs = ({ destinationData, language = 'es' }) => {
   })()}
             </div>
             
-            <!-- Contenido derecha: Título y descripción (100% mobile) -->
+            <!-- Right content: title and description (100% mobile) -->
             <div class="w-full md:flex-1 flex flex-col gap-4">
-              <h3 class="text-2xl font-bold text-[var(--text-normal-primary)]">
-                ${getLocalizedField('airportName') || 'Airport'}
-              </h3>
-              
               <div 
-                class="airport text-[16px] text-[var(--color-text-normal-primary)] prose max-w-none [&_hr]:my-4 [&_.dynamic-information-list]:flex [&_.dynamic-information-list]:flex-wrap [&_.dynamic-information-list]:gap-4 [&_.dynamic-information_item]:flex-[0_0_100%] md:[&_.dynamic-information_item]:flex-[0_0_calc(25%-12px)] [&_.dynamic-information_item]:min-w-0 [&_p]:text-[16px] [&_li_strong]:text-[16px] md:[&_li_strong]:text-[18px] [&_a]:underline [&_a]:text-[var(--color-icon-link-default)]"
+                class="airport text-[16px] text-[var(--color-text-normal-primary)] prose max-w-none [&_hr]:my-4 [&_.dynamic-information-list]:flex [&_.dynamic-information-list]:flex-wrap [&_.dynamic-information-list]:gap-4 [&_.dynamic-information_item]:flex-[0_0_100%] md:[&_.dynamic-information_item]:flex-[0_0_calc(25%-12px)] [&_.dynamic-information_item]:min-w-0 [&>p]:text-[16px] md:[&>p]:text-[18px] [&_li_strong]:text-[16px] [&_a]:underline [&_a]:text-[var(--color-icon-link-default)]"
                 dangerouslySetInnerHTML=${{ __html: sanitizeHTML(getLocalizedField('airportAndTransport')?.html || getLocalizedField('airportAndTransport')?.plaintext || 'No transport information available') }}
               />
             </div>
@@ -278,7 +266,7 @@ const InteractiveTabs = ({ destinationData, language = 'es' }) => {
       label: getTabLabel('requirements'),
       content: html`
         <div class="p-6">
-          <h3 class="text-2xl font-bold mb-4">${getTabLabel('requirements')}</h3>
+          <h3 class="text-2xl font-bold mb-4">${i18n['hubDestinations.destination.tab.requirements'] || getTabLabel('requirements')}</h3>
           <div id="smartvel-widget-container" class="my-6">
             <smt-gcovwidget 
               apikey="b149658a-d07a-45ba-a2df-815bfbdb7631" 
@@ -360,24 +348,46 @@ const InteractiveTabs = ({ destinationData, language = 'es' }) => {
  * @param {string} props.customClassName - Additional CSS classes
  */
 export const Destinations = ({
-  apiUrl = 'https://73963-aemintegrations-development.adobeioruntime.net/api/v1/web/avianca-appbuilder/avianca',
+  apiUrl = '',
   customClassName = '',
   preSlug = '',
   i18n = {},
   ...rest
 }) => {
   const [destinationData, setDestinationData] = useState(null);
-  let cachedSite = null;
-  async function getSiteFromAEMConfig() {
-    if (cachedSite) return cachedSite;
+  let cachedEnvConfig = null;
+  /**
+   * Reads { apiUrl, site } from environment.json (AEM Author).
+   * Required env keys:
+   *   - AV_API_URL_CONTENT_FRAGMENTS: GraphQL endpoint URL
+   *   - AV_NAME_SITE: AEM site name
+   * Logs a warning if any key is missing.
+   * @returns {Promise<{ apiUrl: string, site: string }>}
+   */
+  async function getEnvConfig() {
+    if (cachedEnvConfig) return cachedEnvConfig;
     const config = await fetchAEMData('environment');
-    cachedSite = config?.data?.find((item) => item.Key === 'AV_NAME_SITE')?.Text;
-    return cachedSite;
+    const envRows = Array.isArray(config?.data) ? config.data : [];
+    const readEnv = (key) => envRows.find((item) => item.Key === key)?.Text?.trim() || '';
+
+    const envApiUrl = readEnv('AV_API_URL_CONTENT_FRAGMENTS');
+    const envSite = readEnv('AV_NAME_SITE');
+
+    if (!envApiUrl) {
+      // eslint-disable-next-line no-console
+      console.warn('[Destinations] Missing env var AV_API_URL_CONTENT_FRAGMENTS in environment.json');
+    }
+    if (!envSite) {
+      // eslint-disable-next-line no-console
+      console.warn('[Destinations] Missing env var AV_NAME_SITE in environment.json');
+    }
+
+    cachedEnvConfig = { apiUrl: envApiUrl, site: envSite };
+    return cachedEnvConfig;
   }
   const [loading, setLoading] = useState(true);
   const [language, setLanguage] = useState('es');
   const [slug, setSlug] = useState(null);
-  // Eliminado resolvedPreSlug, ya no se usa
 
   // Detect language and fetch preSlug from lang file, then extract slug
   useEffect(() => {
@@ -399,7 +409,7 @@ export const Destinations = ({
       if (!pre) {
         pre = await fetchPreSlugFromLangFile(lang);
       }
-      // 2. Extraer slug de la URL usando el preSlug
+      // 2. Extract slug from URL using the preSlug
       const urlSlug = extractSlugFromUrl(pre);
       setSlug(urlSlug);
     };
@@ -411,7 +421,7 @@ export const Destinations = ({
     if (!slug || !language) return;
     const loadDestination = async () => {
       setLoading(true);
-      // Determinar variable y query según idioma
+      // Determine slug variable name and query name based on language
       let slugVar = 'slug_es';
       let queryName = 'GetDestinationBySlugES';
       if (language === 'en') {
@@ -426,9 +436,11 @@ export const Destinations = ({
       }
       const variables = {};
       variables[slugVar] = slug;
-      const site = await getSiteFromAEMConfig();
+      const { apiUrl: envApiUrl, site } = await getEnvConfig();
+      // Allow consumers to override apiUrl via prop; otherwise use the environment value.
+      const resolvedApiUrl = apiUrl || envApiUrl;
       const data = await fetchContentFragments(
-        apiUrl,
+        resolvedApiUrl,
         'getContentFragments',
         site,
         queryName,
@@ -598,7 +610,7 @@ export const Destinations = ({
         </div>
       </section>
 
-      <${InteractiveTabs} destinationData=${destinationData} language=${language} />
+      <${InteractiveTabs} destinationData=${destinationData} language=${language} i18n=${i18n} />
       
       <!-- Smartvel Component -->
       <div class="smartvel-section">

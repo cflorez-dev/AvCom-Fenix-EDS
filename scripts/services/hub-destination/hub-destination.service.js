@@ -1,69 +1,53 @@
 /**
  * Hub Destinations Service
  *
- * Servicio para consultar datos de destinos desde archivos JSON locales y GraphQL de AEM.
- * Maneja cache en sessionStorage y normaliza respuestas.
+ * Service for querying destinations data from local JSON files and AEM GraphQL.
+ * Handles sessionStorage cache and normalizes responses.
  */
 
 import { fetchAEMData } from '../../utils/aem-data.js';
 
 const CACHE_KEY_PREFIX = 'avianca_hub_destinations_';
 const USE_CACHE = false;
-const DEFAULT_GRAPHQL_CONFIG = {
-  endpoint: 'https://73963-aemintegrations-development.adobeioruntime.net/api/v1/web/avianca-appbuilder/avianca',
-  site: 'Avianca-home-site',
-  queryName: 'getAllDestinations',
-};
+
+// GraphQL persisted query name. Tied to the AEM Content Fragment schema, not environment.
+const ALL_DESTINATIONS_QUERY_NAME = 'getAllDestinations';
+
 let graphqlConfigCache = null;
 
 /**
- * Obtiene el primer valor válido de environment.json para una lista de claves
- * @param {Array} envRows - Filas de configuración
- * @param {Array<string>} keys - Lista de llaves a revisar en orden
- * @param {string} fallback - Valor por defecto
- * @returns {string}
- */
-const getFirstEnvValue = (envRows, keys, fallback = '') => {
-  for (let i = 0; i < keys.length; i += 1) {
-    const value = envRows.find((item) => item.Key === keys[i])?.Text;
-    if (typeof value === 'string' && value.trim()) {
-      return value.trim();
-    }
-  }
-  return fallback;
-};
-
-/**
- * Carga configuración GraphQL desde environment.json
- * @returns {Promise<Object>}
+ * Loads GraphQL config from environment.json (AEM Author).
+ * Required env keys:
+ *   - AV_API_URL_CONTENT_FRAGMENTS: GraphQL endpoint URL
+ *   - AV_NAME_SITE: AEM site name
+ * Logs a warning if any key is missing — the subsequent fetch will then fail
+ * with a clearer network error visible in the console.
+ * @returns {Promise<{ endpoint: string, site: string, queryName: string }>}
  */
 const getGraphQLConfig = async () => {
   if (graphqlConfigCache) return graphqlConfigCache;
 
-  try {
-    const envData = await fetchAEMData('environment');
-    const envRows = Array.isArray(envData?.data) ? envData.data : [];
+  const envData = await fetchAEMData('environment');
+  const envRows = Array.isArray(envData?.data) ? envData.data : [];
+  const readEnv = (key) => envRows.find((item) => item.Key === key)?.Text?.trim() || '';
 
-    graphqlConfigCache = {
-      endpoint: getFirstEnvValue(
-        envRows,
-        ['AV_GRAPHQL_DESTINATIONS_ENDPOINT', 'AV_API_URL_CONTENT_FRAGMENTS'],
-        DEFAULT_GRAPHQL_CONFIG.endpoint,
-      ),
-      site: getFirstEnvValue(
-        envRows,
-        ['AV_NAME_SITE'],
-        DEFAULT_GRAPHQL_CONFIG.site,
-      ),
-      queryName: getFirstEnvValue(
-        envRows,
-        ['AV_QUERY_NAME_ALL_DESTINATIONS', 'AV_QUERY_NAME_DESTINATIONS'],
-        DEFAULT_GRAPHQL_CONFIG.queryName,
-      ),
-    };
-  } catch (error) {
-    graphqlConfigCache = { ...DEFAULT_GRAPHQL_CONFIG };
+  const endpoint = readEnv('AV_API_URL_CONTENT_FRAGMENTS');
+  const site = readEnv('AV_NAME_SITE');
+
+  if (!endpoint) {
+    // eslint-disable-next-line no-console
+    console.warn('[hub-destination.service] Missing env var AV_API_URL_CONTENT_FRAGMENTS in environment.json');
   }
+  if (!site) {
+    // eslint-disable-next-line no-console
+    console.warn('[hub-destination.service] Missing env var AV_NAME_SITE in environment.json');
+  }
+
+  graphqlConfigCache = {
+    endpoint,
+    site,
+    queryName: ALL_DESTINATIONS_QUERY_NAME,
+  };
 
   return graphqlConfigCache;
 };
@@ -112,10 +96,10 @@ const fetchJson = async (url, options = {}) => {
 };
 
 /**
- * Construir la URL del endpoint JSON
- * @param {string} dataType - Tipo de dato:
+ * Build the JSON endpoint URL.
+ * @param {string} dataType - Data type:
  * 'regions', 'destinationbyregions', 'destinationsbyorigin', 'iata'
- * @returns {string} - URL completa del endpoint
+ * @returns {string} - Full endpoint URL
  */
 const buildEndpointUrl = (dataType) => {
   const endpoints = {
@@ -129,10 +113,10 @@ const buildEndpointUrl = (dataType) => {
 };
 
 /**
- * Obtener datos desde cache o API
- * @param {string} dataType - Tipo de dato a consultar
- * @param {boolean} useCache - Usar cache si está disponible
- * @returns {Promise<Object>} - Datos consultados
+ * Get data from cache or API.
+ * @param {string} dataType - Data type to query
+ * @param {boolean} useCache - Whether to use cache when available
+ * @returns {Promise<Object>} - Queried data
  *
  * @example
  * ```javascript
@@ -144,7 +128,7 @@ const buildEndpointUrl = (dataType) => {
 export const fetchHubDestinationsData = async (dataType, useCache = USE_CACHE) => {
   const cacheKey = `${CACHE_KEY_PREFIX}${dataType}`;
 
-  // Verificar cache
+  // Check cache
   if (useCache && typeof sessionStorage !== 'undefined') {
     const cached = sessionStorage.getItem(cacheKey);
     if (cached) {
@@ -166,7 +150,7 @@ export const fetchHubDestinationsData = async (dataType, useCache = USE_CACHE) =
 
     const data = await response.json();
 
-    // Guardar en cache
+    // Save to cache
     if (typeof sessionStorage !== 'undefined') {
       sessionStorage.setItem(cacheKey, JSON.stringify(data));
     }
@@ -179,9 +163,9 @@ export const fetchHubDestinationsData = async (dataType, useCache = USE_CACHE) =
 };
 
 /**
- * Obtener regiones disponibles
- * @param {boolean} useCache - Usar cache si está disponible
- * @returns {Promise<Array>} - Lista de regiones
+ * Get available regions.
+ * @param {boolean} useCache - Whether to use cache when available
+ * @returns {Promise<Array>} - List of regions
  */
 export const fetchRegions = async (useCache = USE_CACHE) => {
   const data = await fetchHubDestinationsData('regions', useCache);
@@ -189,9 +173,9 @@ export const fetchRegions = async (useCache = USE_CACHE) => {
 };
 
 /**
- * Obtener destinos por regiones
- * @param {boolean} useCache - Usar cache si está disponible
- * @returns {Promise<Array>} - Lista de destinos agrupados por región
+ * Get destinations grouped by region.
+ * @param {boolean} useCache - Whether to use cache when available
+ * @returns {Promise<Array>} - List of destinations grouped by region
  */
 export const fetchDestinationsByRegions = async (useCache = USE_CACHE) => {
   const data = await fetchHubDestinationsData('destinationbyregions', useCache);
@@ -211,9 +195,9 @@ data.data.push({
 };
 
 /**
- * Obtener destinos por origen
- * @param {boolean} useCache - Usar cache si está disponible
- * @returns {Promise<Array>} - Lista de destinos por origen
+ * Get destinations by origin.
+ * @param {boolean} useCache - Whether to use cache when available
+ * @returns {Promise<Array>} - List of destinations by origin
  */
 export const fetchDestinationsByOrigin = async (useCache = USE_CACHE) => {
   const data = await fetchHubDestinationsData('destinationsbyorigin', useCache);
@@ -221,9 +205,9 @@ export const fetchDestinationsByOrigin = async (useCache = USE_CACHE) => {
 };
 
 /**
- * Obtener países de destino
- * @param {boolean} useCache - Usar cache si está disponible
- * @returns {Promise<Array>} - Lista de países de destino
+ * Get destination countries.
+ * @param {boolean} useCache - Whether to use cache when available
+ * @returns {Promise<Array>} - List of destination countries
  */
 export const fetchDestinationCountries = async (useCache = USE_CACHE) => {
   const data = await fetchHubDestinationsData('destinationcountries', useCache);
@@ -231,9 +215,9 @@ export const fetchDestinationCountries = async (useCache = USE_CACHE) => {
 };
 
 /**
- * Obtener catálogo de ciudades IATA desde spreadsheet raíz (iata.json)
- * @param {boolean} useCache - Usar cache si está disponible
- * @returns {Promise<Array>} - Lista de ciudades/códigos IATA
+ * Get the IATA city catalog from the root spreadsheet (iata.json).
+ * @param {boolean} useCache - Whether to use cache when available
+ * @returns {Promise<Array>} - List of cities/IATA codes
  */
 export const fetchIata = async (useCache = USE_CACHE) => {
   const data = await fetchHubDestinationsData('iata', useCache);
@@ -248,7 +232,7 @@ export const getCitiesByPos= async (country) => {
 }
 
 /**
- * Limpiar cache de datos de destinos
+ * Clear destinations data cache.
  */
 export const clearHubDestinationsCache = () => {
   if (typeof sessionStorage !== 'undefined') {
@@ -261,9 +245,9 @@ export const clearHubDestinationsCache = () => {
 };
 
 /**
- * Verificar si existe cache para un tipo de dato
- * @param {string} dataType - Tipo de dato a verificar
- * @returns {boolean} - true si existe cache, false en caso contrario
+ * Check whether cache exists for a given data type.
+ * @param {string} dataType - Data type to check
+ * @returns {boolean} - true if cache exists, false otherwise
  */
 export const hasCacheForDataType = (dataType) => {
   if (typeof sessionStorage === 'undefined') return false;
@@ -272,9 +256,9 @@ export const hasCacheForDataType = (dataType) => {
 };
 
 /**
- * Obtener todos los destinos desde AEM GraphQL
- * @param {boolean} useCache - Usar cache si está disponible
- * @returns {Promise<Array>} - Lista de destinos desde Content Fragments
+ * Get all destinations from AEM GraphQL.
+ * @param {boolean} useCache - Whether to use cache when available
+ * @returns {Promise<Array>} - List of destinations from Content Fragments
  *
  * @example
  * ```javascript
@@ -285,7 +269,7 @@ export const hasCacheForDataType = (dataType) => {
 export const fetchAllDestinationsGraphQL = async (useCache = USE_CACHE) => {
   const cacheKey = `${CACHE_KEY_PREFIX}graphql_all_destinations`;
 
-  // Verificar cache
+  // Check cache
   if (useCache && typeof sessionStorage !== 'undefined') {
     const cached = sessionStorage.getItem(cacheKey);
     if (cached) {
@@ -312,7 +296,7 @@ export const fetchAllDestinationsGraphQL = async (useCache = USE_CACHE) => {
 
     const destinations = extractDestinationsFromResponse(result);
 
-    // Guardar en cache
+    // Save to cache
     if (useCache && typeof sessionStorage !== 'undefined') {
       try {
         sessionStorage.setItem(cacheKey, JSON.stringify(destinations));
