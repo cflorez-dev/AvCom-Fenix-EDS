@@ -197,38 +197,38 @@ export const HeadingDropdownSelector = ({
 
   return html`
     <div
-      class="flex flex-wrap self-stretch relative justify-center items-center gap-2 h-8 ${customClassName}"
+      class="self-stretch relative text-2xl font-bold leading-tight ${customClassName}"
       data-name="headingDropdownSelector"
       ref=${containerRef}
       ...${rest}
     >
-      <div class="justify-start h-full text-text-normal-primary text-2xl font-bold">
+      <span class="text-text-normal-primary">
         ${label}
-      </div>
-
-      <div class="flex justify-start items-center gap-1 h-full relative">
+      </span>
+      ${' '}
+      <span class="relative inline-block align-baseline">
         <button
           id="heading-dropdown-trigger"
-          class="inline-flex justify-start items-center h-full gap-1 bg-transparent border-none p-0 cursor-pointer group relative focus:outline-none focus-visible:outline-none"
+          class="inline-flex items-center gap-1 bg-transparent border-none p-0 cursor-pointer group relative focus:outline-none focus-visible:outline-none align-baseline"
           onClick=${handleToggle}
           type="button"
           aria-expanded=${isOpen}
           aria-haspopup="listbox"
           ref=${triggerRef}
         >
-          <div class=${`h-full justify-start text-2xl font-bold ${isOpen ? 'text-text-link-active' : 'text-text-link-default group-hover:text-text-link-active group-active:text-text-link-active'}`}>
+          <span class=${`text-2xl font-bold ${isOpen ? 'text-text-link-active' : 'text-text-link-default group-hover:text-text-link-active group-active:text-text-link-active'}`}>
             ${value}
-          </div>
-          <div class=${`w-6 h-6 flex items-center justify-center transition-transform duration-200 ${isOpen ? 'rotate-x-180' : 'rotate-x-0'}`} style=${{ transformStyle: 'preserve-3d' }}>
+          </span>
+          <span class=${`w-6 h-6 inline-flex items-center justify-center transition-transform duration-200 ${isOpen ? 'rotate-x-180' : 'rotate-x-0'}`} style=${{ transformStyle: 'preserve-3d' }}>
             <span class=${`${isOpen ? '[&_svg_path]:fill-icon-link-active' : '[&_svg_path]:fill-icon-link-default group-hover:[&_svg_path]:fill-icon-link-active group-active:[&_svg_path]:fill-icon-link-active'}`}>
               <${Icon} icon="navigation/expand-more" size="sm"/>
             </span>
-          </div>
-          <div class="absolute inset-[-2px] rounded border-2 border-[var(--border-stroke-focus)] border-solid opacity-0 group-focus-visible:opacity-100 pointer-events-none" />
+          </span>
+          <span class="absolute inset-[-2px] rounded border-2 border-[var(--border-stroke-focus)] border-solid opacity-0 group-focus-visible:opacity-100 pointer-events-none" />
         </button>
 
         ${!isMobile && isOpen && renderDropdown(desktopDropdownClass)}
-      </div>
+      </span>
 
       ${isMobile && isOpen && renderDropdown(
     dropdownBaseClass,
