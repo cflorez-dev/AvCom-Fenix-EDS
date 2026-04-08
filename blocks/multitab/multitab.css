@@ -3,6 +3,16 @@
     width: 100%;
 }
 
+/* Allow the parent section's `no-padding-y` modifier to remove the vertical
+   padding even when block-specific rules below set their own padding (e.g. the
+   24px mobile padding in @media (max-width: 1024px)). The selector specificity
+   here (0,3,0) beats both `.section.no-padding-y` (0,2,0) and the multitab
+   mobile rule `.section.multitab-container` (0,2,0). */
+.section.multitab-container.no-padding-y {
+    padding-top: 0;
+    padding-bottom: 0;
+}
+
 /* override spacing between blocks inside multitab */
 .section.multitab-container .multitab-content > div:not(:last-child) {
     padding-bottom: 32px;
