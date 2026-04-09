@@ -1,5 +1,6 @@
 import { h } from '@dropins/tools/preact.js';
 import htm from 'htm';
+import { isSafeUrl } from '../../../scripts/utils/sanitize.js';
 
 const html = htm.bind(h);
 
@@ -28,8 +29,13 @@ export const DestinationCard = ({
   iataCityCode,
   ...rest
 }) => {
-  const Tag = href ? 'a' : 'div';
-  const linkProps = href ? { href, target: '_blank', rel: 'noopener noreferrer' } : {};
+  // Validate the href to prevent XSS via javascript:, data:, etc. schemes
+  // injected from CMS-controlled destination data. If the href is unsafe,
+  // the card falls back to a non-clickable <div> rather than an <a> with a
+  // dummy href — avoiding broken link affordances.
+  const safeHref = href && isSafeUrl(href) ? href : null;
+  const Tag = safeHref ? 'a' : 'div';
+  const linkProps = safeHref ? { href: safeHref, target: '_blank', rel: 'noopener noreferrer' } : {};
 
   return html`
     <${Tag}
