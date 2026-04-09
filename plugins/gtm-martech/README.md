@@ -102,7 +102,7 @@ To properly connect and configure the plugin for your project, you'll need to ed
 
 Add the following lines at the end of your `head.html`, to speed up the page load:
 ```html
-<script nonce="aem" src="/scripts/gtm-martech.js" type="module"></script>
+<script src="/scripts/gtm-martech.js" type="module"></script>
 <link rel="preload" as="script" crossorigin="anonymous" href="/plugins/gtm-martech/src/index.js"/>
 <link rel="preconnect" href="https://www.googletagmanager.com"/>
 ```
