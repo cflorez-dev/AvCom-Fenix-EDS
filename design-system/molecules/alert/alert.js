@@ -362,7 +362,9 @@ export const Alert = ({
       strongClassName: 'font-bold',
       processRelAttributes: true,
       linkButtonOptions: {
-        size: fullWidth ? 'compact' : 'default',
+        // Use the `inline` size so links inherit the surrounding <p> font-size
+        // (avoids the 14px text vs 16px link mismatch).
+        size: 'inline',
         customClassName: normalizedVariant === 'informative' ? '!text-text-link-informative-active' : '',
         linkTarget,
       },

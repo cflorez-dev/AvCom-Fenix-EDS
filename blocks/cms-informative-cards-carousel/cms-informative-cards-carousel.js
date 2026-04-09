@@ -11,22 +11,28 @@ const html = htm.bind(h);
 const DESKTOP_BREAKPOINT = 1248;
 
 /**
- * Render cards in grid layout
- * Cards use fixed 300px width only when there are 4 or more cards
- * Otherwise, cards use flex-1 to distribute space equally
- * @param {Array} cards - Card data array (1-4 cards)
+ * Render cards in a stretchy rail layout.
+ * - 1-3 cards: stretch via `flex-1` to fill the container width, but never shrink below
+ *   `min-w-[300px]`. When the viewport is too narrow to fit all cards at min-width, the
+ *   container becomes horizontally scrollable (`overflow-x-auto`).
+ * - 4+ cards: fixed 300px width per card and the rail is always scrollable on overflow.
+ * @param {Array} cards - Card data array
  * @param {string} loadingMode - Image loading strategy ('lazy' or 'eager')
  * @returns {import('preact').VNode} Preact component
  */
 function renderCardsGrid(cards, loadingMode) {
   const totalCards = cards.length;
-  // Only force 300px width when there are 4 or more cards
   const cardClassName = totalCards >= 4
     ? 'w-[300px] min-w-[300px] max-w-[300px]'
-    : 'flex-1';
+    : 'flex-1 min-w-[300px]';
+  // Both branches share `overflow-x-auto` so the rail scrolls horizontally on narrow
+  // viewports where the cards would otherwise overflow the container.
+  // `min-[480px]:px-[32px]` preserves the horizontal padding from the previous
+  // carousel layout (pixel-perfect spec); on viewports <480px we drop the padding
+  // to maximize horizontal space for the cards on very small phones.
   const containerClass = totalCards >= 4
-    ? 'flex flex-wrap gap-4 w-full'
-    : 'flex gap-4 w-full';
+    ? 'flex gap-4 w-full overflow-x-auto scrollbar-hide min-[480px]:px-[32px]'
+    : 'flex gap-4 w-full overflow-x-auto scrollbar-hide min-[480px]:px-[32px]';
 
   return html`
     <div class="${containerClass}">
@@ -177,35 +183,23 @@ export default function decorate(block) {
 
   // Render INSIDE the block (compatible with editor-support.js re-decoration)
   const container = document.createElement('div');
-  container.className = 'cms-informative-cards-carousel-content w-full pt-6 pb-8';
+  container.className = 'cms-informative-cards-carousel-content w-full';
   container.dataset.loading = loadingMode;
 
   /**
-   * Render logic based on cards count and viewport width
+   * Render logic based on cards count.
    * Rules:
-   * 1. Desktop (≥1248px):
-   *    - ≤4 cards → Grid 100% width
-   *    - 5+ cards → Carousel
-   * 2. Mobile (<1248px):
-   *    - Any card count → Carousel
+   * - 1-4 cards → Stretchy rail (renderCardsGrid). Cards fill the container width via
+   *   `flex-1 min-w-[300px]` and the container scrolls horizontally when the viewport
+   *   is too narrow to fit all cards at minimum width. Same behavior at every viewport.
+   * - 5+ cards → Carousel with pagination dots (renderMultiCardsCarousel), since the
+   *   navigation UX is needed when there are many items.
    */
   const renderContent = () => {
-    const viewportWidth = window.innerWidth;
-    const isDesktop = viewportWidth >= DESKTOP_BREAKPOINT;
-    if (isDesktop) {
-      // Desktop: grid if ≤4 cards, carousel if 5+
-      if (totalCards <= 4) {
-        render(renderCardsGrid(cards, loadingMode), container);
-      } else {
-        // 5+ cards
-        render(renderMultiCardsCarousel(cards, loadingMode), container);
-      }
-    } else if (totalCards >= 5) {
-      // Mobile: 5+ cards carousel
+    if (totalCards >= 5) {
       render(renderMultiCardsCarousel(cards, loadingMode), container);
     } else {
-      // Mobile: 1-4 cards carousel
-      render(renderFourCardsCarousel(cards, loadingMode), container);
+      render(renderCardsGrid(cards, loadingMode), container);
     }
   };
 

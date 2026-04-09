@@ -1,0 +1,28 @@
+/* Default vertical padding for the block.
+   Defined here (not as Tailwind utilities in JS) so that section-level
+   modifiers like `.section.no-padding-y` can override it via the cascade. */
+.cms-informative-cards-carousel.block {
+  padding-top: 1.5rem;  /* 24px — equivalent to Tailwind pt-6 */
+  padding-bottom: 2rem; /* 32px — equivalent to Tailwind pb-8 */
+}
+
+/* Allow the parent section's `no-padding-y` modifier to remove the block's
+   default vertical padding. */
+.section.no-padding-y .cms-informative-cards-carousel.block {
+  padding-top: 0;
+  padding-bottom: 0;
+}
+
+/* The cards rendered inside the rail have an `outline: 1px solid` (the gray
+   border around each card). The rail wrapper uses `overflow-x: auto` for
+   horizontal scroll, which the CSS spec promotes to `overflow-y: auto` as
+   well — and that clips the outline at the top/bottom of the cards.
+   To give the outline (and any future box-shadow) room to render WITHIN the
+   rail's clipping context, add a small vertical padding to the rail and
+   compensate with a negative margin so the visual height stays the same. */
+.cms-informative-cards-carousel-content > .flex.overflow-x-auto {
+  padding-top: 4px;
+  padding-bottom: 4px;
+  margin-top: -4px;
+  margin-bottom: -4px;
+}
