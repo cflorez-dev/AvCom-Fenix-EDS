@@ -21,6 +21,35 @@ main > .section.cms-secondary-banner-container[class*="grid-"] {
   padding: 32px var(--main-section-div-padding, 16px) !important;
 }
 
+/* Allow `.section.no-padding-y` to override the vertical padding even when the
+   banner is in a grid layout (which uses !important for its 32px padding). */
+main > .section.cms-secondary-banner-container[class*="grid-"].no-padding-y {
+  padding-top: 0 !important;
+  padding-bottom: 0 !important;
+}
+
+/* The inner banner card uses Tailwind utilities `my-[32px]` (margin) and
+   `pb-[18px]` (padding) to space itself vertically inside the section.
+   When the parent section has `.no-padding-y`, also zero those out so the
+   visual spacing fully collapses. */
+.section.cms-secondary-banner-container.no-padding-y .cms-secondary-banner-content > .block {
+  margin-top: 0 !important;
+  margin-bottom: 0 !important;
+  padding-top: 0 !important;
+  padding-bottom: 0 !important;
+}
+
+/* The inner banner card has `box-shadow: 0px 2px 20px 2px rgba(73,73,73,0.25)`,
+   which extends ~24px outside its bounds. Without `no-padding-y`, the 32px
+   margin gives the shadow room to render. With `no-padding-y` the margin is 0,
+   so the shadow would be clipped by the section's `overflow: hidden`.
+   Allow the section to render the shadow outside its box. The inner block
+   keeps its own `overflow-hidden` (Tailwind) for the rounded image, so this
+   doesn't break the rounded corners. */
+.section.cms-secondary-banner-container.no-padding-y {
+  overflow: visible !important;
+}
+
 /* Remove the rendered block's built-in margin/mx so banners fill the grid
    cell edge-to-edge, matching the alignment of surrounding content. */
 main > .section.cms-secondary-banner-container[class*="grid-"] .cms-secondary-banner-wrapper > .block:not([data-block-name]) {

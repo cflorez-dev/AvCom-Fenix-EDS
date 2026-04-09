@@ -290,9 +290,14 @@ function parseCardDataFromItem(item) {
     targetLanguages: '',
   };
 
-  // Detect format: migration output has 12 cells (no supportIcon, no linkAlt),
-  // Universal Editor output has 14 cells (all fields)
-  const isMigrationFormat = cells.length <= 12;
+  // Detect format by exact cell count. Three formats are supported:
+  // - 12 cells: legacy CSV migration (no supportIcon, no linkAlt)
+  // - 13 cells: current Universal Editor format (no supportIcon, with linkAlt)
+  // - 14 cells: legacy Universal Editor format (with supportIcon, with linkAlt)
+  // The supportIcon field was removed from component-models.json (commit 87884fe4),
+  // so any new content created via UE has 13 cells. Older content may still have 14.
+  const hasSupportIcon = cells.length >= 14;
+  const hasLinkAlt = cells.length >= 13;
 
   let cellIndex = 0;
 
@@ -343,8 +348,8 @@ function parseCardDataFromItem(item) {
     cellIndex += 1;
   }
 
-  // Cell 5: supportIcon (only in UE format — migration skips this)
-  if (!isMigrationFormat && cells[cellIndex]) {
+  // Cell 5: supportIcon (only in legacy UE format — current UE removed this field)
+  if (hasSupportIcon && cells[cellIndex]) {
     cardData.supportIcon = cells[cellIndex].textContent.trim();
     cellIndex += 1;
   }
@@ -367,8 +372,8 @@ function parseCardDataFromItem(item) {
     cellIndex += 1;
   }
 
-  // Cell N+1: linkAlt (only in UE format — migration skips this)
-  if (!isMigrationFormat && cells[cellIndex]) {
+  // Cell N+1: linkAlt (only in UE formats — migration skips this)
+  if (hasLinkAlt && cells[cellIndex]) {
     cardData.linkAlt = cells[cellIndex].textContent.trim();
     cellIndex += 1;
   }
