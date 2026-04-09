@@ -256,6 +256,18 @@ export default async function decorate(block) {
   multitabContainer.setAttribute('data-group-id', groupId);
   multitabContainer.setAttribute('data-section-status', 'loaded');
 
+  // Propagate section-level modifier classes from the controller section
+  // (which the author configures in AEM Section Metadata) to the dynamically
+  // generated multitabContainer. Without this, modifiers like `no-padding-y`
+  // would only apply to the controller section — which is hidden via
+  // `!p-0 !m-0 !h-0` and never visible — so they would have no visible effect.
+  const SECTION_MODIFIER_CLASSES = ['no-padding-y', 'no-padding-top', 'padding-bottom-40'];
+  SECTION_MODIFIER_CLASSES.forEach((cls) => {
+    if (section.classList.contains(cls)) {
+      multitabContainer.classList.add(cls);
+    }
+  });
+
   // Create aria-live region for screen reader announcements
   const liveRegion = document.createElement('div');
   liveRegion.className = 'sr-only';

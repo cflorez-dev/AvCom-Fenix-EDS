@@ -150,6 +150,10 @@ export const getLinkButtonStyles = ({
       medium: 'gap-[8px] !text-[20px] !leading-normal font-normal',
       large: 'min-w-[100px] min-h-[48px] px-[12px] py-[8px] gap-[8px] !text-[28px] !leading-normal font-bold',
       huge: 'px-[12px] py-[8px] gap-[8px] !text-[32px] !leading-normal font-bold',
+      // `inline` is intended for links rendered INSIDE rich text (e.g. inside a <p>).
+      // Inherits font-size and line-height from the parent element so the link visually
+      // matches the surrounding text instead of forcing its own size.
+      inline: 'gap-[2px] !text-[length:inherit] !leading-[inherit] font-normal',
     };
     return linkSizes[sizeKey];
   };
@@ -169,6 +173,9 @@ export const getLinkButtonStyles = ({
     },
     huge: {
       base: getSizeBaseClasses('huge', iconOnly, variant === 'outlined'),
+    },
+    inline: {
+      base: getSizeBaseClasses('inline', iconOnly, variant === 'outlined'),
     },
   };
 
