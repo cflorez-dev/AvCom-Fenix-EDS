@@ -24,7 +24,7 @@
      execution delay from the LCP critical path.
      The original <img> tags have loading="lazy", so the browser's preload
      scanner ignores them; this observer compensates for that. -->
-<script nonce="aem">
+<script>
 (function(){
   var idx=window.matchMedia('(min-width:1248px)').matches?2:window.matchMedia('(min-width:768px)').matches?1:0;
   var done=false;
@@ -62,7 +62,7 @@
 </script>
 
 <!-- Import maps para dependencias de dropins -->
-<script nonce="aem" type="importmap">
+<script type="importmap">
 {
   "imports": {
     "preact": "https://cdn.jsdelivr.net/npm/preact@10.19.3/dist/preact.module.js",
@@ -84,6 +84,6 @@
 <link rel="modulepreload" href="/scripts/utils/locale.js" />
 <link rel="modulepreload" href="/scripts/services/loader/loader.service.js" />
 
-<script nonce="aem" src="/scripts/aem.js" type="module"></script>
-<script nonce="aem" src="/scripts/scripts.js" type="module"></script>
+<script src="/scripts/aem.js" type="module"></script>
+<script src="/scripts/scripts.js" type="module"></script>
 
