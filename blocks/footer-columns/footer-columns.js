@@ -2,6 +2,7 @@ import { h, render } from '@dropins/tools/preact.js';
 import htm from 'htm';
 import { FooterColumns } from '../../design-system/organisms/footer/footer-columns/footer-columns.js';
 import { shouldShowByTargeting } from '../../scripts/utils/target-filter.js';
+import { isSafeUrl } from '../../scripts/utils/sanitize.js';
 
 const html = htm.bind(h);
 
@@ -66,7 +67,10 @@ function mapFooterColumns(block) {
 
       if (anchor) {
         // Extract URL from anchor href
-        const url = anchor.getAttribute('href') || '';
+        const rawUrl = anchor.getAttribute('href') || '';
+        // Validate the URL to prevent XSS via javascript:, data:, etc. schemes
+        // injected by content authors. Unsafe URLs fall back to '#'.
+        const url = isSafeUrl(rawUrl) ? rawUrl : '#';
         // Extract label: prefer anchor text, fallback to text before "|" if exists
         const anchorText = anchor.textContent.trim();
         const fullText = li.textContent.trim();
@@ -79,7 +83,7 @@ function mapFooterColumns(block) {
           label = firstPart;
         }
 
-        if (url) {
+        if (rawUrl) {
           columnData.subItems.push({
             label: label || anchorText,
             url,
@@ -91,9 +95,10 @@ function mapFooterColumns(block) {
         const parts = text.split('|').map((part) => part.trim());
 
         if (parts.length === 2) {
+          const [fallbackLabel, fallbackUrl] = parts;
           columnData.subItems.push({
-            label: parts[0],
-            url: parts[1],
+            label: fallbackLabel,
+            url: isSafeUrl(fallbackUrl) ? fallbackUrl : '#',
           });
         }
       }
