@@ -2,36 +2,10 @@ import { getLinkButtonStyles } from '../../design-system/atoms/link-button/link-
 import { sanitizeHTML } from '../../scripts/utils/sanitize.js';
 
 // DOMPurify config that preserves inline styles from encoded CMS Rich Text.
-//
-// SECURITY NOTE — ACCEPTED RISK (iframe in rich text):
-// The Fluid scanner flags this block as "371. DOM-Based XSS" (sprint 2, M3)
-// because ADD_TAGS includes 'iframe', which allows content authors to embed
-// arbitrary <iframe> tags directly via the rich text editor. In production,
-// this is the mechanism by which the slider-impacto-social.html embed lands
-// inside a rich text block on /es/sobre-nosotros/sostenibilidad/impacto-social.
-//
-// Decision: iframes are ALLOWED HERE intentionally, per the client's request,
-// to preserve editorial content that depends on them (slider de gestión social,
-// possible future embeds). Removing this capability would break published
-// pages without replacement blocks.
-//
-// Risk mitigation (what is and isn't protected):
-//   ✅ DOMPurify still strips <script>, event handlers (onload, onerror, etc.),
-//      javascript: URIs inside attributes, and other XSS vectors.
-//   ✅ The server's CSP (`script-src 'nonce-X' 'strict-dynamic'`) blocks any
-//      <script> inside iframed documents that don't carry the nonce.
-//   ⚠️  The iframe src itself is NOT validated against a domain whitelist.
-//      A malicious author could, in theory, embed an <iframe src="https://attacker.com/phishing">.
-//
-// Recommended follow-up (not in this sprint):
-//   - Create a dedicated AEM EDS block (blocks/cms-embed/) that accepts only
-//     iframes from a hardcoded domain whitelist.
-//   - Migrate existing rich-text iframes to that block.
-//   - Once the migration is complete, remove 'iframe' from this ADD_TAGS.
+// Iframes are intentionally NOT allowed — security over content (closes M3).
 const ENCODED_SANITIZE_CONFIG = {
   USE_PROFILES: { html: true },
-  ADD_TAGS: ['iframe'],
-  ADD_ATTR: ['style', 'target', 'rel', 'src', 'title', 'loading', 'frameborder', 'allow', 'allowfullscreen', 'scrolling'],
+  ADD_ATTR: ['style', 'target', 'rel', 'title'],
 };
 
 /**
