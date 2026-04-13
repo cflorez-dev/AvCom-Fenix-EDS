@@ -111,10 +111,23 @@ export default async function decorate(block) {
   block.innerHTML = '';
   block.className = 'cms-hero-banner h-[457px] min-[1248px]:h-[324px] p-4 min-[1248px]:p-6 rounded-3xl box-border overflow-hidden relative w-full text-[var(--text-normal-lighter)] flex justify-center items-end md:h-[457px]';
 
+  // Adjust image URL params for hero-quality rendering
+  const heroImageUrl = (url, width) => {
+    if (!url) return '';
+    try {
+      const parsed = new URL(url, window.location.href);
+      parsed.searchParams.set('width', width);
+      parsed.searchParams.delete('optimize');
+      return parsed.toString();
+    } catch {
+      return url;
+    }
+  };
+
   // Set background images for 3 sizes with fallback chain
-  const desktopBg = imagedesktop || imagetablet || imagemobile;
-  const tabletBg = imagetablet || imagedesktop;
-  const mobileBg = imagemobile || imagetablet || imagedesktop;
+  const desktopBg = heroImageUrl(imagedesktop || imagetablet || imagemobile, '1248');
+  const tabletBg = heroImageUrl(imagetablet || imagedesktop, '1024');
+  const mobileBg = heroImageUrl(imagemobile || imagetablet || imagedesktop, '400');
 
   block.style.setProperty('--hero-desktop', `url(${desktopBg})`);
   block.style.setProperty('--hero-tablet', `url(${tabletBg})`);
