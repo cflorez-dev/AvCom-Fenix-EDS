@@ -57,8 +57,22 @@ function getAccessiblePartnerName(item, index) {
 }
 
 /**
+ * Detects whether the block has targeting rows at positions 0 and 1.
+ * Targeting rows contain only text (country/language codes).
+ * Content rows contain <picture> elements (logo images).
+ * @param {Element} block The block element
+ * @returns {boolean} True if rows 0-1 are targeting fields
+ */
+function hasBlockTargetingRows(block) {
+  const firstRow = block.children[0];
+  if (!firstRow) return false;
+  // If the first row contains a picture/img, it's a content row, not targeting
+  return !firstRow.querySelector('picture') && !firstRow.querySelector('img');
+}
+
+/**
  * Maps the footer partners logos block data.
- * Block model fields: 0=target-countries, 1=target-languages
+ * Block model fields (optional): 0=target-countries, 1=target-languages
  * Item model fields:  0=image, 1=alt, 2=url, 3=target-countries, 4=target-languages
  * @param {Element} block The footer-partners-logos block element
  * @returns {Array<{imageUrl: string, imageAlt: string, redirectUrl: string}>}
@@ -67,8 +81,9 @@ function getAccessiblePartnerName(item, index) {
 export function mapFooterPartnersLogosData(block) {
   const items = [];
 
-  // Rows 0 and 1 are always targeting fields (target-countries, target-languages)
-  const contentChildren = [...block.children].slice(2);
+  // Only skip first 2 rows if they are targeting fields (text-only, no images)
+  const skipRows = hasBlockTargetingRows(block) ? 2 : 0;
+  const contentChildren = [...block.children].slice(skipRows);
 
   contentChildren.forEach((item) => {
     // Item-level targeting: positional fields 3=target-countries, 4=target-languages
@@ -83,11 +98,11 @@ export function mapFooterPartnersLogosData(block) {
     const img = item.querySelector('picture img');
     const imageUrl = img?.src || img?.getAttribute('src') || '';
 
-    // Extract image alt text
-    const imageAlt = img?.alt || img?.getAttribute('alt') || '';
+    // Extract image alt text: prefer cell 1 (authored alt), fallback to img alt attribute
+    const imageAlt = getCellText(item, 1) || img?.alt || img?.getAttribute('alt') || '';
 
-    // Extract redirect URL from button-container > p > a
-    const link = item.querySelector('.button-container a');
+    // Extract redirect URL: try button-container first, then any anchor in cell 2
+    const link = item.querySelector('.button-container a') || item.children[2]?.querySelector('a');
     const redirectUrl = link?.href || link?.getAttribute('href') || '';
 
     items.push({
@@ -157,20 +172,22 @@ export default function decorate(block) {
     return;
   }
 
-  // 2. Block-level targeting: positional rows 0=target-countries, 1=target-languages
-  const rows = [...block.children];
-  const getRowText = (rowIndex) => {
-    const row = rows[rowIndex];
-    if (!row || !row.children.length) return '';
-    return row.children[0]?.textContent?.trim() || '';
-  };
+  // 2. Block-level targeting: only check if targeting rows exist (text-only, no images)
+  if (hasBlockTargetingRows(block)) {
+    const rows = [...block.children];
+    const getRowText = (rowIndex) => {
+      const row = rows[rowIndex];
+      if (!row || !row.children.length) return '';
+      return row.children[0]?.textContent?.trim() || '';
+    };
 
-  const targetCountries = getRowText(0);
-  const targetLanguages = getRowText(1);
+    const targetCountries = getRowText(0);
+    const targetLanguages = getRowText(1);
 
-  if (!shouldShowByTargeting(targetCountries, targetLanguages)) {
-    block.style.display = 'none';
-    return;
+    if (!shouldShowByTargeting(targetCountries, targetLanguages)) {
+      block.style.display = 'none';
+      return;
+    }
   }
 
   // 2. Mapear datos del bloque
