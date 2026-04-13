@@ -16,24 +16,9 @@
 <!-- Critical CSS (render-blocking) -->
 <link rel="stylesheet" href="/styles/styles.css" />
 <link rel="stylesheet" href="/styles/tw.css" />
-<script nonce="aem">
-  (function () {
-    var head = document.getElementsByTagName('head')[0];
-    var body = document.getElementsByTagName('body')[0];
-
-    // Añadir link a CSS
-    var link = document.createElement('link');
-    link.rel = 'stylesheet';
-    link.type = 'text/css';
-    link.href = 'https://avianca-help.centribal.com/api/v1/recaptcha-css/';
-    head.appendChild(link);
-
-    // Añadir script
-    var script = document.createElement('script');
-    script.src = 'https://avianca-help.centribal.com/api/v1/recaptcha-jsx/';
-    body.appendChild(script);
-  })();
-</script>
+<!-- Centribal -->
+<link rel="stylesheet" href="https://avianca-help.centribal.com/api/v1/recaptcha-css/" />
+<script nonce="aem" src="https://avianca-help.centribal.com/api/v1/recaptcha-jsx/"></script>
 
 <!-- Early LCP preload: detect the cms-background-image block as the HTML
      parser builds the DOM and inject a <link rel="preload"> for the
