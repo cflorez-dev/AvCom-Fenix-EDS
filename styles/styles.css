@@ -265,6 +265,11 @@ main .section.center-content > div {
 .section.center-content:has(.default-content-wrapper) {
     padding: 0;
 }
+@media (max-width: 1247px) {
+    .section.center-content:has(.default-content-wrapper) {
+        padding-inline: var(--main-section-div-padding, 16px);
+    }
+}
 /* TODO: remove style, is only for client meet 17-12 - END */
 
 .section.layout-1-2-992 > div {

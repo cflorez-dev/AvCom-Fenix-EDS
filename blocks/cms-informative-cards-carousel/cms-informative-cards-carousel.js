@@ -31,8 +31,8 @@ function renderCardsGrid(cards, loadingMode) {
   // carousel layout (pixel-perfect spec); on viewports <480px we drop the padding
   // to maximize horizontal space for the cards on very small phones.
   const containerClass = totalCards >= 4
-    ? 'flex gap-4 w-full overflow-x-auto scrollbar-hide min-[480px]:px-[32px]'
-    : 'flex gap-4 w-full overflow-x-auto scrollbar-hide min-[480px]:px-[32px]';
+    ? 'flex gap-4 w-full overflow-x-auto scrollbar-hide min-[480px]:px-[32px] xl:px-0'
+    : 'flex gap-4 w-full overflow-x-auto xl:overflow-visible scrollbar-hide min-[480px]:px-[32px] xl:px-0';
 
   return html`
     <div class="${containerClass}">
@@ -90,7 +90,7 @@ function renderFourCardsCarousel(cards, loadingMode) {
       loop=${false}
       infiniteMobile=${true}
       paginateByGroup=${true}
-      customScrollContainerClassName="gap-4 min-[480px]:px-[32px] !items-stretch"
+      customScrollContainerClassName="gap-4 min-[480px]:px-[32px] xl:px-0 !items-stretch"
       itemContainerClassName="flex"
     >
       ${cardElements}
@@ -110,7 +110,7 @@ function renderFourCardsCarousel(cards, loadingMode) {
 function renderMultiCardsCarousel(cards, loadingMode) {
   const cardClassName = 'w-[300px] min-w-[300px] max-w-[300px]';
   const itemContainerClassName = 'w-[300px] flex';
-  const scrollContainerClassName = 'gap-4 min-[480px]:px-[32px] !items-stretch';
+  const scrollContainerClassName = 'gap-4 min-[480px]:px-[32px] xl:px-0 !items-stretch';
   return html`
     <${Carousel}
       itemsPerView=${1}
@@ -222,6 +222,6 @@ export default function decorate(block) {
   // Apply styles to the section container using Tailwind
   const sectionContainer = block.closest('.section.cms-informative-cards-carousel-container');
   if (sectionContainer) {
-    sectionContainer.classList.add('!p-0', '!m-0', 'w-full', 'justify-self-center');
+    sectionContainer.classList.add('!p-0', '!my-0', '!mx-auto', 'w-full');
   }
 }
