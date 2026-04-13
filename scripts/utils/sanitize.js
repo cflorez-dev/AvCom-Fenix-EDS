@@ -69,18 +69,25 @@ export async function sanitizeHTMLAsync(dirty, config = { USE_PROFILES: { html: 
  */
 export function isSafeUrl(url) {
   if (!url || typeof url !== 'string') return false;
-  const trimmed = url.trim();
-  if (!trimmed) return false;
+
+  // Strip ASCII tab/LF/CR before validating. The WHATWG URL parser silently
+  // removes these characters when the browser resolves an href, so
+  // "java\tscript:alert(1)" is parsed by the browser as "javascript:alert(1)".
+  // Without this normalization, an attacker can bypass the scheme allowlist by
+  // embedding control characters inside the scheme. We must validate the same
+  // string the browser will execute, not the literal input.
+  const normalized = url.replace(/[\t\n\r]/g, '').trim();
+  if (!normalized) return false;
 
   // Relative URLs (path / fragment / query) are always safe
-  if (/^(\/|#|\?)/.test(trimmed)) return true;
+  if (/^(\/|#|\?)/.test(normalized)) return true;
 
   // Absolute URLs with known safe schemes
-  if (/^(https?|mailto|tel|sms):/i.test(trimmed)) return true;
+  if (/^(https?|mailto|tel|sms):/i.test(normalized)) return true;
 
   // Bare paths without scheme (e.g. "page.html") — safe
   // A scheme-like prefix must match: letter, then letters/digits/+/./-, then ":"
-  if (!/^[a-z][a-z0-9+.-]*:/i.test(trimmed)) return true;
+  if (!/^[a-z][a-z0-9+.-]*:/i.test(normalized)) return true;
 
   // Anything else has an unknown scheme → block it
   return false;
