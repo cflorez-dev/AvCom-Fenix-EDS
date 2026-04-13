@@ -46,9 +46,12 @@ async function loadOneTrust() {
 }
 
 /**
- * Load Adobe Launch script based on environment
+ * Load Adobe Launch script based on environment.
+ * Skips if already loaded from head.html early inline script.
  */
 async function loadAdobeLaunch() {
+  if (window.__adobeLaunchLoaded) return;
+
   const {
     isTrackingDisabled, isAuthorMode, getEnvironment, ADOBE_LAUNCH_URLS,
   } = await import('./martech-config.js');
