@@ -587,8 +587,9 @@ async function loadEager(doc) {
     // do nothing
   }
 
-  // Load DOMPurify early so sanitizeHTML() is available synchronously in blocks
-  loadScript(`${window.hlx?.codeBasePath || ''}/scripts/dompurify.min.js`);
+  // Load DOMPurify from CDN early so sanitizeHTML() is available synchronously in blocks.
+  // No longer vendored in the repo — loaded from jsdelivr with pinned version (closes F4 / 117).
+  loadScript('https://cdn.jsdelivr.net/npm/dompurify@3.3.3/dist/purify.min.js');
 
   // Start locale resolution early but don't block DOM work that doesn't need it
   const localeReady = initLocaleGlobals();

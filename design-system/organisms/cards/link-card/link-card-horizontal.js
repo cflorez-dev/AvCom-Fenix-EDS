@@ -1,17 +1,17 @@
 import { h } from '@dropins/tools/preact.js';
-import { useState, useEffect } from '@dropins/tools/preact-hooks.js';
+import { useState, useEffect, useRef } from '@dropins/tools/preact-hooks.js';
 import htm from 'htm';
 import { LinkButton } from '../../../atoms/link-button/link-button.js';
-import { sanitizeSVG } from '../../../../scripts/utils/sanitize.js';
 
 const html = htm.bind(h);
 
 /**
  * SvgIcon - Fetches an SVG file and injects it inline so it responds to CSS color/fill via currentColor.
- * Tailwind classes for size and group-hover scale are applied on the wrapper span.
+ * Uses DOMPurify.sanitize with RETURN_DOM_FRAGMENT + replaceChildren to avoid dangerouslySetInnerHTML.
  */
 const SvgIcon = ({ src, customClass = '' }) => {
-  const [svgMarkup, setSvgMarkup] = useState('');
+  const spanRef = useRef(null);
+  const [loaded, setLoaded] = useState(false);
 
   useEffect(() => {
     if (!src) return;
@@ -22,16 +22,26 @@ const SvgIcon = ({ src, customClass = '' }) => {
           .replace(/fill="(?!none|currentColor)[^"]*"/g, 'fill="currentColor"')
           .replace(/stroke="(?!none|currentColor)[^"]*"/g, 'stroke="currentColor"')
           .replace(/<svg\b/, '<svg aria-hidden="true" focusable="false" style="color:inherit;width:100%;height:100%"');
-        setSvgMarkup(processed);
+        if (spanRef.current && window.DOMPurify) {
+          const clean = window.DOMPurify.sanitize(processed, {
+            USE_PROFILES: { svg: true, svgFilters: true },
+            ADD_TAGS: ['use'],
+            RETURN_DOM_FRAGMENT: true,
+          });
+          spanRef.current.replaceChildren(...clean.childNodes);
+          setLoaded(true);
+        }
       })
-      .catch(() => setSvgMarkup(''));
+      .catch(() => {
+        if (spanRef.current) spanRef.current.replaceChildren();
+      });
   }, [src]);
 
-  if (!svgMarkup) return null;
   return html`<span
+    ref=${spanRef}
     class=${`inline-flex items-center justify-center w-[16px] h-[16px] shrink-0 group-hover:scale-125 ${customClass}`}
-    dangerouslySetInnerHTML=${{ __html: sanitizeSVG(svgMarkup) }}
     aria-hidden="true"
+    style=${loaded ? '' : 'visibility:hidden'}
   />`;
 };
 

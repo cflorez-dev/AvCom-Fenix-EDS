@@ -1,5 +1,6 @@
 import { loadScript } from '../aem.js';
 
+const DOMPURIFY_CDN = 'https://cdn.jsdelivr.net/npm/dompurify@3.3.3/dist/purify.min.js';
 let domPurifyLoaded = false;
 
 /**
@@ -8,7 +9,7 @@ let domPurifyLoaded = false;
  */
 async function ensureDOMPurify() {
   if (domPurifyLoaded && window.DOMPurify) return;
-  await loadScript(`${window.hlx?.codeBasePath || ''}/scripts/dompurify.min.js`);
+  await loadScript(DOMPURIFY_CDN);
   domPurifyLoaded = true;
 }
 
