@@ -336,13 +336,13 @@ export const SecondaryBanner = ({
           <div class="w-full h-full relative z-20 flex flex-row gap-[8px] min-[769px]:gap-0">
               <div class=${`min-w-0 h-[216px] min-[1024px]:h-[243px] flex flex-col justify-between z-10 p-[16px] min-[1024px]:p-[24px] ${fullCoverImage ? 'w-full min-[1024px]:max-w-[510px]' : 'flex-1'}`}>
                 <div class="z-10 self-stretch flex flex-col justify-center items-start gap-[4px]">
-                  <h2 class=${`line-clamp-2 self-stretch justify-start ${textColorClasses} font-bold font-['Red_Hat_Display'] ${fullCoverImage ? 'banner-title-scaled' : '!text-[20px] min-[1024px]:!text-[32px]'}`}>
+                  <h2 class=${`${ctaText && ctaUrl ? 'line-clamp-2' : 'line-clamp-4'} self-stretch justify-start ${textColorClasses} font-bold font-['Red_Hat_Display'] ${fullCoverImage ? 'banner-title-scaled' : '!text-[20px] min-[1024px]:!text-[32px]'}`}>
                     ${title}
                   </h2>
-                  <div class="line-clamp-2 self-stretch justify-start ${textColorClasses} leading-[21px] min-[769px]:!leading-[32px] text-[16px] min-[1024px]:text-[24px] font-normal font-['Red_Hat_Display']">
+                  <div class="${ctaText && ctaUrl ? 'line-clamp-2' : 'line-clamp-4'} self-stretch justify-start ${textColorClasses} leading-[21px] min-[769px]:!leading-[32px] text-[16px] min-[1024px]:text-[24px] font-normal font-['Red_Hat_Display']">
                     ${firstLabel}
                   </div>
-                  <div class="line-clamp-2 self-stretch justify-start ${textColorClasses} leading-[16px] min-[769px]:!leading-[21px] text-[12px] min-[1024px]:text-[16px] font-normal font-['Red_Hat_Display'] opacity-90">
+                  <div class="${ctaText && ctaUrl ? 'line-clamp-2' : 'line-clamp-4'} self-stretch justify-start ${textColorClasses} leading-[16px] min-[769px]:!leading-[21px] text-[12px] min-[1024px]:text-[16px] font-normal font-['Red_Hat_Display'] opacity-90">
                     ${secondaryLabel}
                   </div>
                 </div>

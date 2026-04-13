@@ -665,8 +665,30 @@ async function loadEager(doc) {
     }
   }
 
-  // Initialize GTM Martech eager phase (disabled in author mode).
-  // Dynamic imports keep these modules out of the critical path to body.appear.
+  // Safety net: scripts injected late by GTM (e.g. Zendesk chat) assign
+  // window.onload after the load event has already fired, so the handler
+  // never runs. Intercept the assignment and execute immediately when late.
+  {
+    let pageFullyLoaded = false;
+    let currentOnloadHandler = window.onload;
+    window.addEventListener('load', () => { pageFullyLoaded = true; });
+    Object.defineProperty(window, 'onload', {
+      get() { return currentOnloadHandler; },
+      set(fn) {
+        currentOnloadHandler = fn;
+        if (pageFullyLoaded && typeof fn === 'function') {
+          setTimeout(fn, 0);
+        }
+      },
+      configurable: true,
+    });
+  }
+
+  // Initialize GTM Martech (disabled in author mode).
+  // Eager loads GA4 tags; lazy loads GTM containers. Both run here
+  // (after body.appear) so GTM-injected scripts can register handlers
+  // before the browser load event fires. Consent defaults to "denied"
+  // (set in GtmMartech constructor); OneTrust updates it asynchronously.
   {
     const [{ isAuthorMode }, { default: gtmMartech }] = await Promise.all([
       import('./martech-config.js'),
@@ -674,9 +696,10 @@ async function loadEager(doc) {
     ]);
     if (!isAuthorMode()) {
       await gtmMartech.eager();
+      loadOneTrust();
+      gtmMartech.lazy();
     }
   }
-
 }
 
 /**
@@ -777,26 +800,20 @@ async function loadLazy(doc) {
     loadRemainingSectionsInBackground(main);
   }
 
+  // GTM containers and OneTrust already started in loadEager().
+  // Push page_view event and load Adobe Launch here once content is ready.
   {
     const [{ isAuthorMode }, { default: gtmMartech }] = await Promise.all([
       import('./martech-config.js'),
       import('./gtm-martech.js'),
     ]);
     if (!isAuthorMode()) {
-      // Load consent manager after initial content to reduce startup contention.
-      loadOneTrust();
-
-      // Initialize GTM Martech lazy phase - loads GTM containers
-      await gtmMartech.lazy();
-
-      // Push page_view event to dataLayer after GTM initialization
       const pageViewData = await pageViewEventData();
       gtmMartech.pushToDataLayer({
         event: 'page_view',
         ...pageViewData,
       });
 
-      // Load Adobe Launch based on environment (avianca.com = PROD, else DEV)
       loadAdobeLaunch();
     }
   }
