@@ -53,20 +53,8 @@ if (fs.existsSync(htmSrc)) {
   console.warn('⚠️  HTM source not found, using existing htm.js');
 }
 
-// Copy DOMPurify (UMD build) from the npm dependency so the vendored file
-// has a verifiable provenance tracked by package.json / package-lock.json.
-// The file is loaded at runtime via loadScript() and must expose window.DOMPurify,
-// so we copy the UMD bundle (purify.min.js), not the ESM build.
-console.log('📦 Copying dompurify library...');
-const dompurifySrc = path.join('node_modules', 'dompurify', 'dist', 'purify.min.js');
-const dompurifyDest = path.join('scripts', 'dompurify.min.js');
-
-if (fs.existsSync(dompurifySrc)) {
-  fs.copyFileSync(dompurifySrc, dompurifyDest);
-  console.log('✅ DOMPurify copied successfully!');
-} else {
-  console.warn('⚠️  DOMPurify source not found, using existing dompurify.min.js');
-}
+// DOMPurify is now loaded from CDN with SRI in head.html/404.html.
+// No longer vendored in the repo (closes scanner finding 117).
 
 console.log('\n✅ Drop-ins vendorized successfully!');
 console.log('📁 Location: scripts/__dropins__/\n');
