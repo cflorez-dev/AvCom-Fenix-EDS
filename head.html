@@ -3,6 +3,23 @@
 <link rel="dns-prefetch" href="https://www.googletagmanager.com"/>
 <link rel="preconnect" href="https://assets.adobedtm.com"/>
 <link rel="dns-prefetch" href="https://assets.adobedtm.com"/>
+
+<!-- Adobe Launch — async early load (environment-aware) -->
+<script nonce="aem">
+(function(){
+  var s=window.location.search,h=window.location.hostname;
+  if(s.indexOf('martech=off')!==-1)return;
+  if(h.indexOf('author-')!==-1||h.indexOf('adobeaemcloud.com')!==-1)return;
+  var isProd=(h==='avianca.com'||h==='www.avianca.com');
+  var src=isProd
+    ?'https://assets.adobedtm.com/6ac3e976c146/4026528cdd43/launch-EN80a601f9b57746f2985c5b443538b3c1.min.js'
+    :'https://assets.adobedtm.com/6ac3e976c146/4026528cdd43/launch-ENf32bf57525554e6f8b6d31b098cb7d66-development.min.js';
+  var el=document.createElement('script');
+  el.src=src;el.async=true;
+  document.head.appendChild(el);
+  window.__adobeLaunchLoaded=true;
+})();
+</script>
 <link rel="preconnect" href="https://cdn.cookielaw.org"/>
 <link rel="dns-prefetch" href="https://cdn.cookielaw.org"/>
 <link rel="preconnect" href="https://publish-p34631-e1321407.adobeaemcloud.com"/>
@@ -16,6 +33,7 @@
 <!-- Critical CSS (render-blocking) -->
 <link rel="stylesheet" href="/styles/styles.css" />
 <link rel="stylesheet" href="/styles/tw.css" />
+
 <!-- Centribal -->
 <link rel="stylesheet" href="https://avianca-help.centribal.com/api/v1/recaptcha-css/" />
 <script nonce="aem" src="https://avianca-help.centribal.com/api/v1/recaptcha-jsx/"></script>

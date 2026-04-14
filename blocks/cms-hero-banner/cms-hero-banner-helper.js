@@ -1,4 +1,4 @@
-import { sanitizeHTML } from '../../scripts/utils/sanitize.js';
+import { isSafeUrl } from '../../scripts/utils/sanitize.js';
 
 /**
  * Extracts props from a CMS Hero Banner block.
@@ -36,40 +36,41 @@ export function extractCmsHeroBannerProps(block) {
     const cell = row.querySelector('div');
     const propName = propNames[index] || `prop${index + 1}`;
 
-    // Empty cell
-    if (!cell || cell.innerHTML.trim() === '') {
+    // Empty cell — check both text and child elements (pictures have no textContent)
+    if (!cell || (!cell.textContent?.trim() && cell.childElementCount === 0)) {
       props[propName] = null;
       return;
     }
 
-    // Case: <p> text
+    // Case: <p> text — use textContent (safe) instead of innerHTML
     const p = cell.querySelector('p');
     if (p) {
-      props[propName] = sanitizeHTML(p.innerHTML.trim());
+      props[propName] = p.textContent?.trim() || null;
       return;
     }
 
-    // Case: <picture>
+    // Case: <picture> — validate image URL
     const picture = cell.querySelector('picture');
     if (picture) {
       const img = picture.querySelector('img');
-      props[propName] = img ? img.src : null;
+      props[propName] = img?.src && isSafeUrl(img.src) ? img.src : null;
       return;
     }
 
-    // Case: link
+    // Case: link — validate href
     const link = cell.querySelector('a');
     if (link) {
+      const href = link.getAttribute('href') || '#';
       props[propName] = {
         type: 'link',
         text: link.textContent?.trim() || '',
-        href: link.getAttribute('href') || '#',
+        href: isSafeUrl(href) ? href : '#',
       };
       return;
     }
 
     // Default fallback: cell text
-    const fallback = cell.textContent.trim();
+    const fallback = cell.textContent?.trim();
     props[propName] = fallback || null;
   });
 
