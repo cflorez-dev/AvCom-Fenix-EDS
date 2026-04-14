@@ -66,11 +66,7 @@ function mapFooterColumns(block) {
       const anchor = li.querySelector('a');
 
       if (anchor) {
-        // Extract URL from anchor href
         const rawUrl = anchor.getAttribute('href') || '';
-        // Validate the URL to prevent XSS via javascript:, data:, etc. schemes
-        // injected by content authors. Unsafe URLs fall back to '#'.
-        const url = isSafeUrl(rawUrl) ? rawUrl : '#';
         // Extract label: prefer anchor text, fallback to text before "|" if exists
         const anchorText = anchor.textContent.trim();
         const fullText = li.textContent.trim();
@@ -86,7 +82,8 @@ function mapFooterColumns(block) {
         if (rawUrl) {
           columnData.subItems.push({
             label: label || anchorText,
-            url,
+            // Validate URL at point of use to prevent XSS via javascript:, data:, etc.
+            url: isSafeUrl(rawUrl) ? rawUrl : '#',
           });
         }
       } else {
@@ -98,6 +95,7 @@ function mapFooterColumns(block) {
           const [fallbackLabel, fallbackUrl] = parts;
           columnData.subItems.push({
             label: fallbackLabel,
+            // Validate URL at point of use to prevent XSS via javascript:, data:, etc.
             url: isSafeUrl(fallbackUrl) ? fallbackUrl : '#',
           });
         }
