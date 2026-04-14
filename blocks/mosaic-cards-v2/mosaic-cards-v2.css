@@ -178,9 +178,8 @@
     }
 }
 
-/* Mobile/Tablet: Gradient mask for mobile carousel */
+/* Mobile/Tablet: transparent mask — arrows hidden on mobile (line 55-59) */
 @media (max-width: 767px) {
-    /* Apply solid mask to hide partial cards at edges - Mobile/Tablet only */
     .mosaic-v2-mobile-carousel::after {
         content: '';
         position: absolute;
@@ -189,20 +188,13 @@
         right: 0;
         bottom: 0;
         pointer-events: none;
-        background: linear-gradient(
-            to right,
-            #fff 0%,
-            #fff 16px,
-            transparent 16px,
-            transparent calc(100% - 16px),
-            #fff calc(100% - 16px),
-            #fff 100%
-        );
+        background: transparent;
     }
 }
 
 @media (max-width: 1248px) {
-    /* Desktop container mask */
+    /* Transparent mask — no more white bars over cards (the JS adds .has-nav-padding
+       to apply real content insetting via padding on the track instead). */
     .mosaic-v2-container::after {
         content: '';
         position: absolute;
@@ -212,37 +204,42 @@
         bottom: 0;
         z-index: 29;
         pointer-events: none;
-        background: linear-gradient(
-            to right,
-            #fff 0%,
-            #fff calc(var(--main-section-div-padding, 16px) - 16px),
-            transparent calc(var(--main-section-div-padding, 16px) - 16px),
-            transparent calc(100% - var(--main-section-div-padding, 16px) + 16px),
-            #fff calc(100% - var(--main-section-div-padding, 16px) + 16px),
-            #fff 100%
-        );
+        background: transparent;
     }
 
     .mosaic-v2-container.is-autoplay::after {
-        background: linear-gradient(
-            to right,
-            #fff 0%,
-            #fff calc(var(--main-section-div-padding, 4px) - 4px),
-            transparent calc(var(--main-section-div-padding, 4px) - 4px),
-            transparent calc(100% - var(--main-section-div-padding, 4px) + 4px),
-            #fff calc(100% - var(--main-section-div-padding, 4px) + 4px),
-            #fff 100%
-        );
+        background: transparent;
     }
 
-    /* Navigation arrows positioning - respect section padding */
-    .mosaic-v2-navigation .left-0 {
-        left: 16px !important;
-    }
+    /* Navigation arrows: keep at left:0/right:0 (Tailwind defaults) so the arrow
+       center aligns with the clip wrapper edge at container's 16px from edge.
+       Previously these were overridden to 16px to compensate for the white-mask
+       "fake padding" approach — no longer needed now that we use a real wrapper. */
+}
 
-    .mosaic-v2-navigation .right-0 {
-        right: 16px !important;
-    }
+/* Content inset for carousels with visible navigation arrows.
+   When showArrows is true, the JS wraps the track in `.mosaic-v2-clip` and adds
+   `.has-nav-padding` to the container. The clip wrapper is the actual viewport
+   for the marquee — its overflow:hidden + horizontal padding hides the slides
+   at the visible edges, so cards stop at the center of the nav arrows (32px
+   from container edge). The arrows stay on the outer container, fully visible
+   on top of the empty inset area. Works on any background color. */
+/* Ensure container has 16px horizontal padding so the wrapper is inset
+   from the container's outer edge by 16px on each side. Combined with the
+   nav arrows positioned at left:0/right:0 (width 32px), this puts arrow
+   centers exactly at the wrapper edge — half of each arrow over the
+   cards, half over the empty section background. */
+.mosaic-v2-container.has-nav-padding {
+    padding-inline: 16px !important;
+}
+
+.mosaic-v2-container.has-nav-padding .mosaic-v2-clip {
+    /* Clip horizontally to hide marquee slides peeking at the edges, but allow
+       vertical overflow so card hover shadows (which extend ~22px above/below
+       the card) are not cut off. */
+    overflow-x: clip;
+    overflow-y: visible;
+    width: 100%;
 }
 
 /* ============================================
@@ -328,14 +325,19 @@
     main > .section.is-autoplay {
         --main-section-div-padding: 16px;
     }
-    /* Apply solid mask to hide partial cards at edges - Desktop only when padding is present */
+    /* Slide gap during marquee autoplay */
     .mosaic-v2-container.is-autoplay .mosaic-v2-track {
         gap: 16px !important;
     }
-    .mosaic-v2-container:not(.is-autoplay) .parent-cms-mosaic {
+
+    /* Pre-existing rule: 16px grid padding for non-autoplay carousels.
+       Only applies when our `.has-nav-padding` (with its own container padding)
+       is NOT present, to avoid double-padding the content. */
+    .mosaic-v2-container:not(.is-autoplay):not(.has-nav-padding) .parent-cms-mosaic {
         padding-inline: 16px;
     }
 
+    /* Transparent mask — content insetting handled by .has-nav-padding rule above */
     .mosaic-v2-container.is-autoplay::after {
         content: '';
         position: absolute;
@@ -345,14 +347,6 @@
         bottom: 0;
         z-index: 29;
         pointer-events: none;
-        background: linear-gradient(
-            to right,
-            #fff 0%,
-            #fff calc(var(--main-section-div-padding, 4px) - 4px),
-            transparent calc(var(--main-section-div-padding, 4px) - 4px),
-            transparent calc(100% - var(--main-section-div-padding, 4px) + 4px),
-            #fff calc(100% - var(--main-section-div-padding, 4px) + 4px),
-            #fff 100%
-        );
+        background: transparent;
     }
 }
