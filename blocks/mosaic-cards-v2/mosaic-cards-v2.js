@@ -282,8 +282,15 @@ export default async function decorate(block) {
   // Create carousel container
   // Hidden in mobile (<768px), visible in desktop (≥768px)
   // Mobile view is handled by mosaic-cards-v2-mobile-view.helper.js
+  // The has-nav-padding class signals CSS to inset content via a clip wrapper.
+  // It's added whenever there are transitions/marquee (autoplay or arrows) so
+  // cards never bleed past the visible edges, regardless of nav button presence.
+  const needsClipWrapper = showArrows || autoplay;
   const carouselContainer = document.createElement('div');
-  carouselContainer.className = `mosaic-v2-container section hidden md:block${autoplay ? ' is-autoplay' : ''}`;
+  const containerClasses = ['mosaic-v2-container', 'section', 'hidden', 'md:block'];
+  if (autoplay) containerClasses.push('is-autoplay');
+  if (needsClipWrapper) containerClasses.push('has-nav-padding');
+  carouselContainer.className = containerClasses.join(' ');
   carouselContainer.setAttribute('data-group-id', groupId);
   carouselContainer.setAttribute('data-section-status', 'loaded');
 
@@ -549,7 +556,18 @@ export default async function decorate(block) {
     carouselTrack.appendChild(slide);
   });
 
-  carouselContainer.appendChild(carouselTrack);
+  // When the carousel has transitions (arrows or autoplay marquee), wrap the
+  // track in a clip-wrapper so the visible marquee area is inset and cards
+  // don't bleed past the container edges. Arrows remain on the outer
+  // container, unaffected by the wrapper's clipping.
+  if (needsClipWrapper) {
+    const clipWrapper = document.createElement('div');
+    clipWrapper.className = 'mosaic-v2-clip';
+    clipWrapper.appendChild(carouselTrack);
+    carouselContainer.appendChild(clipWrapper);
+  } else {
+    carouselContainer.appendChild(carouselTrack);
+  }
 
   // Navigation and pagination (only in carousel mode for desktop ≥768px)
   if (enableCarouselMode) {
