@@ -35,6 +35,7 @@ function getI18nLabel(key) {
 
 export default async function decorate(block) {
   const config = readBlockConfig(block);
+  console.log('CMS Hero Banner config:', config);
 
   const {
     title = '',
