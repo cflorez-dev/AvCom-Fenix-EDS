@@ -849,7 +849,6 @@ async function loadDelayed() {
 }
 
 async function loadPage() {
-  console.log('Page loading started');
   await loadEager(document);
   await loadLazy(document);
   loadDelayed();
