@@ -13,9 +13,20 @@
   .grid-6-6,
   .grid-6-6-reverse,
   .grid-4-8,
+  .grid-4-8-reverse,
+  .grid-zigzag-4-8,
+  .grid-zigzag-3-9,
   .grid-8-4,
   .grid-3-9,
+  .grid-3-9-reverse,
   .grid-9-3,
+  .grid-repeat-4-8,
+  .grid-repeat-8-4,
+  .grid-repeat-6-6,
+  .grid-repeat-3-9,
+  .grid-repeat-equal-4,
+  .grid-repeat-equal-3,
+  .grid-repeat-equal-6,
   .grid-5-7,
   .grid-7-5,
   .grid-2-10,
@@ -44,9 +55,20 @@
   .grid-6-6,
   .grid-6-6-reverse,
   .grid-4-8,
+  .grid-4-8-reverse,
+  .grid-zigzag-4-8,
+  .grid-zigzag-3-9,
   .grid-8-4,
   .grid-3-9,
+  .grid-3-9-reverse,
   .grid-9-3,
+  .grid-repeat-4-8,
+  .grid-repeat-8-4,
+  .grid-repeat-6-6,
+  .grid-repeat-3-9,
+  .grid-repeat-equal-4,
+  .grid-repeat-equal-3,
+  .grid-repeat-equal-6,
   .grid-5-7,
   .grid-7-5,
   .grid-2-10,
@@ -120,9 +142,20 @@
     .grid-6-6,
     .grid-6-6-reverse,
     .grid-4-8,
+    .grid-4-8-reverse,
+    .grid-zigzag-4-8,
+    .grid-zigzag-3-9,
     .grid-8-4,
     .grid-3-9,
+    .grid-3-9-reverse,
     .grid-9-3,
+    .grid-repeat-4-8,
+    .grid-repeat-8-4,
+    .grid-repeat-6-6,
+    .grid-repeat-3-9,
+    .grid-repeat-equal-4,
+    .grid-repeat-equal-3,
+    .grid-repeat-equal-6,
     .grid-5-7,
     .grid-7-5,
     .grid-2-10,
@@ -154,12 +187,47 @@
 
   :is(main, .fragment-wrapper) > .section.grid-4-8 > div:nth-child(1) { grid-column: span 4; }
   :is(main, .fragment-wrapper) > .section.grid-4-8 > div:nth-child(2) { grid-column: span 8; }
+  :is(main, .fragment-wrapper) > .section.grid-4-8-reverse > div:nth-child(1) { grid-column: 9 / span 4; grid-row: 1; }
+  :is(main, .fragment-wrapper) > .section.grid-4-8-reverse > div:nth-child(2) { grid-column: 1 / span 8; grid-row: 1; }
+
+  /*
+   * Reusable zig-zag pairs: 4/8, then 8/4, then 4/8...
+   * Content is authored in pairs and the visual alternation is handled
+   * by explicit column placement without changing DOM order.
+   */
+  :is(main, .fragment-wrapper) > .section.grid-zigzag-4-8 {
+    grid-auto-flow: dense;
+  }
+
+  :is(main, .fragment-wrapper) > .section.grid-zigzag-4-8 > :nth-child(4n+1) { grid-column: 1 / 5; }
+  :is(main, .fragment-wrapper) > .section.grid-zigzag-4-8 > :nth-child(4n+2) { grid-column: 5 / 13; }
+  :is(main, .fragment-wrapper) > .section.grid-zigzag-4-8 > :nth-child(4n+3) { grid-column: 9 / 13; }
+  :is(main, .fragment-wrapper) > .section.grid-zigzag-4-8 > :nth-child(4n) { grid-column: 1 / 9; }
+
+  /* Fallback for an incomplete trailing pair */
+  :is(main, .fragment-wrapper) > .section.grid-zigzag-4-8 > :last-child:nth-child(odd) {
+    grid-column: 1 / -1;
+  }
+
+  :is(main, .fragment-wrapper) > .section.grid-zigzag-3-9 {
+    grid-auto-flow: dense;
+  }
+
+  :is(main, .fragment-wrapper) > .section.grid-zigzag-3-9 > :nth-child(4n+1) { grid-column: 1 / 4; }
+  :is(main, .fragment-wrapper) > .section.grid-zigzag-3-9 > :nth-child(4n+2) { grid-column: 4 / 13; }
+  :is(main, .fragment-wrapper) > .section.grid-zigzag-3-9 > :nth-child(4n+3) { grid-column: 10 / 13; }
+  :is(main, .fragment-wrapper) > .section.grid-zigzag-3-9 > :nth-child(4n) { grid-column: 1 / 10; }
+  :is(main, .fragment-wrapper) > .section.grid-zigzag-3-9 > :last-child:nth-child(odd) {
+    grid-column: 1 / -1;
+  }
 
   :is(main, .fragment-wrapper) > .section.grid-8-4 > div:nth-child(1) { grid-column: span 8; }
   :is(main, .fragment-wrapper) > .section.grid-8-4 > div:nth-child(2) { grid-column: span 4; }
 
   :is(main, .fragment-wrapper) > .section.grid-3-9 > div:nth-child(1) { grid-column: span 3; }
   :is(main, .fragment-wrapper) > .section.grid-3-9 > div:nth-child(2) { grid-column: span 9; }
+  :is(main, .fragment-wrapper) > .section.grid-3-9-reverse > div:nth-child(1) { grid-column: 10 / span 3; grid-row: 1; }
+  :is(main, .fragment-wrapper) > .section.grid-3-9-reverse > div:nth-child(2) { grid-column: 1 / span 9; grid-row: 1; }
 
   :is(main, .fragment-wrapper) > .section.grid-9-3 > div:nth-child(1) { grid-column: span 9; }
   :is(main, .fragment-wrapper) > .section.grid-9-3 > div:nth-child(2) { grid-column: span 3; }
@@ -215,6 +283,18 @@
   :is(main, .fragment-wrapper) > .section.grid-3-3-3-3 > div:nth-child(3) { grid-column: span 3; }
   :is(main, .fragment-wrapper) > .section.grid-3-3-3-3 > div:nth-child(4) { grid-column: span 3; }
 
+  :is(main, .fragment-wrapper) > .section.grid-repeat-4-8 > :nth-child(odd) { grid-column: span 4; }
+  :is(main, .fragment-wrapper) > .section.grid-repeat-4-8 > :nth-child(even) { grid-column: span 8; }
+  :is(main, .fragment-wrapper) > .section.grid-repeat-8-4 > :nth-child(odd) { grid-column: span 8; }
+  :is(main, .fragment-wrapper) > .section.grid-repeat-8-4 > :nth-child(even) { grid-column: span 4; }
+  :is(main, .fragment-wrapper) > .section.grid-repeat-6-6 > :nth-child(odd) { grid-column: span 6; }
+  :is(main, .fragment-wrapper) > .section.grid-repeat-6-6 > :nth-child(even) { grid-column: span 6; }
+  :is(main, .fragment-wrapper) > .section.grid-repeat-3-9 > :nth-child(odd) { grid-column: span 3; }
+  :is(main, .fragment-wrapper) > .section.grid-repeat-3-9 > :nth-child(even) { grid-column: span 9; }
+  :is(main, .fragment-wrapper) > .section.grid-repeat-equal-4 > * { grid-column: span 4; }
+  :is(main, .fragment-wrapper) > .section.grid-repeat-equal-3 > * { grid-column: span 3; }
+  :is(main, .fragment-wrapper) > .section.grid-repeat-equal-6 > * { grid-column: span 6; }
+
   /*
    * Any wrappers beyond the defined preset count become full-width rows.
    * This prevents overlap and avoids breaking existing content.
@@ -223,8 +303,10 @@
     .grid-6-6,
     .grid-6-6-reverse,
     .grid-4-8,
+    .grid-4-8-reverse,
     .grid-8-4,
     .grid-3-9,
+    .grid-3-9-reverse,
     .grid-9-3,
     .grid-5-7,
     .grid-7-5,
@@ -243,5 +325,26 @@
     .grid-5-5-2
   ) > div:nth-child(n+4) {
     grid-column: 1 / -1;
+  }
+
+  .section.grid-items-stretch:is(.grid-zigzag-4-8, .grid-zigzag-3-9) > .default-content-wrapper {
+    display: flex;
+    flex-direction: column;
+    padding: 0;
+  }
+
+  .section.grid-items-stretch:is(.grid-zigzag-4-8, .grid-zigzag-3-9) > .default-content-wrapper > p {
+    flex: 1;
+    margin: 0;
+    min-height: 0;
+    overflow: hidden;
+  }
+
+  .section.grid-items-stretch:is(.grid-zigzag-4-8, .grid-zigzag-3-9) picture,
+  .section.grid-items-stretch:is(.grid-zigzag-4-8, .grid-zigzag-3-9) img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
   }
 }

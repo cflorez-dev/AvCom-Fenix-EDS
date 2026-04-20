@@ -533,6 +533,12 @@ export default async function decorate(block) {
       contentWrapper.classList.add(cls);
     });
 
+    // Section text-center should only affect authored text content inside the
+    // tab panel, not adjacent rendered blocks such as mosaic cards.
+    if (tabData.section.classList.contains('text-center')) {
+      contentWrapper.classList.add('multitab-text-center');
+    }
+
     // Move all children except section-metadata
     const childrenToMove = [...tabData.section.children].filter(
       (child) => !child.classList.contains('section-metadata'),

@@ -581,6 +581,42 @@
             "value": "grid-3-3-3-3"
           },
           {
+            "name": "Grid Zigzag 4/8",
+            "value": "grid-zigzag-4-8"
+          },
+          {
+            "name": "Grid Zigzag 3/9",
+            "value": "grid-zigzag-3-9"
+          },
+          {
+            "name": "Grid Repeat 4/8",
+            "value": "grid-repeat-4-8"
+          },
+          {
+            "name": "Grid Repeat 8/4",
+            "value": "grid-repeat-8-4"
+          },
+          {
+            "name": "Grid Repeat 6/6",
+            "value": "grid-repeat-6-6"
+          },
+          {
+            "name": "Grid Repeat 3/9",
+            "value": "grid-repeat-3-9"
+          },
+          {
+            "name": "Grid Repeat Equal 4",
+            "value": "grid-repeat-equal-4"
+          },
+          {
+            "name": "Grid Repeat Equal 3",
+            "value": "grid-repeat-equal-3"
+          },
+          {
+            "name": "Grid Repeat Equal 6",
+            "value": "grid-repeat-equal-6"
+          },
+          {
             "name": "Grid Gap None",
             "value": "grid-gap-none"
           },
