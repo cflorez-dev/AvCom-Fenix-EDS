@@ -18,6 +18,33 @@
     padding-bottom: 32px;
 }
 
+.section.multitab-container .multitab-content.multitab-text-center > .default-content-wrapper,
+.section.multitab-container .multitab-content.multitab-text-center > .cms-rich-text-wrapper {
+    text-align: center;
+}
+
+.section.multitab-container .multitab-content.multitab-text-center > .cms-button-wrapper {
+    text-align: center;
+}
+
+.section.multitab-container .multitab-content.multitab-text-center > .default-content-wrapper img {
+    margin-inline: auto;
+}
+
+.section.multitab-container .multitab-content.multitab-text-center > .default-content-wrapper p:has(> picture:only-child) {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+}
+
+.section.multitab-container .multitab-content.multitab-text-center > .default-content-wrapper p:has(> picture:only-child)::before,
+.section.multitab-container .multitab-content.multitab-text-center > .default-content-wrapper p:has(> picture:only-child)::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background-color: #ddd;
+}
+
 /* Hide tab nav scrollbar (webkit/blink) */
 .multitab-container [role="tablist"]::-webkit-scrollbar {
     display: none;
@@ -212,8 +239,8 @@
  * Mirrors grid-layout.css but scoped to .multitab-content.
  * ─────────────────────────────────────────────────────────────────────────── */
 .multitab-content:is(
-    .grid-12, .grid-6-6, .grid-4-8, .grid-8-4,
-    .grid-3-9, .grid-9-3, .grid-5-7, .grid-7-5,
+    .grid-12, .grid-6-6, .grid-6-6-reverse, .grid-4-8, .grid-4-8-reverse, .grid-8-4,
+    .grid-3-9, .grid-3-9-reverse, .grid-9-3, .grid-5-7, .grid-7-5,
     .grid-2-10, .grid-10-2, .grid-1-11, .grid-11-1,
     .grid-4-4-4, .grid-3-3-6, .grid-3-6-3, .grid-6-3-3,
     .grid-2-5-5, .grid-5-2-5, .grid-5-5-2, .grid-3-3-3-3,
@@ -230,8 +257,8 @@
 }
 
 .multitab-content:is(
-    .grid-12, .grid-6-6, .grid-4-8, .grid-8-4,
-    .grid-3-9, .grid-9-3, .grid-5-7, .grid-7-5,
+    .grid-12, .grid-6-6, .grid-6-6-reverse, .grid-4-8, .grid-4-8-reverse, .grid-8-4,
+    .grid-3-9, .grid-3-9-reverse, .grid-9-3, .grid-5-7, .grid-7-5,
     .grid-2-10, .grid-10-2, .grid-1-11, .grid-11-1,
     .grid-4-4-4, .grid-3-3-6, .grid-3-6-3, .grid-6-3-3,
     .grid-2-5-5, .grid-5-2-5, .grid-5-5-2,
@@ -268,8 +295,8 @@
 /* Desktop column spans (mirrors grid-layout.css @media min-width: 992px) */
 @media (width >= 992px) {
     .multitab-content:is(
-        .grid-12, .grid-6-6, .grid-4-8, .grid-8-4,
-        .grid-3-9, .grid-9-3, .grid-5-7, .grid-7-5,
+        .grid-12, .grid-6-6, .grid-6-6-reverse, .grid-4-8, .grid-4-8-reverse, .grid-8-4,
+        .grid-3-9, .grid-3-9-reverse, .grid-9-3, .grid-5-7, .grid-7-5,
         .grid-2-10, .grid-10-2, .grid-1-11, .grid-11-1,
         .grid-4-4-4, .grid-3-3-6, .grid-3-6-3, .grid-6-3-3,
         .grid-2-5-5, .grid-5-2-5, .grid-5-5-2, .grid-3-3-3-3,
@@ -284,15 +311,21 @@
 
     .multitab-content.grid-6-6 > div:nth-child(1) { grid-column: span 6; }
     .multitab-content.grid-6-6 > div:nth-child(2) { grid-column: span 6; }
+    .multitab-content.grid-6-6-reverse > div:nth-child(1) { grid-column: 7 / span 6; grid-row: 1; }
+    .multitab-content.grid-6-6-reverse > div:nth-child(2) { grid-column: 1 / span 6; grid-row: 1; }
 
     .multitab-content.grid-4-8 > div:nth-child(1) { grid-column: span 4; }
     .multitab-content.grid-4-8 > div:nth-child(2) { grid-column: span 8; }
+    .multitab-content.grid-4-8-reverse > div:nth-child(1) { grid-column: 9 / span 4; grid-row: 1; }
+    .multitab-content.grid-4-8-reverse > div:nth-child(2) { grid-column: 1 / span 8; grid-row: 1; }
 
     .multitab-content.grid-8-4 > div:nth-child(1) { grid-column: span 8; }
     .multitab-content.grid-8-4 > div:nth-child(2) { grid-column: span 4; }
 
     .multitab-content.grid-3-9 > div:nth-child(1) { grid-column: span 3; }
     .multitab-content.grid-3-9 > div:nth-child(2) { grid-column: span 9; }
+    .multitab-content.grid-3-9-reverse > div:nth-child(1) { grid-column: 10 / span 3; grid-row: 1; }
+    .multitab-content.grid-3-9-reverse > div:nth-child(2) { grid-column: 1 / span 9; grid-row: 1; }
 
     .multitab-content.grid-9-3 > div:nth-child(1) { grid-column: span 9; }
     .multitab-content.grid-9-3 > div:nth-child(2) { grid-column: span 3; }
