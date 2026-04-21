@@ -22,7 +22,7 @@ export const PromotionCard = ({
   loading = 'lazy',
   onClick,
 }) => {
-  const focusClasses = 'focus:outline focus:outline-2 focus:outline-border-stroke-focus focus:outline-offset-2';
+  const focusClasses = 'focus-visible:outline focus-visible:outline-2 focus-visible:outline-border-stroke-focus focus-visible:outline-offset-2';
   const cursorClass = 'cursor-pointer';
   const loadingMode = loading === 'eager' ? 'eager' : 'lazy';
   const imageDecoding = loadingMode === 'eager' ? 'sync' : 'async';
