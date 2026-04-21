@@ -357,7 +357,7 @@ export const BookingBox = ({
       na: passengers.adults,
       nn: passengers.children,
       ni: passengers.infants,
-      nj: passengers.youth,
+      jn: passengers.youth,
       lan: (getStoredLanguage() || 'es').toUpperCase(),
       Pais: mapCountryToPos(getStoredCountry()),
       SistemaOrigen: 'AH',

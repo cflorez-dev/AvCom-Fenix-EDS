@@ -68,18 +68,64 @@ function formatPrice(price) {
 }
 
 /**
- * Gets city name from IATA code
+ * Gets localized city name from IATA code
  * @param {string} iataCode - IATA code (e.g., 'MDE', 'CLO')
- * @returns {string} City name or code if not found
+ * @param {string} language - Language code ('es', 'en', 'fr', 'pt')
+ * @returns {string} Localized city name or code if not found
  */
-function getCityNameFromIata(iataCode) {
+function getCityNameFromIata(iataCode, language = 'es') {
   if (!iataCode || !iataCache) return iataCode;
 
   const cityData = iataCache.find(
     (item) => item.codigo_iata?.toUpperCase() === iataCode.toUpperCase(),
   );
 
-  return cityData?.ciudad || iataCode;
+  if (!cityData) return iataCode;
+
+  const columnMap = {
+    es: 'ciudad',
+    en: 'ciudad_en',
+    fr: 'ciudad_fr',
+    pt: 'ciudad_pt',
+  };
+  const column = columnMap[language] || 'ciudad';
+  return (cityData[column] || cityData.ciudad || iataCode).trim();
+}
+
+/**
+ * Converts text to a URL-safe slug
+ * @param {string} text - Text to slugify
+ * @returns {string} URL-safe slug
+ */
+function slugify(text) {
+  if (!text) return '';
+  return text
+    .trim()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .replace(/[^a-z0-9\s-]/g, '')
+    .replace(/\s+/g, '-')
+    .replace(/-+/g, '-')
+    .replace(/^-|-$/g, '');
+}
+
+/**
+ * Builds a destination page URL from IATA code and language
+ * @param {string} iataCode - Destination IATA code
+ * @param {string} language - Language code ('es', 'en', 'fr', 'pt')
+ * @returns {string} Destination URL (e.g., '/fr/destinations/que-faire-a-barranquilla')
+ */
+function buildDestinationUrl(iataCode, language) {
+  const urlPreSlugData = i18Cache?.find((item) => item.Key === 'hubDestinations.urlPreSlug');
+  const urlPreSlug = urlPreSlugData?.Text;
+  if (!urlPreSlug || !iataCode) return '#';
+
+  const cityName = getCityNameFromIata(iataCode, language);
+  const citySlug = slugify(cityName);
+  if (!citySlug) return '#';
+
+  return `/${language}/${urlPreSlug}-${citySlug}`;
 }
 
 /**
@@ -124,7 +170,8 @@ async function mapOfertaToCardProps(oferta, blockConfig) {
   }
 
   const destinationCode = oferta.Destination || '';
-  const cityName = getCityNameFromIata(destinationCode);
+  const cityName = getCityNameFromIata(destinationCode, language);
+  const destinationUrl = buildDestinationUrl(destinationCode, language);
   const labelKey = `Text2|${columnLocale}`;
   const label = oferta[labelKey] || oferta['Text2|es-ES'];
   const discountKey = `Text1|${columnLocale}`;
@@ -147,6 +194,7 @@ async function mapOfertaToCardProps(oferta, blockConfig) {
     showLifemilesChip: earnMiles,
     lifemilesTag: lifemilesTagText,
     lifemilesTagVariant: lifemilesChipVariant === 'dark' ? 'dark' : 'lifemiles',
+    destinationUrl,
   };
 }
 
@@ -169,7 +217,7 @@ async function renderCards(container, ofertas, blockConfig) {
     cardWrapper.className = 'flex-1';
 
     const cardProps = await mapOfertaToCardProps(oferta, blockConfig);
-    const destinationUrl = oferta.Link || '#';
+    const destinationUrl = cardProps.destinationUrl || '#';
 
     render(
       html`
@@ -177,7 +225,7 @@ async function renderCards(container, ofertas, blockConfig) {
           ...${cardProps}
           loading="lazy"
           onClick=${() => {
-    if (destinationUrl && destinationUrl !== '#') {
+    if (destinationUrl !== '#') {
       window.location.href = destinationUrl;
     }
   }}
