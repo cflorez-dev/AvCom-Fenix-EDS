@@ -26,3 +26,10 @@
   margin-top: -4px;
   margin-bottom: -4px;
 }
+
+/* The first and last cards' outlines are clipped on the left/right edges by
+   overflow-x-auto. Shifting the outline 1px inward keeps it fully visible
+   without interfering with the container's responsive horizontal padding. */
+.cms-informative-cards-carousel-content .outline-1 {
+  outline-offset: -1px;
+}
