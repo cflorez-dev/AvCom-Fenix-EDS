@@ -370,6 +370,7 @@ const toCountryDataEntry = (item, language = 'es') => {
       flagFileName: item?.countryFlagFileName || '',
       currencyCode: item?.countryCurrencyCode || '',
       keyIso: String(item?.pos || '').trim().toLowerCase(),
+      iataCountryCode: String(item?.iataCountryCode || item?.pos || '').trim().toLowerCase(),
     },
   };
 };
