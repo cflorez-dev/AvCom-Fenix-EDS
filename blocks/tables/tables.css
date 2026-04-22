@@ -199,10 +199,16 @@
 
   .tables .table-tablet td .table-cell-content {
     float: right;
+    display: inline;
+    font-size: 14px;
+    overflow-wrap: break-word;
+    text-align: right;
+  }
+
+  .tables .table-tablet td .table-cell-content:has(img) {
     display: inline-flex;
     align-items: center;
     gap: 4px;
-    font-size: 14px;
   }
 
   .tables .table-tablet td::after {
@@ -278,12 +284,18 @@
   }
 
   .tables .table-mobile .table-cell-content {
-    display: inline-flex;
-    align-items: center;
-    gap: 4px;
+    display: inline;
     vertical-align: middle;
     font-size: 14px;
     line-height: 19px;
+    overflow-wrap: break-word;
+    text-align: right;
+  }
+
+  .tables .table-mobile .table-cell-content:has(img) {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
   }
 
   .tables .table-mobile td .table-cell-content {
