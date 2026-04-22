@@ -1,0 +1,147 @@
+{
+  "id": "marquesina",
+  "fields": [
+    {
+      "component": "select",
+      "name": "loading",
+      "label": "Loading Mode",
+      "options": [
+        {
+          "name": "Lazy",
+          "value": "lazy"
+        },
+        {
+          "name": "Eager",
+          "value": "eager"
+        }
+      ],
+      "value": "lazy"
+    },
+    {
+      "component": "select",
+      "name": "speed",
+      "label": "Scroll Speed",
+      "options": [
+        {
+          "name": "Slow",
+          "value": "slow"
+        },
+        {
+          "name": "Normal",
+          "value": "normal"
+        },
+        {
+          "name": "Fast",
+          "value": "fast"
+        }
+      ],
+      "value": "normal"
+    },
+    {
+      "component": "select",
+      "name": "direction",
+      "label": "Scroll Direction",
+      "options": [
+        {
+          "name": "Left",
+          "value": "left"
+        },
+        {
+          "name": "Right",
+          "value": "right"
+        }
+      ],
+      "value": "left"
+    },
+    {
+      "component": "richtext",
+      "name": "title",
+      "label": "Title",
+      "valueType": "string",
+      "value": "",
+      "description": "Título de la marquesina. Permite formato mixto (bold/regular) y enlaces."
+    },
+    {
+      "component": "richtext",
+      "name": "body",
+      "label": "Body Text",
+      "valueType": "string",
+      "value": "",
+      "description": "Cuerpo de texto (opcional). Permite formato mixto, enlaces, listas y saltos de línea."
+    },
+    {
+      "component": "select",
+      "name": "variant",
+      "label": "Marquesina Type",
+      "options": [
+        {
+          "name": "Info",
+          "value": "info"
+        },
+        {
+          "name": "Warning",
+          "value": "warning"
+        },
+        {
+          "name": "Success",
+          "value": "success"
+        },
+        {
+          "name": "Promo",
+          "value": "promo"
+        },
+        {
+          "name": "Default",
+          "value": "default"
+        }
+      ],
+      "value": "default",
+      "description": "Tipo de marquesina que define los estilos visuales"
+    },
+    {
+      "component": "select",
+      "name": "icon",
+      "label": "Icon",
+      "options": [
+        {
+          "name": "Clock",
+          "value": "clock"
+        },
+        {
+          "name": "Alert",
+          "value": "alert"
+        },
+        {
+          "name": "None",
+          "value": "none"
+        }
+      ],
+      "value": "none",
+      "description": "Ícono a mostrar en la marquesina"
+    },
+    {
+      "component": "select",
+      "name": "languageMarket",
+      "label": "Language & Market",
+      "options": [
+        {
+          "name": "Español - COL",
+          "value": "español-col"
+        },
+        {
+          "name": "Inglés - USA",
+          "value": "inglés-usa"
+        }
+      ],
+      "value": "español-col",
+      "description": "Idioma y mercado para segmentación"
+    },
+    {
+      "component": "boolean",
+      "name": "dismissible",
+      "label": "Show Dismiss Button",
+      "value": true,
+      "description": "Mostrar botón de cierre para desactivar la marquesina"
+    }
+  ]
+}

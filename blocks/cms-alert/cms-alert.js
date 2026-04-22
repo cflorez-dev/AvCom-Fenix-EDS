@@ -1,0 +1,156 @@
+import { h, render } from '@dropins/tools/preact.js';
+import htm from 'htm';
+import { Alert } from '../../design-system/molecules/alert/alert.js';
+import { shouldShowByTargeting, hideBlockWithSection } from '../../scripts/utils/target-filter.js';
+
+const html = htm.bind(h);
+
+/**
+ * Maps the HTML structure to alert data object
+ *
+ * Expected HTML structure:
+ * <div class="cms-alert block">
+ *   <div><div><p>variant</p></div></div>  // Variant
+ *   <div><div>...content HTML...</div></div>  // Content
+ *   <div><div><p>true/false</p></div></div>  // Dismissible
+ * </div>
+ *
+ * @param {Element} block The cms-alert block element
+ * @returns {Object} Mapped alert data with {variant, innercontent, showDismissbutton}
+ */
+function mapAlertData(block) {
+  const rows = [...block.children];
+
+  // Default values
+  let variant = 'informative';
+  let innercontent = '';
+  let showDismissbutton = true;
+
+  // Row 0: Variant
+  if (rows[0]) {
+    const variantCell = rows[0].querySelector('p') || rows[0].querySelector('div');
+    if (variantCell) {
+      const variantValue = variantCell.textContent.trim().toLowerCase();
+      if (variantValue) {
+        variant = variantValue;
+      }
+    }
+  }
+
+  // Row 1: Content (innerHTML)
+  if (rows[1]) {
+    // Get ALL innerHTML from the content cell without any processing
+    // AEM structure: <div(row)><div(cell)>...content...</div></div>
+    const contentCell = rows[1].children[0];
+    if (contentCell) {
+      // Simply get the innerHTML - preserve everything as-is
+      innercontent = contentCell.innerHTML;
+    }
+  }
+
+  // Row 2: Dismissible (showDismissbutton)
+  if (rows[2]) {
+    const dismissibleCell = rows[2].querySelector('p') || rows[2].querySelector('div');
+    if (dismissibleCell) {
+      const dismissibleValue = dismissibleCell.textContent.trim().toLowerCase();
+      showDismissbutton = dismissibleValue === 'true' || dismissibleValue === '1' || dismissibleValue === 'yes';
+    }
+  }
+
+  return {
+    variant,
+    innercontent,
+    showDismissbutton,
+  };
+}
+
+/**
+ * Decorates the CMS Alert block
+ * Renders alerts with configurable variant, content, and dismissibility
+ * Always full-width with rounded borders
+ *
+ * Table structure in AEM:
+ * | Variant | Content | Dismissible |
+ * |---------|---------|-------------|
+ * | success | <p><strong>Title</strong> Body text...</p> | true |
+ *
+ * @param {Element} block The cms-alert block element
+ */
+export default function decorate(block) {
+  // 1. Extract targeting from positional rows BEFORE clearing the block
+  // Model field order: 0=variant, 1=content, 2=dismissible, 3=target-countries, 4=target-languages
+  const rows = [...block.children];
+  const getRowText = (rowIndex) => {
+    const row = rows[rowIndex];
+    if (!row || !row.children.length) return '';
+    // Use children[0] pattern consistent with other EDS blocks
+    return row.children[0]?.textContent?.trim() || '';
+  };
+
+  const targetCountries = getRowText(3);
+  const targetLanguages = getRowText(4);
+
+  // Check targeting (country/language filtering)
+  if (!shouldShowByTargeting(targetCountries, targetLanguages)) {
+    hideBlockWithSection(block);
+    return;
+  }
+
+  // 2. Map HTML structure to alert data object
+  const mappedData = mapAlertData(block);
+
+  // Use mapped data with defaults
+  const variant = mappedData.variant || 'informative';
+  const innercontent = mappedData.innercontent || '';
+  const showDismissbutton = mappedData.showDismissbutton !== undefined
+    ? mappedData.showDismissbutton
+    : true;
+
+  // 3. Clear block and render INSIDE (compatible with editor-support.js re-decoration)
+  const blockWrapper = block.parentNode;
+  block.textContent = '';
+
+  const container = document.createElement('div');
+  container.className = 'cms-alert-content';
+  block.appendChild(container);
+
+  const alerts = [];
+
+  if (innercontent) {
+    alerts.push({
+      variant,
+      contentHTML: innercontent,
+      dismissible: showDismissbutton,
+    });
+  }
+
+  // 4. Render Alert components with Preact
+  alerts.forEach((alertData) => {
+    const alertElement = document.createElement('div');
+    alertElement.className = 'cms-alert-item';
+
+    render(
+      html`
+        <${Alert}
+          variant=${alertData.variant}
+          contentHTML=${alertData.contentHTML}
+          dismissible=${alertData.dismissible}
+          fullWidth=${false}
+          isRounded=${true}
+          showIcon=${true}
+          marqueeMode=${false}
+          onDismiss=${() => {
+    alertElement.remove();
+    if (container.children.length === 0) {
+      container.remove();
+      blockWrapper?.remove();
+    }
+  }}
+        />
+      `,
+      alertElement,
+    );
+
+    container.appendChild(alertElement);
+  });
+}

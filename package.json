@@ -12,7 +12,19 @@
     "build:json:models": "merge-json-cli -i \"models/_component-models.json\" -o \"component-models.json\"",
     "build:json:definitions": "merge-json-cli -i \"models/_component-definition.json\" -o \"component-definition.json\"",
     "build:json:filters": "merge-json-cli -i \"models/_component-filters.json\" -o \"component-filters.json\"",
-    "prepare": "husky"
+    "install:dropins": "node build.mjs && node postinstall.js",
+    "build:dropins": "npm run install:dropins",
+    "build": "npm-run-all -p build:json build:dropins tw:build",
+    "postinstall": "npm run install:dropins",
+    "postupdate": "npm run install:dropins",
+    "prepare": "husky",
+    "start": "aem up",
+    "tw:build": "tailwindcss -i ./styles/variables/tailwind.css -o ./styles/tw.css --minify",
+    "tw:watch": "tailwindcss -i ./styles/variables/tailwind.css -o ./styles/tw.css --watch",
+    "dev": "npm-run-all -p start tw:watch",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:ui": "vitest --ui"
   },
   "repository": {
     "type": "git",
@@ -25,16 +37,39 @@
   },
   "homepage": "https://github.com/adobe/aem-boilerplate#readme",
   "devDependencies": {
-    "@babel/eslint-parser": "7.28.5",
+    "@babel/eslint-parser": "7.28.0",
+    "@dropins/build-tools": "0.2.0",
+    "@tailwindcss/cli": "^4.1.13",
+    "@vitest/ui": "^3.2.4",
     "eslint": "8.57.1",
     "eslint-config-airbnb-base": "15.0.0",
     "eslint-plugin-import": "2.32.0",
     "eslint-plugin-json": "3.1.0",
-    "eslint-plugin-xwalk": "github:adobe-rnd/eslint-plugin-xwalk",
+    "eslint-plugin-xwalk": "github:adobe-rnd/eslint-plugin-xwalk#v0.1.3",
+    "dompurify": "^3.2.4",
+    "happy-dom": "^20.8.9",
     "husky": "9.1.1",
     "merge-json-cli": "1.0.4",
     "npm-run-all": "4.1.5",
-    "stylelint": "16.26.1",
-    "stylelint-config-standard": "39.0.1"
+    "stylelint": "16.21.1",
+    "stylelint-config-standard": "38.0.0",
+    "tailwindcss": "^4.0.0",
+    "vite": "^6.4.2",
+    "vitest": "^3.2.4"
+  },
+  "dependencies": {
+    "@dropins/tools": "^0.42.0",
+    "htm": "^3.1.1"
+  },
+  "overrides": {
+    "flatted": "^3.4.2",
+    "lodash": "^4.18.1",
+    "rollup": "^4.60.1",
+    "ajv@^6": "^6.14.0",
+    "ajv@^8": "^8.18.0",
+    "brace-expansion@^1": "^1.1.13",
+    "minimatch@^3": "^3.1.5",
+    "picomatch@^2": "^2.3.2",
+    "picomatch@^4": "^4.0.4"
   }
 }

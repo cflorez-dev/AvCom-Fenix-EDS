@@ -1,0 +1,45 @@
+/* Footer Columns Container */
+.footer-columns-container {
+}
+
+/* List of columns */
+.footer-columns-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  grid-template-columns: repeat(5, 1fr); /* Always show 5 columns on desktop */
+  gap: var(--spacing-large, 24px);
+}
+
+/* Small screens: 2 columns */
+@media (max-width: 768px) {
+  .footer-columns-list {
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--spacing-medium, 16px);
+  }
+}
+
+/* Mobile: 1 column */
+@media (max-width: 480px) {
+  .footer-columns-list {
+    grid-template-columns: 1fr;
+    gap: var(--spacing-medium, 16px);
+  }
+}
+
+/* Individual column item */
+.footer-columns-item {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-small, 8px);
+}
+
+/* Column title */
+.footer-columns-item-title {
+  font-family: var(--font-family-sans, sans-serif);
+  font-size: var(--heading-h600-size, 18px);
+  font-weight: var(--font-weight-bold, 700);
+  color: var(--text-normal-primary, #1b1b1b);
+  margin: 0 0 var(--spacing-small, 8px) 0;
+}

@@ -1,2 +1,4 @@
 helix-importer-ui
 dompurify.min.js
+plugins/gtm-martech/*
+scripts/__dropins__/**

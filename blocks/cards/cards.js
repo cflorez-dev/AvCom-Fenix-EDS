@@ -1,12 +1,14 @@
 import { createOptimizedPicture } from '../../scripts/aem.js';
-import { moveInstrumentation } from '../../scripts/scripts.js';
 
+/**
+ * Decorates the cards block
+ * @param {Element} block The cards block element
+ */
 export default function decorate(block) {
-  /* change to ul, li */
+  // 1. Extract data BEFORE hiding children
   const ul = document.createElement('ul');
   [...block.children].forEach((row) => {
     const li = document.createElement('li');
-    moveInstrumentation(row, li);
     while (row.firstElementChild) li.append(row.firstElementChild);
     [...li.children].forEach((div) => {
       if (div.children.length === 1 && div.querySelector('picture')) div.className = 'cards-card-image';
@@ -14,10 +16,14 @@ export default function decorate(block) {
     });
     ul.append(li);
   });
-  ul.querySelectorAll('picture > img').forEach((img) => {
-    const optimizedPic = createOptimizedPicture(img.src, img.alt, false, [{ width: '750' }]);
-    moveInstrumentation(img, optimizedPic.querySelector('img'));
-    img.closest('picture').replaceWith(optimizedPic);
+  ul.querySelectorAll('picture > img').forEach((img) => img.closest('picture').replaceWith(createOptimizedPicture(img.src, img.alt, false, [{ width: '750' }])));
+
+  // 2. Hide original children to preserve data-aue-* for editor (Pattern B)
+  Array.from(block.children).forEach((child) => {
+    child.style.display = 'none';
   });
-  block.replaceChildren(ul);
+
+  // 3. Render INSIDE the block (compatible with editor-support.js re-decoration)
+  ul.className = 'cards-list';
+  block.appendChild(ul);
 }

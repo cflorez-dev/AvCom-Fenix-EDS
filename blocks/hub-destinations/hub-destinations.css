@@ -1,0 +1,7 @@
+/* hub-destinations block styles */
+main > .section.hub-destinations-container{
+    padding: 0;
+    padding-bottom: 64px;
+    margin: 0;;
+    max-width: 100%;
+}

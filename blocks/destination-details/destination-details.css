@@ -1,0 +1,115 @@
+/* Destination Details Block */
+
+section.section[data-section-type='hero-destinations-detail'] {
+  display: flex;
+  flex-direction: row;
+  gap: 28px;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.section[data-section-type='hero-destinations-detail'] .cms-rich-text-wrapper {
+  max-width: 448px;
+
+  h1 {
+    margin: 0;
+    font-size: 44px;
+    line-height: 1.3;
+  }
+
+  p {
+    margin: 16px auto 0;
+    font-size: 20px;
+    line-height: 1.5;
+  }
+}
+
+.destination-details-container {
+  width: 100%;
+}
+
+.destination-details h3, .destination-details p {
+    margin: 0;
+}
+
+.destination-details h3 {
+    font-size: 24px;
+    font-weight: 700;
+}
+
+.destination-details h4 {
+    font-size: 20px;
+    margin-bottom: 16px;
+}
+.destination-details h4 strong {
+    font-weight: 700;
+}
+
+.destination-details hr {
+    border-color: var(--color-border-stroke-default);
+}
+
+.destination-details p {
+    font-weight: 100;
+}
+
+
+.destination-details ul {
+    margin: 0;
+}
+
+.destination-details li {
+    flex: 0 0 calc(50% - 8px);
+}
+
+.destination-details li p {
+    font-size: 16px;
+}
+
+.destination-details .airport ul {
+    display: flex;
+    gap: 16px;
+}
+
+.destination-details .airport li {
+     flex: 0 0 calc(25% - 12px);
+}
+
+/* Ensure proper spacing for nested components */
+.destination-details-container > * {
+  margin: 0;
+}
+
+/* Responsive padding adjustments */
+@media (max-width: 1024px) {
+  section.section[data-section-type='hero-destinations-detail'] {
+      flex-direction: column;
+      width: 100%;
+
+      p {
+          margin: 0;
+      }
+  }
+
+  section.section[data-section-type='hero-destinations-detail'] .cms-rich-text-wrapper {
+    align-self: baseline;
+    max-width: none;
+  }
+
+  section.section[data-section-type='hero-destinations-detail'] .default-content-wrapper {
+    img {
+      aspect-ratio: 2;
+      object-fit: fill;
+    }
+  }
+  .destination-details-container {
+    padding: 0;
+  }
+
+  .destination-details .airport ul {
+      flex-wrap: wrap;
+  }
+  .destination-details .airport li {
+    flex: 0 0 100%;
+  }
+}

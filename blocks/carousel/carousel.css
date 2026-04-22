@@ -1,0 +1,121 @@
+.carousel-container {
+  width: 100%;
+  overflow: hidden;
+  position: relative;
+  padding: 16px 0;
+  background-color: var(--bg-page-light, #fafafa);
+}
+
+.carousel-content {
+  display: flex;
+  gap: 24px;
+  animation: carousel-scroll linear infinite;
+  will-change: transform;
+}
+
+.carousel-content[data-direction="left"] {
+  animation-direction: normal;
+}
+
+.carousel-content[data-direction="right"] {
+  animation-direction: reverse;
+}
+
+.carousel-content[data-speed="slow"] {
+  animation-duration: 60s;
+}
+
+.carousel-content[data-speed="normal"] {
+  animation-duration: 40s;
+}
+
+.carousel-content[data-speed="fast"] {
+  animation-duration: 20s;
+}
+
+@keyframes carousel-scroll {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+.carousel-item {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 12px 24px;
+  background-color: var(--bg-card-lighter, #ffffff);
+  border-radius: 8px;
+  box-shadow: 0 2px 8px var(--effect-shadow-light, rgba(90, 90, 90, 0.1));
+  min-width: 300px;
+}
+
+.carousel-item-image {
+  flex: 0 0 auto;
+  width: 60px;
+  height: 60px;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.carousel-item-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.carousel-item-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.carousel-item-title {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: bold;
+  color: var(--text-normal-primary, #1b1b1b);
+  line-height: 1.4;
+}
+
+.carousel-item-text {
+  margin: 0;
+  font-size: 0.875rem;
+  color: var(--text-normal-secondary, #5a5a5a);
+  line-height: 1.5;
+}
+
+.carousel-item-link {
+  color: var(--text-link-default, #177f8c);
+  text-decoration: none;
+  font-weight: 500;
+  font-size: 0.875rem;
+  transition: color 0.3s ease;
+}
+
+.carousel-item-link:hover {
+  color: var(--link-button-hover, #0f5d68);
+  text-decoration: underline;
+}
+
+@media (width >= 900px) {
+  .carousel-container {
+    padding: 24px 0;
+  }
+  
+  .carousel-item {
+    min-width: 400px;
+    padding: 16px 32px;
+  }
+  
+  .carousel-item-image {
+    width: 80px;
+    height: 80px;
+  }
+}
+

@@ -18,3 +18,18 @@ if (modifledPartials.length > 0) {
   console.log(output);
   await run('git add component-models.json component-definition.json component-filters.json');
 }
+
+// check if there are any files that require Tailwind CSS rebuild
+const filesRequiringTailwindRebuild = modifiedFiles.filter((file) => 
+  file.match(/^(blocks|design-system)\/.*\.(js|jsx)$/) || // JS files in blocks or design-system
+  file.match(/^styles\/variables\/.*\.css$/) || // CSS variable files
+  file.match(/^tailwind\.config\.(js|mjs)$/) // Tailwind config
+);
+
+if (filesRequiringTailwindRebuild.length > 0) {
+  console.log('🎨 Detected changes requiring Tailwind CSS rebuild...');
+  const output = await run('npm run tw:build --silent');
+  console.log(output);
+  console.log('✅ Tailwind CSS compiled successfully');
+  await run('git add styles/tw.css');
+}

@@ -1,0 +1,352 @@
+/* Mosaic Cards V2 - CSS Utilities */
+
+/* Marquee container - fixed height and overflow control */
+.mosaic-v2-container {
+    position: relative;
+    width: 100%;
+    min-height: 400px;
+    overflow: hidden !important;
+    box-sizing: border-box;
+    opacity: 0;
+    transition: opacity 0.3s ease-in-out;
+}
+
+/* Show container after content is ready */
+.mosaic-v2-container.ready {
+    opacity: 1;
+}
+
+/* Mobile carousel initial state */
+.mosaic-v2-mobile-carousel {
+    opacity: 0;
+    transition: opacity 0.3s ease-in-out;
+}
+
+.mosaic-v2-mobile-carousel.ready {
+    opacity: 1;
+}
+
+/* Marquee track - linear transition only */
+.mosaic-v2-track {
+    will-change: transform;
+    -webkit-transition-timing-function: linear !important;
+    -o-transition-timing-function: linear !important;
+    transition-timing-function: linear !important;
+}
+
+/* Marquee slides - each slide takes full available width */
+.mosaic-v2-slide {
+    flex-shrink: 0;
+    width: 100%;
+    min-width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Ensure cloned CMS mosaic wrappers fill the slide width (especially image-only cards). */
+.mosaic-v2-slide > .cms-mosaic-cards-rendered {
+    width: 100%;
+    min-width: 100%;
+}
+
+/* Arrow buttons responsive visibility */
+@media (max-width: 767px) {
+    .mosaic-v2-prev,
+    .mosaic-v2-next {
+        display: none;
+    }
+}
+
+/* No-loop edge state: hide the arrow that has no more slides to navigate to.
+   Uses visibility+opacity so the sibling arrow doesn't shift position. */
+.mosaic-v2-nav-left.is-nav-disabled,
+.mosaic-v2-nav-right.is-nav-disabled {
+    visibility: hidden;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.2s ease, visibility 0.2s ease;
+}
+
+/* Author mode preview styling */
+.mosaic-cards-v2--author-mode {
+    min-height: 120px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* ============================================
+   DESKTOP (≥768px) - Grid 3x3 Layout
+   ============================================ */
+@media (min-width: 768px) {
+    /* Parent cms-mosaic container - Grid layout */
+    .mosaic-v2-slide .parent-cms-mosaic {
+        display: grid !important;
+        grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+        gap: 1rem !important;
+        width: 100% !important;
+        max-width: 100% !important;
+    }
+
+    /* Wrapper div - Grid pass-through */
+    .mosaic-v2-slide .parent-cms-mosaic > div {
+        display: contents !important;
+    }
+
+    /* Individual cards - Grid items */
+    .mosaic-v2-slide .child-cms-mosaic {
+        width: 100% !important;
+        height: auto !important;
+        min-width: 0 !important;
+    }
+}
+
+/* ============================================
+   TABLET (480-767px) - 1 Row x 4 Columns, 2 Visible
+   ============================================ */
+@media (min-width: 480px) and (max-width: 767px) {
+    /* Fix slides mounting on top of each other */
+    .mosaic-v2-track {
+        display: flex !important;
+        flex-direction: row !important;
+        flex-wrap: nowrap !important;
+        gap: 1rem !important;
+        width: 100% !important;
+    }
+
+    .mosaic-v2-slide {
+        flex: 0 0 100% !important;
+        width: 100% !important;
+        min-width: 100% !important;
+        max-width: 100% !important;
+    }
+
+    /* Grid container needs width for 4 cards (4 × 50% = 200%) */
+    .mosaic-v2-slide .parent-cms-mosaic.parent-cms-mosaic {
+        width: 200% !important;
+        min-width: 200% !important;
+    }
+
+    /* Force grid: 1 row x 4 columns - Ultra high specificity */
+    .mosaic-v2-slide .parent-cms-mosaic.parent-cms-mosaic {
+        display: grid !important;
+        grid-template-columns: repeat(4, 1fr) !important;
+        grid-template-rows: 1fr !important;
+        grid-auto-flow: column !important;
+        grid-auto-rows: auto !important;
+        gap: 1rem !important;
+        min-height: auto !important;
+        max-height: none !important;
+        overflow-x: auto !important;
+        overflow-y: hidden !important;
+        scroll-snap-type: x mandatory !important;
+        -webkit-overflow-scrolling: touch !important;
+        scrollbar-width: none !important;
+        padding: 0 1rem !important;
+    }
+
+    .mosaic-v2-slide .parent-cms-mosaic::-webkit-scrollbar {
+        display: none !important;
+    }
+
+    /* Wrapper - pass through grid, override flex */
+    .mosaic-v2-slide .parent-cms-mosaic > div.parent-cms-mosaic > div,
+    .mosaic-v2-slide .parent-cms-mosaic > div {
+        display: contents !important;
+        flex-direction: initial !important;
+        flex: initial !important;
+        align-items: initial !important;
+    }
+
+    /* Cards - reset all positioning, force single row */
+    .mosaic-v2-slide .child-cms-mosaic.child-cms-mosaic {
+        width: 100% !important;
+        height: auto !important;
+        min-height: 326px !important;
+        scroll-snap-align: start !important;
+        
+        /* Reset ALL tailwind grid/flex classes */
+        grid-column: auto !important;
+        grid-row: 1 !important;
+        grid-column-start: auto !important;
+        grid-row-start: 1 !important;
+        grid-column-end: auto !important;
+        grid-row-end: 2 !important;
+        flex-shrink: initial !important;
+        align-self: stretch !important;
+    }
+}
+
+/* Mobile/Tablet: transparent mask — arrows hidden on mobile (line 55-59) */
+@media (max-width: 767px) {
+    .mosaic-v2-mobile-carousel::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        pointer-events: none;
+        background: transparent;
+    }
+}
+
+@media (max-width: 1248px) {
+    /* Transparent mask — no more white bars over cards (the JS adds .has-nav-padding
+       to apply real content insetting via padding on the track instead). */
+    .mosaic-v2-container::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        z-index: 29;
+        pointer-events: none;
+        background: transparent;
+    }
+
+    .mosaic-v2-container.is-autoplay::after {
+        background: transparent;
+    }
+
+    /* Navigation arrows: keep at left:0/right:0 (Tailwind defaults) so the arrow
+       center aligns with the clip wrapper edge at container's 16px from edge.
+       Previously these were overridden to 16px to compensate for the white-mask
+       "fake padding" approach — no longer needed now that we use a real wrapper. */
+}
+
+/* Content inset for carousels with visible navigation arrows.
+   When showArrows is true, the JS wraps the track in `.mosaic-v2-clip` and adds
+   `.has-nav-padding` to the container. The clip wrapper is the actual viewport
+   for the marquee — its overflow:hidden + horizontal padding hides the slides
+   at the visible edges, so cards stop at the center of the nav arrows (32px
+   from container edge). The arrows stay on the outer container, fully visible
+   on top of the empty inset area. Works on any background color. */
+/* Ensure container has 16px horizontal padding so the wrapper is inset
+   from the container's outer edge by 16px on each side. Combined with the
+   nav arrows positioned at left:0/right:0 (width 32px), this puts arrow
+   centers exactly at the wrapper edge — half of each arrow over the
+   cards, half over the empty section background. */
+.mosaic-v2-container.has-nav-padding {
+    padding-inline: 16px !important;
+}
+
+.mosaic-v2-container.has-nav-padding .mosaic-v2-clip {
+    /* Clip horizontally to hide marquee slides peeking at the edges, but allow
+       vertical overflow so card hover shadows (which extend ~22px above/below
+       the card) are not cut off. */
+    overflow-x: clip;
+    overflow-y: visible;
+    width: 100%;
+}
+
+/* ============================================
+   MOBILE (<480px) - 1 Card Visible with Touch Navigation
+   ============================================ */
+@media (max-width: 479px) {
+    /* Remove container padding to allow full width slides */
+    .mosaic-v2-container {
+        padding-left: 0;
+        padding-right: 0;
+        min-height: auto !important;
+    }
+
+    /* No mask needed without padding */
+    .mosaic-v2-container::after {
+        display: none;
+    }
+
+    /* Track configuration - transform-based like desktop */
+    .mosaic-v2-track {
+        display: flex !important;
+        flex-direction: row !important;
+        flex-wrap: nowrap !important;
+        gap: 0 !important;
+        width: 100% !important;
+        overflow: hidden !important;
+    }
+
+    /* Each slide takes full container width */
+    .mosaic-v2-slide {
+        flex: 0 0 100% !important;
+        width: 100% !important;
+        min-width: 100% !important;
+        max-width: 100% !important;
+        height: auto !important;
+    }
+
+    /* Parent mosaic as flex container for horizontal cards */
+    .mosaic-v2-container .mosaic-v2-slide .parent-cms-mosaic,
+    .mosaic-v2-slide .parent-cms-mosaic.parent-cms-mosaic {
+        display: flex !important;
+        flex-direction: row !important;
+        gap: 0 !important;
+        width: max-content !important;
+        min-width: 100% !important;
+        max-width: none !important;
+        height: auto !important;
+        min-height: auto !important;
+        max-height: none !important;
+    }
+
+    /* Wrapper - pass through flex */
+    .mosaic-v2-slide .parent-cms-mosaic > div {
+        display: contents !important;
+    }
+
+    /* Each card takes exactly viewport width minus container padding */
+    .mosaic-v2-container .mosaic-v2-slide .child-cms-mosaic,
+    .mosaic-v2-container .mosaic-v2-slide .child-cms-mosaic.child-cms-mosaic,
+    .mosaic-v2-slide .child-cms-mosaic.child-cms-mosaic.child-cms-mosaic {
+        flex: 0 0 calc(100vw - 32px) !important;
+        width: calc(100vw - 32px) !important;
+        min-width: calc(100vw - 32px) !important;
+        max-width: calc(100vw - 32px) !important;
+        height: auto !important;
+        min-height: auto !important;
+        max-height: none !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        
+        /* Reset ALL tailwind grid/flex classes */
+        grid-column: auto !important;
+        grid-row: auto !important;
+        align-self: stretch !important;
+        
+        /* Force override Tailwind responsive classes */
+        box-sizing: border-box !important;
+    }
+}
+
+/* Desktop 1248px screen */
+@media (min-width: 1248px) {
+    main > .section.is-autoplay {
+        --main-section-div-padding: 16px;
+    }
+    /* Slide gap during marquee autoplay */
+    .mosaic-v2-container.is-autoplay .mosaic-v2-track {
+        gap: 16px !important;
+    }
+
+    /* Pre-existing rule: 16px grid padding for non-autoplay carousels.
+       Only applies when our `.has-nav-padding` (with its own container padding)
+       is NOT present, to avoid double-padding the content. */
+    .mosaic-v2-container:not(.is-autoplay):not(.has-nav-padding) .parent-cms-mosaic {
+        padding-inline: 16px;
+    }
+
+    /* Transparent mask — content insetting handled by .has-nav-padding rule above */
+    .mosaic-v2-container.is-autoplay::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        z-index: 29;
+        pointer-events: none;
+        background: transparent;
+    }
+}

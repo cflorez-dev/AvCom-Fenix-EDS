@@ -1,166 +1,193 @@
 import { getMetadata } from '../../scripts/aem.js';
+import { getLocalizedPathsForErrorPage } from '../../scripts/utils/locale.js';
 import { loadFragment } from '../fragment/fragment.js';
 
-// media query match that indicates mobile/tablet width
-const isDesktop = window.matchMedia('(min-width: 900px)');
-
-function closeOnEscape(e) {
-  if (e.code === 'Escape') {
-    const nav = document.getElementById('nav');
-    const navSections = nav.querySelector('.nav-sections');
-    const navSectionExpanded = navSections.querySelector('[aria-expanded="true"]');
-    if (navSectionExpanded && isDesktop.matches) {
-      // eslint-disable-next-line no-use-before-define
-      toggleAllNavSections(navSections);
-      navSectionExpanded.focus();
-    } else if (!isDesktop.matches) {
-      // eslint-disable-next-line no-use-before-define
-      toggleMenu(nav, navSections);
-      nav.querySelector('button').focus();
-    }
-  }
-}
-
-function closeOnFocusLost(e) {
-  const nav = e.currentTarget;
-  if (!nav.contains(e.relatedTarget)) {
-    const navSections = nav.querySelector('.nav-sections');
-    const navSectionExpanded = navSections.querySelector('[aria-expanded="true"]');
-    if (navSectionExpanded && isDesktop.matches) {
-      // eslint-disable-next-line no-use-before-define
-      toggleAllNavSections(navSections, false);
-    } else if (!isDesktop.matches) {
-      // eslint-disable-next-line no-use-before-define
-      toggleMenu(nav, navSections, false);
-    }
-  }
-}
-
-function openOnKeydown(e) {
-  const focused = document.activeElement;
-  const isNavDrop = focused.className === 'nav-drop';
-  if (isNavDrop && (e.code === 'Enter' || e.code === 'Space')) {
-    const dropExpanded = focused.getAttribute('aria-expanded') === 'true';
-    // eslint-disable-next-line no-use-before-define
-    toggleAllNavSections(focused.closest('.nav-sections'));
-    focused.setAttribute('aria-expanded', dropExpanded ? 'false' : 'true');
-  }
-}
-
-function focusNavSection() {
-  document.activeElement.addEventListener('keydown', openOnKeydown);
-}
-
-/**
- * Toggles all nav sections
- * @param {Element} sections The container element
- * @param {Boolean} expanded Whether the element should be expanded or collapsed
- */
-function toggleAllNavSections(sections, expanded = false) {
-  sections.querySelectorAll('.nav-sections .default-content-wrapper > ul > li').forEach((section) => {
-    section.setAttribute('aria-expanded', expanded);
-  });
-}
-
-/**
- * Toggles the entire nav
- * @param {Element} nav The container element
- * @param {Element} navSections The nav sections within the container element
- * @param {*} forceExpanded Optional param to force nav expand behavior when not null
- */
-function toggleMenu(nav, navSections, forceExpanded = null) {
-  const expanded = forceExpanded !== null ? !forceExpanded : nav.getAttribute('aria-expanded') === 'true';
-  const button = nav.querySelector('.nav-hamburger button');
-  document.body.style.overflowY = (expanded || isDesktop.matches) ? '' : 'hidden';
-  nav.setAttribute('aria-expanded', expanded ? 'false' : 'true');
-  toggleAllNavSections(navSections, expanded || isDesktop.matches ? 'false' : 'true');
-  button.setAttribute('aria-label', expanded ? 'Open navigation' : 'Close navigation');
-  // enable nav dropdown keyboard accessibility
-  const navDrops = navSections.querySelectorAll('.nav-drop');
-  if (isDesktop.matches) {
-    navDrops.forEach((drop) => {
-      if (!drop.hasAttribute('tabindex')) {
-        drop.setAttribute('tabindex', 0);
-        drop.addEventListener('focus', focusNavSection);
-      }
-    });
-  } else {
-    navDrops.forEach((drop) => {
-      drop.removeAttribute('tabindex');
-      drop.removeEventListener('focus', focusNavSection);
-    });
-  }
-
-  // enable menu collapse on escape keypress
-  if (!expanded || isDesktop.matches) {
-    // collapse menu on escape press
-    window.addEventListener('keydown', closeOnEscape);
-    // collapse menu on focus lost
-    nav.addEventListener('focusout', closeOnFocusLost);
-  } else {
-    window.removeEventListener('keydown', closeOnEscape);
-    nav.removeEventListener('focusout', closeOnFocusLost);
-  }
-}
-
+const isMobileNavbar = window.matchMedia('(max-width: 1247px)');
 /**
  * loads and decorates the header, mainly the nav
  * @param {Element} block The header block element
  */
 export default async function decorate(block) {
-  // load nav as fragment
+  const isAuthorEnv = window.xwalk?.isAuthorEnv;
+
+  if (isAuthorEnv) {
+    block.classList.add('header-author-mode');
+    const authorIndicator = document.createElement('div');
+    authorIndicator.className = 'p-3 bg-[#e3f2fd] border-l-4 border-[#1976d2] mb-4 text-[13px] text-[#333]';
+    authorIndicator.innerHTML = `
+      <strong>📝 Header Block (Author Mode)</strong><br/>
+      <span class="text-xs text-[#666]">Navigation data loaded from: <a href="/nav" class="text-[#1976d2]">/nav</a></span>
+    `;
+    block.insertBefore(authorIndicator, block.firstChild);
+
+    return;
+  }
+
+  // Create header container structure FIRST so child blocks can find their containers
+  // This fixes the race condition where header-navbar couldn't find .header-navbar-desktop
+  const headerContainer = document.createElement('div');
+  headerContainer.className = 'header-wrapper max-w-[1247px] w-full flex flex-row justify-between items-center h-[76px] min-[1440px]:h-[76px] top-[var(--marquee-height)]';
+  headerContainer.innerHTML = `
+    <div class="header-container flex flex-row items-center gap-[24px]">
+      <div class="header-navbar-mobile"></div>
+      <div class="header-logo flex items-center"></div>
+    </div>
+    <div class="header-navbar-desktop"></div>
+    <div class="header-user-actions  h-[48px] flex items-center justify-center flex-row gap-[16px]">
+      <div class="header-language-selector"></div>
+      <div class="user-actions"></div>
+    </div>
+  `;
+
+  block.style.display = 'none';
+
+  if (block.parentNode) {
+    block.parentNode.insertBefore(headerContainer, block.nextSibling);
+  } else {
+    block.after(headerContainer);
+  }
+
+  // Load nav as fragment with localized paths and fallback
+  // Now containers exist in DOM so header-navbar can find them during decoration
   const navMeta = getMetadata('nav');
-  const navPath = navMeta ? new URL(navMeta, window.location).pathname : '/nav';
-  const fragment = await loadFragment(navPath);
+  const customPath = navMeta ? new URL(navMeta, window.location).pathname : null;
+  const navPaths = await getLocalizedPathsForErrorPage('nav', customPath);
+  // Try to load in priority order
+  let fragment = null;
+  for (const navPath of navPaths) {
+    // Pass 'nav' as resourceType for path caching
+    // eslint-disable-next-line no-await-in-loop
+    fragment = await loadFragment(navPath, 'nav');
+    if (fragment) {
+      // eslint-disable-next-line no-console
+      console.log(`✅ Header loaded from: ${navPath}`);
+      break;
+    }
+  }
+  if (!fragment) {
+    // eslint-disable-next-line no-console
+    console.error('❌ No header fragment found in any path:', navPaths);
+    return;
+  }
 
-  // decorate nav DOM
-  block.textContent = '';
-  const nav = document.createElement('nav');
-  nav.id = 'nav';
-  while (fragment.firstElementChild) nav.append(fragment.firstElementChild);
+  // Helper function to emit the event
+  // Verifies that containers exist before firing
+  const emitHeaderReadyEvent = () => {
+    const logoContainer = headerContainer.querySelector('.header-logo');
+    const mobileContainer = headerContainer.querySelector('.header-navbar-mobile');
+    const desktopContainer = headerContainer.querySelector('.header-navbar-desktop');
+    // Verify that critical containers exist before firing the event
+    if (!logoContainer || !mobileContainer || !desktopContainer) {
+      return false;
+    }
 
-  const classes = ['brand', 'sections', 'tools'];
-  classes.forEach((c, i) => {
-    const section = nav.children[i];
-    if (section) section.classList.add(`nav-${c}`);
+    const eventDetail = {
+      headerContainer,
+      logoContainer,
+      mobileContainer,
+      desktopContainer,
+      languageSelectorContainer: headerContainer.querySelector('.header-language-selector'),
+      userActionsContainer: headerContainer.querySelector('.user-actions'),
+    };
+
+    window.dispatchEvent(new CustomEvent('header-template-ready', {
+      detail: eventDetail,
+    }));
+    return true;
+  };
+
+  // Emit event with requestAnimationFrame to ensure DOM is fully rendered
+  // This ensures containers are available before firing
+  requestAnimationFrame(() => {
+    if (!emitHeaderReadyEvent()) {
+      // If containers are not ready yet, try again after a brief delay
+      // This is especially important for Firefox and Edge
+      setTimeout(() => {
+        emitHeaderReadyEvent();
+      }, 50);
+    }
   });
 
-  const navBrand = nav.querySelector('.nav-brand');
-  const brandLink = navBrand.querySelector('.button');
-  if (brandLink) {
-    brandLink.className = '';
-    brandLink.closest('.button-container').className = '';
-  }
+  // Obtener referencias a los contenedores después de insertar en el DOM
+  const mobileContainer = headerContainer.querySelector('.header-navbar-mobile');
+  const desktopContainer = headerContainer.querySelector('.header-navbar-desktop');
 
-  const navSections = nav.querySelector('.nav-sections');
-  if (navSections) {
-    navSections.querySelectorAll(':scope .default-content-wrapper > ul > li').forEach((navSection) => {
-      if (navSection.querySelector('ul')) navSection.classList.add('nav-drop');
-      navSection.addEventListener('click', () => {
-        if (isDesktop.matches) {
-          const expanded = navSection.getAttribute('aria-expanded') === 'true';
-          toggleAllNavSections(navSections);
-          navSection.setAttribute('aria-expanded', expanded ? 'false' : 'true');
-        }
-      });
-    });
-  }
+  // Función para actualizar las clases de visibilidad según el tamaño de pantalla
+  const updateVisibility = () => {
+    const isMobileMode = isMobileNavbar.matches;
+    const isDesktopMode = !isMobileMode;
 
-  // hamburger for mobile
-  const hamburger = document.createElement('div');
-  hamburger.classList.add('nav-hamburger');
-  hamburger.innerHTML = `<button type="button" aria-controls="nav" aria-label="Open navigation">
-      <span class="nav-hamburger-icon"></span>
-    </button>`;
-  hamburger.addEventListener('click', () => toggleMenu(nav, navSections));
-  nav.prepend(hamburger);
-  nav.setAttribute('aria-expanded', 'false');
-  // prevent mobile nav behavior on window resize
-  toggleMenu(nav, navSections, isDesktop.matches);
-  isDesktop.addEventListener('change', () => toggleMenu(nav, navSections, isDesktop.matches));
+    // Update header-wrapper class
+    if (isDesktopMode) {
+      headerContainer.classList.remove('isMobile');
+      headerContainer.classList.add('isDesktop');
+    } else {
+      headerContainer.classList.remove('isDesktop');
+      headerContainer.classList.add('isMobile');
+    }
 
-  const navWrapper = document.createElement('div');
-  navWrapper.className = 'nav-wrapper';
-  navWrapper.append(nav);
-  block.append(navWrapper);
+    // Update visibility of mobile and desktop containers
+    if (mobileContainer) {
+      if (isMobileMode) {
+        mobileContainer.classList.remove('hidden');
+        mobileContainer.classList.add('block');
+      } else {
+        mobileContainer.classList.remove('block', 'flex');
+        mobileContainer.classList.add('hidden');
+      }
+    }
+
+    if (desktopContainer) {
+      if (isMobileMode) {
+        desktopContainer.classList.remove('block', 'flex');
+        desktopContainer.classList.add('hidden');
+      } else {
+        desktopContainer.classList.remove('hidden');
+        desktopContainer.classList.add('block', 'flex');
+      }
+    }
+
+    // Emit custom event to notify other components about resize
+    window.dispatchEvent(new CustomEvent('header-resize', {
+      detail: {
+        isDesktop: isDesktopMode,
+        headerContainer,
+        logoContainer: headerContainer.querySelector('.header-logo'),
+        mobileContainer,
+        desktopContainer,
+      },
+    }));
+  };
+
+  // Aplicar visibilidad inicialmente
+  updateVisibility();
+
+  const headerRoot = block.closest('header');
+  const updateHeaderSize = () => {
+    const shouldShrink = window.scrollY > 0;
+    headerContainer.classList.toggle('is-scrolled', shouldShrink);
+    if (headerRoot) {
+      headerRoot.classList.toggle('is-scrolled', shouldShrink);
+    }
+  };
+
+  // Aplicar tamaño inicial según el scroll actual
+  updateHeaderSize();
+
+  // Escuchar cambios de tamaño de ventana usando MediaQueryList
+  isMobileNavbar.addEventListener('change', updateVisibility);
+
+  // También escuchar eventos de resize como fallback adicional con debounce
+  let resizeTimeout;
+  const handleResize = () => {
+    if (resizeTimeout) {
+      clearTimeout(resizeTimeout);
+    }
+    resizeTimeout = setTimeout(() => {
+      updateVisibility();
+    }, 150); // 150ms debounce to avoid too many updates
+  };
+
+  window.addEventListener('resize', handleResize);
+  window.addEventListener('scroll', updateHeaderSize, { passive: true });
 }

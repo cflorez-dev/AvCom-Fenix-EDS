@@ -1,0 +1,88 @@
+/**
+ * CMS Background Image Block Styles
+ *
+ * Applies decorative background images to the <main> element.
+ * Uses JavaScript-based responsive loading for optimal performance.
+ * The script sets CSS custom properties that this stylesheet consumes.
+ */
+
+/* Base styles for <main> when a background image is enabled */
+main.has-background-image {
+  position: relative;
+  background-repeat: no-repeat;
+  background-size: var(--bg-size, cover);
+  background-position: var(--bg-position, center);
+  min-height: 100vh;
+}
+
+/* Loading state - show fallback color while the image loads */
+main.has-background-image:not(.loaded) {
+  background-color: var(--bg-fallback-color, #f5f5f5);
+  background-image: none;
+}
+
+main.has-background-image:not(.loaded)::before {
+  background-color: var(--bg-fallback-color, #f5f5f5);
+}
+
+/* Dynamic background image - only applied when JS sets --bg-current */
+main.has-background-image.loaded {
+  background-image: var(--bg-current);
+  background-color: var(--bg-fallback-color, #f5f5f5);
+}
+
+/* Behavior: scroll (default) - background moves with content */
+main.has-background-image[data-bg-behavior="scroll"] {
+  background-attachment: scroll;
+}
+
+/* Behavior: fixed - background stays in place while content scrolls over it */
+/* This creates a parallax effect contained within the main element */
+main.has-background-image[data-bg-behavior="fixed"] {
+  /* Ensure overflow is visible so sticky works */
+  overflow: visible;
+}
+
+main.has-background-image[data-bg-behavior="fixed"]::before {
+  content: '';
+  position: sticky;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100vh;
+  background-image: var(--bg-current);
+  background-repeat: no-repeat;
+  background-size: var(--bg-size, cover);
+  background-position: var(--bg-position, center);
+  z-index: -1;
+  pointer-events: none;
+  display: block;
+  margin-bottom: calc(-100vh); /* Negative margin to not affect layout */
+}
+
+/* Hide the direct background when using ::before for fixed behavior */
+main.has-background-image[data-bg-behavior="fixed"].loaded {
+  background-image: none !important;
+}
+
+/* Print styles - remove background for printing */
+@media print {
+  main.has-background-image {
+    background-image: none !important; /* override other style */
+    background-color: white !important; /* override other style */
+  }
+}
+
+/* Reduced motion preference - disable parallax */
+@media (prefers-reduced-motion: reduce) {
+  main.has-background-image[data-bg-behavior="fixed"] {
+    background-attachment: scroll;
+  }
+}
+
+/* High contrast mode - ensure background doesn't interfere */
+@media (prefers-contrast: high) {
+  main.has-background-image {
+    background-image: none !important; /* override other style */
+  }
+}

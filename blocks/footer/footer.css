@@ -1,6 +1,24 @@
 footer {
-  background-color: var(--light-color);
+  background: linear-gradient(90deg, #323438 0%, #1B1B1B 100%);
   font-size: var(--body-font-size-xs);
+}
+
+div.footer-columns-wrapper{
+  border-bottom: 1px solid var(--logo-avianca-light);
+  padding: var(--x-huge, 48px) var(--x-large, 32px) var(--padding-48px, 48px) var(--x-large, 32px);
+  >div{
+    width: 100%;
+    display: flex;
+    justify-content: center;
+  }
+}
+
+div.footer-partner-logos-wrapper{
+  padding: 16px 24px;
+}
+
+div.footer-bottom-wrapper{
+  background-color: var(--logo-avianca-primary);
 }
 
 footer .footer > div {
@@ -16,5 +34,30 @@ footer .footer p {
 @media (width >= 900px) {
   footer .footer > div {
     padding: 40px 32px 24px;
+  }
+}
+
+@media (width <= 1023px) {
+  div.footer-columns-wrapper{
+    padding: var(--x-huge, 48px)  var(--spacing-x-large, 24px);
+  }
+}
+
+@media (width >= 1024px) {
+  div.footer-partner-logos-wrapper{
+    height: 68px;
+    align-items: center;
+  }
+}
+
+@media (width >= 1024px) and (width <= 1439px) {
+  div.footer-partner-logos-wrapper{
+    padding: 16px 32px;
+  }
+}
+
+@media (width >= 1440px) {
+  div.footer-partner-logos-wrapper{
+    padding: 16px 96px;
   }
 }

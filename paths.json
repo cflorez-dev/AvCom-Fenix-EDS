@@ -4,7 +4,7 @@
     "/content/avianca/configuration:/.helix/config.json",
     "/content/avianca/briefofertas:/briefofertas.json",
     "/content/avianca/iata:/iata.json",
-    "/content/avianca/countrieslist:/countrieslist.json",
+    "/content/avianca/countireslist:/countireslist.json",
     "/content/avianca/languageslist:/languageslist.json",
     "/content/avianca/i18/en:/en.json",
     "/content/avianca/i18/es:/es.json",

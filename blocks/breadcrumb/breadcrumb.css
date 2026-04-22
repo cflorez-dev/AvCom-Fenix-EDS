@@ -1,0 +1,37 @@
+.section.breadcrumb-container {
+  padding-top: 24px;
+  padding-bottom: 0;
+}
+
+.breadcrumb-scroll-area {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.breadcrumb-scroll-area::-webkit-scrollbar {
+  display: none;
+}
+
+/* Overflow indicator (::after pseudo-element) */
+.breadcrumb-container::after {
+  content: '...';
+  position: absolute;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  background: white;
+  padding-left: 3px;
+  padding-right: 3px;
+  pointer-events: none;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--color-zinc-900);
+  opacity: var(--overflow-indicator-opacity, 0);
+  transition: opacity 0.2s ease;
+}
+
+@media (min-width: 768px) {
+  .breadcrumb-container::after {
+    display: none;
+  }
+}

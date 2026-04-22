@@ -1,0 +1,67 @@
+.marquesina-global-container{
+position: sticky;
+top: 0;
+z-index: var(--z-index-header, 500);
+}
+
+@media (width >= 768px) {
+  .marquesina-global-container {
+    z-index: 1000;
+  }
+}
+
+/* Marquesina Block Styles */
+.marquesina-block-container {
+  width: 100%;
+  position: relative;
+  z-index: var(--z-index-header, 100);
+}
+
+/* Sticky positioning override for block context */
+.marquesina-block[data-sticky="true"] {
+  position: sticky;
+  top: 0;
+  z-index: var(--z-index-header, 100);
+}
+
+/* Author mode indicator */
+.marquesina-author-mode {
+  background-color: var(--bg-page-light, #fafafa);
+  padding: 16px;
+  border: 2px dashed var(--alert-warning-border, #ffc107);
+  border-radius: 8px;
+  margin: 16px 0;
+}
+
+.marquesina-author-indicator {
+  background-color: var(--alert-warning-bg, #fff3cd);
+  color: var(--alert-warning-text, #856404);
+  padding: 8px 12px;
+  border: 1px dashed var(--alert-warning-border, #ffc107);
+  border-radius: 4px;
+  margin-bottom: 12px;
+  font-size: 12px;
+  font-weight: 500;
+  font-family: var(--body-font-family, system-ui);
+  text-align: center;
+}
+
+/* Ensure marquesina sits at top of page */
+.marquesina-block-container:first-child {
+  margin-top: 0;
+}
+
+/* Responsive adjustments */
+@media (width <= 768px) {
+  .marquesina-block-container {
+    /* Mobile: ensure marquesina is visible above mobile nav */
+    z-index: calc(var(--z-index-header, 100) + 1);
+  }
+}
+
+/* Print styles - hide marquesina when printing */
+@media print {
+  .marquesina-block-container {
+    display: none;
+  }
+}

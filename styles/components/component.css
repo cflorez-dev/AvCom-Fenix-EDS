@@ -1,0 +1,24 @@
+/* Button Component - Custom pseudo-class styles using CSS custom properties */
+[data-button]:active {
+  border-color: var(--button-border-active, inherit) !important;
+}
+
+[data-button]:focus:not(:focus-visible) {
+  border-color: var(--button-border-focus, inherit) !important;
+}
+
+[data-button]:focus-visible {
+  outline: none !important;
+  box-shadow: none !important;
+  --tw-ring-width: 0px !important;
+  --tw-ring-offset-width: 0px !important;
+}
+
+[data-button]:focus-visible::after {
+  display: none !important;
+  content: none !important;
+}
+
+.link-container a {
+  color: var(--text-link-default);
+}

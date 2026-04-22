@@ -1,3 +1,19 @@
+/* Production mode - transformed cards list */
+.cards-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(257px, 1fr));
+  gap: 24px;
+}
+
+.cards-list > li {
+  border: 1px solid #dadada;
+  background-color: var(--background-color);
+}
+
+/* Legacy selector for backwards compatibility */
 .cards > ul {
   list-style: none;
   margin: 0;
@@ -12,16 +28,34 @@
   background-color: var(--background-color);
 }
 
-.cards .cards-card-body {
+.cards .cards-card-body,
+.cards-list .cards-card-body {
   margin: 16px;
 }
 
-.cards .cards-card-image {
+.cards .cards-card-image,
+.cards-list .cards-card-image {
   line-height: 0;
 }
 
-.cards > ul > li img {
+.cards > ul > li img,
+.cards-list > li img {
   width: 100%;
   aspect-ratio: 4 / 3;
   object-fit: cover;
+}
+
+/* Author mode - preserve editable structure */
+.cards-author-mode {
+  border: 2px dashed #0066cc;
+  padding: 16px;
+  background-color: #f9f9f9;
+}
+
+.cards-author-mode > div {
+  margin-bottom: 12px;
+  padding: 12px;
+  background: white;
+  border: 1px solid #e0e0e0;
+  border-radius: 4px;
 }

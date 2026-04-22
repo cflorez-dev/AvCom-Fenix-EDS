@@ -11,7 +11,17 @@ import {
 import { decorateRichtext } from './editor-support-rte.js';
 import { decorateMain } from './scripts.js';
 
+// Serialize event processing to prevent concurrent applyChanges calls.
+// When adding a block, the Universal Editor fires multiple events simultaneously
+// (content-add, content-update, and separate content-patch per default property).
+// Without serialization, each event finds and replaces the same section concurrently,
+// creating orphan duplicates. Fix aligned with upstream aem-boilerplate-xwalk PR #91.
+let applyChangesQueue = Promise.resolve();
+
 async function applyChanges(event) {
+  // eslint-disable-next-line no-await-in-loop
+  await applyChangesQueue;
+
   // redecorate default content and blocks on patches (in the properties rail)
   const { detail } = event;
 
@@ -24,9 +34,8 @@ async function applyChanges(event) {
   const { content } = updates[0];
   if (!content) return false;
 
-  // load dompurify
-  await loadScript(`${window.hlx.codeBasePath}/scripts/dompurify.min.js`);
-
+  // Ensure DOMPurify is loaded from CDN before sanitizing
+  await loadScript('https://cdn.jsdelivr.net/npm/dompurify@3.3.3/dist/purify.min.js');
   const sanitizedContent = window.DOMPurify.sanitize(content, { USE_PROFILES: { html: true } });
   const parsedUpdate = new DOMParser().parseFromString(sanitizedContent, 'text/html');
   const element = document.querySelector(`[data-aue-resource="${resource}"]`);
@@ -70,13 +79,26 @@ async function applyChanges(event) {
         if (element.matches('.section')) {
           const [newSection] = newElements;
           newSection.style.display = 'none';
-          element.insertAdjacentElement('afterend', newSection);
-          decorateButtons(newSection);
-          decorateIcons(newSection);
-          decorateRichtext(newSection);
-          decorateSections(parentElement);
-          decorateBlocks(parentElement);
-          await loadSections(parentElement);
+
+          // Scope decoration to ONLY the new section using a temporary container.
+          // Previously, decorateSections/decorateBlocks ran on parentElement (main),
+          // which re-processed existing sections — double-wrapping their children
+          // and causing wrappers (e.g., cms-modal-wrapper) to be misidentified as
+          // blocks, triggering 404 errors and orphan DOM elements.
+          const scope = document.createElement('div');
+          element.insertAdjacentElement('afterend', scope);
+          scope.appendChild(newSection);
+
+          decorateButtons(scope);
+          decorateIcons(scope);
+          decorateRichtext(scope);
+          decorateSections(scope);
+          decorateBlocks(scope);
+          await loadSections(scope);
+
+          // Unwrap: move the decorated section out of the temp container
+          scope.replaceWith(...scope.childNodes);
+
           element.remove();
           newSection.style.display = null;
         } else {
@@ -103,7 +125,8 @@ function attachEventListners(main) {
     'aue:content-copy',
   ].forEach((eventType) => main?.addEventListener(eventType, async (event) => {
     event.stopPropagation();
-    const applied = await applyChanges(event);
+    applyChangesQueue = applyChanges(event);
+    const applied = await applyChangesQueue;
     if (!applied) window.location.reload();
   }));
 }

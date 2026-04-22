@@ -1,0 +1,495 @@
+/* MultiTab Container */
+.multitab-container {
+    width: 100%;
+}
+
+/* Allow the parent section's `no-padding-y` modifier to remove the vertical
+   padding even when block-specific rules below set their own padding (e.g. the
+   24px mobile padding in @media (max-width: 1024px)). The selector specificity
+   here (0,3,0) beats both `.section.no-padding-y` (0,2,0) and the multitab
+   mobile rule `.section.multitab-container` (0,2,0). */
+.section.multitab-container.no-padding-y {
+    padding-top: 0;
+    padding-bottom: 0;
+}
+
+/* override spacing between blocks inside multitab */
+.section.multitab-container .multitab-content > div:not(:last-child) {
+    padding-bottom: 32px;
+}
+
+.section.multitab-container .multitab-content.multitab-text-center > .default-content-wrapper,
+.section.multitab-container .multitab-content.multitab-text-center > .cms-rich-text-wrapper {
+    text-align: center;
+}
+
+.section.multitab-container .multitab-content.multitab-text-center > .cms-button-wrapper {
+    text-align: center;
+}
+
+.section.multitab-container .multitab-content.multitab-text-center > .default-content-wrapper img {
+    margin-inline: auto;
+}
+
+.section.multitab-container .multitab-content.multitab-text-center > .default-content-wrapper p:has(> picture:only-child) {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+}
+
+.section.multitab-container .multitab-content.multitab-text-center > .default-content-wrapper p:has(> picture:only-child)::before,
+.section.multitab-container .multitab-content.multitab-text-center > .default-content-wrapper p:has(> picture:only-child)::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background-color: #ddd;
+}
+
+/* Hide tab nav scrollbar (webkit/blink) */
+.multitab-container [role="tablist"]::-webkit-scrollbar {
+    display: none;
+}
+
+.section.multitab-container .multitab-content .columns-img-col img {
+    border-radius: var(--border-radius-large);
+}
+
+/* columns inside accordion */
+.section.multitab-container .multitab-content .columns-img-col ~ .columns-text-col,
+.section.multitab-container .multitab-content .columns-text-col + .columns-img-col {
+    padding: var(--spacing-large);
+    border-radius: var(--border-radius-large);
+    background: var(--bg-page-lighter);
+    box-shadow: 0 0.125rem 0.75rem rgb(27 27 27 / 15%);
+}
+
+/* CMS Rich Text blocks paired with images inside multitab grid (migration content) */
+.section.multitab-container .multitab-content > .default-content-wrapper + .cms-rich-text-wrapper,
+.section.multitab-container .multitab-content > .cms-rich-text-wrapper:has(+ .default-content-wrapper) {
+    padding: var(--spacing-large);
+    border-radius: var(--border-radius-large);
+    background: var(--bg-page-lighter);
+    box-shadow: 0 0.125rem 0.75rem rgb(27 27 27 / 15%);
+}
+
+/* Restore inter-block spacing when the padding shorthand above overrides the
+   generic :not(:last-child) padding-bottom rule.  Use margin-bottom for visible
+   gap between blocks that have their own background / box-shadow. */
+.section.multitab-container .multitab-content > .cms-rich-text-wrapper:not(:last-child) {
+    margin-bottom: 24px;
+}
+
+.section.multitab-container .multitab-content > .default-content-wrapper img,
+.section.multitab-container .multitab-content > .default-content-wrapper + .default-content-wrapper img {
+    border-radius: var(--border-radius-large);
+}
+
+.section.multitab-container .multitab-content .columns-text-col h1,
+.section.multitab-container .multitab-content .columns-text-col h2,
+.section.multitab-container .multitab-content .columns-text-col h3,
+.section.multitab-container .multitab-content > .default-content-wrapper + .cms-rich-text-wrapper h1,
+.section.multitab-container .multitab-content > .default-content-wrapper + .cms-rich-text-wrapper h2,
+.section.multitab-container .multitab-content > .default-content-wrapper + .cms-rich-text-wrapper h3,
+.section.multitab-container .multitab-content > .cms-rich-text-wrapper:has(+ .default-content-wrapper) h1,
+.section.multitab-container .multitab-content > .cms-rich-text-wrapper:has(+ .default-content-wrapper) h2,
+.section.multitab-container .multitab-content > .cms-rich-text-wrapper:has(+ .default-content-wrapper) h3 {
+    font-size: var(--heading-h400-size);
+    font-style: normal;
+    font-weight: var(--heading-h400-weight);
+    line-height: var(--heading-h400-line-height);
+    margin-bottom: var(--spacing-x-small);
+}
+
+/* Card title (first heading) has no top margin; subheadings get proper spacing */
+.section.multitab-container .multitab-content .cms-rich-text-wrapper h3:first-child {
+    margin-top: 0;
+}
+
+.section.multitab-container .multitab-content .cms-rich-text-wrapper h3:not(:first-child) {
+    margin-top: var(--spacing-large);
+}
+
+/* Center the card title (h3:first-child) inside ALL white cards in multitab.
+ * Subheadings deeper in content are :not(:first-child) so they stay left-aligned.
+ * Image-first ordering: */
+.section.multitab-container .multitab-content > .default-content-wrapper:has(picture) + .cms-rich-text-wrapper h3:first-child {
+    text-align: center;
+}
+
+/* Text-first ordering (reversed white card): */
+.section.multitab-container .multitab-content > .cms-rich-text-wrapper:has(+ .default-content-wrapper) h3:first-child {
+    text-align: center;
+}
+
+/* Outlined button styling for CTA links inside multitab white cards.
+ * Matches origin site's horizontal card buttons: white bg, dark border, dark text.
+ * EDS convention: bold-wrapped links (**[text](url)**) get class="button primary"
+ * from decorateButtons. CMS Rich Text merges Tailwind informative-link classes on
+ * top, so we need sufficient specificity to override those. */
+.section.multitab-container .multitab-content .button-container a.button.primary {
+    background-color: var(--color-background-brand-secondary-default, #fff);
+    color: var(--color-text-brand-secondary, #1b1b1b);
+    text-decoration: none;
+    border: 2px solid var(--color-border-brand-secondary-default, #1b1b1b);
+    border-radius: 32px;
+    padding: 0.5rem 1.5rem;
+    font-family: 'Red Hat Display', sans-serif;
+    font-weight: 600;
+    font-size: var(--paragraph-p200-size);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: background-color 0.2s, border-color 0.2s, color 0.2s;
+    cursor: pointer;
+}
+
+.section.multitab-container .multitab-content .button-container a.button.primary:hover {
+    background-color: var(--color-background-brand-secondary-hover, #e9e9e9);
+    border-color: var(--color-border-brand-secondary-default, #1b1b1b);
+    text-decoration: none;
+    color: var(--color-text-brand-secondary, #1b1b1b);
+}
+
+.section.multitab-container .multitab-content .button-container a.button.primary:active {
+    background-color: var(--color-background-brand-primary-default, #1b1b1b);
+    border-color: var(--color-background-brand-primary-default, #1b1b1b);
+    color: var(--color-text-brand-primary, #fff);
+}
+
+/* ul line-height inside accordion */
+.section.multitab-container .multitab-content ul {
+    line-height: var(--line-height-auto);
+}
+
+/* ul styles inside accordion */
+.section.multitab-container .multitab-content ul:not(.list-none) {
+    padding-left: var(--spacing-large);
+    margin: 0;
+    list-style: disc;
+}
+
+/* override first paragraph and ul margin inside accordion */
+.section.multitab-container .multitab-content p:first-child,
+.section.multitab-container .multitab-content .columns-text-col ul {
+    margin: 0;
+}
+
+/* override ul styles inside accordion */
+.section.multitab-container .multitab-content ul.list-style-none {
+    list-style: none !important; /* override default ul styles */
+}
+
+/* text styles inside accordion */
+.section.multitab-container .multitab-content .columns-text-col li,
+.section.multitab-container .multitab-content .columns-text-col p {
+    font-size: var(--paragraph-p200-size);
+    font-style: normal;
+    font-weight: var(--paragraph-p200-weight);
+    line-height: var(--paragraph-p200-line-height);
+    margin: 0;
+}
+
+/* link styles inside accordion */
+.section.multitab-container .multitab-content .columns-text-col a:any-link {
+    color: var(--link-color-secondary);
+    font-weight: 400;
+    line-height: 150%;
+    text-decoration-line: underline;
+    text-decoration-style: solid;
+    text-decoration-skip-ink: auto;
+    text-decoration-thickness: auto;
+    text-underline-offset: auto;
+    text-underline-position: from-font;
+    cursor: pointer;
+    pointer-events: auto;
+}
+
+/* override banner secondary important styles */
+.section.multitab-item.columns-container.cms-secondary-banner-container {
+    max-width: 1248px !important; /* override section styles */
+    margin: auto !important; /* override section styles */
+    padding: var(--spacing-x-x-large) var(--main-section-div-padding, var(--spacing-medium)) !important; /* override section styles */
+}
+
+/* override banner block margin inside multitab */
+.section.multitab-container .cms-secondary-banner-wrapper .cms-secondary-banner-wrapper .block {
+    margin: 0;
+}
+
+/* Hide original sections that have been converted to tabs
+   Use !important to override other display styles */
+.multitab-section-hidden {
+    display: none !important;
+    visibility: hidden !important;
+    height: 0 !important;
+    overflow: hidden !important;
+    position: absolute !important;
+    pointer-events: none !important;
+}
+
+/* Tab Panel Hidden State */
+.multitab-panel.hidden {
+    display: none;
+}
+
+/* ─── Grid layout support inside tab panels ────────────────────────────────
+ * Grid classes are moved from .section to .multitab-content in JS so the tab
+ * panel renders full-width while internal content still respects the grid
+ * preset configured via Section Metadata → Styles.
+ * Mirrors grid-layout.css but scoped to .multitab-content.
+ * ─────────────────────────────────────────────────────────────────────────── */
+.multitab-content:is(
+    .grid-12, .grid-6-6, .grid-6-6-reverse, .grid-4-8, .grid-4-8-reverse, .grid-8-4,
+    .grid-3-9, .grid-3-9-reverse, .grid-9-3, .grid-5-7, .grid-7-5,
+    .grid-2-10, .grid-10-2, .grid-1-11, .grid-11-1,
+    .grid-4-4-4, .grid-3-3-6, .grid-3-6-3, .grid-6-3-3,
+    .grid-2-5-5, .grid-5-2-5, .grid-5-5-2, .grid-3-3-3-3,
+    .grid-zigzag-4-8, .grid-zigzag-3-9,
+    .grid-repeat-4-8, .grid-repeat-8-4, .grid-repeat-6-6, .grid-repeat-3-9,
+    .grid-repeat-equal-4, .grid-repeat-equal-3, .grid-repeat-equal-6
+) {
+    --grid-layout-gap: 24px;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--grid-layout-gap);
+    align-items: var(--grid-layout-align-items, start);
+    justify-items: var(--grid-layout-justify-items, stretch);
+}
+
+.multitab-content:is(
+    .grid-12, .grid-6-6, .grid-6-6-reverse, .grid-4-8, .grid-4-8-reverse, .grid-8-4,
+    .grid-3-9, .grid-3-9-reverse, .grid-9-3, .grid-5-7, .grid-7-5,
+    .grid-2-10, .grid-10-2, .grid-1-11, .grid-11-1,
+    .grid-4-4-4, .grid-3-3-6, .grid-3-6-3, .grid-6-3-3,
+    .grid-2-5-5, .grid-5-2-5, .grid-5-5-2,
+    .grid-zigzag-4-8, .grid-zigzag-3-9,
+    .grid-repeat-4-8, .grid-repeat-8-4, .grid-repeat-6-6, .grid-repeat-3-9,
+    .grid-repeat-equal-4, .grid-repeat-equal-3, .grid-repeat-equal-6
+) > div {
+    min-width: 0;
+}
+
+/* Gap utilities */
+.multitab-content.grid-gap-none { --grid-layout-gap: 0; }
+.multitab-content.grid-gap-sm   { --grid-layout-gap: 12px; }
+.multitab-content.grid-gap-md   { --grid-layout-gap: 16px; }
+.multitab-content.grid-gap-lg   { --grid-layout-gap: 24px; }
+.multitab-content.grid-gap-xl   { --grid-layout-gap: 32px; }
+
+/* Alignment utilities */
+.multitab-content.grid-items-start   { --grid-layout-align-items: start; }
+.multitab-content.grid-items-center  { --grid-layout-align-items: center; }
+.multitab-content.grid-items-end     { --grid-layout-align-items: end; }
+.multitab-content.grid-items-stretch { --grid-layout-align-items: stretch; }
+
+.multitab-content.grid-justify-start   { --grid-layout-justify-items: start; }
+.multitab-content.grid-justify-center  { --grid-layout-justify-items: center; }
+.multitab-content.grid-justify-end     { --grid-layout-justify-items: end; }
+.multitab-content.grid-justify-stretch { --grid-layout-justify-items: stretch; }
+
+/* Column padding */
+.multitab-content.grid-col-pad-sm > div { padding: 12px; }
+.multitab-content.grid-col-pad-md > div { padding: 16px; }
+.multitab-content.grid-col-pad-lg > div { padding: 24px; }
+
+/* Desktop column spans (mirrors grid-layout.css @media min-width: 992px) */
+@media (width >= 992px) {
+    .multitab-content:is(
+        .grid-12, .grid-6-6, .grid-6-6-reverse, .grid-4-8, .grid-4-8-reverse, .grid-8-4,
+        .grid-3-9, .grid-3-9-reverse, .grid-9-3, .grid-5-7, .grid-7-5,
+        .grid-2-10, .grid-10-2, .grid-1-11, .grid-11-1,
+        .grid-4-4-4, .grid-3-3-6, .grid-3-6-3, .grid-6-3-3,
+        .grid-2-5-5, .grid-5-2-5, .grid-5-5-2, .grid-3-3-3-3,
+        .grid-zigzag-4-8, .grid-zigzag-3-9,
+        .grid-repeat-4-8, .grid-repeat-8-4, .grid-repeat-6-6, .grid-repeat-3-9,
+        .grid-repeat-equal-4, .grid-repeat-equal-3, .grid-repeat-equal-6
+    ) {
+        grid-template-columns: repeat(12, minmax(0, 1fr));
+    }
+
+    .multitab-content.grid-12 > div { grid-column: span 12; }
+
+    .multitab-content.grid-6-6 > div:nth-child(1) { grid-column: span 6; }
+    .multitab-content.grid-6-6 > div:nth-child(2) { grid-column: span 6; }
+    .multitab-content.grid-6-6-reverse > div:nth-child(1) { grid-column: 7 / span 6; grid-row: 1; }
+    .multitab-content.grid-6-6-reverse > div:nth-child(2) { grid-column: 1 / span 6; grid-row: 1; }
+
+    .multitab-content.grid-4-8 > div:nth-child(1) { grid-column: span 4; }
+    .multitab-content.grid-4-8 > div:nth-child(2) { grid-column: span 8; }
+    .multitab-content.grid-4-8-reverse > div:nth-child(1) { grid-column: 9 / span 4; grid-row: 1; }
+    .multitab-content.grid-4-8-reverse > div:nth-child(2) { grid-column: 1 / span 8; grid-row: 1; }
+
+    .multitab-content.grid-8-4 > div:nth-child(1) { grid-column: span 8; }
+    .multitab-content.grid-8-4 > div:nth-child(2) { grid-column: span 4; }
+
+    .multitab-content.grid-3-9 > div:nth-child(1) { grid-column: span 3; }
+    .multitab-content.grid-3-9 > div:nth-child(2) { grid-column: span 9; }
+    .multitab-content.grid-3-9-reverse > div:nth-child(1) { grid-column: 10 / span 3; grid-row: 1; }
+    .multitab-content.grid-3-9-reverse > div:nth-child(2) { grid-column: 1 / span 9; grid-row: 1; }
+
+    .multitab-content.grid-9-3 > div:nth-child(1) { grid-column: span 9; }
+    .multitab-content.grid-9-3 > div:nth-child(2) { grid-column: span 3; }
+
+    .multitab-content.grid-5-7 > div:nth-child(1) { grid-column: span 5; }
+    .multitab-content.grid-5-7 > div:nth-child(2) { grid-column: span 7; }
+
+    .multitab-content.grid-7-5 > div:nth-child(1) { grid-column: span 7; }
+    .multitab-content.grid-7-5 > div:nth-child(2) { grid-column: span 5; }
+
+    .multitab-content.grid-2-10 > div:nth-child(1) { grid-column: span 2; }
+    .multitab-content.grid-2-10 > div:nth-child(2) { grid-column: span 10; }
+
+    .multitab-content.grid-10-2 > div:nth-child(1) { grid-column: span 10; }
+    .multitab-content.grid-10-2 > div:nth-child(2) { grid-column: span 2; }
+
+    .multitab-content.grid-1-11 > div:nth-child(1) { grid-column: span 1; }
+    .multitab-content.grid-1-11 > div:nth-child(2) { grid-column: span 11; }
+
+    .multitab-content.grid-11-1 > div:nth-child(1) { grid-column: span 11; }
+    .multitab-content.grid-11-1 > div:nth-child(2) { grid-column: span 1; }
+
+    .multitab-content.grid-4-4-4 > div:nth-child(1) { grid-column: span 4; }
+    .multitab-content.grid-4-4-4 > div:nth-child(2) { grid-column: span 4; }
+    .multitab-content.grid-4-4-4 > div:nth-child(3) { grid-column: span 4; }
+
+    .multitab-content.grid-3-3-6 > div:nth-child(1) { grid-column: span 3; }
+    .multitab-content.grid-3-3-6 > div:nth-child(2) { grid-column: span 3; }
+    .multitab-content.grid-3-3-6 > div:nth-child(3) { grid-column: span 6; }
+
+    .multitab-content.grid-3-6-3 > div:nth-child(1) { grid-column: span 3; }
+    .multitab-content.grid-3-6-3 > div:nth-child(2) { grid-column: span 6; }
+    .multitab-content.grid-3-6-3 > div:nth-child(3) { grid-column: span 3; }
+
+    .multitab-content.grid-6-3-3 > div:nth-child(1) { grid-column: span 6; }
+    .multitab-content.grid-6-3-3 > div:nth-child(2) { grid-column: span 3; }
+    .multitab-content.grid-6-3-3 > div:nth-child(3) { grid-column: span 3; }
+
+    .multitab-content.grid-2-5-5 > div:nth-child(1) { grid-column: span 2; }
+    .multitab-content.grid-2-5-5 > div:nth-child(2) { grid-column: span 5; }
+    .multitab-content.grid-2-5-5 > div:nth-child(3) { grid-column: span 5; }
+
+    .multitab-content.grid-5-2-5 > div:nth-child(1) { grid-column: span 5; }
+    .multitab-content.grid-5-2-5 > div:nth-child(2) { grid-column: span 2; }
+    .multitab-content.grid-5-2-5 > div:nth-child(3) { grid-column: span 5; }
+
+    .multitab-content.grid-5-5-2 > div:nth-child(1) { grid-column: span 5; }
+    .multitab-content.grid-5-5-2 > div:nth-child(2) { grid-column: span 5; }
+    .multitab-content.grid-5-5-2 > div:nth-child(3) { grid-column: span 2; }
+
+    .multitab-content.grid-3-3-3-3 > div:nth-child(1) { grid-column: span 3; }
+    .multitab-content.grid-3-3-3-3 > div:nth-child(2) { grid-column: span 3; }
+    .multitab-content.grid-3-3-3-3 > div:nth-child(3) { grid-column: span 3; }
+    .multitab-content.grid-3-3-3-3 > div:nth-child(4) { grid-column: span 3; }
+
+    /* Extra children beyond preset count → full width row */
+    .multitab-content:is(
+        .grid-6-6, .grid-4-8, .grid-8-4,
+        .grid-3-9, .grid-9-3, .grid-5-7, .grid-7-5,
+        .grid-2-10, .grid-10-2, .grid-1-11, .grid-11-1
+    ) > div:nth-child(n+3),
+    .multitab-content:is(
+        .grid-4-4-4, .grid-3-3-6, .grid-3-6-3, .grid-6-3-3,
+        .grid-2-5-5, .grid-5-2-5, .grid-5-5-2
+    ) > div:nth-child(n+4) {
+        grid-column: 1 / -1;
+    }
+
+    /* ── Multi-pair composite grids ───────────────────────────────── */
+
+    /* Zig-zag 4-8: pairs alternate 4-8 / 8-4 / 4-8 / ... */
+    /* Zig-zag 4-8: pairs always image-first in HTML.
+       Odd pairs: image(4) left, text(8) right.
+       Even pairs: image(4) right, text(8) left (visual reversal via explicit columns).
+       grid-auto-flow:dense ensures items fill the correct row. */
+    .multitab-content.grid-zigzag-4-8 { grid-auto-flow: dense; }
+    .multitab-content.grid-zigzag-4-8 > :nth-child(4n+1) { grid-column: 1 / 5; }
+    .multitab-content.grid-zigzag-4-8 > :nth-child(4n+2) { grid-column: 5 / 13; }
+    .multitab-content.grid-zigzag-4-8 > :nth-child(4n+3) { grid-column: 9 / 13; }
+    .multitab-content.grid-zigzag-4-8 > :nth-child(4n)   { grid-column: 1 / 9; }
+
+    /* Zig-zag 3-9: same pattern with 3/9 columns */
+    .multitab-content.grid-zigzag-3-9 { grid-auto-flow: dense; }
+    .multitab-content.grid-zigzag-3-9 > :nth-child(4n+1) { grid-column: 1 / 4; }
+    .multitab-content.grid-zigzag-3-9 > :nth-child(4n+2) { grid-column: 4 / 13; }
+    .multitab-content.grid-zigzag-3-9 > :nth-child(4n+3) { grid-column: 10 / 13; }
+    .multitab-content.grid-zigzag-3-9 > :nth-child(4n)   { grid-column: 1 / 10; }
+
+    /* Zigzag: images fill stretched rows — full chain: wrapper > p > picture > img */
+    .section .multitab-content.grid-items-stretch:is(.grid-zigzag-4-8, .grid-zigzag-3-9) > .default-content-wrapper {
+      display: flex;
+      flex-direction: column;
+      padding: 0;
+    }
+
+    .multitab-content.grid-items-stretch:is(.grid-zigzag-4-8, .grid-zigzag-3-9) > .default-content-wrapper > p {
+      flex: 1;
+      margin: 0;
+      min-height: 0;
+      overflow: hidden;
+    }
+
+    .multitab-content.grid-items-stretch:is(.grid-zigzag-4-8, .grid-zigzag-3-9) picture,
+    .multitab-content.grid-items-stretch:is(.grid-zigzag-4-8, .grid-zigzag-3-9) img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    /* Repeat same ratio for all pairs */
+    .multitab-content.grid-repeat-4-8 > :nth-child(odd)  { grid-column: span 4; }
+    .multitab-content.grid-repeat-4-8 > :nth-child(even) { grid-column: span 8; }
+    .multitab-content.grid-repeat-8-4 > :nth-child(odd)  { grid-column: span 8; }
+    .multitab-content.grid-repeat-8-4 > :nth-child(even) { grid-column: span 4; }
+    .multitab-content.grid-repeat-6-6 > :nth-child(odd)  { grid-column: span 6; }
+    .multitab-content.grid-repeat-6-6 > :nth-child(even) { grid-column: span 6; }
+    .multitab-content.grid-repeat-3-9 > :nth-child(odd)  { grid-column: span 3; }
+    .multitab-content.grid-repeat-3-9 > :nth-child(even) { grid-column: span 9; }
+
+    /* Repeat equal-width columns (e.g. 3-col seats grid repeated) */
+    .multitab-content.grid-repeat-equal-4 > * { grid-column: span 4; }
+    .multitab-content.grid-repeat-equal-3 > * { grid-column: span 3; }
+    .multitab-content.grid-repeat-equal-6 > * { grid-column: span 6; }
+}
+
+/* Keyframe for Tailwind animate-[fadeIn_0.3s_ease-in-out] */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(8px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@media (max-width: 1024px) {
+    .section.multitab-container {
+        padding: 24px var(--main-section-div-padding, 16px);
+    }
+}
+
+/* Mobile tabs behavior (≤480px) */
+/* stylelint-disable-next-line media-feature-range-notation */
+@media (max-width: 1024px) {
+    /* Snap scroll for smooth mobile navigation with slower transition */
+    .multitab-container [role="tablist"] {
+        scroll-snap-type: x mandatory;
+        -webkit-overflow-scrolling: touch;
+        scroll-behavior: smooth;
+    }
+
+    /* Snap align tabs to start for precise positioning */
+    .multitab-container [role="tab"] {
+        scroll-snap-align: start;
+        scroll-snap-stop: always;
+    }
+
+    /* Reduce chevron size on mobile if present */
+    .multitab-container button[aria-label*="Scroll tabs"] {
+        width: 32px;
+        height: 32px;
+    }
+}

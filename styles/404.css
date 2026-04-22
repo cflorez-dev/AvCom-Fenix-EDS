@@ -1,0 +1,86 @@
+/* 404 Error Page Styling */
+
+body {
+  background-color: var(--color-background-mail-background-default-light);
+}
+
+.section.fragment-container {
+  margin-top: var(--margin-y-section, 9.253rem) !important;
+  margin-bottom: var(--margin-y-section, 9.253rem) !important;
+  max-width: 818px !important;
+  padding: 0 !important;
+  padding-inline: var(--padding-x-section, 16px) !important;
+}
+
+.section .default-content-wrapper picture {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 5rem;
+}
+
+.section .default-content-wrapper h1 {
+  color: #000000;
+  font-size: 32px;
+  font-weight: 700;
+  line-height: 42px;
+  margin: 0;
+  text-align: center;
+}
+
+.section .cms-rich-text-wrapper  p {
+  color: #000000;
+  font-size: 20px;
+  font-weight: 400;
+  line-height: 26px;
+  margin: 0;
+  text-align: center;
+}
+
+.section.cms-button-container {
+  display: flex;
+  justify-content: center;
+  gap: 24px;
+  margin: 0;
+}
+
+.fragment-wrapper > .section:not(:first-child):not(:last-child) {
+  margin-bottom: 24px;
+}
+
+.section.cms-button-container {
+  flex-direction: column;
+}
+
+.section.cms-button-container .cms-button-wrapper {
+  width: 100%;
+}
+
+.section.cms-button-container .cms-button-wrapper button{
+  width: 100%;
+}
+
+@media (width >= 480px) {
+    :root {
+        --padding-x-section: 0;
+    }
+
+    .section.cms-button-container {
+      flex-direction: row;
+    }
+
+    .section.cms-button-container .cms-button-wrapper {
+      width: auto;
+    }
+}
+ 
+@media (width >= 768px) {
+    :root {
+        --margin-y-section: 21.375rem;
+    }
+}
+
+@media (width >= 1248px) {
+    :root {
+        --margin-y-section: 10.90625rem;
+    }
+}

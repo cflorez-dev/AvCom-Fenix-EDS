@@ -1,0 +1,57 @@
+/* Spacing System (From Figma Design System) */
+
+:root {
+  /* Base Spacing Scale (rem based on 10px = 1rem) */
+  --spacing-tiny: 4px;         /* 4px */
+  --spacing-x-small: 8px;      /* 8px */
+  --spacing-small: 12px;        /* 12px */
+  --spacing-medium: 16px;       /* 16px */
+  --spacing-x-medium: 16px;     /* 16px */
+  --spacing-large: 20px;          /* 20px */
+  --spacing-x-large: 24px;      /* 24px */
+  --spacing-x-x-large: 32px;    /* 32px */
+  --spacing-huge: 32px;         /* 32px */
+  --spacing-x-huge: 48px;       /* 48px */
+  
+  /* Padding */
+  --padding-2: 2px;    /* 2px */
+  --padding-12: 12px;   /* 12px */
+  --padding-16: 16px;   /* 16px */
+  --padding-20: 20px;   /* 20px */
+  --padding-24: 24px;   /* 24px */
+  --padding-26: 26px;   /* 26px */
+  --padding-32: 32px;   /* 32px */
+  --padding-48: 48px;   /* 48px */
+  
+  /* Gaps */
+  --gap-4: 4px;        /* 4px */
+  --gap-8: 8px;        /* 8px */
+  --gap-12: 12px;       /* 12px */
+  --gap-20: 20px;         /* 20px */
+  --gap-24: 24px;       /* 24px */
+  --gap-32: 32px;       /* 32px */
+  
+  /* Border Radius */
+  --border-radius-small: 4px;      /* 4px */
+  --border-radius-medium: 12px;    /* 12px */
+  --border-radius-large: 16px;      /* 16px */
+  --border-radius-x-large: 32px;    /* 32px */
+  --border-radius-full: 9999px;
+  
+  /* Component Heights */
+  --height-32: 32px;      /* 32px */
+  --height-48: 48px;      /* 48px */
+  --height-52: 52px;      /* 52px */
+  --height-64: 64px;      /* 64px */
+  --height-promotion-card: 264px;  /* 264px - Altura fija de tarjetas de promoción */
+  
+  /* Max Widths / Container Sizes */
+  --max-width-content: 1248px;  /* Ancho máximo del contenido (header, marquesina content, etc.) */
+  
+  /* Shadow Properties */
+  --shadow-spread-none: 0;
+  --shadow-axis-none: 0;
+  --shadow-axis-medium: 2px;   /* 2px */
+  --shadow-blur-tiny: 6px;     /* 6px */
+  --shadow-blur-medium: 20px;     /* 20px */
+}

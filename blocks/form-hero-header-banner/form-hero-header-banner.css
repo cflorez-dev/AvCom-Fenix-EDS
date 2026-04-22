@@ -1,0 +1,39 @@
+/* Override section max-width to allow full-width hero banner */
+main > .section.form-hero-header-banner-container {
+    max-width: 100% !important;
+    width: 100% !important;
+    margin: 0 !important;
+    padding: var(--main-section-div-padding-form-hero-banner, 32px 16px);
+}
+
+/* Ensure block fills the wrapper */
+.form-hero-header-banner-wrapper > .form-hero-header-banner {
+    width: 100%;
+}
+
+/* Create stacking context so the component's z-[-1] hero image
+   stays within the block instead of going behind <main>'s background */
+.form-hero-header-banner .form-hero-header-banner-content {
+    isolation: isolate;
+}
+
+/* Ensure the form card takes its full 480px width on desktop,
+   not just shrink-wrapping to content in the flex justify-end layout */
+@media (min-width: 768px) {
+    .form-hero-header-banner .bg-white.overflow-auto {
+        width: 480px;
+    }
+}
+
+/* Tablet and desktop media queries */
+@media (width >= 1024px) {
+    :root {
+        --main-section-div-padding-form-hero-banner: 32px;
+    }
+}
+
+@media (width >= 1248px) {
+    :root {
+        --main-section-div-padding-form-hero-banner: 32px 0;
+    }
+}

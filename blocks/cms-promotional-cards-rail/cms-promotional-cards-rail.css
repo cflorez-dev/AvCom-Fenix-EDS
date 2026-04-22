@@ -1,0 +1,15 @@
+.section.cms-promotional-cards-rail-container {
+    padding-inline: var(--cms-promotional-cards-rail-padding);
+}
+
+@media (width <= 1247px) {
+    :root {
+        --cms-promotional-cards-rail-padding: 32px;
+    }
+}
+
+@media (width <= 768px) {
+    :root {
+        --cms-promotional-cards-rail-padding: 16px;
+    }
+}
