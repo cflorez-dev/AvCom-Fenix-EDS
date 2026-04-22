@@ -43,11 +43,15 @@ const getPageTitle = async (url) => {
       if (canonical !== requested) return '';
     }
 
-    // Prefer <title> (shorter/cleaner for breadcrumb display)
+    // Prefer nav-title (jcr:title — clean navigation label)
+    const navTitleMatch = text.match(/<meta[^>]+name="nav-title"[^>]+content="([^"]+)"/);
+    if (navTitleMatch) return navTitleMatch[1];
+
+    // Fallback to <title> (may include brand prefix from jcr:pageTitle)
     const titleMatch = text.match(/<title>([^<]+)<\/title>/);
     if (titleMatch) return titleMatch[1];
 
-    // Fallback to og:title
+    // Last resort: og:title
     const ogMatch = text.match(/<meta[^>]+property="og:title"[^>]+content="([^"]+)"/);
     if (ogMatch) return ogMatch[1];
   } catch (error) {
@@ -176,9 +180,11 @@ const buildBreadcrumbItems = async (pathname, customSlug = '') => {
     });
   }
 
-  // Add current page — prefer <title> over og:title for cleaner breadcrumb display.
+  // Add current page — prefer nav-title (jcr:title) for clean breadcrumb label.
   // customSlug (from block content) takes highest priority when present.
-  const currentTitle = document.title
+  const navTitle = document.querySelector('meta[name="nav-title"]')?.getAttribute('content');
+  const currentTitle = navTitle
+    || document.title
     || document.querySelector('meta[property="og:title"]')?.getAttribute('content');
   if (currentTitle && contentSegments.length > 0) {
     const label = customSlug && customSlug.trim() !== '' ? customSlug : currentTitle;
