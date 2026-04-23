@@ -6,7 +6,12 @@ import {
   fetchDestinationCountries,
   getCitiesByPos
 } from '../../scripts/services/hub-destination/hub-destination.service.js';
-import { getMainCityForCurrentPos, getStoredLanguage, getStoredCountry } from '../../scripts/services/header/language-country-selector.js';
+import {
+  getMainCityForCurrentPos,
+  getStoredLanguage,
+  getStoredCountry,
+  getIataCountryCode,
+} from '../../scripts/services/header/language-country-selector.js';
 
 /**
  * Hub Destinations Helper
@@ -287,7 +292,7 @@ function getRegionsForCity(city, language, originData, destinationsByRegionsData
 
 export const mapHubDestinationsData = async (i18n) => {
   try {
-    const country = getStoredCountry() || DEFAULT_COUNTRY;
+    const country = getIataCountryCode(getStoredCountry() || DEFAULT_COUNTRY);
     const language = safeLocale(getStoredLanguage()) || DEFAULT_LANGUAGE;
 
     const destinationData = [];
@@ -309,11 +314,15 @@ export const mapHubDestinationsData = async (i18n) => {
       fetchDestinationCountries(),
       getCitiesByPos(country)
     ]);
-    if (!citiesByPosData || citiesByPosData.length === 0) return { origins: [], defaultOriginCode: '' };
+    let resolvedCities = citiesByPosData;
+    if ((!resolvedCities || resolvedCities.length === 0) && country !== DEFAULT_COUNTRY) {
+      resolvedCities = await getCitiesByPos(DEFAULT_COUNTRY);
+    }
+    if (!resolvedCities || resolvedCities.length === 0) return { origins: [], defaultOriginCode: '' };
     if (!originData || originData.length === 0) return { origins: [], defaultOriginCode: '' };
     if (!regionsData || regionsData.length === 0) return { origins: [], defaultOriginCode: '' };
     if (!destinationsByRegionsData || destinationsByRegionsData.length === 0) return { origins: [], defaultOriginCode: '' };
-    const citiesData = citiesByPosData.map((city) => ({
+    const citiesData = resolvedCities.map((city) => ({
       label: city[`ciudad_${language}`] || city.ciudad,
       value: city.codigo_iata,
       cityCode: city.codigo_iata_ciudad || null,

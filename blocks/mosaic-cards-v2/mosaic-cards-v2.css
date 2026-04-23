@@ -1,14 +1,22 @@
 /* Mosaic Cards V2 - CSS Utilities */
 
-/* Marquee container - fixed height and overflow control */
+/* Marquee container - fixed height and overflow control.
+   Default overflow is visible so card hover-shadows are not clipped.
+   Carousel mode adds .is-carousel which clips horizontally only. */
 .mosaic-v2-container {
     position: relative;
     width: 100%;
     min-height: 400px;
-    overflow: hidden !important;
+    overflow: visible;
     box-sizing: border-box;
     opacity: 0;
     transition: opacity 0.3s ease-in-out;
+}
+
+/* Carousel mode: clip horizontally (hide off-screen slides) but allow
+   vertical overflow so card hover-shadows remain visible. */
+.mosaic-v2-container.is-carousel {
+    overflow: clip visible;
 }
 
 /* Show container after content is ready */
