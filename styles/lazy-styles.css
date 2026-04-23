@@ -1,12 +1,5 @@
 /* add global styles that can be loaded post LCP here */
 
-/* Smartvel trip planner: chips should size to their content, not 50% */
-.tplanner-gridChips-slider .swiper-slide {
-  flex: 0 0 auto !important;
-  width: auto !important;
-}
-
-.tplanner-gridChip {
-  display: inline-flex !important;
-  white-space: nowrap;
-}
+/* Smartvel widget styles removed — the widget renders inside Shadow DOM
+   and manages its own layout. Overriding its internal classes from our
+   stylesheet can cause unintended side-effects (e.g. column count). */
