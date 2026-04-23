@@ -43,13 +43,17 @@ const getPageTitle = async (url) => {
       if (canonical !== requested) return '';
     }
 
-    // Prefer og:title (clean jcr:title without brand prefix)
-    const ogMatch = text.match(/<meta[^>]+property="og:title"[^>]+content="([^"]+)"/);
-    if (ogMatch) return ogMatch[1];
+    // Prefer nav-title (jcr:title — clean navigation label)
+    const navTitleMatch = text.match(/<meta[^>]+name="nav-title"[^>]+content="([^"]+)"/);
+    if (navTitleMatch) return navTitleMatch[1];
 
-    // Fallback to <title>
+    // Fallback to <title> (may include brand prefix from jcr:pageTitle)
     const titleMatch = text.match(/<title>([^<]+)<\/title>/);
     if (titleMatch) return titleMatch[1];
+
+    // Last resort: og:title
+    const ogMatch = text.match(/<meta[^>]+property="og:title"[^>]+content="([^"]+)"/);
+    if (ogMatch) return ogMatch[1];
   } catch (error) {
     // eslint-disable-next-line no-console
     console.error('Error fetching page title:', error);
@@ -147,24 +151,41 @@ const buildBreadcrumbItems = async (pathname, customSlug = '') => {
   for (let i = 0; i < contentSegments.length - 1; i += 1) {
     const pathPart = contentSegments[i];
     const parentPath = contentSegments.slice(0, i + 1).join('/');
-    const url = `${window.location.origin}/${language}/${parentPath}`;
+    const defaultUrl = `${window.location.origin}/${language}/${parentPath}`;
 
-    /* eslint-disable-next-line no-await-in-loop */
-    const name = await getPageTitle(url)
-      || pathPart.replace(/-/g, ' ').replace(/\b\w/g, (l) => l.toUpperCase());
+    // Check for i18n overrides: breadcrumb.labels.{slug} and breadcrumb.urls.{slug}
+    const labelOverride = getI18nLabel(`breadcrumb.labels.${pathPart}`);
+    const urlOverride = getI18nLabel(`breadcrumb.urls.${pathPart}`);
+
+    let name;
+    let itemUrl;
+
+    if (labelOverride) {
+      name = labelOverride;
+      itemUrl = urlOverride
+        ? `${window.location.origin}/${language}/${urlOverride.replace(/^\//, '')}`
+        : defaultUrl;
+    } else {
+      /* eslint-disable-next-line no-await-in-loop */
+      name = await getPageTitle(defaultUrl)
+        || pathPart.replace(/-/g, ' ').replace(/\b\w/g, (l) => l.toUpperCase());
+      itemUrl = defaultUrl;
+    }
 
     items.push({
       label: name,
-      url,
+      url: itemUrl,
       isHome: false,
       isActive: false,
     });
   }
 
-  // Add current page — prefer og:title (jcr:title) over H1 because the visible
-  // heading may differ from the navigation title configured in AEM.
-  const ogTitle = document.querySelector('meta[property="og:title"]')?.getAttribute('content');
-  const currentTitle = ogTitle || document.title;
+  // Add current page — prefer nav-title (jcr:title) for clean breadcrumb label.
+  // customSlug (from block content) takes highest priority when present.
+  const navTitle = document.querySelector('meta[name="nav-title"]')?.getAttribute('content');
+  const currentTitle = navTitle
+    || document.title
+    || document.querySelector('meta[property="og:title"]')?.getAttribute('content');
   if (currentTitle && contentSegments.length > 0) {
     const label = customSlug && customSlug.trim() !== '' ? customSlug : currentTitle;
 

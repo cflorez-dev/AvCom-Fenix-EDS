@@ -288,6 +288,7 @@ export default async function decorate(block) {
   const needsClipWrapper = showArrows || autoplay;
   const carouselContainer = document.createElement('div');
   const containerClasses = ['mosaic-v2-container', 'section', 'hidden', 'md:block'];
+  if (enableCarouselMode) containerClasses.push('is-carousel');
   if (autoplay) containerClasses.push('is-autoplay');
   if (needsClipWrapper) containerClasses.push('has-nav-padding');
   carouselContainer.className = containerClasses.join(' ');
@@ -498,6 +499,41 @@ export default async function decorate(block) {
       showArrows,
       totalMosaics: mosaicSections.length,
     });
+  }
+
+  // Wait for async SVG icons to load inside rendered content before cloning DOM.
+  // SvgIcon (Preact) fetches SVGs via useEffect — cloneNode(true) would miss
+  // icons that haven't loaded yet because the clone is a static snapshot.
+  const waitForSvgIcons = (renderedEl, cards, maxWait = 2000) => new Promise((resolve) => {
+    let expectedCount = 0;
+    cards.forEach((card) => {
+      if (card.ctaIconBefore && card.ctaIconBefore !== 'none') expectedCount += 1;
+      if (card.ctaIconAfter && card.ctaIconAfter !== 'none') expectedCount += 1;
+    });
+    if (expectedCount === 0) { resolve(); return; }
+
+    const check = () => renderedEl.querySelectorAll('[data-name="linkButton"] svg').length >= expectedCount;
+    if (check()) { resolve(); return; }
+
+    const observer = new MutationObserver(() => {
+      if (check()) {
+        observer.disconnect();
+        resolve();
+      }
+    });
+    observer.observe(renderedEl, { childList: true, subtree: true });
+    setTimeout(() => { observer.disconnect(); resolve(); }, maxWait);
+  });
+
+  const iconWaitPromises = [];
+  mosaicSections.forEach((mosaicData) => {
+    const renderedContent = renderedContentMap.get(mosaicData.id);
+    if (renderedContent && mosaicData.cards && mosaicData.cards.length > 0) {
+      iconWaitPromises.push(waitForSvgIcons(renderedContent, mosaicData.cards));
+    }
+  });
+  if (iconWaitPromises.length > 0) {
+    await Promise.all(iconWaitPromises);
   }
 
   // Add each mosaic section as a slide or single item

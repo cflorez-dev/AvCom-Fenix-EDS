@@ -152,12 +152,14 @@ const COUNTRY_DATA = {
     flagFileName: 'spain-flag.svg',
     currencyCode: 'EUR',
     keyIso: 'eu',
+    iataCountryCode: 'es',
   },
   gbr: {
     label: 'Reino Unido',
     flagFileName: 'uk-flag.svg',
     currencyCode: 'GBP',
     keyIso: 'gb',
+    iataCountryCode: 'uk',
   },
   ury: {
     label: 'Uruguay',
@@ -711,6 +713,25 @@ export function mapIsoToCountryCode(isoCode) {
   }
 
   return null;
+}
+
+/**
+ * Resolve the IATA country code for a given POS ISO code.
+ * Uses the iataCountryCode field from the countries spreadsheet
+ * to bridge POS codes (e.g. 'eu') with iata.json pais values (e.g. 'ES').
+ * Falls back to the POS code itself when no explicit mapping exists.
+ * @param {string} posIso - POS ISO code from cookie (e.g., 'eu', 'gb', 'co')
+ * @returns {string} IATA country code (e.g., 'es', 'uk', 'co')
+ */
+export function getIataCountryCode(posIso) {
+  if (!posIso || typeof posIso !== 'string') return posIso;
+  const countryData = getCountryData();
+  const normalized = posIso.toLowerCase().trim();
+
+  const found = Object.values(countryData)
+    .find((data) => data.keyIso === normalized);
+
+  return found?.iataCountryCode || normalized;
 }
 
 /**
