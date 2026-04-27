@@ -1,6 +1,8 @@
 /* add global styles that can be loaded post LCP here */
 
-/* Smartvel trip planner: chips should size to their content, not 50% */
+/* Smartvel trip planner: chips should size to their content, not 50%.
+   These classes render in the light DOM (not Shadow DOM), so our
+   overrides are necessary to fix the chip layout in filter buttons. */
 .tplanner-gridChips-slider .swiper-slide {
   flex: 0 0 auto !important;
   width: auto !important;
