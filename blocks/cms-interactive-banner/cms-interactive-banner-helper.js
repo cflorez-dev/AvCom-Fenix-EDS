@@ -7,10 +7,15 @@
  * @param {string} imageUrl - Original image URL
  * @returns {string} Optimized image URL
  */
-function optimizeImageUrl(imageUrl) {
+function optimizeImageUrl(imageUrl, targetWidth) {
   if (!imageUrl) return imageUrl;
 
   let optimizedUrl = imageUrl;
+
+  // Adjust width for sharper rendering on high-DPI screens
+  if (targetWidth && optimizedUrl.includes('width=')) {
+    optimizedUrl = optimizedUrl.replace(/width=\d+/, `width=${targetWidth}`);
+  }
 
   if (optimizedUrl.includes('format=png')) {
     optimizedUrl = optimizedUrl.replace('format=png', 'format=webply');
@@ -173,9 +178,9 @@ export default function extractPanelData(section) {
     // Cell 3: Default Media (image/SVG)
     defaultMedia: getImageSrc(cells, 3),
     // Cell 4: Default Background Image (Desktop) - optimized
-    defaultBackgroundImage: optimizeImageUrl(getImageSrc(cells, defaultBgIndex)),
+    defaultBackgroundImage: optimizeImageUrl(getImageSrc(cells, defaultBgIndex), 2000),
     // Cell 5: Default Background Image (Mobile) - optimized
-    defaultBackgroundImageMobile: defaultBgMobileIndex !== null ? optimizeImageUrl(getImageSrc(cells, defaultBgMobileIndex)) : '',
+    defaultBackgroundImageMobile: defaultBgMobileIndex !== null ? optimizeImageUrl(getImageSrc(cells, defaultBgMobileIndex), 600) : '',
     // Cell 5 or 6: Interactive Description (richtext - may contain HTML)
     interactiveDescription: getHTML(cells, hasMobileImages ? 6 : 5),
     // Cell 6 or 7: Interactive Button Text
@@ -187,9 +192,9 @@ export default function extractPanelData(section) {
     // Cell 9 or 10: Interactive Overlay Background (CSS value)
     interactiveOverlayBackground: overlayBackground,
     // Cell 10/11 or 8/9: Interactive Background Image (Desktop) - optimized
-    interactiveBackgroundImage: optimizeImageUrl(getImageSrc(cells, interactiveBgIndex)),
+    interactiveBackgroundImage: optimizeImageUrl(getImageSrc(cells, interactiveBgIndex), 2000),
     // Cell 11/12 or 9/10: Interactive Background Image (Mobile) - optimized
-    interactiveBackgroundImageMobile: interactiveBgMobileIndex !== null ? optimizeImageUrl(getImageSrc(cells, interactiveBgMobileIndex)) : '',
+    interactiveBackgroundImageMobile: interactiveBgMobileIndex !== null ? optimizeImageUrl(getImageSrc(cells, interactiveBgMobileIndex), 600) : '',
     // Targeting fields
     'target-countries': getText(cells, targetCountriesIndex),
     'target-languages': getText(cells, targetLanguagesIndex),

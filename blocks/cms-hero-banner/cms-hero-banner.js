@@ -125,9 +125,10 @@ export default async function decorate(block) {
   };
 
   // Set background images for 3 sizes with fallback chain
-  const desktopBg = heroImageUrl(imagedesktop || imagetablet || imagemobile, '1248');
-  const tabletBg = heroImageUrl(imagetablet || imagedesktop, '1024');
-  const mobileBg = heroImageUrl(imagemobile || imagetablet || imagedesktop, '400');
+  // Widths are larger than the component to ensure sharp rendering on high-DPI screens
+  const desktopBg = heroImageUrl(imagedesktop || imagetablet || imagemobile, '2000');
+  const tabletBg = heroImageUrl(imagetablet || imagedesktop, '1200');
+  const mobileBg = heroImageUrl(imagemobile || imagetablet || imagedesktop, '600');
 
   block.style.setProperty('--hero-desktop', `url(${desktopBg})`);
   block.style.setProperty('--hero-tablet', `url(${tabletBg})`);
