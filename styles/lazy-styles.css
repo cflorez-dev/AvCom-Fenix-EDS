@@ -12,3 +12,14 @@
   display: inline-flex !important;
   white-space: nowrap;
 }
+
+/* Smartvel trip planner: 3-column card grid on desktop.
+   Smartvel's base CSS sets flex: 0 0 calc(50% - 8px) which forces 2 columns.
+   The Avianca custom CSS (avianca6.5.3v2.css) tries to fix this with
+   width: 33.333% !important but flex-basis takes precedence over width
+   in flexbox. Override flex-basis directly. */
+@media screen and (min-width: 64rem) {
+  .tplanner-item.tplanner-destinationItem {
+    flex: 0 0 calc(33.333% - 24px) !important;
+  }
+}
