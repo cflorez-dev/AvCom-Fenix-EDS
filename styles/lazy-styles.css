@@ -17,9 +17,11 @@
    Smartvel's base CSS sets flex: 0 0 calc(50% - 8px) which forces 2 columns.
    The Avianca custom CSS (avianca6.5.3v2.css) tries to fix this with
    width: 33.333% !important but flex-basis takes precedence over width
-   in flexbox. Override flex-basis directly. */
+   in flexbox. Override flex-basis directly.
+   min-width: 0 prevents card content from overflowing the flex-basis. */
 @media screen and (min-width: 64rem) {
   .tplanner-item.tplanner-destinationItem {
-    flex: 0 0 calc(33.333% - 24px) !important;
+    flex: 0 0 33.333% !important;
+    min-width: 0 !important;
   }
 }
