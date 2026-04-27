@@ -620,7 +620,7 @@ export const Destinations = ({
           data-lang=${language}
           data-destination=${destination?.iata || ''}
         ></smartvelcomponent>
-        <script src="https://cdn.smartvel.com/scripts/boot.min.js"></script>
+
       </div>
     </div>
   `;

@@ -24,12 +24,13 @@ section.section[data-section-type='hero-destinations-detail'] {
   }
 }
 
-/* Full-width section so Smartvel widget gets the same viewport width
-   as the Angular production site — needed for its 3-column grid. */
-main > .section.destination-details-container {
-  max-width: 100%;
-  padding-left: 0;
-  padding-right: 0;
+/* Desktop-only breakout: let the Smartvel widget span the full viewport
+   while keeping the rest of the section at the default 1248px max-width. */
+@media (min-width: 1248px) {
+  .destination-details .smartvel-section {
+    max-width: none;
+    margin-inline: calc(50% - 50vw);
+  }
 }
 
 .destination-details-container {
