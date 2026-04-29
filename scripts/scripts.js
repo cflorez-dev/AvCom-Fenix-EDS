@@ -23,6 +23,27 @@ import { showLoader } from './services/loader/loader.service.js';
  * Load OneTrust consent banner
  * Must load early to capture consent before other scripts
  */
+async function loadOneTrust() {
+  const {
+    isTrackingDisabled, isAuthorMode, ONETRUST_CONFIG,
+  } = await import('./martech-config.js');
+  if (isTrackingDisabled() || isAuthorMode()) return;
+
+  // Load OneTrust SDK
+  const script = document.createElement('script');
+  script.src = ONETRUST_CONFIG.scriptUrl;
+  script.type = 'text/javascript';
+  script.charset = 'UTF-8';
+  script.setAttribute('data-document-language', 'true');
+  script.setAttribute('data-domain-script', ONETRUST_CONFIG.domainScript);
+  document.head.appendChild(script);
+
+  // Define OptanonWrapper (required by OneTrust)
+  window.OptanonWrapper = function OptanonWrapper() {
+    // Dispatch event when consent changes
+    window.dispatchEvent(new CustomEvent('consent-updated'));
+  };
+}
 
 /**
  * Load Adobe Launch script based on environment.
@@ -679,7 +700,7 @@ async function loadEager(doc) {
     ]);
     if (!isAuthorMode()) {
       await gtmMartech.eager();
-      loadOneTrust();
+      //loadOneTrust();
       gtmMartech.lazy();
     }
   }
