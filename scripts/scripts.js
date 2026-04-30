@@ -700,7 +700,7 @@ async function loadEager(doc) {
     ]);
     if (!isAuthorMode()) {
       await gtmMartech.eager();
-      loadOneTrust();
+      //loadOneTrust();
       gtmMartech.lazy();
     }
   }
