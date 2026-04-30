@@ -1,6 +1,8 @@
 /* add global styles that can be loaded post LCP here */
 
-/* Smartvel trip planner: chips should size to their content, not 50% */
+/* Smartvel trip planner: chips should size to their content, not 50%.
+   These classes render in the light DOM (not Shadow DOM), so our
+   overrides are necessary to fix the chip layout in filter buttons. */
 .tplanner-gridChips-slider .swiper-slide {
   flex: 0 0 auto !important;
   width: auto !important;
@@ -9,4 +11,17 @@
 .tplanner-gridChip {
   display: inline-flex !important;
   white-space: nowrap;
+}
+
+/* Smartvel trip planner: 3-column card grid on desktop.
+   Smartvel's base CSS sets flex: 0 0 calc(50% - 8px) which forces 2 columns.
+   The Avianca custom CSS (avianca6.5.3v2.css) tries to fix this with
+   width: 33.333% !important but flex-basis takes precedence over width
+   in flexbox. Override flex-basis directly.
+   min-width: 0 prevents card content from overflowing the flex-basis. */
+@media screen and (min-width: 64rem) {
+  .tplanner-item.tplanner-destinationItem {
+    flex: 0 0 33.333% !important;
+    min-width: 0 !important;
+  }
 }

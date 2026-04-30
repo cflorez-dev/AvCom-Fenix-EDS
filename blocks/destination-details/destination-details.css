@@ -24,6 +24,9 @@ section.section[data-section-type='hero-destinations-detail'] {
   }
 }
 
+/* Smartvel section inherits the 1248px max-width from the parent section
+   so it stays aligned with the rest of the page content. */
+
 .destination-details-container {
   width: 100%;
 }

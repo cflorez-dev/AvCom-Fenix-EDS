@@ -66,10 +66,11 @@ export const SecondaryBanner = ({
   const [condorVectorSVG, setCondorVectorSVG] = useState(null);
 
   // State for button size based on screen width
-  const [buttonSize, setButtonSize] = useState('xs');
+  const initialWidth = typeof window !== 'undefined' ? window.innerWidth : 0;
+  const [buttonSize, setButtonSize] = useState(initialWidth < 1024 ? 'xs' : 'md');
 
   // State for detecting desktop viewport (>= 1024px)
-  const [isDesktop, setIsDesktop] = useState(false);
+  const [isDesktop, setIsDesktop] = useState(initialWidth >= 1024);
   const loadingMode = loading === 'eager' ? 'eager' : 'lazy';
   const imageDecoding = loadingMode === 'eager' ? 'sync' : 'async';
   const imageFetchPriority = loadingMode === 'eager' ? 'high' : 'low';
@@ -140,8 +141,10 @@ export const SecondaryBanner = ({
     if (!showCondor) {
       setCondorBgSVG(null);
       setCondorVectorSVG(null);
-      return;
+      return undefined;
     }
+
+    let cancelled = false;
 
     const loadCondorSVGs = async () => {
       try {
@@ -154,7 +157,14 @@ export const SecondaryBanner = ({
           ? `${basePath}/assets/logos/condor-vector-desktop.svg`
           : `${basePath}/assets/logos/condor-vector.svg`;
 
-        const bgSVG = await loadSVGIcon(bgPath);
+        // Load both SVGs in parallel to avoid sequential flash
+        const [bgSVG, vectorSVG] = await Promise.all([
+          loadSVGIcon(bgPath),
+          loadSVGIcon(vectorPath),
+        ]);
+
+        // Discard result if effect was re-triggered (e.g. resize during load)
+        if (cancelled) return;
 
         if (gradientColorStart && gradientColorEnd) {
           const svgNS = bgSVG.namespaceURI || 'http://www.w3.org/2000/svg';
@@ -175,11 +185,9 @@ export const SecondaryBanner = ({
             gradient.setAttribute('y2', '100%');
             defs.appendChild(gradient);
           } else {
-            // Clear existing stops
             gradient.innerHTML = '';
           }
 
-          // Create gradient stops
           const stop1 = ownerDoc.createElementNS(svgNS, 'stop');
           stop1.setAttribute('offset', '0%');
           stop1.setAttribute('stop-color', gradientColorStart);
@@ -190,33 +198,32 @@ export const SecondaryBanner = ({
           stop2.setAttribute('stop-color', gradientColorEnd);
           gradient.appendChild(stop2);
 
-          // Apply gradient to all paths
-          const paths = bgSVG.querySelectorAll('path');
-          paths.forEach((path) => {
+          const bgPaths = bgSVG.querySelectorAll('path');
+          bgPaths.forEach((path) => {
             path.setAttribute('fill', `url(#${gradientId})`);
             path.removeAttribute('style');
           });
         } else {
-          // Apply solid color
-          const paths = bgSVG.querySelectorAll('path');
+          const bgPaths = bgSVG.querySelectorAll('path');
           const solidColor = backgroundColor || '#1b1b1b';
-          paths.forEach((path) => {
+          bgPaths.forEach((path) => {
             path.setAttribute('fill', solidColor);
             path.setAttribute('style', `fill: ${solidColor};`);
           });
         }
         bgSVG.setAttribute('class', 'absolute top-0 right-0 min-[1024px]:right-[87px] min-[1024px]:h-[243px] min-[1024px]:w-auto');
-        setCondorBgSVG(bgSVG);
 
-        const vectorSVG = await loadSVGIcon(vectorPath);
         const strokeColor = condorStrokeColor || 'white';
-        const paths = vectorSVG.querySelectorAll('path');
-        paths.forEach((path) => {
+        const vectorPaths = vectorSVG.querySelectorAll('path');
+        vectorPaths.forEach((path) => {
           const strokeWidth = path.getAttribute('stroke-width') || '2';
           path.setAttribute('stroke', strokeColor);
           path.setAttribute('style', `fill: none; stroke: ${strokeColor}; stroke-width: ${strokeWidth};`);
         });
         vectorSVG.setAttribute('class', 'absolute top-0 right-[1px] min-[1024px]:h-[243px] min-[1024px]:w-auto');
+
+        // Set both SVGs atomically to prevent partial render
+        setCondorBgSVG(bgSVG);
         setCondorVectorSVG(vectorSVG);
       } catch (error) {
         // eslint-disable-next-line no-console
@@ -225,6 +232,8 @@ export const SecondaryBanner = ({
     };
 
     loadCondorSVGs();
+
+    return () => { cancelled = true; };
   }, [
     showCondor,
     basePath,

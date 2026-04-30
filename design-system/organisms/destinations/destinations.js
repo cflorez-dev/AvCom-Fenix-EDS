@@ -1,5 +1,5 @@
 import { h } from '@dropins/tools/preact.js';
-import { useState, useEffect } from '@dropins/tools/preact-hooks.js';
+import { useState, useEffect, useRef } from '@dropins/tools/preact-hooks.js';
 import htm from 'htm';
 import { resolveLocale } from '../../../scripts/utils/locale.js';
 import { fetchAEMData } from '../../../scripts/utils/aem-data.js';
@@ -453,20 +453,24 @@ export const Destinations = ({
     loadDestination();
   }, [slug, language, apiUrl]);
 
-  // Load Smartvel boot script
+  // Load Smartvel boot script only after data has loaded so that
+  // <smartvelcomponent> is already in the DOM when _init() runs.
+  const smartvelScriptLoaded = useRef(false);
   useEffect(() => {
+    if (loading || smartvelScriptLoaded.current) return undefined;
+    smartvelScriptLoaded.current = true;
+
     const script = document.createElement('script');
     script.src = 'https://cdn.smartvel.com/scripts/boot.min.js';
     script.async = true;
     document.body.appendChild(script);
 
     return () => {
-      // Cleanup script on unmount
       if (script.parentNode) {
         script.parentNode.removeChild(script);
       }
     };
-  }, []);
+  }, [loading]);
 
   // If data finished loading but there is no valid destination, unblock the loader immediately
   useEffect(() => {
@@ -620,7 +624,7 @@ export const Destinations = ({
           data-lang=${language}
           data-destination=${destination?.iata || ''}
         ></smartvelcomponent>
-        <script src="https://cdn.smartvel.com/scripts/boot.min.js"></script>
+
       </div>
     </div>
   `;
