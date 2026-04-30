@@ -3,10 +3,23 @@
  *
  * Servicio para gestión de pricing, validación de fechas y formateo.
  * Incluye cache en sessionStorage y lógica de categorización de precios.
+ *
+ * `getCheapestPrices` y `getCheapestPricesOutbound` operan como router: leen
+ * el feature flag `AV_APIM_DIRECT_MODE` y delegan a APIM directo (nuevo) o
+ * al proxy App Builder (extraído a `date-range-picker.proxy.service.js`).
+ * Ambos paths conviven indefinidamente, alternables desde AEM Author.
  */
 
 import { getStoredLanguage, getStoredCountry } from '../../../scripts/services/header/language-country-selector.js';
-import { fetchAEMData } from '../../../scripts/utils/aem-data.js';
+import { isApimDirectMode } from '../../../scripts/services/apim/apim-mode.js';
+import {
+  getCheapestPrices as getCheapestPricesDirect,
+  getCheapestPricesOutbound as getCheapestPricesOutboundDirect,
+} from '../../../scripts/services/apim/apim-client.service.js';
+import {
+  getCheapestPricesProxy,
+  getCheapestPricesOutboundProxy,
+} from './date-range-picker.proxy.service.js';
 
 // ========== CONSTANTES ==========
 
@@ -32,11 +45,6 @@ const CACHE_PREFIX = 'avianca_pricing';
  * @constant {number}
  */
 const CACHE_DURATION = 30 * 60 * 1000;
-
-const getEndpointUrl = async () => {
-  const config = await fetchAEMData('environment');
-  return config.data.find((item) => item.Key === 'AV_BOOKINGBOX_ENDPOINT')?.Text ?? '';
-};
 
 // ========== HELPERS DE FECHAS ==========
 
@@ -285,67 +293,9 @@ export function isDateDisabled(dateToCheck, options = {}) {
 // ========== CACHE MANAGEMENT ==========
 
 /**
- * Genera cache key para pricing
- * @param {string} tripType - 'RT' | 'OW'
- * @param {string} origin - Código IATA origen
- * @param {string} destination - Código IATA destino
- * @param {number} year - Año
- * @param {number} month - Mes (0-11)
- * @param {string} outboundDate - Fecha ida (ISO string, opcional para return)
- * @returns {string} Cache key
- */
-function getCacheKey(tripType, origin, destination, year, month, outboundDate = null) {
-  const baseKey = `${CACHE_PREFIX}_${tripType}_${origin}_${destination}_${year}_${month}`;
-  return outboundDate ? `${baseKey}_${outboundDate}` : baseKey;
-}
-
-/**
- * Obtiene datos del cache si están vigentes
- * @param {string} cacheKey - Key del cache
- * @returns {Object|null} Datos cacheados o null
- */
-function getFromCache(cacheKey) {
-  try {
-    const cached = sessionStorage.getItem(cacheKey);
-    if (!cached) return null;
-
-    const { data, timestamp } = JSON.parse(cached);
-    const now = Date.now();
-
-    // Verificar si cache expiró
-    if (now - timestamp > CACHE_DURATION) {
-      sessionStorage.removeItem(cacheKey);
-      return null;
-    }
-
-    return data;
-  } catch (error) {
-    console.error('Error reading cache:', error);
-    return null;
-  }
-}
-
-/**
- * Guarda datos en cache
- * @param {string} cacheKey - Key del cache
- * @param {Object} data - Datos a cachear
- */
-function saveToCache(cacheKey, data) {
-  try {
-    sessionStorage.setItem(
-      cacheKey,
-      JSON.stringify({
-        data,
-        timestamp: Date.now(),
-      }),
-    );
-  } catch (error) {
-    console.error('Error saving to cache:', error);
-  }
-}
-
-/**
- * Limpia cache de pricing (útil para testing)
+ * Limpia cache de pricing (útil para testing).
+ * Borra todas las llaves del sessionStorage que empiezan con CACHE_PREFIX,
+ * sin importar si las puso el path proxy o el path APIM directo.
  */
 export function clearPricingCache() {
   try {
@@ -360,13 +310,37 @@ export function clearPricingCache() {
   }
 }
 
-function formatDateKey(dateString) {
-  return dateString.split('T')[0];
-}
+const getCacheKey = (tripType, origin, destination, year, month, outboundDate = null) => {
+  const baseKey = `${CACHE_PREFIX}_${tripType}_${origin}_${destination}_${year}_${month}`;
+  return outboundDate ? `${baseKey}_${outboundDate}` : baseKey;
+};
 
-function formatDateCompact(dateString) {
-  return dateString.replace(/-/g, '');
-}
+const getFromCache = (cacheKey) => {
+  try {
+    const cached = sessionStorage.getItem(cacheKey);
+    if (!cached) return null;
+    const { data, timestamp } = JSON.parse(cached);
+    if (Date.now() - timestamp > CACHE_DURATION) {
+      sessionStorage.removeItem(cacheKey);
+      return null;
+    }
+    return data;
+  } catch (error) {
+    console.error('Error reading cache:', error);
+    return null;
+  }
+};
+
+const saveToCache = (cacheKey, data) => {
+  try {
+    sessionStorage.setItem(cacheKey, JSON.stringify({ data, timestamp: Date.now() }));
+  } catch (error) {
+    console.error('Error saving to cache:', error);
+  }
+};
+
+const formatDateKey = (dateString) => dateString.split('T')[0];
+const formatDateCompact = (dateString) => dateString.replace(/-/g, '');
 
 // ========== PRICING API ==========
 
@@ -390,156 +364,123 @@ function formatDateCompact(dateString) {
  * });
  * // { '2026-01-15': 450000, '2026-01-16': 500000, ... }
  */
-export async function getCheapestPrices({
-  origin,
-  destination,
-  year,
-  month,
-  tripType = 'RT',
-}) {
-  // Validar params
-  if (!origin || !destination || year == null || month == null) {
-    throw new Error('Missing required parameters: origin, destination, year, month');
-  }
-
-  // Check cache
+/**
+ * Path APIM directo para getCheapestPrices: valida cache, llama APIM,
+ * normaliza response, guarda en cache. Cache key/shape compatibles con el
+ * proxy (compartidos via CACHE_PREFIX).
+ */
+const fetchCheapestPricesDirect = async ({
+  origin, destination, year, month, tripType = 'RT',
+}) => {
   const cacheKey = getCacheKey(tripType, origin, destination, year, month);
   const cached = getFromCache(cacheKey);
-  if (cached) {
-    return cached;
-  }
-  const endPoint = await getEndpointUrl();
-  if (!endPoint) {
-    return {};
-  }
+  if (cached) return cached;
 
   try {
-    const response = await fetch(endPoint, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        action: 'getCheapestPrices',
-        originCityCode: origin,
-        destinationCityCode: destination,
-        year,
-        month: month + 1, // API espera 1-12
-        tripType,
-        pos: getStoredCountry() || 'CO',
-      }),
+    const data = await getCheapestPricesDirect({
+      tripType,
+      originCityCode: origin,
+      destinationCityCode: destination,
+      pos: getStoredCountry() || 'CO',
+      month: month + 1,
+      year,
     });
+    const daysPrices = data?.data?.journeyPrices?.[0]?.daysPrices
+      || data?.journeyPrices?.[0]?.daysPrices
+      || data?.daysPrices
+      || [];
+    if (!daysPrices.length) return {};
 
-    if (!response.ok) {
-      throw new Error(`Pricing API error: ${response.status}`);
-    }
-
-    const data = await response.json();
-
-    if (!data?.success) {
-      return {};
-    }
-
-    const daysPrices = data.data.journeyPrices?.[0]?.daysPrices || {};
-    // Normalizar data: { 'YYYY-MM-DD': price }
     const normalized = {};
-    if (!daysPrices.length) {
-      return {};
-    }
     daysPrices.forEach((dayPrice) => {
       normalized[formatDateKey(dayPrice.date)] = dayPrice;
     });
-
-    // Save to cache
     saveToCache(cacheKey, normalized);
-
     return normalized;
   } catch (error) {
-    console.error('Error fetching cheapest prices:', error);
+    console.error('Error fetching cheapest prices (APIM direct):', error);
     return {};
   }
-}
+};
+
+const fetchCheapestPricesOutboundDirect = async ({
+  origin, destination, outboundDate, year, month,
+}) => {
+  const cacheKey = getCacheKey('RT', origin, destination, year, month, outboundDate);
+  const cached = getFromCache(cacheKey);
+  if (cached) return cached;
+
+  try {
+    const data = await getCheapestPricesOutboundDirect({
+      tripType: 'RT',
+      originCityCode: origin,
+      destinationCityCode: destination,
+      pos: getStoredCountry() || 'CO',
+      month: month + 1,
+      year,
+      outboundDate: formatDateCompact(outboundDate),
+    });
+    const daysPrices = data?.data?.journeyPrices?.[0]?.daysPrices
+      || data?.journeyPrices?.[0]?.daysPrices
+      || [];
+    if (!daysPrices.length) return {};
+
+    const normalized = {};
+    daysPrices.forEach((dayPrice) => {
+      normalized[formatDateKey(dayPrice.date)] = dayPrice;
+    });
+    saveToCache(cacheKey, normalized);
+    return normalized;
+  } catch (error) {
+    console.error('Error fetching return prices (APIM direct):', error);
+    return {};
+  }
+};
 
 /**
- * Fetch de precios de vuelos de regreso (solo para RT)
+ * Fetch de precios más baratos por mes para vuelos de ida.
+ * Router: delega a APIM directo o al proxy según el flag AV_APIM_DIRECT_MODE.
+ *
  * @param {Object} params - Parámetros de búsqueda
  * @param {string} params.origin - Código IATA origen
  * @param {string} params.destination - Código IATA destino
- * @param {string} params.outboundDate - Fecha ida (ISO string YYYY-MM-DD)
+ * @param {number} params.year - Año
+ * @param {number} params.month - Mes (0-11)
+ * @param {string} params.tripType - 'RT' | 'OW'
+ * @returns {Promise<Object>} Mapa { 'YYYY-MM-DD': dayPrice }
+ */
+export async function getCheapestPrices(params) {
+  const {
+    origin, destination, year, month,
+  } = params;
+  if (!origin || !destination || year == null || month == null) {
+    throw new Error('Missing required parameters: origin, destination, year, month');
+  }
+  if (await isApimDirectMode()) return fetchCheapestPricesDirect(params);
+  return getCheapestPricesProxy(params);
+}
+
+/**
+ * Fetch de precios de vuelos de regreso (solo RT).
+ * Router: delega a APIM directo o al proxy según el flag AV_APIM_DIRECT_MODE.
+ *
+ * @param {Object} params - Parámetros de búsqueda
+ * @param {string} params.origin - Código IATA origen
+ * @param {string} params.destination - Código IATA destino
+ * @param {string} params.outboundDate - Fecha ida (YYYY-MM-DD)
  * @param {number} params.year - Año del mes de regreso
  * @param {number} params.month - Mes de regreso (0-11)
- * @returns {Promise<Object>} Objeto con pricing por fecha
+ * @returns {Promise<Object>} Mapa { 'YYYY-MM-DD': dayPrice }
  */
-export async function getCheapestPricesOutbound({
-  origin,
-  destination,
-  outboundDate,
-  year,
-  month,
-}) {
-  // Validar params
+export async function getCheapestPricesOutbound(params) {
+  const {
+    origin, destination, outboundDate, year, month,
+  } = params;
   if (!origin || !destination || !outboundDate || year == null || month == null) {
     throw new Error('Missing required parameters: origin, destination, outboundDate, year, month');
   }
-
-  // Check cache
-  const cacheKey = getCacheKey('RT', origin, destination, year, month, outboundDate);
-  const cached = getFromCache(cacheKey);
-  if (cached) {
-    return cached;
-  }
-
-  const endPoint = await getEndpointUrl();
-  if (!endPoint) {
-    return {};
-  }
-
-  try {
-    const response = await fetch(endPoint, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        action: 'getCheapestPricesOutbound',
-        originCityCode: origin,
-        destinationCityCode: destination,
-        pos: getStoredCountry() || 'CO',
-        outboundDate: formatDateCompact(outboundDate),
-        year,
-        month: month + 1, // API espera 1-12
-        tripType: 'RT',
-      }),
-    });
-
-    if (!response.ok) {
-      throw new Error(`Pricing API error: ${response.status}`);
-    }
-
-    const data = await response.json();
-
-    if (!data?.success) {
-      return {};
-    }
-
-    const daysPrices = data.data?.daysPrices || {};
-    if (!daysPrices.length) {
-      return {};
-    }
-    // Normalizar data: { 'YYYY-MM-DD': price }
-    const normalized = {};
-    daysPrices.forEach((dayPrice) => {
-      normalized[formatDateKey(dayPrice.date)] = dayPrice;
-    });
-
-    // Save to cache
-    saveToCache(cacheKey, normalized);
-
-    return normalized;
-  } catch (error) {
-    console.error('Error fetching return prices:', error);
-    return {};
-  }
+  if (await isApimDirectMode()) return fetchCheapestPricesOutboundDirect(params);
+  return getCheapestPricesOutboundProxy(params);
 }
 
 /**
