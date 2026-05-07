@@ -6,7 +6,15 @@ import { SwapButton } from '../../atoms/swap-button/swap-button.js';
 import {
   fetchCities,
   getDefaultOriginAiata,
+  findDefaultOriginCity,
+  resolveNextDestination,
 } from './origin-destination-selector.service.js';
+import {
+  GEO_NEAREST_AIRPORT_REFRESHED_EVENT,
+  SET_BOOKING_DESTINATION_EVENT,
+  persistUserOriginSelection,
+  clearUserOriginSelection,
+} from '../../../scripts/utils/event-constants.js';
 
 const html = htm.bind(h);
 
@@ -136,7 +144,7 @@ export const OriginDestinationSelector = ({
         setFetchedCities(cities);
 
         if (defaultOriginAiata && cities.length) {
-          const defaultOrigin = cities.find((city) => city.iataCityCode === defaultOriginAiata);
+          const defaultOrigin = findDefaultOriginCity(cities, defaultOriginAiata);
 
           if (defaultOrigin && onRouteChange) {
             onRouteChange({ origin: defaultOrigin, destination: null });
@@ -152,6 +160,28 @@ export const OriginDestinationSelector = ({
 
     loadCities();
   }, []); // Load only once on mount
+
+  // Late-grant refresh: when W3C geolocation resolves after the lazy phase
+  // (user accepted the prompt post-render), re-evaluate the default origin
+  // so the booking box reflects the newly-detected nearest airport without
+  // requiring a page reload.
+  useEffect(() => {
+    const handleRefresh = async () => {
+      if (!fetchedCities.length) return;
+      try {
+        const newOriginAiata = await getDefaultOriginAiata();
+        if (!newOriginAiata) return;
+        const newOrigin = findDefaultOriginCity(fetchedCities, newOriginAiata);
+        if (newOrigin && onRouteChange) {
+          onRouteChange({ origin: newOrigin, destination: null });
+        }
+      } catch (_) { /* swallow — best-effort refresh */ }
+    };
+    window.addEventListener(GEO_NEAREST_AIRPORT_REFRESHED_EVENT, handleRefresh);
+    return () => {
+      window.removeEventListener(GEO_NEAREST_AIRPORT_REFRESHED_EVENT, handleRefresh);
+    };
+  }, [fetchedCities, onRouteChange]);
 
   // Load destinations when origin changes
   useEffect(() => {
@@ -189,13 +219,31 @@ export const OriginDestinationSelector = ({
 
   // Handler for origin selection
   const handleOriginSelect = useCallback((city) => {
+    // PBI CU-189 CA4 regla 3: al cambiar de origen teniendo un destino, el destino
+    // se limpia (el useEffect de `origin` recalcula las opciones disponibles).
+    const nextDestination = resolveNextDestination(origin, city, destination);
+
+    // PBI 1216373 rule 6.5 ("Usuario elige origen EN BOOKING BOX"):
+    // the Booking Box is the ONE module authorized to persist the user's origin
+    // choice into sessionStorage so it survives reloads and is read back as the
+    // top-priority source by `getDefaultOriginAiata`. Clear the persisted entry
+    // if the selection is empty so a stale value doesn't stick around.
+    if (city?.iataCityCode) {
+      persistUserOriginSelection({
+        originIataCode: city.iataCityCode,
+        originName: city.name || '',
+      });
+    } else {
+      clearUserOriginSelection();
+    }
+
     if (onRouteChange) {
-      onRouteChange({ origin: city, destination });
+      onRouteChange({ origin: city, destination: nextDestination });
     }
 
     // If route becomes complete → notify completion
-    if (city && destination && onRouteComplete) {
-      onRouteComplete({ origin: city, destination });
+    if (city && nextDestination && onRouteComplete) {
+      onRouteComplete({ origin: city, destination: nextDestination });
     }
 
     // Auto-open destination (if autoOpenNext)
@@ -203,7 +251,7 @@ export const OriginDestinationSelector = ({
       handleStepChange('destination');
     }
     // DO NOT close if no auto-open - let BookingBox control the flow
-  }, [onRouteChange, onRouteComplete, destination, autoOpenNext, handleStepChange]);
+  }, [origin, onRouteChange, onRouteComplete, destination, autoOpenNext, handleStepChange]);
 
   // Handler for destination selection
   const handleDestinationSelect = useCallback((city) => {
@@ -221,6 +269,49 @@ export const OriginDestinationSelector = ({
     // DO NOT close automatically - let BookingBox control the flow
     // BookingBox will open 'dates' if route is complete
   }, [onRouteChange, onRouteComplete, origin]);
+
+  // Listener: external request to set the destination from a promotional card.
+  // Replaces the previous behavior of redirecting to a destination landing page.
+  // The card click dispatches `SET_BOOKING_DESTINATION_EVENT` with an IATA code;
+  // we resolve it against the cities we already loaded and reuse the same
+  // selection handler the user would trigger manually.
+  useEffect(() => {
+    const handleSetDestination = (event) => {
+      const { iataCode } = event.detail || {};
+      if (!iataCode) return;
+      const target = iataCode.toUpperCase();
+
+      // Prefer destinations valid for the current origin; fall back to the
+      // full city list if the origin filter hasn't been applied yet.
+      const pool = filteredDestinations.length ? filteredDestinations : fetchedCities;
+      if (!pool.length) return;
+
+      const matched = pool.find(
+        (c) => c.iataCityCode?.toUpperCase() === target
+          || c.iataTerminal?.toUpperCase() === target,
+      );
+      if (!matched) return;
+
+      handleDestinationSelect(matched);
+
+      if (typeof document === 'undefined' || typeof window === 'undefined') return;
+
+      // On desktop the booking box collapses into a sticky/fixed compact
+      // bar once the user scrolls past it; only the origin/destination row
+      // stays visible there. Scrolling back to the top of the page brings
+      // the booking box to its expanded layout (origin, destination,
+      // dates, passengers, search button) so the user lands on a full
+      // form ready to submit.
+      const reduceMotion = typeof window.matchMedia === 'function'
+        && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      window.scrollTo({ top: 0, behavior: reduceMotion ? 'auto' : 'smooth' });
+    };
+
+    window.addEventListener(SET_BOOKING_DESTINATION_EVENT, handleSetDestination);
+    return () => {
+      window.removeEventListener(SET_BOOKING_DESTINATION_EVENT, handleSetDestination);
+    };
+  }, [filteredDestinations, fetchedCities, handleDestinationSelect]);
 
   // Handler for swap
   const handleSwap = useCallback(() => {

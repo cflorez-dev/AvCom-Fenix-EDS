@@ -28,12 +28,14 @@
 <link rel="dns-prefetch" href="https://cdn.jsdelivr.net"/>
 <link rel="dns-prefetch" href="https://avianca-help.centribal.com"/>
 
-<!-- Favicon — cross-browser & cross-device -->
-<link rel="icon" href="/favicon.svg" type="image/svg+xml"/>
-<link rel="icon" href="/favicon.ico" sizes="48x48"/>
-<link rel="apple-touch-icon" href="/apple-touch-icon.png"/>
-<link rel="icon" type="image/png" sizes="192x192" href="/favicon-192.png"/>
-<link rel="icon" type="image/png" sizes="512x512" href="/favicon-512.png"/>
+<!-- Preload POS/Languages catalogs so they arrive in parallel with scripts.js
+     (read by language-country-selector, geolocation, and locale resolution).
+     `crossorigin="anonymous"` matches the `fetch()` default credentials mode
+     (`same-origin`). Without it the browser keeps the preload in a separate
+     cache entry (credentials-include) and re-issues the request, triggering
+     "preload not used" warnings. -->
+<link rel="preload" as="fetch" crossorigin="anonymous" href="/countireslist.json"/>
+<link rel="preload" as="fetch" crossorigin="anonymous" href="/languageslist.json"/>
 
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
 
@@ -46,8 +48,8 @@
 <link rel="stylesheet" href="/styles/sections.css" />
 
 <!-- Centribal -->
-<link rel="stylesheet" href="https://avianca-help.centribal.com/api/v1/recaptcha-css/" />
-<script nonce="aem" src="https://avianca-help.centribal.com/api/v1/recaptcha-jsx/"></script>
+<!-- <link rel="stylesheet" href="https://avianca-help.centribal.com/api/v1/recaptcha-css/" />
+<script nonce="aem" src="https://avianca-help.centribal.com/api/v1/recaptcha-jsx/"></script> -->
 
 <!-- Early LCP preload: detect the cms-background-image block as the HTML
      parser builds the DOM and inject a <link rel="preload"> for the

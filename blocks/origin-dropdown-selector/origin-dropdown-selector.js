@@ -1,7 +1,10 @@
 import { h, render } from '@dropins/tools/preact.js';
 import htm from 'htm';
 import { HeadingDropdownSelector } from '../../design-system/molecules/heading-dropdown-selector/heading-dropdown-selector.js';
-import { dispatchCityFromOriginDropdownEvent } from '../../scripts/utils/event-constants.js';
+import {
+  dispatchCityFromOriginDropdownEvent,
+  GEO_NEAREST_AIRPORT_REFRESHED_EVENT,
+} from '../../scripts/utils/event-constants.js';
 import { fetchAEMData } from '../../scripts/utils/aem-data.js';
 import { getMainCityForCurrentPos } from '../../scripts/services/header/language-country-selector.js';
 
@@ -26,6 +29,34 @@ function getCountryFromCookie() {
     console.error('Error reading selected-country cookie:', error);
   }
   return 'co'; // Default country
+}
+
+/**
+ * Read the nearest-airport hint persisted by `resolvePOS()` (T04).
+ * Present only when the user's W3C geolocation resolved to a POS that
+ * matches their cookie (no conflict). Used as the top-priority origin
+ * pre-fill before falling back to the POS mainCity.
+ * @param {string} posCode - Current cookie POS ISO
+ * @returns {string|null} IATA city code or null
+ */
+function getNearestAirportForCurrentPos(posCode) {
+  try {
+    const raw = typeof sessionStorage !== 'undefined'
+      ? sessionStorage.getItem('geo-nearest-airport')
+      : null;
+    if (!raw) return null;
+    const airport = JSON.parse(raw);
+    // Safety: only honor the hint if its country matches the active POS.
+    // Protects against stale hints after the user changes POS manually.
+    const hintCountry = (airport?.iataCountryCode || '').toLowerCase();
+    const active = (posCode || '').toLowerCase();
+    if (hintCountry && hintCountry !== active && !(hintCountry === 'uk' && active === 'gb')) {
+      return null;
+    }
+    return airport?.iataCityCode || null;
+  } catch (error) {
+    return null;
+  }
 }
 
 /**
@@ -69,19 +100,30 @@ async function loadCitiesFromBriefofertas(posCode) {
       (oferta) => oferta.PosCode?.toLowerCase() === posCode.toLowerCase(),
     );
 
-    // Extract unique cities from Origin field
+    // Extract unique cities from Origin field, deduplicating by city name.
+    // Several IATA terminals may map to the same city (BUE → AEP + EZE,
+    // NYC → JFK + LGA + EWR, etc.); they all resolve to the same `cityName`
+    // via the `iata` spreadsheet, so we collapse them under a single key.
+    //
+    // When multiple terminals share a city, the alphabetically lowest IATA
+    // wins (AEP < BUE < EZE → AEP for Buenos Aires). This is the same rule
+    // PBI 1216373 applies in `findDefaultOriginCity` for the Booking Box,
+    // so the rail behaves consistently with the rest of the page. Picking
+    // a real terminal (vs. a city code like BUE that has no offers in
+    // `briefofertas`) also guarantees the cards rail still has rows to
+    // render after filtering by Origin.
     const citiesMap = new Map();
     ofertas.forEach((oferta) => {
-      if (oferta.Origin) {
-        const iataCode = oferta.Origin.trim().toUpperCase();
-        if (!citiesMap.has(iataCode)) {
-          // Use getCityNameFromIata to get city name
-          const cityName = getCityNameFromIata(iataCode);
-          citiesMap.set(iataCode, {
-            label: cityName,
-            value: iataCode,
-          });
-        }
+      if (!oferta.Origin) return;
+      const iataCode = oferta.Origin.trim().toUpperCase();
+      const cityName = getCityNameFromIata(iataCode);
+      const key = (cityName || iataCode).toLowerCase();
+      const existing = citiesMap.get(key);
+      if (!existing || iataCode.localeCompare(existing.value) < 0) {
+        citiesMap.set(key, {
+          label: cityName,
+          value: iataCode,
+        });
       }
     });
 
@@ -110,7 +152,8 @@ export default function decorate(block) {
       child.style.display = 'none';
     });
 
-    // Priority: authored default (if valid) > POS main city > first city in list
+    // Priority: geo nearest > authored default > POS main city > first city
+    // PBI: "fuente única de verdad: servicio central de resolución"
     let mainCityCode = await getMainCityForCurrentPos();
     if (authoredDefault) {
       const authoredMatch = cities.find(
@@ -118,6 +161,8 @@ export default function decorate(block) {
       );
       if (authoredMatch) mainCityCode = authoredDefault;
     }
+    const nearestAirport = getNearestAirportForCurrentPos(posCode);
+    if (nearestAirport) mainCityCode = nearestAirport;
 
     let defaultCity = cities[0]; // Fallback to first city
     const foundCity = cities.find(
@@ -170,7 +215,8 @@ export default function decorate(block) {
       return;
     }
 
-    // Priority: authored default (if valid) > POS main city > first city in list
+    // Priority: geo nearest > authored default > POS main city > first city
+    // PBI: "fuente única de verdad: servicio central de resolución"
     let mainCityCode = await getMainCityForCurrentPos();
     if (authoredDefault) {
       const authoredMatch = finalCities.find(
@@ -178,6 +224,8 @@ export default function decorate(block) {
       );
       if (authoredMatch) mainCityCode = authoredDefault;
     }
+    const nearestAirport = getNearestAirportForCurrentPos(posCode);
+    if (nearestAirport) mainCityCode = nearestAirport;
 
     let defaultCity = finalCities[0]; // Fallback to first city
     const foundCity = finalCities.find(
@@ -187,14 +235,21 @@ export default function decorate(block) {
     if (foundCity) {
       defaultCity = foundCity;
     } else {
-      // If not found in list, create object with city name
+      // The ATO didn't match by IATA terminal — but it may resolve to the same
+      // city as one of the entries (e.g. dedup kept EZE as the "Buenos Aires"
+      // representative; ATO is AEP — both are Buenos Aires). Match by label
+      // to reuse the existing entry instead of injecting a duplicate row.
       const cityName = getCityNameFromIata(mainCityCode);
-      defaultCity = {
-        label: cityName,
-        value: mainCityCode,
-      };
-      // Add city to final list if it doesn't exist
-      if (!finalCities.find((c) => c.value.toLowerCase() === mainCityCode.toLowerCase())) {
+      const labelMatch = cityName && finalCities.find(
+        (c) => c.label?.toLowerCase() === cityName.toLowerCase(),
+      );
+      if (labelMatch) {
+        defaultCity = labelMatch;
+      } else {
+        defaultCity = {
+          label: cityName,
+          value: mainCityCode,
+        };
         finalCities.unshift(defaultCity);
       }
     }
@@ -242,7 +297,7 @@ export default function decorate(block) {
               label=${label}
               value=${currentCity.label}
               options=${dropdownOptions}
-              onChange=${handleChange}
+              onChange=${handleUserSelect}
               customClassName="origin-dropdown-selector"
             />
           `,
@@ -251,13 +306,22 @@ export default function decorate(block) {
       }
     };
 
+    // PBI 1216373 rule 6.5 restricts the "user selection prevails" rule to
+    // selections made in the Booking Box only (table row: "Usuario elige
+    // origen EN BOOKING BOX"). Ofertas changes are ephemeral — the dropdown
+    // updates in-memory, events fire for promotional cards rail, but nothing
+    // persists to sessionStorage and the Booking Box is unaffected.
+    const handleUserSelect = (selectedLabel) => {
+      handleChange(selectedLabel);
+    };
+
     render(
       html`
         <${HeadingDropdownSelector}
           label=${label}
           value=${currentCity.label}
           options=${dropdownOptions}
-          onChange=${handleChange}
+          onChange=${handleUserSelect}
           customClassName="origin-dropdown-selector"
         />
       `,
@@ -277,6 +341,19 @@ export default function decorate(block) {
       originIataCode: currentCity.value,
       originName: currentCity.label,
     }, container);
+
+    // Late-grant refresh: if W3C geolocation resolves after render (user
+    // accepted the prompt post-lazy), re-select the dropdown to reflect
+    // the newly-detected nearest airport without a page reload.
+    window.addEventListener(GEO_NEAREST_AIRPORT_REFRESHED_EVENT, (event) => {
+      const newIata = event.detail?.iataCityCode;
+      if (!newIata) return;
+      if (newIata.toLowerCase() === currentCity.value.toLowerCase()) return;
+      const match = finalCities.find(
+        (city) => city.value.toLowerCase() === newIata.toLowerCase(),
+      );
+      if (match) handleChange(match.label);
+    });
   }
 
   // Multiple checks for Universal Editor author environment

@@ -1,7 +1,11 @@
 import { h, render } from '@dropins/tools/preact.js';
 import htm from 'htm';
 import { fetchAEMData } from '../../scripts/utils/aem-data.js';
-import { CITY_FROM_ORIGIN_DROPDOWN_EVENT, getLastOriginDropdownCity } from '../../scripts/utils/event-constants.js';
+import {
+  CITY_FROM_ORIGIN_DROPDOWN_EVENT,
+  getLastOriginDropdownCity,
+  dispatchSetBookingDestinationEvent,
+} from '../../scripts/utils/event-constants.js';
 import { ArrowRightIcon } from '../../design-system/atoms/icons/arrow-right-icon.js';
 import { LinkButton } from '../../design-system/atoms/link-button/link-button.js';
 import { PromotionCard } from '../../design-system/organisms/cards/promotion-card/promotion-card.js';
@@ -10,7 +14,9 @@ import {
   extractCmsPromotionalCardsRailProps,
   buildIataImageUrl,
   filterOfertasByConfig,
+  buildOffersLandingUrl,
 } from './cms-promotional-cards-rail-helper.js';
+import { getStoredCountry } from '../../scripts/services/header/language-country-selector.js';
 
 const html = htm.bind(h);
 
@@ -195,6 +201,7 @@ async function mapOfertaToCardProps(oferta, blockConfig) {
     lifemilesTag: lifemilesTagText,
     lifemilesTagVariant: lifemilesChipVariant === 'dark' ? 'dark' : 'lifemiles',
     destinationUrl,
+    destinationCode,
   };
 }
 
@@ -217,7 +224,6 @@ async function renderCards(container, ofertas, blockConfig) {
     cardWrapper.className = 'flex-1';
 
     const cardProps = await mapOfertaToCardProps(oferta, blockConfig);
-    const destinationUrl = cardProps.destinationUrl || '#';
 
     render(
       html`
@@ -225,9 +231,10 @@ async function renderCards(container, ofertas, blockConfig) {
           ...${cardProps}
           loading="lazy"
           onClick=${() => {
-    if (destinationUrl !== '#') {
-      window.location.href = destinationUrl;
-    }
+    dispatchSetBookingDestinationEvent({
+      iataCode: cardProps.destinationCode,
+      cityName: cardProps.destination,
+    });
   }}
         />
       `,
@@ -316,6 +323,18 @@ export default async function decorate(block) {
   // Initialize data caches
   await initializeDataCaches();
 
+  // PBI CU-190 CA2 — Link "Descubrir más ofertas" dinámico:
+  // /{idioma}-{pos}/{slug}, donde slug viene del spreadsheet i18n del idioma
+  // activo (key `offers.landingSlug`). Si falta cualquier parte, se cae al
+  // buttonUrl autorado en AEM (no rompe autorías existentes).
+  const landingSlug = i18Cache?.find((item) => item.Key === 'offers.landingSlug')?.Text;
+  const dynamicButtonUrl = buildOffersLandingUrl(
+    getStoredLanguage(),
+    getStoredCountry(),
+    landingSlug,
+    buttonUrl,
+  );
+
   // Check if origin-dropdown already dispatched a city (handles race condition)
   const lastDropdownCity = getLastOriginDropdownCity();
   const defaultOrigin = lastDropdownCity?.originIataCode || await getMainCityForCurrentPos();
@@ -355,7 +374,7 @@ export default async function decorate(block) {
       html`
         <${LinkButton}
           size="medium"
-          href=${buttonUrl}
+          href=${dynamicButtonUrl}
           customClassName="group hover:!font-bold active:!font-bold"
         >
           ${buttonText}
