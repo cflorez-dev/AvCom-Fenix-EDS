@@ -140,7 +140,6 @@ const InteractiveTabs = ({
   destinationData, language = 'es', i18n = {}, smartvelApiKey = '',
 }) => {
   const [activeTab, setActiveTab] = useState(0);
-  const gcovScriptLoaded = useRef(false);
   const tabRefs = useRef([]);
 
   // Move focus to newly active tab only when navigating via keyboard
@@ -286,14 +285,21 @@ const InteractiveTabs = ({
     },
   ];
 
-  // Load gcovwidget script once on first visit to tab 3 — stays in DOM
+  // Load gcovwidget script on each tab 3 activation.
+  // NOTE: smt-gcovwidget does not re-initialize via connectedCallback() when
+  // the script was already loaded but the element wasn't in the DOM at load
+  // time — so we must reload the script each time to guarantee initialization.
   useEffect(() => {
-    if (activeTab !== 2 || gcovScriptLoaded.current) return;
-    gcovScriptLoaded.current = true;
-    const script = document.createElement('script');
-    script.src = 'https://cdn.smartvel.com/scripts/gcovwidget/boot.min.js';
-    script.async = true;
-    document.body.appendChild(script);
+    if (activeTab === 2) {
+      const script = document.createElement('script');
+      script.src = 'https://cdn.smartvel.com/scripts/gcovwidget/boot.min.js';
+      script.async = true;
+      document.body.appendChild(script);
+      return () => {
+        if (script.parentNode) script.parentNode.removeChild(script);
+      };
+    }
+    return undefined;
   }, [activeTab]);
 
   return html`
