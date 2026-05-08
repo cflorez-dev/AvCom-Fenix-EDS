@@ -45,6 +45,19 @@ section.section[data-section-type='hero-destinations-detail'] {
     margin-bottom: 16px;
 }
 
+.destination-details .airport h4 {
+    margin-top: 16px;
+    padding-top: 16px;
+    border-top: 1px solid var(--color-border-stroke-default);
+}
+
+/* When <hr> is already present before <h4>, remove the duplicate border */
+.destination-details .airport hr + h4 {
+    border-top: none;
+    margin-top: 0;
+    padding-top: 0;
+}
+
 .destination-details h4 strong {
     font-weight: 700;
 }
