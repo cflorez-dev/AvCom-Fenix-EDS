@@ -136,6 +136,7 @@ const InteractiveTabs = ({
   destinationData, language = 'es', i18n = {}, smartvelApiKey = '',
 }) => {
   const [activeTab, setActiveTab] = useState(0);
+  const gcovScriptLoaded = useRef(false);
 
   if (!destinationData) {
     return html`
@@ -273,22 +274,14 @@ const InteractiveTabs = ({
     },
   ];
 
-  // Load Smartvel widget script when tab 3 is active
+  // Load gcovwidget script once on first visit to tab 3 — stays in DOM
   useEffect(() => {
-    if (activeTab === 2) {
-      const script = document.createElement('script');
-      script.src = 'https://cdn.smartvel.com/scripts/gcovwidget/boot.min.js';
-      script.async = true;
-      document.body.appendChild(script);
-
-      return () => {
-        // Cleanup script on unmount
-        if (script.parentNode) {
-          script.parentNode.removeChild(script);
-        }
-      };
-    }
-    return undefined;
+    if (activeTab !== 2 || gcovScriptLoaded.current) return;
+    gcovScriptLoaded.current = true;
+    const script = document.createElement('script');
+    script.src = 'https://cdn.smartvel.com/scripts/gcovwidget/boot.min.js';
+    script.async = true;
+    document.body.appendChild(script);
   }, [activeTab]);
 
   return html`
