@@ -13,13 +13,17 @@ const html = htm.bind(h);
 window.__smartvelLoadedPromise = new Promise((resolve) => {
   window.__resolveSmartvelLoaded = resolve;
 });
+
+// Nullify the resolver before calling it so any concurrent/subsequent call is a no-op.
+function resolveSmartvelOnce() {
+  const resolve = window.__resolveSmartvelLoaded;
+  if (!resolve) return;
+  window.__resolveSmartvelLoaded = null;
+  resolve();
+}
+
 // Safety: resolve after 15s in case Smartvel never populates (error, empty destination, etc.)
-setTimeout(() => {
-  if (window.__resolveSmartvelLoaded) {
-    window.__resolveSmartvelLoaded();
-    window.__resolveSmartvelLoaded = null;
-  }
-}, 15000);
+setTimeout(() => resolveSmartvelOnce(), 15000);
 
 /**
  * Fetches the dynamic preSlug from the site's language JSON file.
@@ -137,6 +141,14 @@ const InteractiveTabs = ({
 }) => {
   const [activeTab, setActiveTab] = useState(0);
   const gcovScriptLoaded = useRef(false);
+  const tabRefs = useRef([]);
+
+  // Move focus to newly active tab only when navigating via keyboard
+  useEffect(() => {
+    const focusedEl = document.activeElement;
+    const isTabFocused = tabRefs.current.some((ref) => ref === focusedEl);
+    if (isTabFocused) tabRefs.current[activeTab]?.focus();
+  }, [activeTab]);
 
   if (!destinationData) {
     return html`
@@ -287,22 +299,25 @@ const InteractiveTabs = ({
   return html`
     <div class="shadow-[0px_2px_20px_2px_rgba(73,73,73,0.25)] rounded-3xl overflow-hidden">
       <!-- Tabs Navigation -->
-      <div class="flex gap-0 bg-white overflow-x-auto">
+      <div class="flex gap-0 bg-white overflow-x-auto" role="tablist" aria-label="Destination information tabs">
         ${tabs.map((tab, index) => {
     const isActive = activeTab === index;
     return html`
       <button
         key=${index}
+        id="tab-${index}"
         class="flex flex-col flex-1 basis-[33.333%] min-w-[140px] py-[22px] px-3 lg:py-[28px] lg:px-[var(--x-x-large,32px)] gap-[var(--tiny,4px)] items-center justify-center shrink-0 relative isolate transition-all duration-200 hover:bg-gray-50 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-border-stroke-focus)]"
         role="tab"
         aria-selected=${isActive}
+        aria-controls="tabpanel-${index}"
         aria-label=${tab.label}
-        tabIndex="0"
+        tabIndex=${isActive ? '0' : '-1'}
+        ref=${(el) => { tabRefs.current[index] = el; }}
         onClick=${() => setActiveTab(index)}
         onKeyDown=${(e) => {
-    if (e.key === 'Enter' || e.key === ' ') {
-      setActiveTab(index);
-    }
+    if (e.key === 'Enter' || e.key === ' ') { setActiveTab(index); }
+    if (e.key === 'ArrowRight') { setActiveTab((index + 1) % tabs.length); }
+    if (e.key === 'ArrowLeft') { setActiveTab((index - 1 + tabs.length) % tabs.length); }
   }}
       >
         <div class="flex gap-[4px] items-center justify-center relative w-full z-[4]">
@@ -322,7 +337,12 @@ const InteractiveTabs = ({
       </div>
 
       <!-- Tab Content -->
-      <div class="bg-gray-50">
+      <div
+        class="bg-gray-50"
+        role="tabpanel"
+        id="tabpanel-${activeTab}"
+        aria-labelledby="tab-${activeTab}"
+      >
         ${tabs[activeTab].content}
       </div>
     </div>
@@ -467,10 +487,7 @@ export const Destinations = ({
   // If data finished loading but there is no valid destination, unblock the loader immediately
   useEffect(() => {
     if (!loading && !destinationData?.data?.data?.destinationList?.items?.[0]) {
-      if (window.__resolveSmartvelLoaded) {
-        window.__resolveSmartvelLoaded();
-        window.__resolveSmartvelLoaded = null;
-      }
+      resolveSmartvelOnce();
     }
   }, [loading, destinationData]);
 
@@ -495,10 +512,7 @@ export const Destinations = ({
         });
 
         // Signal the page loader that Smartvel is ready
-        if (window.__resolveSmartvelLoaded) {
-          window.__resolveSmartvelLoaded();
-          window.__resolveSmartvelLoaded = null;
-        }
+        resolveSmartvelOnce();
         window.dispatchEvent(new CustomEvent('smartvel:loaded'));
 
         observer.disconnect();
