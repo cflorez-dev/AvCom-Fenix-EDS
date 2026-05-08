@@ -138,7 +138,7 @@ const InteractiveTabs = ({ destinationData, language = 'es', i18n = {} }) => {
   if (!destinationData) {
     return html`
       <div class="p-8 text-center text-gray-500">
-        Loading destination data...
+        ${i18n['hubDestinations.destination.loading'] || 'Loading...'}
       </div>
     `;
   }
@@ -148,7 +148,7 @@ const InteractiveTabs = ({ destinationData, language = 'es', i18n = {} }) => {
   if (!destination) {
     return html`
       <div class="p-8 text-center text-gray-500">
-        No destination data available
+        ${i18n['hubDestinations.destination.noData'] || 'No destination data available'}
       </div>
     `;
   }
@@ -159,26 +159,14 @@ const InteractiveTabs = ({ destinationData, language = 'es', i18n = {} }) => {
     return destination[localizedKey] || destination[`${fieldName}_es`] || null;
   };
 
-  // Localized tab labels
+  // Localized tab labels resolved from i18n spreadsheet
   const tabLabels = {
-    discover: {
-      es: 'Descubre',
-      en: 'Discover',
-      pt: 'Descubra',
-    },
-    airport: {
-      es: 'Aeropuerto y Transporte',
-      en: 'Airport and Transport',
-      pt: 'Aeroporto e Transporte',
-    },
-    requirements: {
-      es: 'Requisitos de entrada',
-      en: 'Entry Requirements',
-      pt: 'Requisitos de entrada',
-    },
+    discover: i18n['hubDestinations.destination.tab.discover'] || 'Descubre',
+    airport: i18n['hubDestinations.destination.tab.airport'] || 'Aeropuerto y Transporte',
+    requirements: i18n['hubDestinations.destination.tab.requirements'] || 'Requisitos de entrada',
   };
 
-  const getTabLabel = (key) => tabLabels[key][language] || tabLabels[key].es;
+  const getTabLabel = (key) => tabLabels[key];
 
   const tabs = [
     {
@@ -202,7 +190,7 @@ const InteractiveTabs = ({ destinationData, language = 'es', i18n = {} }) => {
                   />
                 ` : html`
                   <div class="w-full md:w-[240px] h-[240px] bg-gray-200 rounded-lg flex items-center justify-center text-gray-400">
-                    No image
+                    ${i18n['hubDestinations.destination.noImage'] || 'No image'}
                   </div>
                 `;
   })()}
@@ -245,7 +233,7 @@ const InteractiveTabs = ({ destinationData, language = 'es', i18n = {} }) => {
                   />
                 ` : html`
                   <div class="w-full md:w-[240px] h-[240px] bg-gray-200 rounded-lg flex items-center justify-center text-gray-400">
-                    No image
+                    ${i18n['hubDestinations.destination.noImage'] || 'No image'}
                   </div>
                 `;
   })()}
@@ -255,7 +243,7 @@ const InteractiveTabs = ({ destinationData, language = 'es', i18n = {} }) => {
             <div class="w-full md:flex-1 flex flex-col gap-4">
               <div 
                 class="airport text-[16px] text-[var(--color-text-normal-primary)] prose max-w-none [&_hr]:my-4 [&_.dynamic-information-list]:flex [&_.dynamic-information-list]:flex-wrap [&_.dynamic-information-list]:gap-4 [&_.dynamic-information_item]:flex-[0_0_100%] md:[&_.dynamic-information_item]:flex-[0_0_calc(25%-12px)] [&_.dynamic-information_item]:min-w-0 [&>p]:text-[16px] md:[&>p]:text-[18px] [&_li_strong]:text-[16px] [&_a]:underline [&_a]:text-[var(--color-icon-link-default)]"
-                dangerouslySetInnerHTML=${{ __html: sanitizeHTML(getLocalizedField('airportAndTransport')?.html || getLocalizedField('airportAndTransport')?.plaintext || 'No transport information available') }}
+                dangerouslySetInnerHTML=${{ __html: sanitizeHTML(getLocalizedField('airportAndTransport')?.html || getLocalizedField('airportAndTransport')?.plaintext || i18n['hubDestinations.destination.noTransport'] || 'No transport information available') }}
               />
             </div>
           </div>
@@ -528,7 +516,7 @@ export const Destinations = ({
     return html`
       <div class=${`${baseClasses} ${customClassName}`} data-name="destinations" ...${rest}>
         <div class="p-6 text-center text-gray-500">
-          Loading destination information...
+          ${i18n['hubDestinations.destination.loading'] || 'Loading...'}
         </div>
       </div>
     `;
