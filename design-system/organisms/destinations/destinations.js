@@ -293,13 +293,13 @@ const InteractiveTabs = ({
   return html`
     <div class="shadow-[0px_2px_20px_2px_rgba(73,73,73,0.25)] rounded-3xl overflow-hidden">
       <!-- Tabs Navigation -->
-      <div class="flex gap-0 bg-white overflow-x-auto px-4 lg:px-8">
+      <div class="flex gap-0 bg-white overflow-x-auto">
         ${tabs.map((tab, index) => {
     const isActive = activeTab === index;
     return html`
       <button
         key=${index}
-        class="flex flex-col w-auto lg:flex-1 lg:basis-[33.333%] py-[22px] px-3 lg:py-[28px] lg:px-[var(--x-x-large,32px)] gap-[var(--tiny,4px)] items-center justify-center shrink-0 relative isolate transition-all duration-200 hover:bg-gray-50 lg:min-w-0 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-border-stroke-focus)]"
+        class="flex flex-col flex-1 basis-[33.333%] min-w-[140px] py-[22px] px-3 lg:py-[28px] lg:px-[var(--x-x-large,32px)] gap-[var(--tiny,4px)] items-center justify-center shrink-0 relative isolate transition-all duration-200 hover:bg-gray-50 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-border-stroke-focus)]"
         role="tab"
         aria-selected=${isActive}
         aria-label=${tab.label}
