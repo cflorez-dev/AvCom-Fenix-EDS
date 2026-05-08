@@ -132,7 +132,9 @@ const Accordion = ({ title, children, isOpen: defaultOpen = false }) => {
 /**
  * InteractiveTabs - Functional tabs with destination content
  */
-const InteractiveTabs = ({ destinationData, language = 'es', i18n = {} }) => {
+const InteractiveTabs = ({
+  destinationData, language = 'es', i18n = {}, smartvelApiKey = '',
+}) => {
   const [activeTab, setActiveTab] = useState(0);
 
   if (!destinationData) {
@@ -256,8 +258,8 @@ const InteractiveTabs = ({ destinationData, language = 'es', i18n = {} }) => {
         <div class="p-6">
           <h3 class="text-2xl font-bold mb-4">${i18n['hubDestinations.destination.tab.requirements'] || getTabLabel('requirements')}</h3>
           <div id="smartvel-widget-container" class="my-6">
-            <smt-gcovwidget 
-              apikey="b149658a-d07a-45ba-a2df-815bfbdb7631" 
+            <smt-gcovwidget
+              apikey=${smartvelApiKey}
               lang=${language}
             ></smt-gcovwidget>
           </div>
@@ -345,12 +347,13 @@ export const Destinations = ({
   const [destinationData, setDestinationData] = useState(null);
   let cachedEnvConfig = null;
   /**
-   * Reads { apiUrl, site } from environment.json (AEM Author).
+   * Reads { apiUrl, site, smartvelApiKey } from environment.json (AEM Author).
    * Required env keys:
    *   - AV_API_URL_CONTENT_FRAGMENTS: GraphQL endpoint URL
    *   - AV_NAME_SITE: AEM site name
+   *   - AV_SMARTVEL_API_KEY: Smartvel widget API key
    * Logs a warning if any key is missing.
-   * @returns {Promise<{ apiUrl: string, site: string }>}
+   * @returns {Promise<{ apiUrl: string, site: string, smartvelApiKey: string }>}
    */
   async function getEnvConfig() {
     if (cachedEnvConfig) return cachedEnvConfig;
@@ -360,6 +363,7 @@ export const Destinations = ({
 
     const envApiUrl = readEnv('AV_API_URL_CONTENT_FRAGMENTS');
     const envSite = readEnv('AV_NAME_SITE');
+    const envSmartvelApiKey = readEnv('AV_SMARTVEL_API_KEY');
 
     if (!envApiUrl) {
       // eslint-disable-next-line no-console
@@ -370,12 +374,13 @@ export const Destinations = ({
       console.warn('[Destinations] Missing env var AV_NAME_SITE in environment.json');
     }
 
-    cachedEnvConfig = { apiUrl: envApiUrl, site: envSite };
+    cachedEnvConfig = { apiUrl: envApiUrl, site: envSite, smartvelApiKey: envSmartvelApiKey };
     return cachedEnvConfig;
   }
   const [loading, setLoading] = useState(true);
   const [language, setLanguage] = useState('es');
   const [slug, setSlug] = useState(null);
+  const [smartvelApiKey, setSmartvelApiKey] = useState('');
 
   // Detect language and fetch preSlug from lang file, then extract slug
   useEffect(() => {
@@ -424,7 +429,8 @@ export const Destinations = ({
       }
       const variables = {};
       variables[slugVar] = slug;
-      const { apiUrl: envApiUrl, site } = await getEnvConfig();
+      const { apiUrl: envApiUrl, site, smartvelApiKey: envSmartvelApiKey } = await getEnvConfig();
+      setSmartvelApiKey(envSmartvelApiKey);
       // Allow consumers to override apiUrl via prop; otherwise use the environment value.
       const resolvedApiUrl = apiUrl || envApiUrl;
       const data = await fetchContentFragments(
@@ -602,13 +608,13 @@ export const Destinations = ({
         </div>
       </section>
 
-      <${InteractiveTabs} destinationData=${destinationData} language=${language} i18n=${i18n} />
+      <${InteractiveTabs} destinationData=${destinationData} language=${language} i18n=${i18n} smartvelApiKey=${smartvelApiKey} />
       
       <!-- Smartvel Component -->
       <div class="smartvel-section">
         <div id="smartvel" class="smt-component"></div>
         <smartvelcomponent
-          data-apikey="b149658a-d07a-45ba-a2df-815bfbdb7631"
+          data-apikey=${smartvelApiKey}
           data-lang=${language}
           data-destination=${destination?.iata || ''}
         ></smartvelcomponent>
