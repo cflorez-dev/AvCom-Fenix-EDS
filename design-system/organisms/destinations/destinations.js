@@ -210,7 +210,8 @@ const InteractiveTabs = ({
                 [&_ul]:flex [&_ul]:flex-row [&_ul]:flex-wrap [&_ul]:gap-4
                 [&_li]:flex [&_li]:flex-row lg:[&_li]:flex-col [&_li]:gap-[8px] [&_li]:min-w-0
                 [&_li_strong]:leading-[24px] [&_li_p]:leading-[24px] [&_li_strong]:text-[18px]
-                [&>p]:text-[16px] lg:[&>p]:text-[18px] [&_li_p]:text-[16px]"
+                [&>p]:text-[16px] lg:[&>p]:text-[18px] [&_li_p]:text-[16px]
+                [&_a]:underline [&_a]:decoration-solid [&_a]:[text-decoration-skip-ink:none] [&_a]:text-[var(--color-text-link-informative-default)] [&_a]:transition-colors [&_a]:duration-200 [&_a:hover]:text-[var(--color-text-link-informative-active)] [&_a:active]:text-[var(--color-text-link-informative-active)]"
                 dangerouslySetInnerHTML=${{ __html: sanitizeHTML(getLocalizedField('intro')?.html || getLocalizedField('intro')?.plaintext || '') }}
               />
             </div>
@@ -248,7 +249,7 @@ const InteractiveTabs = ({
             <!-- Right content: title and description (100% mobile) -->
             <div class="w-full lg:flex-1 flex flex-col gap-4">
               <div
-                class="airport text-[16px] text-[var(--color-text-normal-primary)] prose max-w-none [&_hr]:my-4 [&_p+ul]:mt-4 [&_p+ul]:pt-4 [&_p+ul]:border-t [&_p+ul]:border-[var(--color-border-stroke-default)] [&_.dynamic-information-list]:flex [&_.dynamic-information-list]:flex-wrap [&_.dynamic-information-list]:gap-4 [&_.dynamic-information_item]:flex-[0_0_100%] [&_.dynamic-information_item]:min-w-0 [&>p]:text-[16px] lg:[&>p]:text-[18px] [&_li_strong]:text-[16px] [&_a]:underline [&_a]:text-[var(--color-icon-link-default)]"
+                class="airport text-[16px] text-[var(--color-text-normal-primary)] prose max-w-none [&_hr]:my-4 [&_p+ul]:mt-4 [&_p+ul]:pt-4 [&_p+ul]:border-t [&_p+ul]:border-[var(--color-border-stroke-default)] [&_.dynamic-information-list]:flex [&_.dynamic-information-list]:flex-wrap [&_.dynamic-information-list]:gap-4 [&_.dynamic-information_item]:flex-[0_0_100%] [&_.dynamic-information_item]:min-w-0 [&>p]:text-[16px] lg:[&>p]:text-[18px] [&_li_strong]:text-[16px] [&_a]:underline [&_a]:decoration-solid [&_a]:[text-decoration-skip-ink:none] [&_a]:text-[var(--color-text-link-informative-default)] [&_a]:transition-colors [&_a]:duration-200 [&_a:hover]:text-[var(--color-text-link-informative-active)] [&_a:active]:text-[var(--color-text-link-informative-active)]"
                 dangerouslySetInnerHTML=${{ __html: sanitizeHTML(getLocalizedField('airportAndTransport')?.html || getLocalizedField('airportAndTransport')?.plaintext || i18n['hubDestinations.destination.noTransport'] || 'No transport information available') }}
               />
             </div>
