@@ -45,6 +45,11 @@ section.section[data-section-type='hero-destinations-detail'] {
     margin-bottom: 16px;
 }
 
+/* All headings in airport tab get bottom spacing to separate from following content */
+.destination-details .airport h3 {
+    margin-bottom: 16px;
+}
+
 /* Section subheading that follows a paragraph — adds divider and H4-style sizing */
 .destination-details .airport p + h3 {
     font-size: 20px;
