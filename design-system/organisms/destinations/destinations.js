@@ -174,10 +174,10 @@ const InteractiveTabs = ({
     {
       label: getTabLabel('discover'),
       content: html`
-        <div class="p-4 md:p-8 !pt-6">
-          <div class="flex flex-col md:flex-row gap-[28px] items-start">
-            <!-- Left image: 240px x 240px (desktop), 100% (mobile) -->
-            <div class="w-full md:w-auto md:flex-shrink-0">
+        <div class="p-4 lg:p-8 !pt-6">
+          <div class="flex flex-col lg:flex-row gap-[28px] items-start">
+            <!-- Left image: 240px x 240px (desktop), full-width 161px (mobile/tablet) -->
+            <div class="w-full lg:w-auto lg:flex-shrink-0">
               ${(() => {
     // eslint-disable-next-line dot-notation
     const heroImageUrl = destination.introImage?.['_publishUrl'];
@@ -185,21 +185,21 @@ const InteractiveTabs = ({
                   <img
                     src=${heroImageUrl}
                     alt=${destination.cityName_en}
-                    class="w-full md:w-[240px] h-[240px] object-cover rounded-lg"
+                    class="w-full h-[161px] lg:w-[240px] lg:h-[240px] object-cover rounded-lg"
                     loading="lazy"
                     decoding="async"
                     fetchpriority="low"
                   />
                 ` : html`
-                  <div class="w-full md:w-[240px] h-[240px] bg-gray-200 rounded-lg flex items-center justify-center text-gray-400">
+                  <div class="w-full h-[161px] lg:w-[240px] lg:h-[240px] bg-gray-200 rounded-lg flex items-center justify-center text-gray-400">
                     ${i18n['hubDestinations.destination.noImage'] || 'No image'}
                   </div>
                 `;
   })()}
             </div>
-            
+
             <!-- Right content: title, description, currency and language (100% mobile) -->
-            <div class="w-full md:flex-1 flex flex-col gap-4">
+            <div class="w-full lg:flex-1 flex flex-col gap-4">
               <div
                 class="
                 text-[var(--color-text-normal-primary)] prose max-w-none
@@ -208,9 +208,9 @@ const InteractiveTabs = ({
                 [&_.dynamic-information-list]:flex [&_.dynamic-information-list]:flex-wrap [&_.dynamic-information-list]:gap-4
                 [&_.dynamic-information_item]:min-w-0
                 [&_ul]:flex [&_ul]:flex-row [&_ul]:flex-wrap [&_ul]:gap-4
-                [&_li]:flex [&_li]:flex-row md:[&_li]:flex-col [&_li]:gap-[8px] [&_li]:min-w-0
+                [&_li]:flex [&_li]:flex-row lg:[&_li]:flex-col [&_li]:gap-[8px] [&_li]:min-w-0
                 [&_li_strong]:leading-[24px] [&_li_p]:leading-[24px] [&_li_strong]:text-[18px]
-                [&>p]:text-[16px] md:[&>p]:text-[18px] [&_li_p]:text-[16px]"
+                [&>p]:text-[16px] lg:[&>p]:text-[18px] [&_li_p]:text-[16px]"
                 dangerouslySetInnerHTML=${{ __html: sanitizeHTML(getLocalizedField('intro')?.html || getLocalizedField('intro')?.plaintext || '') }}
               />
             </div>
@@ -221,10 +221,10 @@ const InteractiveTabs = ({
     {
       label: getTabLabel('airport'),
       content: html`
-        <div class="p-4 md:p-8">
-          <div class="flex flex-col md:flex-row gap-[28px] items-start">
-            <!-- Left image: 240px x 240px (desktop), 100% (mobile) -->
-            <div class="w-full md:w-auto md:flex-shrink-0">
+        <div class="p-4 lg:p-8">
+          <div class="flex flex-col lg:flex-row gap-[28px] items-start">
+            <!-- Left image: 240px x 240px (desktop), full-width 161px (mobile/tablet) -->
+            <div class="w-full lg:w-auto lg:flex-shrink-0">
               ${(() => {
     // eslint-disable-next-line dot-notation
     const airportImageUrl = destination.airportImage?.['_publishUrl'];
@@ -232,23 +232,23 @@ const InteractiveTabs = ({
                   <img
                     src=${airportImageUrl}
                     alt=${getLocalizedField('airportName')}
-                    class="w-full md:w-[240px] h-[240px] object-cover rounded-lg"
+                    class="w-full h-[161px] lg:w-[240px] lg:h-[240px] object-cover rounded-lg"
                     loading="lazy"
                     decoding="async"
                     fetchpriority="low"
                   />
                 ` : html`
-                  <div class="w-full md:w-[240px] h-[240px] bg-gray-200 rounded-lg flex items-center justify-center text-gray-400">
+                  <div class="w-full h-[161px] lg:w-[240px] lg:h-[240px] bg-gray-200 rounded-lg flex items-center justify-center text-gray-400">
                     ${i18n['hubDestinations.destination.noImage'] || 'No image'}
                   </div>
                 `;
   })()}
             </div>
-            
+
             <!-- Right content: title and description (100% mobile) -->
-            <div class="w-full md:flex-1 flex flex-col gap-4">
-              <div 
-                class="airport text-[16px] text-[var(--color-text-normal-primary)] prose max-w-none [&_hr]:my-4 [&_p+ul]:mt-4 [&_p+ul]:pt-4 [&_p+ul]:border-t [&_p+ul]:border-[var(--color-border-stroke-default)] [&_.dynamic-information-list]:flex [&_.dynamic-information-list]:flex-wrap [&_.dynamic-information-list]:gap-4 [&_.dynamic-information_item]:flex-[0_0_100%] [&_.dynamic-information_item]:min-w-0 [&>p]:text-[16px] md:[&>p]:text-[18px] [&_li_strong]:text-[16px] [&_a]:underline [&_a]:text-[var(--color-icon-link-default)]"
+            <div class="w-full lg:flex-1 flex flex-col gap-4">
+              <div
+                class="airport text-[16px] text-[var(--color-text-normal-primary)] prose max-w-none [&_hr]:my-4 [&_p+ul]:mt-4 [&_p+ul]:pt-4 [&_p+ul]:border-t [&_p+ul]:border-[var(--color-border-stroke-default)] [&_.dynamic-information-list]:flex [&_.dynamic-information-list]:flex-wrap [&_.dynamic-information-list]:gap-4 [&_.dynamic-information_item]:flex-[0_0_100%] [&_.dynamic-information_item]:min-w-0 [&>p]:text-[16px] lg:[&>p]:text-[18px] [&_li_strong]:text-[16px] [&_a]:underline [&_a]:text-[var(--color-icon-link-default)]"
                 dangerouslySetInnerHTML=${{ __html: sanitizeHTML(getLocalizedField('airportAndTransport')?.html || getLocalizedField('airportAndTransport')?.plaintext || i18n['hubDestinations.destination.noTransport'] || 'No transport information available') }}
               />
             </div>
@@ -293,13 +293,13 @@ const InteractiveTabs = ({
   return html`
     <div class="shadow-[0px_2px_20px_2px_rgba(73,73,73,0.25)] rounded-3xl overflow-hidden">
       <!-- Tabs Navigation -->
-      <div class="flex gap-0 bg-white overflow-x-auto px-4 md:px-8">
+      <div class="flex gap-0 bg-white overflow-x-auto px-4 lg:px-8">
         ${tabs.map((tab, index) => {
     const isActive = activeTab === index;
     return html`
       <button
         key=${index}
-        class="flex flex-col w-auto md:flex-1 md:basis-[33.333%] py-[28px] px-[var(--x-x-large,32px)] gap-[var(--tiny,4px)] items-center justify-center shrink-0 relative isolate transition-all duration-200 hover:bg-gray-50 md:min-w-0 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-border-stroke-focus)]"
+        class="flex flex-col w-auto lg:flex-1 lg:basis-[33.333%] py-[22px] px-3 lg:py-[28px] lg:px-[var(--x-x-large,32px)] gap-[var(--tiny,4px)] items-center justify-center shrink-0 relative isolate transition-all duration-200 hover:bg-gray-50 lg:min-w-0 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-border-stroke-focus)]"
         role="tab"
         aria-selected=${isActive}
         aria-label=${tab.label}
@@ -312,7 +312,7 @@ const InteractiveTabs = ({
   }}
       >
         <div class="flex gap-[4px] items-center justify-center relative w-full z-[4]">
-          <span class=${`text-[16px] leading-[20px] md:text-[18px] md:leading-[24px] overflow-hidden text-ellipsis ${
+          <span class=${`text-[16px] leading-[20px] lg:text-[18px] lg:leading-[24px] overflow-hidden text-ellipsis ${
     isActive ? 'font-bold text-[var(--text-normal-primary)]' : 'font-normal text-[var(--text-normal-secondary)]'
   }`}>
             ${tab.label}
