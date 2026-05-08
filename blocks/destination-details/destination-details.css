@@ -45,13 +45,29 @@ section.section[data-section-type='hero-destinations-detail'] {
     margin-bottom: 16px;
 }
 
-.destination-details .airport h4 {
+/* Section subheading that follows a paragraph — adds divider and H4-style sizing */
+.destination-details .airport p + h3 {
+    font-size: 20px;
     margin-top: 16px;
     padding-top: 16px;
     border-top: 1px solid var(--color-border-stroke-default);
 }
 
-/* When <hr> is already present before <h4>, remove the duplicate border */
+/* When <hr> is already present before the subheading, remove the duplicate border */
+.destination-details .airport hr + h3 {
+    border-top: none;
+    margin-top: 0;
+    padding-top: 0;
+}
+
+/* h4 variant: same treatment for content that uses h4 as subheading */
+.destination-details .airport h4,
+.destination-details .airport p + h4 {
+    margin-top: 16px;
+    padding-top: 16px;
+    border-top: 1px solid var(--color-border-stroke-default);
+}
+
 .destination-details .airport hr + h4 {
     border-top: none;
     margin-top: 0;
@@ -92,6 +108,13 @@ section.section[data-section-type='hero-destinations-detail'] {
 .destination-details .airport li {
     flex: 1 0 0;
     min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.destination-details .airport li br {
+    display: none;
 }
 
 /* Ensure proper spacing for nested components */
