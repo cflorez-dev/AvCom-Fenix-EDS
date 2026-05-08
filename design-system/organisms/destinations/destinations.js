@@ -607,7 +607,7 @@ export const Destinations = ({
       <section class="booking-box-section mb-8 md:mb-12">
         <div class="max-w-7xl mx-auto">
           <${BookingBox}
-            defaultDestination=${{ iataCode: destination?.iataCode || '' }}
+            defaultDestination=${{ iataCode: destination?.iata || '' }}
             i18n=${i18n}
           />
         </div>
