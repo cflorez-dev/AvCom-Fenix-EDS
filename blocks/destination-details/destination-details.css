@@ -44,6 +44,7 @@ section.section[data-section-type='hero-destinations-detail'] {
     font-size: 20px;
     margin-bottom: 16px;
 }
+
 .destination-details h4 strong {
     font-weight: 700;
 }
@@ -62,7 +63,8 @@ section.section[data-section-type='hero-destinations-detail'] {
 }
 
 .destination-details li {
-    flex: 0 0 calc(50% - 8px);
+    flex: 1 0 0;
+    min-width: 0;
 }
 
 .destination-details li p {
@@ -75,7 +77,8 @@ section.section[data-section-type='hero-destinations-detail'] {
 }
 
 .destination-details .airport li {
-     flex: 0 0 calc(25% - 12px);
+    flex: 1 0 0;
+    min-width: 0;
 }
 
 /* Ensure proper spacing for nested components */
@@ -85,6 +88,10 @@ section.section[data-section-type='hero-destinations-detail'] {
 
 /* Responsive padding adjustments */
 @media (max-width: 1024px) {
+  .destination-details li {
+    flex: 0 0 100%;
+  }
+
   section.section[data-section-type='hero-destinations-detail'] {
       flex-direction: column;
       width: 100%;
@@ -105,6 +112,7 @@ section.section[data-section-type='hero-destinations-detail'] {
       object-fit: fill;
     }
   }
+
   .destination-details-container {
     padding: 0;
   }
@@ -112,6 +120,7 @@ section.section[data-section-type='hero-destinations-detail'] {
   .destination-details .airport ul {
       flex-wrap: wrap;
   }
+
   .destination-details .airport li {
     flex: 0 0 100%;
   }
