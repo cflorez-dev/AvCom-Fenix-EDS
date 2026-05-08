@@ -185,6 +185,26 @@ export function validateCmsPromotionalCardsRailProps(props) {
 }
 
 /**
+ * Build landing APS URL para "Descubrir más ofertas" (PBI CU-190 CA2).
+ * Formato: `/{idioma}-{pos}/{slug}` donde slug viene del i18n del idioma
+ * (key `offers.landingSlug` en el spreadsheet {lang}.json).
+ * Si falta cualquier dato, retorna el fallbackUrl autorado para no romper.
+ *
+ * @param {string} lang - Código de idioma ('es', 'en', 'fr', 'pt')
+ * @param {string} pos - POS activo ('co', 'us', 'fr', 'br', ...)
+ * @param {string} slug - Slug i18n (ej. 'vuelos-baratos')
+ * @param {string} fallbackUrl - URL autorada en AEM; se usa si falta lang/pos/slug
+ * @returns {string}
+ */
+export function buildOffersLandingUrl(lang, pos, slug, fallbackUrl = '') {
+  const l = String(lang || '').trim().toLowerCase();
+  const p = String(pos || '').trim().toLowerCase();
+  const s = String(slug || '').trim();
+  if (!l || !p || !s) return fallbackUrl;
+  return `/${l}-${p}/${s}`;
+}
+
+/**
  * Filters offers based on origin IATA code.
  * Always returns exactly 3 cards sorted by lowest price.
  *
