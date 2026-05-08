@@ -906,8 +906,13 @@ export async function getMainCityForCurrentPos() {
       },
     );
 
-    if (countryEntry?.mainCity) {
-      return countryEntry.mainCity.toUpperCase();
+    // PBI priority table: "ATO Default del POS" → column `ato` in AEM.
+    // `mainCity` used to be the source but for some POS they differ
+    // (BRA: GIG vs GRU, ARG: BUE vs EZE, DOM: PUJ vs SDQ, OTH: BOG vs MIA).
+    // Prefer `ato`; fall back to `mainCity` if a row has `ato` empty.
+    const defaultAto = countryEntry?.ato || countryEntry?.mainCity;
+    if (defaultAto) {
+      return defaultAto.toUpperCase();
     }
 
     return 'BOG';
