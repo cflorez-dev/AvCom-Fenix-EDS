@@ -16,6 +16,13 @@ const html = htm.bind(h);
  * @param {Element} block - The destination-details block element
  */
 export default async function decorate(block) {
+  // Warm up DNS + TLS for Smartvel CDN before any script is needed
+  if (!document.querySelector('link[href="https://cdn.smartvel.com"]')) {
+    const preconnect = document.createElement('link');
+    preconnect.rel = 'preconnect';
+    preconnect.href = 'https://cdn.smartvel.com';
+    document.head.appendChild(preconnect);
+  }
   const config = readBlockConfig(block);
 
   // Get IATA code from config or content
@@ -38,12 +45,12 @@ export default async function decorate(block) {
   wrapper.style.display = display;
 
   const locale = await resolveLocale();
-    const language = locale.language || 'es';
-    const configData = await fetchAEMData(language);
-  
-    const i18Data = Object.fromEntries(
-      configData.data.map(({ Key, Text }) => [Key, Text]),
-    );
+  const language = locale.language || 'es';
+  const configData = await fetchAEMData(language);
+
+  const i18Data = Object.fromEntries(
+    configData.data.map(({ Key, Text }) => [Key, Text]),
+  );
 
   // Render Destinations organism using Preact
   render(html`<${Destinations} i18n=${i18Data} iata=${iata} />`, wrapper);
