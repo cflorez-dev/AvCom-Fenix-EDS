@@ -10,7 +10,7 @@
   var s=window.location.search,h=window.location.hostname;
   if(s.indexOf('martech=off')!==-1)return;
   if(h.indexOf('author-')!==-1||h.indexOf('adobeaemcloud.com')!==-1)return;
-  var isProd=(h==='avianca.com'||h==='www.avianca.com');
+  var isProd=(h==='avianca.com'||h==='www.avianca.com'||h==='main--fenix-prd--aviancavsts.aem.live');
   var src=isProd
     ?'https://assets.adobedtm.com/6ac3e976c146/4026528cdd43/launch-EN80a601f9b57746f2985c5b443538b3c1.min.js'
     :'https://assets.adobedtm.com/6ac3e976c146/4026528cdd43/launch-ENf32bf57525554e6f8b6d31b098cb7d66-development.min.js';
