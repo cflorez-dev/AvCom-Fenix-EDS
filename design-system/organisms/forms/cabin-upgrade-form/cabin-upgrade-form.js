@@ -83,6 +83,8 @@ export const CabinUpgradeForm = ({
     modalErrorTitle: '',
     modalErrorDescription: '',
     modalErrorButtonText: '',
+    formAriaLabel: '',
+    submitAriaLabel: '',
   });
 
   // Load i18n labels
@@ -109,6 +111,8 @@ export const CabinUpgradeForm = ({
         modalErrorTitle: getI18nLabel('cabinUpgradeForm.modalError.title'),
         modalErrorDescription: getI18nLabel('cabinUpgradeForm.modalError.description'),
         modalErrorButtonText: getI18nLabel('cabinUpgradeForm.modalError.buttonText'),
+        formAriaLabel: getI18nLabel('cabinUpgradeForm.aria.form'),
+        submitAriaLabel: getI18nLabel('cabinUpgradeForm.aria.submitButton'),
       });
     };
 
@@ -160,46 +164,29 @@ export const CabinUpgradeForm = ({
     setIsSubmitting(true);
 
     try {
-      // Detectar si hay parámetro mock en la URL para testing
-      const urlParams = new URLSearchParams(window.location.search);
-      const isMockMode = urlParams.has('mock') || urlParams.has('mok');
+      const envConfig = await getEnvironmentConfig();
 
-      let result;
+      const requestBody = {
+        action: 'checkUpgradeEligibility',
+        pnr: pnrCode,
+        lastName,
+        apiKey: envConfig.apiKey,
+        language: getStoredLanguage() || 'es',
+      };
 
-      if (isMockMode) {
-        // MOCK: Simular respuesta exitosa de PlusGrade
-        result = {
-          eligible: true,
-          responseStatus: null,
-          lookUpMessage: null,
-          message: 'We are sorry, we have no space available',
-          offerUrl: 'https://canvas.plusgrade.com/offers/airline/partner/zXMuKtS2AV/CWuMzrTRwRFgBPa1cTGXZf6cutMoccvt6',
-        };
-      } else {
-        const envConfig = await getEnvironmentConfig();
+      const response = await fetch(envConfig.apiUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(requestBody),
+      });
 
-        const requestBody = {
-          action: 'checkUpgradeEligibility',
-          pnr: pnrCode,
-          lastName,
-          apiKey: envConfig.apiKey,
-          language: getStoredLanguage() || 'es',
-        };
-
-        const response = await fetch(envConfig.apiUrl, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(requestBody),
-        });
-
-        if (!response.ok) {
-          throw new Error(`Error en la solicitud: ${response.status} ${response.statusText}`);
-        }
-
-        result = await response.json();
+      if (!response.ok) {
+        throw new Error(`Error en la solicitud: ${response.status} ${response.statusText}`);
       }
+
+      const result = await response.json();
 
       if (result.eligible === false) {
         setShowErrorModal(true);
@@ -230,7 +217,7 @@ export const CabinUpgradeForm = ({
       class=${containerClasses}
       onSubmit=${handleSubmit}
       data-name="cabinUpgradeForm"
-      aria-label="Formulario de upgrade de cabina"
+      aria-label=${labels.formAriaLabel || 'Formulario de upgrade de cabina'}
       novalidate
       ...${rest}
     >
@@ -285,7 +272,7 @@ export const CabinUpgradeForm = ({
             disabled=${isSubmitting}
             loading=${isSubmitting}
             customClassName="w-full lg:w-auto whitespace-nowrap"
-            aria-label="Buscar upgrade de cabina"
+            aria-label=${labels.submitAriaLabel || 'Buscar upgrade de cabina'}
           >
             ${labels.buttonText}
           </${Button}>

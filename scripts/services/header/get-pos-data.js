@@ -1,4 +1,5 @@
 import { fetchAEMData } from '../../utils/aem-data.js';
+import { mapCountryToPos } from '../../utils/pos-mapping.js';
 
 const CACHE_KEY_PREFIX = 'avianca_pos_';
 const USE_CACHE = false;
@@ -495,4 +496,42 @@ export const getPOSData = async (useCache = USE_CACHE) => {
   const countriesList = await fetchCountriesList(useCache);
   const language = getCurrentLanguage();
   return mapCountriesListToCountryData(countriesList, language);
+};
+
+/**
+ * Resolves the Amadeus POS code for a given ISO country code.
+ *
+ * Checks the `amadeusPos` column in the countrieslist spreadsheet first.
+ * If absent, empty, or the snapshot is not available for any reason, falls
+ * back transparently to `mapCountryToPos(isoCode)` — identical to current behavior.
+ *
+ * Defensive contract: this function NEVER throws. All failure paths return
+ * the same value that the codebase produced before this column existed.
+ *
+ * @param {string} isoCode - Lowercase ISO country code from cookie (e.g. 'co', 'fr')
+ * @returns {string} Uppercase POS code to send to Amadeus (e.g. 'CO', 'ES')
+ */
+export const getAmadeusPosForIsoCode = (isoCode) => {
+  try {
+    hydrateSnapshotFromPersistentCache();
+
+    const normalized = typeof isoCode === 'string' ? isoCode.trim().toLowerCase() : '';
+
+    if (normalized && Array.isArray(countriesListSnapshot) && countriesListSnapshot.length > 0) {
+      const row = countriesListSnapshot.find(
+        (item) => typeof item === 'object'
+          && item !== null
+          && String(item?.pos ?? '').trim().toLowerCase() === normalized,
+      );
+
+      if (row) {
+        const override = String(row?.amadeusPos ?? '').trim().toUpperCase();
+        if (override) return override;
+      }
+    }
+  } catch (error) {
+    // Snapshot lookup failed for any reason — fall through to safe default
+  }
+
+  return mapCountryToPos(isoCode);
 };

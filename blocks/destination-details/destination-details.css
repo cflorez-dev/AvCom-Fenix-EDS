@@ -44,6 +44,41 @@ section.section[data-section-type='hero-destinations-detail'] {
     font-size: 20px;
     margin-bottom: 16px;
 }
+
+/* All headings in airport tab get bottom spacing to separate from following content */
+.destination-details .airport h3 {
+    margin-bottom: 16px;
+}
+
+/* Section subheading that follows a paragraph — adds divider and H4-style sizing */
+.destination-details .airport p + h3 {
+    font-size: 20px;
+    margin-top: 16px;
+    padding-top: 16px;
+    border-top: 1px solid var(--color-border-stroke-default);
+}
+
+/* When <hr> is already present before the subheading, remove the duplicate border */
+.destination-details .airport hr + h3 {
+    border-top: none;
+    margin-top: 0;
+    padding-top: 0;
+}
+
+/* h4 variant: same treatment for content that uses h4 as subheading */
+.destination-details .airport h4,
+.destination-details .airport p + h4 {
+    margin-top: 16px;
+    padding-top: 16px;
+    border-top: 1px solid var(--color-border-stroke-default);
+}
+
+.destination-details .airport hr + h4 {
+    border-top: none;
+    margin-top: 0;
+    padding-top: 0;
+}
+
 .destination-details h4 strong {
     font-weight: 700;
 }
@@ -62,7 +97,8 @@ section.section[data-section-type='hero-destinations-detail'] {
 }
 
 .destination-details li {
-    flex: 0 0 calc(50% - 8px);
+    flex: 1 0 0;
+    min-width: 0;
 }
 
 .destination-details li p {
@@ -75,7 +111,15 @@ section.section[data-section-type='hero-destinations-detail'] {
 }
 
 .destination-details .airport li {
-     flex: 0 0 calc(25% - 12px);
+    flex: 1 0 0;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.destination-details .airport li br {
+    display: none;
 }
 
 /* Ensure proper spacing for nested components */
@@ -85,6 +129,10 @@ section.section[data-section-type='hero-destinations-detail'] {
 
 /* Responsive padding adjustments */
 @media (max-width: 1024px) {
+  .destination-details li {
+    flex: 0 0 100%;
+  }
+
   section.section[data-section-type='hero-destinations-detail'] {
       flex-direction: column;
       width: 100%;
@@ -105,6 +153,7 @@ section.section[data-section-type='hero-destinations-detail'] {
       object-fit: fill;
     }
   }
+
   .destination-details-container {
     padding: 0;
   }
@@ -112,6 +161,7 @@ section.section[data-section-type='hero-destinations-detail'] {
   .destination-details .airport ul {
       flex-wrap: wrap;
   }
+
   .destination-details .airport li {
     flex: 0 0 100%;
   }

@@ -10,8 +10,12 @@
 export function getEnvironment() {
   const { hostname } = window.location;
 
-  // Production: ONLY avianca.com (with or without www)
-  if (hostname === 'avianca.com' || hostname === 'www.avianca.com') {
+  // Production: avianca.com (with or without www) and the fenix-prd aem.live host
+  if (
+    hostname === 'avianca.com'
+    || hostname === 'www.avianca.com'
+    || hostname === 'main--fenix-prd--aviancavsts.aem.live'
+  ) {
     return 'production';
   }
 
