@@ -147,7 +147,7 @@ export const OriginDestinationSelector = ({
           const defaultOrigin = findDefaultOriginCity(cities, defaultOriginAiata);
 
           if (defaultOrigin && onRouteChange) {
-            onRouteChange({ origin: defaultOrigin, destination: null });
+            onRouteChange({ origin: defaultOrigin, destination: destination ?? null });
           }
         }
       } catch (error) {
@@ -173,7 +173,7 @@ export const OriginDestinationSelector = ({
         if (!newOriginAiata) return;
         const newOrigin = findDefaultOriginCity(fetchedCities, newOriginAiata);
         if (newOrigin && onRouteChange) {
-          onRouteChange({ origin: newOrigin, destination: null });
+          onRouteChange({ origin: newOrigin, destination: destination ?? null });
         }
       } catch (_) { /* swallow — best-effort refresh */ }
     };
@@ -181,7 +181,7 @@ export const OriginDestinationSelector = ({
     return () => {
       window.removeEventListener(GEO_NEAREST_AIRPORT_REFRESHED_EVENT, handleRefresh);
     };
-  }, [fetchedCities, onRouteChange]);
+  }, [fetchedCities, onRouteChange, destination]);
 
   // Load destinations when origin changes
   useEffect(() => {
