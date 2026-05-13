@@ -151,8 +151,15 @@ const COUNTRY_DATA = {
     label: 'España',
     flagFileName: 'spain-flag.svg',
     currencyCode: 'EUR',
-    keyIso: 'eu',
+    keyIso: 'es',
     iataCountryCode: 'es',
+  },
+  fra: {
+    label: 'France',
+    flagFileName: 'france-flag.svg',
+    currencyCode: 'EUR',
+    keyIso: 'fr',
+    iataCountryCode: 'fr',
   },
   gbr: {
     label: 'Reino Unido',
@@ -447,6 +454,21 @@ if (typeof window !== 'undefined' && !isAuthorEnvironment()) {
     const langActive = !storedLang || !!languages[storedLang];
     const countryActive = !storedCountry || (!!storedCountryCode && !!countries[storedCountryCode]);
     if (langActive && countryActive) return; // Both active, nothing to do
+
+    // If only country is invalid, fix it silently without resetting language or redirecting
+    if (langActive && !countryActive) {
+      const inferredCountry = getDefaultCountryForLanguage(storedLang)
+        || parsePos(defaultPos).country;
+      // eslint-disable-next-line no-console
+      console.warn(
+        '[language-country-selector] Stored country inactive, fixing country only:',
+        { storedCountry, inferredCountry },
+      );
+      setStoredCountry(inferredCountry);
+      return;
+    }
+
+    // Language itself is inactive — reset POS and redirect to active language home
     // eslint-disable-next-line no-console
     console.warn('[language-country-selector] Stored POS inactive, switching to default:', { storedLang, storedCountry, defaultPos });
     setStoredPos(defaultPos);
