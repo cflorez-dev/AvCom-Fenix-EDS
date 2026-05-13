@@ -207,14 +207,16 @@ export const LanguageSearch = ({
   // Get flag path for current country
   const currentFlagPath = currentCountry ? getCountryFlagPath(currentCountry) : null;
 
-  // Listen to cookie changes from other components
+  // Listen to cookie changes from other components.
+  // Re-derive from cookies on every event so partial updates (setStoredLanguage
+  // or setStoredCountry dispatched without `pos` in detail) still refresh the
+  // label once the pair is coherent (e.g., after resolveLocale corrects on /fr).
   useEffect(() => {
-    if (!service) return;
+    if (!service) return undefined;
 
-    const handleStorageChange = (event) => {
-      if (event.detail && event.detail.pos) {
-        const newPos = event.detail.pos;
-        // Allow any POS combination
+    const handleStorageChange = () => {
+      const newPos = getStoredPos();
+      if (newPos) {
         setSelectedPos(newPos);
       }
     };
