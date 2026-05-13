@@ -13,13 +13,17 @@ const html = htm.bind(h);
 window.__smartvelLoadedPromise = new Promise((resolve) => {
   window.__resolveSmartvelLoaded = resolve;
 });
+
+// Nullify the resolver before calling it so any concurrent/subsequent call is a no-op.
+function resolveSmartvelOnce() {
+  const resolve = window.__resolveSmartvelLoaded;
+  if (!resolve) return;
+  window.__resolveSmartvelLoaded = null;
+  resolve();
+}
+
 // Safety: resolve after 15s in case Smartvel never populates (error, empty destination, etc.)
-setTimeout(() => {
-  if (window.__resolveSmartvelLoaded) {
-    window.__resolveSmartvelLoaded();
-    window.__resolveSmartvelLoaded = null;
-  }
-}, 15000);
+setTimeout(() => resolveSmartvelOnce(), 15000);
 
 /**
  * Fetches the dynamic preSlug from the site's language JSON file.
@@ -132,13 +136,23 @@ const Accordion = ({ title, children, isOpen: defaultOpen = false }) => {
 /**
  * InteractiveTabs - Functional tabs with destination content
  */
-const InteractiveTabs = ({ destinationData, language = 'es', i18n = {} }) => {
+const InteractiveTabs = ({
+  destinationData, language = 'es', i18n = {}, smartvelApiKey = '',
+}) => {
   const [activeTab, setActiveTab] = useState(0);
+  const tabRefs = useRef([]);
+
+  // Move focus to newly active tab only when navigating via keyboard
+  useEffect(() => {
+    const focusedEl = document.activeElement;
+    const isTabFocused = tabRefs.current.some((ref) => ref === focusedEl);
+    if (isTabFocused) tabRefs.current[activeTab]?.focus();
+  }, [activeTab]);
 
   if (!destinationData) {
     return html`
       <div class="p-8 text-center text-gray-500">
-        Loading destination data...
+        ${i18n['hubDestinations.destination.loading'] || 'Loading...'}
       </div>
     `;
   }
@@ -148,7 +162,7 @@ const InteractiveTabs = ({ destinationData, language = 'es', i18n = {} }) => {
   if (!destination) {
     return html`
       <div class="p-8 text-center text-gray-500">
-        No destination data available
+        ${i18n['hubDestinations.destination.noData'] || 'No destination data available'}
       </div>
     `;
   }
@@ -159,35 +173,23 @@ const InteractiveTabs = ({ destinationData, language = 'es', i18n = {} }) => {
     return destination[localizedKey] || destination[`${fieldName}_es`] || null;
   };
 
-  // Localized tab labels
+  // Localized tab labels resolved from i18n spreadsheet
   const tabLabels = {
-    discover: {
-      es: 'Descubre',
-      en: 'Discover',
-      pt: 'Descubra',
-    },
-    airport: {
-      es: 'Aeropuerto y Transporte',
-      en: 'Airport and Transport',
-      pt: 'Aeroporto e Transporte',
-    },
-    requirements: {
-      es: 'Requisitos de entrada',
-      en: 'Entry Requirements',
-      pt: 'Requisitos de entrada',
-    },
+    discover: i18n['hubDestinations.destination.tab.discover'] || 'Descubre',
+    airport: i18n['hubDestinations.destination.tab.airport'] || 'Aeropuerto y Transporte',
+    requirements: i18n['hubDestinations.destination.tab.requirements'] || 'Requisitos de entrada',
   };
 
-  const getTabLabel = (key) => tabLabels[key][language] || tabLabels[key].es;
+  const getTabLabel = (key) => tabLabels[key];
 
   const tabs = [
     {
       label: getTabLabel('discover'),
       content: html`
-        <div class="p-4 md:p-8 !pt-6">
-          <div class="flex flex-col md:flex-row gap-[28px] items-start">
-            <!-- Left image: 240px x 240px (desktop), 100% (mobile) -->
-            <div class="w-full md:w-auto md:flex-shrink-0">
+        <div class="p-4 lg:p-8 !pt-6">
+          <div class="flex flex-col lg:flex-row gap-[28px] items-start">
+            <!-- Left image: 240px x 240px (desktop), full-width 161px (mobile/tablet) -->
+            <div class="w-full lg:w-auto lg:flex-shrink-0">
               ${(() => {
     // eslint-disable-next-line dot-notation
     const heroImageUrl = destination.introImage?.['_publishUrl'];
@@ -195,28 +197,33 @@ const InteractiveTabs = ({ destinationData, language = 'es', i18n = {} }) => {
                   <img
                     src=${heroImageUrl}
                     alt=${destination.cityName_en}
-                    class="w-full md:w-[240px] h-[240px] object-cover rounded-lg"
+                    class="w-full h-[161px] lg:w-[240px] lg:h-[240px] object-cover rounded-lg"
                     loading="lazy"
                     decoding="async"
                     fetchpriority="low"
                   />
                 ` : html`
-                  <div class="w-full md:w-[240px] h-[240px] bg-gray-200 rounded-lg flex items-center justify-center text-gray-400">
-                    No image
+                  <div class="w-full h-[161px] lg:w-[240px] lg:h-[240px] bg-gray-200 rounded-lg flex items-center justify-center text-gray-400">
+                    ${i18n['hubDestinations.destination.noImage'] || 'No image'}
                   </div>
                 `;
   })()}
             </div>
-            
+
             <!-- Right content: title, description, currency and language (100% mobile) -->
-            <div class="w-full md:flex-1 flex flex-col gap-4">
+            <div class="w-full lg:flex-1 flex flex-col gap-4">
               <div
                 class="
-                text-[var(--color-text-normal-primary)] prose max-w-none [&_hr]:my-4 [&_.dynamic-information-list]:flex [&_.dynamic-information-list]:flex-wrap [&_.dynamic-information-list]:gap-4 [&_.dynamic-information_item]:flex-[0_0_100%] md:[&_.dynamic-information_item]:flex-[0_0_calc(25%-12px)]
-                [&_.dynamic-information_item]:min-w-0 
-                [&_li]:flex [&_li]:flex-row md:[&_li]:flex-col [&_li]:gap-[8px] [&_li_strong]:leading-[24px] [&_li_p]:leading-[24px] [&_li_strong]:text-[16px]
-                [&_ul]:flex [&_ul]:flex-col [&_ul]:items-center md:[&_ul]:flex-row
-                [&>p]:text-[16px] md:[&>p]:text-[18px] [&_li_p]:text-[16px]"
+                text-[var(--color-text-normal-secondary)] prose max-w-none
+                [&_hr]:my-4
+                [&_p+ul]:mt-4 [&_p+ul]:pt-4 [&_p+ul]:border-t [&_p+ul]:border-[var(--color-border-stroke-default)]
+                [&_.dynamic-information-list]:flex [&_.dynamic-information-list]:flex-wrap [&_.dynamic-information-list]:gap-4
+                [&_.dynamic-information_item]:min-w-0
+                [&_ul]:flex [&_ul]:flex-row [&_ul]:flex-wrap [&_ul]:gap-4
+                [&_li]:flex [&_li]:flex-row lg:[&_li]:flex-col [&_li]:gap-[8px] [&_li]:min-w-0
+                [&_li_strong]:leading-[24px] [&_li_p]:leading-[24px] [&_li_strong]:text-[18px] [&_li_strong]:text-[var(--color-text-normal-primary)]
+                [&>p]:text-[16px] lg:[&>p]:text-[18px] [&>p]:font-normal [&_li_p]:text-[16px] [&_li_p]:font-normal
+                [&_a]:underline [&_a]:decoration-solid [&_a]:[text-decoration-skip-ink:none] [&_a]:text-[var(--color-text-link-informative-default)] [&_a]:transition-colors [&_a]:duration-200 [&_a:hover]:text-[var(--color-text-link-informative-active)] [&_a:active]:text-[var(--color-text-link-informative-active)]"
                 dangerouslySetInnerHTML=${{ __html: sanitizeHTML(getLocalizedField('intro')?.html || getLocalizedField('intro')?.plaintext || '') }}
               />
             </div>
@@ -227,10 +234,10 @@ const InteractiveTabs = ({ destinationData, language = 'es', i18n = {} }) => {
     {
       label: getTabLabel('airport'),
       content: html`
-        <div class="p-4 md:p-8">
-          <div class="flex flex-col md:flex-row gap-[28px] items-start">
-            <!-- Left image: 240px x 240px (desktop), 100% (mobile) -->
-            <div class="w-full md:w-auto md:flex-shrink-0">
+        <div class="p-4 lg:p-8">
+          <div class="flex flex-col lg:flex-row gap-[28px] items-start">
+            <!-- Left image: 240px x 240px (desktop), full-width 161px (mobile/tablet) -->
+            <div class="w-full lg:w-auto lg:flex-shrink-0">
               ${(() => {
     // eslint-disable-next-line dot-notation
     const airportImageUrl = destination.airportImage?.['_publishUrl'];
@@ -238,24 +245,24 @@ const InteractiveTabs = ({ destinationData, language = 'es', i18n = {} }) => {
                   <img
                     src=${airportImageUrl}
                     alt=${getLocalizedField('airportName')}
-                    class="w-full md:w-[240px] h-[240px] object-cover rounded-lg"
+                    class="w-full h-[161px] lg:w-[240px] lg:h-[240px] object-cover rounded-lg"
                     loading="lazy"
                     decoding="async"
                     fetchpriority="low"
                   />
                 ` : html`
-                  <div class="w-full md:w-[240px] h-[240px] bg-gray-200 rounded-lg flex items-center justify-center text-gray-400">
-                    No image
+                  <div class="w-full h-[161px] lg:w-[240px] lg:h-[240px] bg-gray-200 rounded-lg flex items-center justify-center text-gray-400">
+                    ${i18n['hubDestinations.destination.noImage'] || 'No image'}
                   </div>
                 `;
   })()}
             </div>
-            
+
             <!-- Right content: title and description (100% mobile) -->
-            <div class="w-full md:flex-1 flex flex-col gap-4">
-              <div 
-                class="airport text-[16px] text-[var(--color-text-normal-primary)] prose max-w-none [&_hr]:my-4 [&_.dynamic-information-list]:flex [&_.dynamic-information-list]:flex-wrap [&_.dynamic-information-list]:gap-4 [&_.dynamic-information_item]:flex-[0_0_100%] md:[&_.dynamic-information_item]:flex-[0_0_calc(25%-12px)] [&_.dynamic-information_item]:min-w-0 [&>p]:text-[16px] md:[&>p]:text-[18px] [&_li_strong]:text-[16px] [&_a]:underline [&_a]:text-[var(--color-icon-link-default)]"
-                dangerouslySetInnerHTML=${{ __html: sanitizeHTML(getLocalizedField('airportAndTransport')?.html || getLocalizedField('airportAndTransport')?.plaintext || 'No transport information available') }}
+            <div class="w-full lg:flex-1 flex flex-col gap-4">
+              <div
+                class="airport text-[16px] text-[var(--color-text-normal-secondary)] prose max-w-none [&_hr]:my-4 [&_p+ul]:mt-4 [&_p+ul]:pt-4 [&_p+ul]:border-t [&_p+ul]:border-[var(--color-border-stroke-default)] [&_.dynamic-information-list]:flex [&_.dynamic-information-list]:flex-wrap [&_.dynamic-information-list]:gap-4 [&_.dynamic-information_item]:flex-[0_0_100%] [&_.dynamic-information_item]:min-w-0 [&_h3]:text-[var(--color-text-normal-primary)] [&>p]:text-[16px] lg:[&>p]:text-[18px] [&>p]:font-normal [&_li_strong]:text-[16px] [&_li_strong]:text-[var(--color-text-normal-primary)] [&_a]:underline [&_a]:decoration-solid [&_a]:[text-decoration-skip-ink:none] [&_a]:text-[var(--color-text-link-informative-default)] [&_a]:transition-colors [&_a]:duration-200 [&_a:hover]:text-[var(--color-text-link-informative-active)] [&_a:active]:text-[var(--color-text-link-informative-active)]"
+                dangerouslySetInnerHTML=${{ __html: sanitizeHTML(getLocalizedField('airportAndTransport')?.html || getLocalizedField('airportAndTransport')?.plaintext || i18n['hubDestinations.destination.noTransport'] || 'No transport information available') }}
               />
             </div>
           </div>
@@ -268,8 +275,8 @@ const InteractiveTabs = ({ destinationData, language = 'es', i18n = {} }) => {
         <div class="p-6">
           <h3 class="text-2xl font-bold mb-4">${i18n['hubDestinations.destination.tab.requirements'] || getTabLabel('requirements')}</h3>
           <div id="smartvel-widget-container" class="my-6">
-            <smt-gcovwidget 
-              apikey="b149658a-d07a-45ba-a2df-815bfbdb7631" 
+            <smt-gcovwidget
+              apikey=${smartvelApiKey}
               lang=${language}
             ></smt-gcovwidget>
           </div>
@@ -278,19 +285,18 @@ const InteractiveTabs = ({ destinationData, language = 'es', i18n = {} }) => {
     },
   ];
 
-  // Load Smartvel widget script when tab 3 is active
+  // Load gcovwidget script on each tab 3 activation.
+  // NOTE: smt-gcovwidget does not re-initialize via connectedCallback() when
+  // the script was already loaded but the element wasn't in the DOM at load
+  // time — so we must reload the script each time to guarantee initialization.
   useEffect(() => {
     if (activeTab === 2) {
       const script = document.createElement('script');
       script.src = 'https://cdn.smartvel.com/scripts/gcovwidget/boot.min.js';
       script.async = true;
       document.body.appendChild(script);
-
       return () => {
-        // Cleanup script on unmount
-        if (script.parentNode) {
-          script.parentNode.removeChild(script);
-        }
+        if (script.parentNode) script.parentNode.removeChild(script);
       };
     }
     return undefined;
@@ -299,26 +305,29 @@ const InteractiveTabs = ({ destinationData, language = 'es', i18n = {} }) => {
   return html`
     <div class="shadow-[0px_2px_20px_2px_rgba(73,73,73,0.25)] rounded-3xl overflow-hidden">
       <!-- Tabs Navigation -->
-      <div class="flex gap-0 bg-white overflow-x-auto px-4 md:px-8">
+      <div class="flex gap-0 bg-white overflow-x-auto" role="tablist" aria-label="Destination information tabs">
         ${tabs.map((tab, index) => {
     const isActive = activeTab === index;
     return html`
       <button
         key=${index}
-        class="flex flex-col w-auto md:flex-1 md:basis-[33.333%] py-[28px] px-[var(--x-x-large,32px)] gap-[var(--tiny,4px)] items-center justify-center shrink-0 relative isolate transition-all duration-200 hover:bg-gray-50 md:min-w-0 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-border-stroke-focus)]"
+        id="tab-${index}"
+        class="flex flex-col flex-1 basis-[33.333%] min-w-[140px] py-[22px] px-3 lg:py-[28px] lg:px-[var(--x-x-large,32px)] gap-[var(--tiny,4px)] items-center justify-center shrink-0 relative isolate transition-all duration-200 hover:bg-gray-50 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-border-stroke-focus)]"
         role="tab"
         aria-selected=${isActive}
+        aria-controls="tabpanel-${index}"
         aria-label=${tab.label}
-        tabIndex="0"
+        tabIndex=${isActive ? '0' : '-1'}
+        ref=${(el) => { tabRefs.current[index] = el; }}
         onClick=${() => setActiveTab(index)}
         onKeyDown=${(e) => {
-    if (e.key === 'Enter' || e.key === ' ') {
-      setActiveTab(index);
-    }
+    if (e.key === 'Enter' || e.key === ' ') { setActiveTab(index); }
+    if (e.key === 'ArrowRight') { setActiveTab((index + 1) % tabs.length); }
+    if (e.key === 'ArrowLeft') { setActiveTab((index - 1 + tabs.length) % tabs.length); }
   }}
       >
         <div class="flex gap-[4px] items-center justify-center relative w-full z-[4]">
-          <span class=${`text-[16px] leading-[20px] md:text-[18px] md:leading-[24px] overflow-hidden text-ellipsis ${
+          <span class=${`text-[16px] leading-[20px] lg:text-[18px] lg:leading-[24px] overflow-hidden text-ellipsis ${
     isActive ? 'font-bold text-[var(--text-normal-primary)]' : 'font-normal text-[var(--text-normal-secondary)]'
   }`}>
             ${tab.label}
@@ -334,7 +343,12 @@ const InteractiveTabs = ({ destinationData, language = 'es', i18n = {} }) => {
       </div>
 
       <!-- Tab Content -->
-      <div class="bg-gray-50">
+      <div
+        class="bg-gray-50"
+        role="tabpanel"
+        id="tabpanel-${activeTab}"
+        aria-labelledby="tab-${activeTab}"
+      >
         ${tabs[activeTab].content}
       </div>
     </div>
@@ -357,12 +371,13 @@ export const Destinations = ({
   const [destinationData, setDestinationData] = useState(null);
   let cachedEnvConfig = null;
   /**
-   * Reads { apiUrl, site } from environment.json (AEM Author).
+   * Reads { apiUrl, site, smartvelApiKey } from environment.json (AEM Author).
    * Required env keys:
    *   - AV_API_URL_CONTENT_FRAGMENTS: GraphQL endpoint URL
    *   - AV_NAME_SITE: AEM site name
+   *   - AV_SMARTVEL_API_KEY: Smartvel widget API key
    * Logs a warning if any key is missing.
-   * @returns {Promise<{ apiUrl: string, site: string }>}
+   * @returns {Promise<{ apiUrl: string, site: string, smartvelApiKey: string }>}
    */
   async function getEnvConfig() {
     if (cachedEnvConfig) return cachedEnvConfig;
@@ -372,6 +387,7 @@ export const Destinations = ({
 
     const envApiUrl = readEnv('AV_API_URL_CONTENT_FRAGMENTS');
     const envSite = readEnv('AV_NAME_SITE');
+    const envSmartvelApiKey = readEnv('AV_SMARTVEL_API_KEY');
 
     if (!envApiUrl) {
       // eslint-disable-next-line no-console
@@ -382,12 +398,13 @@ export const Destinations = ({
       console.warn('[Destinations] Missing env var AV_NAME_SITE in environment.json');
     }
 
-    cachedEnvConfig = { apiUrl: envApiUrl, site: envSite };
+    cachedEnvConfig = { apiUrl: envApiUrl, site: envSite, smartvelApiKey: envSmartvelApiKey };
     return cachedEnvConfig;
   }
   const [loading, setLoading] = useState(true);
   const [language, setLanguage] = useState('es');
   const [slug, setSlug] = useState(null);
+  const [smartvelApiKey, setSmartvelApiKey] = useState('');
 
   // Detect language and fetch preSlug from lang file, then extract slug
   useEffect(() => {
@@ -436,7 +453,8 @@ export const Destinations = ({
       }
       const variables = {};
       variables[slugVar] = slug;
-      const { apiUrl: envApiUrl, site } = await getEnvConfig();
+      const { apiUrl: envApiUrl, site, smartvelApiKey: envSmartvelApiKey } = await getEnvConfig();
+      setSmartvelApiKey(envSmartvelApiKey);
       // Allow consumers to override apiUrl via prop; otherwise use the environment value.
       const resolvedApiUrl = apiUrl || envApiUrl;
       const data = await fetchContentFragments(
@@ -475,10 +493,7 @@ export const Destinations = ({
   // If data finished loading but there is no valid destination, unblock the loader immediately
   useEffect(() => {
     if (!loading && !destinationData?.data?.data?.destinationList?.items?.[0]) {
-      if (window.__resolveSmartvelLoaded) {
-        window.__resolveSmartvelLoaded();
-        window.__resolveSmartvelLoaded = null;
-      }
+      resolveSmartvelOnce();
     }
   }, [loading, destinationData]);
 
@@ -503,10 +518,7 @@ export const Destinations = ({
         });
 
         // Signal the page loader that Smartvel is ready
-        if (window.__resolveSmartvelLoaded) {
-          window.__resolveSmartvelLoaded();
-          window.__resolveSmartvelLoaded = null;
-        }
+        resolveSmartvelOnce();
         window.dispatchEvent(new CustomEvent('smartvel:loaded'));
 
         observer.disconnect();
@@ -528,7 +540,7 @@ export const Destinations = ({
     return html`
       <div class=${`${baseClasses} ${customClassName}`} data-name="destinations" ...${rest}>
         <div class="p-6 text-center text-gray-500">
-          Loading destination information...
+          ${i18n['hubDestinations.destination.loading'] || 'Loading...'}
         </div>
       </div>
     `;
@@ -608,19 +620,21 @@ export const Destinations = ({
       <section class="booking-box-section mb-8 md:mb-12">
         <div class="max-w-7xl mx-auto">
           <${BookingBox}
-            defaultDestination=${{ iataCode: destination?.iataCode || '' }}
+            defaultDestination=${destination?.iata
+    ? { iataCityCode: destination.iata, name: getLocalizedField('cityName') || '', iataTerminal: destination.iata }
+    : null}
             i18n=${i18n}
           />
         </div>
       </section>
 
-      <${InteractiveTabs} destinationData=${destinationData} language=${language} i18n=${i18n} />
+      <${InteractiveTabs} destinationData=${destinationData} language=${language} i18n=${i18n} smartvelApiKey=${smartvelApiKey} />
       
       <!-- Smartvel Component -->
       <div class="smartvel-section">
         <div id="smartvel" class="smt-component"></div>
         <smartvelcomponent
-          data-apikey="b149658a-d07a-45ba-a2df-815bfbdb7631"
+          data-apikey=${smartvelApiKey}
           data-lang=${language}
           data-destination=${destination?.iata || ''}
         ></smartvelcomponent>

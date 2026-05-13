@@ -49,7 +49,9 @@ export function getLastOriginDropdownCity() {
 }
 
 /**
- * Event dispatched when geo-nearest-airport result is refreshed.
+ * Event dispatched when the geo-nearest-airport sessionStorage value has
+ * been refreshed post-render (typically because the user granted W3C
+ * geolocation permission after the eager/lazy timeouts).
  *
  * Components that pre-filled their origin from `geo-nearest-airport` at
  * mount time listen to this event to re-read the storage and re-render
@@ -79,14 +81,26 @@ export function dispatchGeoNearestAirportRefreshed(detail) {
  *
  * When the user explicitly picks an origin city (via booking box or
  * origin-dropdown-selector), we persist the choice so it survives page
- * reloads within the same browser tab.
+ * reloads within the same browser tab. The booking box reads this
+ * sessionStorage entry before falling back to geo-nearest / ato /
+ * mainCity.
  *
  * Lifecycle:
- *   - `sessionStorage` scope → auto-cleans when the tab closes.
- *   - Cleared manually on POS change and relocation detection.
+ *   - `sessionStorage` scope → auto-cleans when the tab closes. The site
+ *     never "remembers" an origin from days/weeks ago.
+ *   - Cleared manually on POS change (header selector) and relocation
+ *     detection (geo moved >200km) — the previous selection is no longer
+ *     relevant to the new context.
  */
 const USER_ORIGIN_SELECTION_KEY = 'user-selected-origin';
 
+/**
+ * Reads the current POS from the `selected-country` cookie so the
+ * persisted selection can be tagged with the context it was made in.
+ * If the user later changes POS (header selector), the lookup invalidates
+ * the previous selection instead of forcing a city that belongs to
+ * another country.
+ */
 function readCurrentPos() {
   if (typeof document === 'undefined') return '';
   try {
@@ -139,4 +153,31 @@ export function clearUserOriginSelection() {
   try {
     sessionStorage.removeItem(USER_ORIGIN_SELECTION_KEY);
   } catch (_) { /* ignore */ }
+}
+
+/**
+ * Event dispatched when a promotional card (or similar UI) requests the
+ * Booking Box to set its destination field to a specific city.
+ *
+ * Replaces the previous behavior of redirecting via `window.location.href`
+ * when clicking a card in the offers rail. The booking box listens to this
+ * event, sets its destination state, and scrolls itself into view.
+ *
+ * @event set-booking-destination
+ * @type {CustomEvent}
+ * @property {Object} detail
+ * @property {string} detail.iataCode - IATA code of the destination (e.g., 'CUR')
+ * @property {string} detail.cityName - Display name (e.g., 'Curaçao')
+ */
+export const SET_BOOKING_DESTINATION_EVENT = 'set-booking-destination';
+
+export function dispatchSetBookingDestinationEvent({ iataCode, cityName }) {
+  if (typeof window === 'undefined') return;
+  if (!iataCode) return;
+  const event = new CustomEvent(SET_BOOKING_DESTINATION_EVENT, {
+    detail: { iataCode, cityName: cityName || '' },
+    bubbles: true,
+    composed: true,
+  });
+  window.dispatchEvent(event);
 }
