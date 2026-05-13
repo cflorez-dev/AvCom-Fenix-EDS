@@ -304,13 +304,9 @@ export default function decorate(block) {
       }
     } else if (linkTypeValue === 'modal') {
       // Modal: add data attribute to identify modal
-      // eslint-disable-next-line no-console
-      console.log(`Open modal: ${url}`);
       // Modal logic can be implemented here
     } else if (linkTypeValue === 'action') {
       // Action: custom handler
-      // eslint-disable-next-line no-console
-      console.log(`Execute action: ${url}`);
     }
   };
 

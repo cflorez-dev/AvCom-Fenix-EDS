@@ -216,13 +216,6 @@ export default async function decorate(block) {
   // Normalize and validate the default POS using the mapper
   const defaultPos = normalizePos(rawDefaultPos);
 
-  // eslint-disable-next-line no-console
-  console.log('[header-language-selector] Initializing with:', {
-    rawDefaultPos,
-    normalizedDefaultPos: defaultPos,
-    isValid: validatePos(defaultPos),
-  });
-
   // Check if we have stored POS in cookies
   const storedPos = getStoredPos();
   const storedCountry = getStoredCountry();
@@ -230,18 +223,11 @@ export default async function decorate(block) {
 
   // Set the default POS in cookies if not already set or if stored values are invalid
   if (!storedPos || !storedCountry || !storedLanguage) {
-    // eslint-disable-next-line no-console
-    console.log('[header-language-selector] No valid stored POS found, setting default:', defaultPos);
     setStoredPos(defaultPos);
   } else {
     // Validate stored POS and re-normalize if needed
     const normalizedStoredPos = normalizePos(storedPos, defaultPos);
     if (normalizedStoredPos !== storedPos) {
-      // eslint-disable-next-line no-console
-      console.log('[header-language-selector] Stored POS needs normalization:', {
-        original: storedPos,
-        normalized: normalizedStoredPos,
-      });
       setStoredPos(normalizedStoredPos, defaultPos);
     }
   }

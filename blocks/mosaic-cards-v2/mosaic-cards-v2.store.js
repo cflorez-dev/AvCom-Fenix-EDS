@@ -45,12 +45,8 @@ class MosaicCardsV2Store {
     if (this.groups.has(groupId)) {
       const existing = this.groups.get(groupId);
       if (existing.cards.length > 0) {
-        // eslint-disable-next-line no-console
-        console.log(`[STORE] registerGroup("${groupId}") SKIPPED - already registered with ${existing.cards.length} cards`);
         return;
       }
-      // eslint-disable-next-line no-console
-      console.log(`[STORE] registerGroup("${groupId}") UPDATING from 0 to ${(data.cards || []).length} cards`);
     }
 
     // CRITICAL: Store a FROZEN COPY of cards to prevent any external mutations
