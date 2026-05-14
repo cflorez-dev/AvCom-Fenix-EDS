@@ -25,9 +25,10 @@ import { showLoader } from './services/loader/loader.service.js';
  */
 async function loadOneTrust() {
   const {
-    isTrackingDisabled, isAuthorMode, ONETRUST_CONFIG,
+    isTrackingDisabled, isAuthorMode, getEnvironment, ONETRUST_CONFIG,
   } = await import('./martech-config.js');
   if (isTrackingDisabled() || isAuthorMode()) return;
+  if (getEnvironment() !== 'production') return;
 
   // Load OneTrust SDK
   const script = document.createElement('script');
@@ -685,7 +686,7 @@ async function loadEager(doc) {
     ]);
     if (!isAuthorMode()) {
       await gtmMartech.eager();
-      //loadOneTrust();
+      loadOneTrust();
       gtmMartech.lazy();
     }
   }
