@@ -93,6 +93,7 @@ export const OriginDestinationSelector = ({
   destinationDropdownPositionStyles = '',
   originHasError = false,
   destinationHasError = false,
+  skipAutoOrigin = false,
   i18n = {},
   ...rest
 }) => {
@@ -139,10 +140,11 @@ export const OriginDestinationSelector = ({
           destinationCode: '',
         });
 
-        const defaultOriginAiata = await getDefaultOriginAiata();
-
         setFetchedCities(cities);
 
+        if (skipAutoOrigin) return;
+
+        const defaultOriginAiata = await getDefaultOriginAiata();
         if (defaultOriginAiata && cities.length) {
           const defaultOrigin = findDefaultOriginCity(cities, defaultOriginAiata);
 
@@ -167,6 +169,7 @@ export const OriginDestinationSelector = ({
   // requiring a page reload.
   useEffect(() => {
     const handleRefresh = async () => {
+      if (skipAutoOrigin) return;
       if (!fetchedCities.length) return;
       try {
         const newOriginAiata = await getDefaultOriginAiata();
@@ -181,7 +184,7 @@ export const OriginDestinationSelector = ({
     return () => {
       window.removeEventListener(GEO_NEAREST_AIRPORT_REFRESHED_EVENT, handleRefresh);
     };
-  }, [fetchedCities, onRouteChange, destination]);
+  }, [fetchedCities, onRouteChange, destination, skipAutoOrigin]);
 
   // Load destinations when origin changes
   useEffect(() => {

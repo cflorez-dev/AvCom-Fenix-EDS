@@ -25,9 +25,10 @@ import { showLoader } from './services/loader/loader.service.js';
  */
 async function loadOneTrust() {
   const {
-    isTrackingDisabled, isAuthorMode, ONETRUST_CONFIG,
+    isTrackingDisabled, isAuthorMode, getEnvironment, ONETRUST_CONFIG,
   } = await import('./martech-config.js');
   if (isTrackingDisabled() || isAuthorMode()) return;
+  if (getEnvironment() !== 'production') return;
 
   // Load OneTrust SDK
   const script = document.createElement('script');
@@ -490,8 +491,6 @@ async function loadGlobalFallbackContent(main) {
   // Skip in Universal Editor / Author environment
   // eslint-disable-next-line no-undef
   if (window.hlx?.aue || document.querySelector('meta[name="urn:auecon:aemconnection"]')) {
-    // eslint-disable-next-line no-console
-    console.log('[Content] Skipped fallback in author environment');
     return false;
   }
 
@@ -524,9 +523,6 @@ async function loadGlobalFallbackContent(main) {
   const fallbackPath = `/${locale.language}/${pageName}`;
 
   try {
-    // eslint-disable-next-line no-console
-    console.log(`[Content] Page empty, trying fallback: ${fallbackPath}`);
-
     const resp = await fetch(`${fallbackPath}.plain.html`);
     if (!resp.ok) {
       // eslint-disable-next-line no-console
@@ -556,9 +552,6 @@ async function loadGlobalFallbackContent(main) {
 
     // Re-decorate the new content
     decorateMain(main);
-
-    // eslint-disable-next-line no-console
-    console.log(`✅ [Content] Loaded fallback from: ${fallbackPath}`);
 
     return true;
   } catch (error) {
@@ -610,9 +603,6 @@ async function loadEager(doc) {
       await localeReady;
       const loadedGlobal = await loadGlobalFallbackContent(main);
 
-      // eslint-disable-next-line no-console
-      console.log('[Debug] After global fallback - loadedGlobal:', loadedGlobal, 'isMainEmpty:', true, 'isErrorPage:', window.isErrorPage);
-
       if (loadedGlobal) {
         await loadSections(main);
       } else {
@@ -624,13 +614,9 @@ async function loadEager(doc) {
             ? `/errors/404-${lang}.plain.html`
             : '/errors/404.plain.html';
 
-          // eslint-disable-next-line no-console
-          console.log(`[404 Fallback] Loading 404 content for lang=${lang}, path=${fragmentPath}`);
           let resp = await fetch(fragmentPath);
 
           if (!resp.ok && fragmentPath !== '/errors/404.plain.html') {
-            // eslint-disable-next-line no-console
-            console.log('[404 Fallback] Language-specific 404 not found, falling back to Spanish');
             resp = await fetch('/errors/404.plain.html');
           }
           if (resp.ok) {
@@ -700,7 +686,7 @@ async function loadEager(doc) {
     ]);
     if (!isAuthorMode()) {
       await gtmMartech.eager();
-      //loadOneTrust();
+      loadOneTrust();
       gtmMartech.lazy();
     }
   }

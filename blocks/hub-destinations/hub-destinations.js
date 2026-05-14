@@ -47,13 +47,6 @@ export default async function decorate(block) {
     || origins[0]?.code
     || '';
 
-  // eslint-disable-next-line no-console
-  console.log('[hub-destinations] mapped payload:', {
-    originsCount: origins.length,
-    defaultOriginCode,
-    mainCityCode: destinationsData?.mainCityCode || '',
-    firstOrigin: origins[0]?.code || null,
-  });
   // Hide original children to preserve data-aue-* for editor (Pattern B)
   Array.from(block.children).forEach((child) => {
     child.style.display = 'none';

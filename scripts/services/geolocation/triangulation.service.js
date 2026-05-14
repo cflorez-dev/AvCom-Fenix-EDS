@@ -401,31 +401,6 @@ export async function triangulatePOS(userLat, userLng, options = {}) {
   const pos = await mapCountryToPos(nearest.iataCountryCode);
   const ato = resolveATO(pos, nearest, masterRows, userLat, userLng);
 
-  // TODO(remove-after-qa): temporary debug log to help the client verify
-  // that the airport catalog's lat/lng match the real-world airport. If the
-  // picked city is wrong, comparing `userCoords` vs `catalog.{lat,lng}` (and
-  // the Google Maps link) usually points to a data issue in the catalog.
-  // Context: Lyon bug (2026-04-23) — catalog had wrong lat for LYS.
-  // eslint-disable-next-line no-console
-  console.log(
-    '%c[GEO-DEBUG] triangulation result',
-    'color:#09a;font-weight:bold',
-    {
-      userCoords: { lat: userLat, lng: userLng },
-      pickedAirport: {
-        iata: nearest.iataCityCode,
-        cityName: nearest.cityName,
-        country: nearest.iataCountryCode,
-        catalogLat: nearest.lat,
-        catalogLng: nearest.lng,
-      },
-      distanceKm: Number(nearest.distance).toFixed(2),
-      resolvedPos: pos,
-      resolvedAto: ato,
-      verifyCatalogAt: `https://www.google.com/maps?q=${nearest.lat},${nearest.lng}`,
-    },
-  );
-
   return {
     pos,
     ato,

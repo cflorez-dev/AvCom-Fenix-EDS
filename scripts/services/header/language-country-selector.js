@@ -30,6 +30,10 @@ function isAuthorEnvironment() {
   }
 }
 
+// Languages that must never trigger a funnel redirect, even if the AEM
+// languages catalog briefly fails to load or marks one inactive by mistake.
+const SUPPORTED_LANGUAGES = new Set(['es', 'en', 'pt', 'fr']);
+
 // Cookie names
 const COUNTRY_COOKIE = 'selected-country';
 const LANGUAGE_COOKIE = 'selected-language';
@@ -151,8 +155,15 @@ const COUNTRY_DATA = {
     label: 'España',
     flagFileName: 'spain-flag.svg',
     currencyCode: 'EUR',
-    keyIso: 'eu',
+    keyIso: 'es',
     iataCountryCode: 'es',
+  },
+  fra: {
+    label: 'France',
+    flagFileName: 'france-flag.svg',
+    currencyCode: 'EUR',
+    keyIso: 'fr',
+    iataCountryCode: 'fr',
   },
   gbr: {
     label: 'Reino Unido',
@@ -425,10 +436,15 @@ if (typeof window !== 'undefined' && !isAuthorEnvironment()) {
     const defaultPos = normalizePos('');
     const { language: defaultLang } = parsePos(defaultPos);
 
+    // Defensive guards against unintended funnel redirects:
+    //  - catalog empty (load failure) → without this, every user gets redirected
+    //  - core language → never redirect away from /es/, /en/, /pt/, /fr/
+    const isCatalogEmpty = Object.keys(languages).length === 0;
+
     // 1. Check URL language is active
     const urlLang = window.location.pathname.match(/^\/([a-z]{2})\//)?.[1] || '';
     if (!urlLang) return; // Non-language URLs (e.g. /development/) — skip validation
-    if (!languages[urlLang]) {
+    if (!languages[urlLang] && !isCatalogEmpty && !SUPPORTED_LANGUAGES.has(urlLang)) {
       if (defaultLang && defaultLang !== urlLang) {
         // eslint-disable-next-line no-console
         console.warn('[language-country-selector] URL language inactive, redirecting:', { urlLang, defaultPos });
@@ -447,6 +463,24 @@ if (typeof window !== 'undefined' && !isAuthorEnvironment()) {
     const langActive = !storedLang || !!languages[storedLang];
     const countryActive = !storedCountry || (!!storedCountryCode && !!countries[storedCountryCode]);
     if (langActive && countryActive) return; // Both active, nothing to do
+
+    // If only country is invalid, fix it silently without resetting language or redirecting
+    if (langActive && !countryActive) {
+      const inferredCountry = getDefaultCountryForLanguage(storedLang)
+        || parsePos(defaultPos).country;
+      // eslint-disable-next-line no-console
+      console.warn(
+        '[language-country-selector] Stored country inactive, fixing country only:',
+        { storedCountry, inferredCountry },
+      );
+      setStoredCountry(inferredCountry);
+      return;
+    }
+
+    // Language itself is inactive — reset POS and redirect to active language home.
+    // Skip if catalog failed to load or the stored language is a core language
+    // (the catalog may be momentarily wrong; cookie POS is harmless to keep).
+    if (isCatalogEmpty || SUPPORTED_LANGUAGES.has(storedLang || '')) return;
     // eslint-disable-next-line no-console
     console.warn('[language-country-selector] Stored POS inactive, switching to default:', { storedLang, storedCountry, defaultPos });
     setStoredPos(defaultPos);
@@ -463,7 +497,7 @@ const LANGUAGE_DEFAULT_COUNTRY = {
   es: 'co', // Spanish -> Colombia
   en: 'us', // English -> United States
   pt: 'br', // Portuguese -> Brazil
-  fr: 'eu', // French -> France (using Spain EU for EUR)
+  fr: 'fr', // French -> France (matches pos:'fr' in countireslist.json)
 };
 
 /**
@@ -1065,15 +1099,6 @@ export function setStoredPos(pos, fallback) {
 
   // Get currency from country data
   const currency = countryData[country]?.currencyCode || null;
-
-  // eslint-disable-next-line no-console
-  console.log('[language-country-selector] POS set successfully:', {
-    original: pos,
-    normalized: normalizedPos,
-    language,
-    country,
-    currency,
-  });
 
   // Dispatch event with POS format for compatibility
   window.dispatchEvent(new CustomEvent(STORAGE_EVENT, {
