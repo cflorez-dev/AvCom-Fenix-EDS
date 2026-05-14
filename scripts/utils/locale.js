@@ -78,8 +78,6 @@ export async function resolveLocale() {
         const { getDefaultCountryForLanguage } = await import('../services/header/language-country-selector.js');
         country = getDefaultCountryForLanguage(urlLangNorm);
         usedDefaultCountry = true;
-        // eslint-disable-next-line no-console
-        console.log(`[Locale] No country cookie, using language default: ${urlLangNorm} → ${country}`);
       } catch (error) {
         // eslint-disable-next-line no-console
         console.warn('[Locale] Failed to load getDefaultCountryForLanguage, using fallback:', error);
@@ -117,19 +115,11 @@ export async function resolveLocale() {
         if (usedDefaultCountry) {
           setStoredCountry(country);
         }
-        
-        // eslint-disable-next-line no-console
-        console.log(
-          `[Locale] Cookies synced immediately: lang=${urlLangNorm}, country=${country}`,
-        );
       } catch (error) {
         // eslint-disable-next-line no-console
         console.warn('[Locale] Failed to sync cookies immediately:', error);
       }
     }
-
-    // eslint-disable-next-line no-console
-    console.log(`[Locale] Resolved: lang=${urlLangNorm} (URL), country=${country} (${cookieCountry ? 'cookie' : 'default'}), cookieLanguage=${cookieLanguage || 'none'}${languageMismatch ? ' [MISMATCH - will sync]' : ''}`);
   } else {
     // No URL locale - use dynamic defaults from spreadsheet
     let defaultCountry = 'co';
@@ -181,8 +171,6 @@ export async function initLocaleGlobals() {
   }
 
   if (!window.localeInitialized) {
-    // eslint-disable-next-line no-console
-    console.log(`[Locale] Initialized: market=${targetMarket}, lang=${targetLang}, source=${locale.source}`);
     window.localeInitialized = true;
   }
 }

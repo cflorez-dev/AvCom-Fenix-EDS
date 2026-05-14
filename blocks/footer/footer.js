@@ -19,8 +19,6 @@ export default async function decorate(block) {
     // eslint-disable-next-line no-await-in-loop
     fragment = await loadFragment(footerPath, 'footer');
     if (fragment) {
-      // eslint-disable-next-line no-console
-      console.log(`✅ Footer loaded from: ${footerPath}`);
       break;
     }
   }

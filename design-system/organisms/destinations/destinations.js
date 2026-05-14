@@ -508,15 +508,6 @@ export const Destinations = ({
         : smartvelEl.children.length > 0 || smartvelEl.textContent.trim().length > 0;
 
       if (hasContent) {
-        // eslint-disable-next-line no-console
-        console.log('[Smartvel] Component loaded with content:', {
-          element: smartvelEl,
-          shadowRoot: smartvelEl.shadowRoot,
-          children: smartvelEl.children,
-          innerHTML: smartvelEl.innerHTML,
-          mutations,
-        });
-
         // Signal the page loader that Smartvel is ready
         resolveSmartvelOnce();
         window.dispatchEvent(new CustomEvent('smartvel:loaded'));

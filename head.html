@@ -20,12 +20,10 @@
   window.__adobeLaunchLoaded=true;
 })();
 </script>
-<link rel="preconnect" href="https://cdn.cookielaw.org"/>
 <link rel="dns-prefetch" href="https://cdn.cookielaw.org"/>
-<link rel="preconnect" href="https://publish-p34631-e1321407.adobeaemcloud.com"/>
-<link rel="dns-prefetch" href="https://publish-p34631-e1321407.adobeaemcloud.com"/>
 <link rel="preconnect" href="https://cdn.jsdelivr.net"/>
 <link rel="dns-prefetch" href="https://cdn.jsdelivr.net"/>
+<link rel="preload" as="script" crossorigin="anonymous" href="https://cdn.jsdelivr.net/npm/dompurify@3.3.3/dist/purify.min.js"/>
 <link rel="dns-prefetch" href="https://avianca-help.centribal.com"/>
 
 <!-- Favicon — cross-browser & cross-device -->
@@ -122,8 +120,8 @@
 
 <!-- Modulepreload critical sub-dependencies so they start fetching in parallel
      with the top-level modules instead of waiting for scripts.js to be parsed. -->
-<link rel="modulepreload" href="/scripts/utils/locale.js" />
-<link rel="modulepreload" href="/scripts/services/loader/loader.service.js" />
+<link rel="modulepreload" crossorigin="anonymous" href="/scripts/utils/locale.js" />
+<link rel="modulepreload" crossorigin="anonymous" href="/scripts/services/loader/loader.service.js" />
 
 <script nonce="aem" src="/scripts/aem.js" type="module"></script>
 <script nonce="aem" src="/scripts/scripts.js" type="module"></script>

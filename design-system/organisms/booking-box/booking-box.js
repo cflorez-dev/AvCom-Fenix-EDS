@@ -703,6 +703,7 @@ export const BookingBox = ({
                 destinationDropdownPositionStyles="md:top-full lg2:top-[calc(100%+32px)] ${someInputHasError ? 'lg2:top-[calc(100%+32px)]' : ''}"
                 originHasError=${validationErrors.origin}
                 destinationHasError=${validationErrors.destination}
+                skipAutoOrigin=${!!defaultDestination}
                 i18n=${i18n}
             />
             </div>

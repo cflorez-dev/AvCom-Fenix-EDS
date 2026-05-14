@@ -59,8 +59,6 @@ export default async function decorate(block) {
     // eslint-disable-next-line no-await-in-loop
     fragment = await loadFragment(navPath, 'nav');
     if (fragment) {
-      // eslint-disable-next-line no-console
-      console.log(`✅ Header loaded from: ${navPath}`);
       break;
     }
   }
