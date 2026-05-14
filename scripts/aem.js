@@ -115,8 +115,6 @@ function sampleRUM(checkpoint, data) {
             ? new Blob([rumData], { type: 'application/json' })
             : rumData;
           navigator.sendBeacon(url, body);
-          // eslint-disable-next-line no-console
-          console.debug(`ping:${ck}`, pingData);
         };
         sampleRUM.sendPing('top', timeShift());
 
@@ -165,7 +163,7 @@ function setup() {
       [window.hlx.codeBasePath] = new URL(scriptEl.src).pathname.split('/scripts/scripts.js');
     } catch (error) {
       // eslint-disable-next-line no-console
-      console.log(error);
+      console.error('[aem] Failed to derive codeBasePath:', error);
     }
   }
 }

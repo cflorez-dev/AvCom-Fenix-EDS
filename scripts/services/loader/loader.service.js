@@ -116,10 +116,8 @@ function getLoaderSection() {
 export function showLoader(show) {
   const loader = getLoaderSection();
 
-  // If no loader exists in the DOM, do nothing
+  // If no loader exists in the DOM, do nothing (most pages don't have a curtain loader)
   if (!loader) {
-    // eslint-disable-next-line no-console
-    console.warn('cms-loader block not found in DOM. Make sure the block is rendered before calling showLoader().');
     return false;
   }
 

@@ -96,11 +96,14 @@ export const LanguageSelectorButton = ({
     `;
   };
 
-  // Listen to cookie changes from other components (e.g., header)
+  // Listen to cookie changes from other components (e.g., header, resolveLocale).
+  // Re-derive from cookies on every event so partial updates (setStoredLanguage
+  // or setStoredCountry alone, dispatched without `pos` in detail) still refresh
+  // the label once the pair is coherent.
   useEffect(() => {
-    const handleStorageChange = (event) => {
-      if (event.detail && event.detail.pos) {
-        const newPos = event.detail.pos;
+    const handleStorageChange = () => {
+      const newPos = getStoredPos();
+      if (newPos) {
         setSelectedPos(newPos);
       }
     };

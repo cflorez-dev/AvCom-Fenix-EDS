@@ -758,9 +758,6 @@ async function showMobileView(mosaicSections, container, groupId, config = {}) {
     });
   }
 
-  // eslint-disable-next-line no-console
-  console.log(`MobileViewHelper: Creating carousel for "${groupId}" with ${allCards.length} cards`);
-
   // Create mobile carousel with autoplay config
   const carousel = await createMobileCarousel(allCards, groupId, config);
 
@@ -871,8 +868,6 @@ export function initMobileViewHelper(config) {
       return; // Already in the correct view, do nothing
     }
 
-    // eslint-disable-next-line no-console
-    console.log(`[${groupId}] Switching from ${currentView} to ${targetView}`);
     currentView = targetView;
 
     if (targetView === 'mobile-carousel') {
