@@ -349,8 +349,8 @@ export const BookingBox = ({
     }
 
     const payload = {
-      cco: origin.iataCityCode,
-      ccd: destination.iataCityCode,
+      cco: origin.iataTerminal,
+      ccd: destination.iataTerminal,
       fi: formatDateToDdMMM(departureDate),
       ...(tripType !== 'round-trip' ? {} : { fr: formatDateToDdMMM(returnDate) }),
       tv: tripType === 'round-trip',
