@@ -820,4 +820,32 @@ export default async function decorate(block) {
       scrollActiveTabIntoView();
     }, 250);
   });
+
+  // iOS Safari / Android Chrome can reset scrollLeft of overflow-x containers
+  // when the element exits and re-enters the viewport vertically (memory
+  // optimization). Restore the active tab into view on viewport re-entry.
+  if (typeof IntersectionObserver !== 'undefined') {
+    let wasIntersecting = true;
+    const restoreActiveTabScroll = () => {
+      const activeBtn = tabNav.querySelector('[role="tab"][aria-selected="true"]');
+      if (!activeBtn) return;
+      const target = activeBtn.offsetLeft;
+      if (tabNav.scrollLeft === target) return;
+      const savedBehavior = tabNav.style.scrollBehavior;
+      tabNav.style.scrollBehavior = 'auto';
+      tabNav.scrollLeft = target;
+      window.requestAnimationFrame(() => {
+        tabNav.style.scrollBehavior = savedBehavior;
+      });
+    };
+    const viewportObserver = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting && !wasIntersecting) {
+          restoreActiveTabScroll();
+        }
+        wasIntersecting = entry.isIntersecting;
+      });
+    }, { threshold: 0 });
+    viewportObserver.observe(tabNavWrapper);
+  }
 }
