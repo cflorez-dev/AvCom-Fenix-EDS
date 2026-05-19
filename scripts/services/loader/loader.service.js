@@ -11,17 +11,18 @@
  */
 let loaderSection = null;
 
-function updateQueryParam(url, key, value) {
+function stripQueryString(url) {
+  if (!url) return url;
   try {
     const parsed = new URL(url, window.location.href);
-    parsed.searchParams.set(key, value);
+    parsed.search = '';
     return parsed.toString();
   } catch (e) {
-    return url;
+    return url.split('?')[0];
   }
 }
 
-function optimizeSrcset(srcset, targetWidth) {
+function stripSrcsetQueryParams(srcset) {
   if (!srcset) return srcset;
 
   return srcset
@@ -31,15 +32,9 @@ function optimizeSrcset(srcset, targetWidth) {
     .map((candidate) => {
       const [url, ...descriptorParts] = candidate.split(/\s+/);
       if (!url) return candidate;
-
-      const optimizedUrl = updateQueryParam(url, 'width', targetWidth);
-      if (!descriptorParts.length) return optimizedUrl;
-
-      const descriptor = descriptorParts.join(' ');
-      const normalizedDescriptor = /\d+w$/.test(descriptor)
-        ? `${targetWidth}w`
-        : descriptor;
-      return `${optimizedUrl} ${normalizedDescriptor}`;
+      const cleanedUrl = stripQueryString(url);
+      if (!descriptorParts.length) return cleanedUrl;
+      return `${cleanedUrl} ${descriptorParts.join(' ')}`;
     })
     .join(', ');
 }
@@ -51,26 +46,23 @@ function optimizeLoaderImagePayload(loader) {
   const img = loader.querySelector('.cms-loader img') || loader.querySelector('img');
   if (!img) return;
 
+  // Hotfix: el GIF subido en AEM (2000×2000) pierde calidad al pasar por el pipeline
+  // de Helix con ?width=200 (rasteriza y muestra pixelado en DPR≥2). Servimos el
+  // asset raw — pesa más, pero el cliente requirió la fix visual inmediata.
+  // El tamaño en pantalla lo controla CSS via .cms-loader-image-wrapper (width:100px).
   const sources = picture ? picture.querySelectorAll('source') : [];
   sources.forEach((source) => {
     const srcset = source.getAttribute('srcset');
-    if (!srcset) return;
-
-    const isDesktop = (source.getAttribute('media') || '').includes('min-width: 600px');
-    const optimizedWidth = isDesktop ? '200' : '200';
-    source.setAttribute('srcset', optimizeSrcset(srcset, optimizedWidth));
+    if (srcset) source.setAttribute('srcset', stripSrcsetQueryParams(srcset));
   });
 
   const imgSrcset = img.getAttribute('srcset');
-  if (imgSrcset) {
-    img.setAttribute('srcset', optimizeSrcset(imgSrcset, '200'));
-  }
+  if (imgSrcset) img.setAttribute('srcset', stripSrcsetQueryParams(imgSrcset));
 
   const src = img.getAttribute('src');
-  if (src) {
-    img.setAttribute('src', updateQueryParam(src, 'width', '200'));
-  }
-  img.setAttribute('sizes', '200px');
+  if (src) img.setAttribute('src', stripQueryString(src));
+
+  img.removeAttribute('sizes');
   img.setAttribute('width', '100');
   img.setAttribute('height', '100');
   img.setAttribute('loading', 'eager');
@@ -116,8 +108,10 @@ function getLoaderSection() {
 export function showLoader(show) {
   const loader = getLoaderSection();
 
-  // If no loader exists in the DOM, do nothing (most pages don't have a curtain loader)
+  // If no loader exists in the DOM, do nothing
   if (!loader) {
+    // eslint-disable-next-line no-console
+    console.warn('cms-loader block not found in DOM. Make sure the block is rendered before calling showLoader().');
     return false;
   }
 
