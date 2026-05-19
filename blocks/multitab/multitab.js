@@ -11,10 +11,10 @@ const html = htm.bind(h);
 
 /**
  * Reads block configuration by position (Universal Editor saves values without labels)
- * Supports both old (6 rows) and new (9 rows) structure for backward compatibility
+ * Supports both old (6 rows) and current (9 rows) structure for backward compatibility
  *
  * Old structure (6 rows): group-id, default-tab, enable-from, enable-to, target-languages, size/show
- * New structure (9 rows): group-id, default-tab, enable-from, enable-to, target-countries, target-languages, size, show-chevrons, show
+ * Current structure (9 rows): group-id, default-tab, enable-from, enable-to, target-countries, target-languages, size, show-chevrons, show
  *
  * @param {HTMLElement} block - The block element
  * @returns {Object} Configuration object
@@ -49,7 +49,7 @@ function readMultitabConfig(block) {
     };
   }
 
-  // New structure: all fields present
+  // Current structure: all fields present
   return {
     'group-id': getValue(0),
     'default-tab': getValue(1),
@@ -76,7 +76,11 @@ function readMultitabConfig(block) {
  * - enable-from: Start date (ISO format)
  * - enable-to: End date (ISO format)
  * - target-languages: Comma-separated language codes
- * - size: "large" | "small" - Tab height (80px | 64px)
+ * - size: "large" | "small" | "pill-large" | "pill-small" - Tab height and visual variant
+ *   large = default line indicator, 80px height
+ *   small = default line indicator, 64px height
+ *   pill-large = pill rounded border style, 80px height
+ *   pill-small = pill rounded border style, 64px height
  * - show-chevrons: "true" | "false" - Show navigation arrows
  * - show: "true" | "false" - Enable/disable block
  *
@@ -92,7 +96,9 @@ export default async function decorate(block) {
   const config = readMultitabConfig(block);
   const groupId = config['group-id'] || `multitab-group-${Date.now()}`;
   const defaultTab = config['default-tab'] || null;
-  const size = config.size || 'large';
+  const rawSize = config.size || 'large';
+  const isPill = rawSize === 'pill-large' || rawSize === 'pill-small';
+  const size = (rawSize === 'large' || rawSize === 'pill-large') ? 'large' : 'small';
   const showChevrons = config['show-chevrons'] === true;
 
   // Feature flags
@@ -119,7 +125,7 @@ export default async function decorate(block) {
       <div class="font-semibold mb-2 text-[var(--text-link-informative-default)]">MultiTab Controller</div>
       <div class="text-xs leading-relaxed text-[var(--text-normal-secondary)]">
         <strong>Group ID:</strong> ${groupId}<br>
-        <strong>Size:</strong> ${size}<br>
+        <strong>Size:</strong> ${rawSize}<br>
         <strong>Chevrons:</strong> ${showChevrons ? 'Yes' : 'No'}<br>
         <strong>Default Tab:</strong> ${defaultTab || 'First tab'}<br>
       </div>
@@ -229,6 +235,22 @@ export default async function decorate(block) {
     return;
   }
 
+  // Enforce minimum 2 tabs (per PBI 1242731 acceptance criteria)
+  if (tabSections.length < 2) {
+    // Hide orphaned tab sections so their content doesn't show as raw content
+    tabSections.forEach((tab) => {
+      tab.section.style.display = 'none';
+    });
+    // Show a helpful message to content authors instead of silently hiding
+    block.innerHTML = '';
+    block.style.removeProperty('display');
+    const minMessage = document.createElement('div');
+    minMessage.style.cssText = 'padding: 12px 16px; border-left: 3px solid var(--border-accent-caution, #f5a623); background: var(--bg-caution-light, #fff8ec); border-radius: 4px; font-size: 14px; color: var(--text-normal-secondary, #6e6e6e);';
+    minMessage.textContent = `A minimum of 2 tabs are required to render the component. Currently there are ${tabSections.length} tab(s) configured.`;
+    block.appendChild(minMessage);
+    return;
+  }
+
   // CRITICAL: Hide original block content (preserve for Universal Editor)
   block.style.display = 'none';
 
@@ -268,6 +290,27 @@ export default async function decorate(block) {
     }
   });
 
+  // Propagate custom background (sub 03-fondo-secciones) from the hidden
+  // controller section to the visible multitabContainer. We copy the raw
+  // data-* attributes rather than `has-custom-bg`+`--section-bg` directly,
+  // because scripts.js installs a MutationObserver on `main` that runs
+  // `applyToSection` on any newly inserted `.section` — that handler reads
+  // the data-attrs and rebuilds the bg. If we only copied the class + custom
+  // property, the observer would find no data-attrs and clear them.
+  const SECTION_BG_DATA_ATTRS = [
+    'bgColor-1',
+    'bgColor-2',
+    'gradientType',
+    'gradientDirection',
+    'radialPosition',
+  ];
+  SECTION_BG_DATA_ATTRS.forEach((key) => {
+    const value = section.dataset[key];
+    if (value !== undefined) {
+      multitabContainer.dataset[key] = value;
+    }
+  });
+
   // Create aria-live region for screen reader announcements
   const liveRegion = document.createElement('div');
   liveRegion.className = 'sr-only';
@@ -302,7 +345,9 @@ export default async function decorate(block) {
 
   // Create tab navigation
   const tabNav = document.createElement('div');
-  tabNav.className = 'flex overflow-x-auto scroll-smooth flex-1 max-[1023px]:p-0';
+  let pillGapClass = '';
+  if (isPill) pillGapClass = size === 'large' ? ' gap-4' : ' gap-3';
+  tabNav.className = `flex overflow-x-auto scroll-smooth flex-1 max-[1023px]:p-0${pillGapClass}`;
   tabNav.setAttribute('role', 'tablist');
   tabNav.setAttribute('aria-label', 'Content tabs');
   tabNav.setAttribute('aria-orientation', 'horizontal');
@@ -337,9 +382,14 @@ export default async function decorate(block) {
 
     // Size-specific dimensions (Figma specs)
     const tabHeight = size === 'large' ? 'h-[80px]' : 'h-[64px]';
-    const tabPadding = 'px-6 md:px-8';
-    const primaryFontSize = size === 'large' ? 'text-[18px]' : 'text-[16px]';
-    const secondaryFontSize = 'text-[14px]';
+    let tabPadding = 'px-6 md:px-8';
+    if (isPill) tabPadding = size === 'large' ? 'py-4 px-6' : 'py-2 px-5';
+    let tabRadius = '';
+    if (isPill) tabRadius = size === 'large' ? 'rounded-[12px]' : 'rounded-[8px]';
+    const primaryFontClamp = size === 'large'
+      ? 'clamp(1rem, 0.3vw + 0.9rem, 1.125rem)'
+      : 'clamp(1rem, 0.3vw + 0.85rem, 1rem)';
+    const secondaryFontClamp = 'clamp(0.8125rem, 0.15vw + 0.78rem, 0.875rem)';
 
     // Mobile width: active tab minimum 56% (≤480px)
     // Inactive tabs: no width restriction, content flows naturally
@@ -347,13 +397,26 @@ export default async function decorate(block) {
 
     const tabButton = document.createElement('button');
     tabButton.setAttribute('type', 'button');
-    tabButton.className = `
-      group flex flex-col ${tabHeight} ${tabPadding} gap-[var(--tiny,4px)]
-      items-center justify-center shrink-0 relative isolate
-      transition-all duration-200 cursor-pointer
-      focus:outline-none focus-visible:outline-none
-      ${tabWidth}
-    `.trim().replace(/\s+/g, ' ');
+    if (isPill) {
+      const pillActiveBg = isActive ? 'bg-white' : 'bg-transparent';
+      const pillActiveBorder = isActive ? 'border-[var(--border-accent-positive,#1ea93c)]' : 'border-transparent';
+      tabButton.className = `
+        group flex flex-col ${tabHeight} ${tabPadding} gap-[var(--tiny,4px)]
+        items-center justify-center shrink-0 relative isolate overflow-hidden
+        border border-solid ${tabRadius} ${pillActiveBg} ${pillActiveBorder}
+        transition-all duration-200 cursor-pointer
+        focus:outline-none focus-visible:outline-none
+        ${tabWidth}
+      `.trim().replace(/\s+/g, ' ');
+    } else {
+      tabButton.className = `
+        group flex flex-col ${tabHeight} ${tabPadding} gap-[var(--tiny,4px)]
+        items-center justify-center shrink-0 relative isolate
+        transition-all duration-200 cursor-pointer
+        focus:outline-none focus-visible:outline-none
+        ${tabWidth}
+      `.trim().replace(/\s+/g, ' ');
+    }
     tabButton.style.pointerEvents = 'auto';
 
     // Add focus indicator styling
@@ -362,7 +425,9 @@ export default async function decorate(block) {
         const existingFocusIndicator = e.target.querySelector('[data-name="focus-indicator"]');
         if (!existingFocusIndicator) {
           const focusIndicator = document.createElement('div');
-          focusIndicator.className = 'absolute inset-0 border-2 border-[var(--border-stroke-focus,#1d9bf0)] pointer-events-none z-[3]';
+          let focusRadiusClass = '';
+          if (isPill) focusRadiusClass = size === 'large' ? 'rounded-xl' : 'rounded-lg';
+          focusIndicator.className = `absolute inset-0 border-2 border-[var(--border-stroke-focus,#1d9bf0)] pointer-events-none z-[3] ${focusRadiusClass}`.trim();
           focusIndicator.setAttribute('data-name', 'focus-indicator');
           e.target.appendChild(focusIndicator);
         }
@@ -373,6 +438,11 @@ export default async function decorate(block) {
         if (labelSpan) {
           labelSpan.classList.remove('font-bold', 'text-[color:var(--text-normal-primary,#1B1B1B)]');
           labelSpan.classList.add('font-normal', 'text-[var(--text-normal-secondary)]');
+        }
+
+        // Pill active tab: hide green border on keyboard focus
+        if (isPill && e.target.getAttribute('aria-selected') === 'true') {
+          e.target.style.borderColor = 'transparent';
         }
 
         // Hide green indicator when focused (make it transparent)
@@ -398,12 +468,36 @@ export default async function decorate(block) {
         labelSpan.classList.add('font-bold', 'text-[color:var(--text-normal-primary,#1B1B1B)]');
       }
 
+      // Pill active tab: restore green border on blur
+      if (isPill && isActiveTab) {
+        e.target.style.borderColor = 'var(--border-accent-positive,#1ea93c)';
+      }
+
       // Restore green indicator when blur (make it visible again)
       const indicator = e.target.querySelector('[data-name="indicator"]');
       if (indicator) {
         indicator.classList.remove('opacity-0');
       }
     });
+
+    // Pill variant: hover bg/border via JS (CSS group-hover can't change both bg and border)
+    // Guard with (hover: hover) + (pointer: fine) so iOS/touch devices are excluded:
+    // on touch screens mouseenter fires on tap but mouseleave never fires during scroll,
+    // leaving the hover styles stuck on the wrong tab.
+    if (isPill && window.matchMedia('(hover: hover) and (pointer: fine)').matches) {
+      tabButton.addEventListener('mouseenter', () => {
+        if (tabButton.getAttribute('aria-selected') !== 'true') {
+          tabButton.style.backgroundColor = 'var(--bg-hover-light, #e9e9e9)';
+          tabButton.style.borderColor = 'var(--bg-hover-light, #e9e9e9)';
+        }
+      });
+      tabButton.addEventListener('mouseleave', () => {
+        if (tabButton.getAttribute('aria-selected') !== 'true') {
+          tabButton.style.backgroundColor = '';
+          tabButton.style.borderColor = '';
+        }
+      });
+    }
 
     tabButton.setAttribute('role', 'tab');
     tabButton.setAttribute('aria-selected', isActive ? 'true' : 'false');
@@ -434,10 +528,12 @@ export default async function decorate(block) {
       // Primary label (columns 2-3)
       const labelSpan = document.createElement('span');
       labelSpan.className = `
-        col-span-2 font-[var(--family-red-hat-display)] ${primaryFontSize} leading-[1.313rem] md:leading-[1.5rem] whitespace-nowrap tracking-[var(--letter-spacing-normal)]
+        col-span-2 font-[var(--family-red-hat-display)] leading-[1.313rem] md:leading-[1.5rem] whitespace-nowrap tracking-[var(--letter-spacing-normal)]
         ${isActive ? 'font-bold text-[color:var(--text-normal-primary,#1B1B1B)]' : 'font-normal text-[var(--text-normal-secondary)] group-hover:text-[color:var(--text-normal-primary,#1B1B1B)] group-aria-[selected=false]:group-hover:text-[color:var(--text-normal-primary,#1B1B1B)]'}
         transition-colors duration-200
       `.trim().replace(/\s+/g, ' ');
+      labelSpan.style.fontSize = primaryFontClamp;
+      if (isPill && size === 'small') labelSpan.style.lineHeight = '21px';
       labelSpan.textContent = tabData.label;
       contentContainer.appendChild(labelSpan);
 
@@ -445,25 +541,29 @@ export default async function decorate(block) {
       if (tabData.secondaryLabel) {
         const secondarySpan = document.createElement('span');
         secondarySpan.className = `
-          col-span-2 font-[var(--family-red-hat-display)] ${secondaryFontSize} font-normal leading-[1.5] whitespace-nowrap tracking-[var(--letter-spacing-normal)]
+          col-span-2 font-[var(--family-red-hat-display)] font-normal leading-[1.5] whitespace-nowrap tracking-[var(--letter-spacing-normal)]
           text-[var(--text-normal-secondary)]
         `.trim().replace(/\s+/g, ' ');
+        secondarySpan.style.fontSize = secondaryFontClamp;
+        if (isPill) secondarySpan.style.lineHeight = '21px';
         secondarySpan.textContent = tabData.secondaryLabel;
         contentContainer.appendChild(secondarySpan);
       }
     } else {
       // No icon: use flex column layout
       contentContainer.className = `
-        flex flex-col gap-[2px] items-center justify-center relative w-full z-[5]
+        flex flex-col ${isPill ? 'gap-[4px]' : 'gap-[2px]'} items-center justify-center relative w-full z-[5]
       `.trim().replace(/\s+/g, ' ');
 
       // Primary label
       const labelSpan = document.createElement('span');
       labelSpan.className = `
-        font-[var(--family-red-hat-display)] ${primaryFontSize} leading-[1.313rem] md:leading-[1.5rem] whitespace-nowrap tracking-[var(--letter-spacing-normal)]
+        font-[var(--family-red-hat-display)] leading-[1.313rem] md:leading-[1.5rem] whitespace-nowrap tracking-[var(--letter-spacing-normal)]
         ${isActive ? 'font-bold text-[color:var(--text-normal-primary,#1B1B1B)]' : 'font-normal text-[var(--text-normal-secondary)] group-hover:text-[color:var(--text-normal-primary,#1B1B1B)] group-aria-[selected=false]:group-hover:text-[color:var(--text-normal-primary,#1B1B1B)]'}
         transition-colors duration-200
       `.trim().replace(/\s+/g, ' ');
+      labelSpan.style.fontSize = primaryFontClamp;
+      if (isPill && size === 'small') labelSpan.style.lineHeight = '21px';
       labelSpan.textContent = tabData.label;
       contentContainer.appendChild(labelSpan);
 
@@ -471,9 +571,11 @@ export default async function decorate(block) {
       if (tabData.secondaryLabel) {
         const secondarySpan = document.createElement('span');
         secondarySpan.className = `
-          font-[var(--family-red-hat-display)] ${secondaryFontSize} font-normal leading-[1.313rem] md:leading-[1.5rem] whitespace-nowrap tracking-[var(--letter-spacing-normal)]
+          font-[var(--family-red-hat-display)] font-normal leading-[1.313rem] md:leading-[1.5rem] whitespace-nowrap tracking-[var(--letter-spacing-normal)]
           text-[var(--text-normal-secondary)]
         `.trim().replace(/\s+/g, ' ');
+        secondarySpan.style.fontSize = secondaryFontClamp;
+        if (isPill) secondarySpan.style.lineHeight = '21px';
         secondarySpan.textContent = tabData.secondaryLabel;
         contentContainer.appendChild(secondarySpan);
       }
@@ -481,25 +583,27 @@ export default async function decorate(block) {
 
     tabButton.appendChild(contentContainer);
 
-    // Green indicator (active only)
-    if (isActive) {
-      const indicator = document.createElement('div');
-      indicator.className = 'absolute bottom-0 left-0 right-0 h-[2px] bg-[var(--border-accent-positive,#1ea93c)] z-[2] transition-opacity duration-200';
-      indicator.setAttribute('data-name', 'indicator');
-      tabButton.appendChild(indicator);
+    if (!isPill) {
+      // Green indicator (active only) — default variant
+      if (isActive) {
+        const indicator = document.createElement('div');
+        indicator.className = 'absolute bottom-0 left-0 right-0 h-[2px] bg-[var(--border-accent-positive,#1ea93c)] z-[2] transition-opacity duration-200';
+        indicator.setAttribute('data-name', 'indicator');
+        tabButton.appendChild(indicator);
+      }
+
+      // Bottom border (all tabs) — default variant
+      const border = document.createElement('div');
+      border.className = 'absolute bottom-0 left-0 right-0 h-[1px] bg-[var(--border-stroke-default,#d9d9d9)] z-[1]';
+      border.setAttribute('data-name', 'border');
+      tabButton.appendChild(border);
+
+      // Hover indicator (bottom border on hover for inactive tabs) — default variant
+      const hoverIndicator = document.createElement('div');
+      hoverIndicator.className = 'absolute bottom-0 left-0 right-0 h-[2px] bg-[var(--border-stroke-darker,#1b1b1b)] z-[2] opacity-0 group-aria-[selected=false]:group-hover:opacity-100 transition-opacity duration-200';
+      hoverIndicator.setAttribute('data-name', 'hover-indicator');
+      tabButton.appendChild(hoverIndicator);
     }
-
-    // Bottom border (all tabs)
-    const border = document.createElement('div');
-    border.className = 'absolute bottom-0 left-0 right-0 h-[1px] bg-[var(--border-stroke-default,#d9d9d9)] z-[1]';
-    border.setAttribute('data-name', 'border');
-    tabButton.appendChild(border);
-
-    // Hover indicator (bottom border on hover for inactive tabs)
-    const hoverIndicator = document.createElement('div');
-    hoverIndicator.className = 'absolute bottom-0 left-0 right-0 h-[2px] bg-[var(--border-stroke-darker,#1b1b1b)] z-[2] opacity-0 group-aria-[selected=false]:group-hover:opacity-100 transition-opacity duration-200';
-    hoverIndicator.setAttribute('data-name', 'hover-indicator');
-    tabButton.appendChild(hoverIndicator);
 
     tabButtons.push(tabButton);
     tabNav.appendChild(tabButton);
@@ -513,7 +617,7 @@ export default async function decorate(block) {
     const isActive = index === activeTabIndex;
 
     const tabPanel = document.createElement('div');
-    tabPanel.className = `multitab-panel mt-6 focus:outline-none focus-visible:outline-none animate-[fadeIn_0.3s_ease-in-out] ${isActive ? '' : 'hidden'}`;
+    tabPanel.className = `multitab-panel ${isPill ? 'mt-8' : 'mt-6'} focus:outline-none focus-visible:outline-none animate-[fadeIn_0.3s_ease-in-out] ${isActive ? '' : 'hidden'}`;
     tabPanel.setAttribute('role', 'tabpanel');
     tabPanel.setAttribute('id', `panel-${tabData.id}`);
     tabPanel.setAttribute('aria-labelledby', `btn-${tabData.id}`);
@@ -527,8 +631,10 @@ export default async function decorate(block) {
     // Transfer grid-layout classes from the section to the contentWrapper so
     // the tab panel renders full-width while internal content respects the grid
     // preset configured via Section Metadata → Styles.
-    const gridClasses = [...tabData.section.classList].filter((cls) => cls.startsWith('grid-'));
-    gridClasses.forEach((cls) => {
+    // Also transfer multitab-item-pill so pill sections can apply custom layout styles.
+    const CONTENT_WRAPPER_CLASSES = ['grid-', 'multitab-item-pill'];
+    const transferClasses = [...tabData.section.classList].filter((cls) => CONTENT_WRAPPER_CLASSES.some((prefix) => cls.startsWith(prefix)));
+    transferClasses.forEach((cls) => {
       tabData.section.classList.remove(cls);
       contentWrapper.classList.add(cls);
     });
@@ -587,6 +693,12 @@ export default async function decorate(block) {
   function switchTab(newIndex) {
     if (newIndex < 0 || newIndex >= tabSections.length) return;
 
+    // Track the currently active tab so handlers like resize / re-entry into
+    // viewport know which tab to restore. Without this, activeTabIndex stays
+    // at its initial value (0) and resize-triggered restoration scrolls back
+    // to the first tab — visible on mobile when the URL bar shows/hides.
+    activeTabIndex = newIndex;
+
     // Update buttons
     tabButtons.forEach((btn, i) => {
       const isActive = i === newIndex;
@@ -613,8 +725,14 @@ export default async function decorate(block) {
           });
         });
 
-        // Add green indicator if not present
-        if (!btn.querySelector('[data-name="indicator"]')) {
+        if (isPill) {
+          // Pill active state: white bg + green border
+          btn.style.backgroundColor = '';
+          btn.style.borderColor = '';
+          btn.classList.remove('bg-transparent', 'border-transparent');
+          btn.classList.add('bg-white', 'border-[var(--border-accent-positive,#1ea93c)]');
+        } else if (!btn.querySelector('[data-name="indicator"]')) {
+          // Default: Add green bottom indicator if not present
           const indicator = document.createElement('div');
           indicator.className = 'absolute bottom-0 left-0 right-0 h-[2px] bg-[var(--border-accent-positive,#1ea93c)] z-[2] transition-opacity duration-200';
           indicator.setAttribute('data-name', 'indicator');
@@ -636,10 +754,18 @@ export default async function decorate(block) {
           });
         });
 
-        // Remove green indicator if present
-        const indicator = btn.querySelector('[data-name="indicator"]');
-        if (indicator) {
-          indicator.remove();
+        if (isPill) {
+          // Pill inactive state: transparent bg + transparent border
+          btn.style.backgroundColor = '';
+          btn.style.borderColor = '';
+          btn.classList.remove('bg-white', 'border-[var(--border-accent-positive,#1ea93c)]');
+          btn.classList.add('bg-transparent', 'border-transparent');
+        } else {
+          // Default: Remove green bottom indicator
+          const indicator = btn.querySelector('[data-name="indicator"]');
+          if (indicator) {
+            indicator.remove();
+          }
         }
       }
     });
@@ -821,31 +947,31 @@ export default async function decorate(block) {
     }, 250);
   });
 
-  // iOS Safari / Android Chrome can reset scrollLeft of overflow-x containers
-  // when the element exits and re-enters the viewport vertically (memory
-  // optimization). Restore the active tab into view on viewport re-entry.
-  if (typeof IntersectionObserver !== 'undefined') {
-    let wasIntersecting = true;
-    const restoreActiveTabScroll = () => {
-      const activeBtn = tabNav.querySelector('[role="tab"][aria-selected="true"]');
-      if (!activeBtn) return;
-      const target = activeBtn.offsetLeft;
-      if (tabNav.scrollLeft === target) return;
-      const savedBehavior = tabNav.style.scrollBehavior;
-      tabNav.style.scrollBehavior = 'auto';
-      tabNav.scrollLeft = target;
-      window.requestAnimationFrame(() => {
-        tabNav.style.scrollBehavior = savedBehavior;
-      });
-    };
-    const viewportObserver = new IntersectionObserver((entries) => {
-      entries.forEach((entry) => {
-        if (entry.isIntersecting && !wasIntersecting) {
-          restoreActiveTabScroll();
-        }
-        wasIntersecting = entry.isIntersecting;
-      });
-    }, { threshold: 0 });
-    viewportObserver.observe(tabNavWrapper);
-  }
+  // Safety net for iOS Safari / Android Chrome which can silently reset
+  // scrollLeft of overflow-x containers when they exit and re-enter the viewport
+  // vertically. We listen on the tabNav's own scroll event: if scrollLeft is
+  // zeroed while we expected a non-zero position, re-apply it.
+  let expectedScrollLeft = 0;
+  let ignoreNextTabNavScroll = false;
+
+  const applyScrollLeft = (value) => {
+    if (Math.abs(tabNav.scrollLeft - value) <= 1) return;
+    ignoreNextTabNavScroll = true;
+    const prevBehavior = tabNav.style.scrollBehavior;
+    tabNav.style.scrollBehavior = 'auto';
+    tabNav.scrollLeft = value;
+    tabNav.style.scrollBehavior = prevBehavior;
+  };
+
+  tabNav.addEventListener('scroll', () => {
+    if (ignoreNextTabNavScroll) {
+      ignoreNextTabNavScroll = false;
+      return;
+    }
+    if (tabNav.scrollLeft === 0 && expectedScrollLeft > 0) {
+      applyScrollLeft(expectedScrollLeft);
+      return;
+    }
+    expectedScrollLeft = tabNav.scrollLeft;
+  }, { passive: true });
 }
