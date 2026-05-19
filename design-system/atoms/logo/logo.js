@@ -161,26 +161,21 @@ export const Logo = ({
     initializeLogo();
   }, []);
 
-  // Build base routes for logos using buildAssetPath
-  // This correctly handles all cases: empty, relative or absolute codeBasePath
-  // Use .jpg files instead of .svg for better AEM compatibility
+  // SVG vectorial: nítido a cualquier DPR; los JPG de 50×32 se ven pixelados en retina.
   const logoRoutes = {
     primary: {
-      desktop: buildAssetPath('assets/logos/logoAvianca-desktop.jpg', codeBasePath),
-      mobile: buildAssetPath('assets/logos/logoAvianca-mobile.jpg', codeBasePath),
+      desktop: buildAssetPath('assets/logos/LogoAvianca-desktop.svg', codeBasePath),
+      mobile: buildAssetPath('assets/logos/logoAvianca-mobile.svg', codeBasePath),
     },
   };
 
   const logoSrcBase = logoRoutes[variant][mode] || logoRoutes.primary.desktop;
 
-  // Generate optimized URLs for mobile and desktop (always absolute from origin)
-  // Use jpg format for better AEM optimization
-  // Validate before passing to template to avoid double origin
   const logoSrcMobile = validateAndCleanUrl(
-    generateOptimizedImageUrl(logoRoutes.primary.mobile, '750', 'jpg'),
+    generateOptimizedImageUrl(logoRoutes.primary.mobile, '750', 'svg'),
   );
   const logoSrc = validateAndCleanUrl(
-    generateOptimizedImageUrl(logoSrcBase, '750', 'jpg'),
+    generateOptimizedImageUrl(logoSrcBase, '750', 'svg'),
   );
 
   const pictureClassName = customClassName.trim() || undefined;
