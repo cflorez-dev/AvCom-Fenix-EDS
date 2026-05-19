@@ -1,3 +1,27 @@
+/* Force the auto-generated wrapper to fill its parent's width. In normal
+   block flow (standalone sections) this matches the default; in grid/flex
+   contexts whose alignment is not `stretch` (e.g. multitab's
+   `grid-justify-center`) the wrapper would otherwise size to its rail's
+   max-content and overflow the track. */
+.cms-informative-cards-carousel-wrapper {
+  width: 100%;
+  min-width: 0;
+}
+
+/* Inside multitab on ≤1024px, the parent section adds horizontal gutters
+   (see blocks/multitab/multitab.css). Standalone sections cancel them via
+   `!p-0` (applied by this block's JS), but inside a multitab there is no
+   carousel-owned section to target. Mirror the home-page behavior by
+   pulling the wrapper out to the section's content edges so the rail can
+   peek to the viewport edge instead of being cut at the gutter. */
+@media (max-width: 1024px) {
+  .section.multitab-container .cms-informative-cards-carousel-wrapper {
+    margin-left: calc(-1 * var(--main-section-div-padding, 16px));
+    margin-right: calc(-1 * var(--main-section-div-padding, 16px));
+    width: calc(100% + 2 * var(--main-section-div-padding, 16px));
+  }
+}
+
 /* Default vertical padding for the block.
    Defined here (not as Tailwind utilities in JS) so that section-level
    modifiers like `.section.no-padding-y` can override it via the cascade. */
