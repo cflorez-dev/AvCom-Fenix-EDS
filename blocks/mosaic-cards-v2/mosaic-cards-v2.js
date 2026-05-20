@@ -416,13 +416,15 @@ export default async function decorate(block) {
             cellIndex += 1;
           }
 
-          // Cell 5: supportIcon
-          if (cells[cellIndex]) {
+          // Cell 5: supportIcon (only in legacy UE format — current UE removed this field)
+          // 13 cells = current format (no supportIcon), 14+ cells = legacy format (with supportIcon)
+          const hasSupportIcon = cells.length >= 14;
+          if (hasSupportIcon && cells[cellIndex]) {
             cardData.supportIcon = cells[cellIndex].textContent.trim();
             cellIndex += 1;
           }
 
-          // Cell 6: linkUrl
+          // Cell 5/6: linkUrl (index depends on whether supportIcon was present)
           if (cells[cellIndex]) {
             const link = cells[cellIndex].querySelector('a');
             let linkUrl = link ? link.href : cells[cellIndex].textContent.trim();
@@ -433,13 +435,13 @@ export default async function decorate(block) {
             cellIndex += 1;
           }
 
-          // Cell 7: linkAlt
+          // linkAlt
           if (cells[cellIndex]) {
             cardData.linkAlt = cells[cellIndex].textContent.trim();
             cellIndex += 1;
           }
 
-          // Cell 8: linkOpensIn
+          // linkOpensIn
           if (cells[cellIndex]) {
             const opensIn = cells[cellIndex].textContent.trim();
             if (opensIn === 'sameTab' || opensIn === 'newTab') {
@@ -448,7 +450,7 @@ export default async function decorate(block) {
             cellIndex += 1;
           }
 
-          // Cell 9: ctaIconBefore
+          // ctaIconBefore
           if (cells[cellIndex]) {
             const iconBefore = cells[cellIndex].textContent.trim();
             if (iconBefore) {
@@ -457,7 +459,7 @@ export default async function decorate(block) {
             cellIndex += 1;
           }
 
-          // Cell 10: ctaIconAfter
+          // ctaIconAfter
           if (cells[cellIndex]) {
             const iconAfter = cells[cellIndex].textContent.trim();
             if (iconAfter) {
@@ -466,7 +468,7 @@ export default async function decorate(block) {
             cellIndex += 1;
           }
 
-          // Cell 11: clickBehavior
+          // clickBehavior
           if (cells[cellIndex]) {
             const behavior = cells[cellIndex].textContent.trim();
             if (behavior === 'ctaOnly' || behavior === 'fullCard') {
