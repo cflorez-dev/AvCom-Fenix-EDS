@@ -35,12 +35,13 @@
 
 <!-- Preload POS/Languages catalogs so they arrive in parallel with scripts.js
      (read by language-country-selector, geolocation, and locale resolution).
-     `crossorigin="anonymous"` matches the `fetch()` default credentials mode
-     (`same-origin`). Without it the browser keeps the preload in a separate
-     cache entry (credentials-include) and re-issues the request, triggering
-     "preload not used" warnings. -->
-<link rel="preload" as="fetch" crossorigin="anonymous" href="/countireslist.json"/>
-<link rel="preload" as="fetch" crossorigin="anonymous" href="/languageslist.json"/>
+     No `crossorigin` attr: fetch() default credentials mode is `same-origin`
+     (sends cookies for same-origin). A preload without crossorigin matches
+     that, so the browser reuses the preloaded response. With crossorigin
+     "anonymous" (=omit credentials), modes diverge and the preload is
+     ignored, triggering "preload not used" warnings. -->
+<link rel="preload" as="fetch" href="/countireslist.json"/>
+<link rel="preload" as="fetch" href="/languageslist.json"/>
 
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
 

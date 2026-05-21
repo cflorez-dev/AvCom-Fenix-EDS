@@ -752,7 +752,9 @@ async function loadEager(doc) {
 
   // Load DOMPurify from CDN early so sanitizeHTML() is available synchronously in blocks.
   // No longer vendored in the repo — loaded from jsdelivr with pinned version (closes F4 / 117).
-  loadScript('https://cdn.jsdelivr.net/npm/dompurify@3.3.3/dist/purify.min.js');
+  // crossorigin matches the <link rel=preload> in head.html so the browser reuses
+  // the preloaded resource (otherwise it warns "credentials mode does not match").
+  loadScript('https://cdn.jsdelivr.net/npm/dompurify@3.3.3/dist/purify.min.js', { crossorigin: 'anonymous' });
 
   // Start locale resolution early but don't block DOM work that doesn't need it
   const localeReady = initLocaleGlobals();
