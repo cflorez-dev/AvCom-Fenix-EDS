@@ -103,11 +103,13 @@ export default async function decorate(block) {
     let iconElement = null;
     if (config.icon) {
       iconElement = html`
-        <img 
-          src=${config.icon} 
-          alt="" 
+        <img
+          src=${config.icon}
+          alt=""
           class="w-[24px] h-[24px] max-sm:w-[20px] max-sm:h-[20px]"
           aria-hidden="true"
+          decoding="async"
+          loading="lazy"
         />
       `;
     }

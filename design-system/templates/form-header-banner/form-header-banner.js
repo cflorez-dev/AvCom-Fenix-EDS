@@ -92,6 +92,7 @@ export const FormHeaderBanner = ({
     src: imageData?.src,
     alt: imageData?.alt || imageAlt || '',
     loading: loadingMode,
+    decoding: 'async',
     class: 'w-full h-full object-cover',
   };
 

@@ -510,6 +510,8 @@ export const LanguageSearch = ({
                 src=${currentFlagPath}
                 alt=""
                 class="block w-[16px] h-[16px] object-contain flex-shrink-0"
+                loading="eager"
+                decoding="async"
               />
             ` : html`
               <span class="w-5 h-[15px] flex-shrink-0" />
@@ -573,6 +575,8 @@ export const LanguageSearch = ({
                           src=${countryData.flagPath}
                           alt=${countryData.label}
                           class="w-full h-full object-contain"
+                          loading="lazy"
+                          decoding="async"
                         />
                       </span>
                     `}

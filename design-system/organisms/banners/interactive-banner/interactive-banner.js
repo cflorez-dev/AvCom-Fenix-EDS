@@ -166,6 +166,7 @@ const InteractiveBanner = ({
                   alt=${panelData.defaultTitle || 'Banner media'}
                   class="h-auto object-contain max-h-[2.813rem] xl:max-h-[3.125rem]"
                   loading="lazy"
+                  decoding="async"
                 />
               </div>
             `}

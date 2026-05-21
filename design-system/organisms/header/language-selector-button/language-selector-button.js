@@ -138,6 +138,8 @@ export const LanguageSelectorButton = ({
             src=${currentFlagPath}
             alt=""
             class="block w-6 h-4 object-contain shrink-0"
+            loading="eager"
+            decoding="async"
           />
         ` : html`
           <span class="w-5 h-[15px] shrink-0" />
