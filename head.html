@@ -47,10 +47,10 @@
 <!-- Critical CSS (render-blocking) -->
 <link rel="stylesheet" href="/styles/styles.css" />
 <link rel="stylesheet" href="/styles/tw.css" />
-<!-- sections.css — moved here from loadLazy to prevent FOUC on hero sections
-     (data-section-type is added by JS AFTER first paint, so the flex-row layout
-     was applying late). 93 lines, minimal LCP impact. -->
-<link rel="stylesheet" href="/styles/sections.css" />
+<!-- sections.css — preloaded (parallel download, non-blocking) and awaited in
+     loadLazy before sections lose their display:none, so no FOUC on
+     hero-destinations layouts. -->
+<link rel="preload" as="style" href="/styles/sections.css" />
 
 <!-- Centribal -->
 <link rel="stylesheet" href="https://avianca-help.centribal.com/api/v1/recaptcha-css/" />

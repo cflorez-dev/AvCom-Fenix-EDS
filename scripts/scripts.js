@@ -867,6 +867,11 @@ async function loadLazy(doc) {
   const main = doc.querySelector('main');
   const hasHash = Boolean(window.location.hash);
   try {
+    // sections.css is preloaded in head.html as non-blocking; await its
+    // attach here so hero-destinations layouts (data-section-type=...) are
+    // styled before sections lose display:none in loadSection.
+    await loadCSS(`${window.hlx.codeBasePath}/styles/sections.css`);
+
     // Keep curtain active until visible content is ready.
     // If deep-linking to a hash, load all sections first for anchor reliability.
     if (hasHash) {
@@ -975,12 +980,12 @@ async function loadLazy(doc) {
     }
   }
 
-  // Non-critical global CSS (moved from head.html to avoid render-blocking)
+  // Non-critical global CSS (moved from head.html to avoid render-blocking).
+  // sections.css is awaited at the top of loadLazy (preloaded in head.html).
   loadCSS(`${window.hlx.codeBasePath}/styles/components/component.css`);
   loadCSS(`${window.hlx.codeBasePath}/styles/components/custom-scrollbar.css`);
   loadCSS(`${window.hlx.codeBasePath}/styles/migration-cards.css`);
   loadCSS(`${window.hlx.codeBasePath}/styles/utilities.css`);
-  loadCSS(`${window.hlx.codeBasePath}/styles/sections.css`);
   loadCSS(`${window.hlx.codeBasePath}/styles/grid-layout.css`);
   loadCSS(`${window.hlx.codeBasePath}/styles/lazy-styles.css`);
   loadFonts();
