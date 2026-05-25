@@ -7,6 +7,7 @@ import { PromotionalCardCarrouselSample } from '../../../design-system/organisms
 import { LinkCardSample } from '../../../design-system/organisms/cards/link-card/link-card.sample.js';
 import { PosFormSample } from '../../../design-system/organisms/header/pos-form/pos-form.sample.js';
 import { MarquesinaSample } from '../../../design-system/organisms/marquesina/marquesina.sample.js';
+import { CintillaSample } from '../../../design-system/organisms/cintilla/cintilla.sample.js';
 import { BookingBoxSample } from '../../../design-system/organisms/booking-box/booking-box.sample.js';
 import { CarouselDestinationsSample } from '../../../design-system/organisms/carousel-destinations/carousel-destinations.sample.js';
 
@@ -24,6 +25,7 @@ export const OrganismsSamples = () => html`
         <${PromotionalCardCarrouselSample} />
         <${PosFormSample} />
         <${MarquesinaSample} />
+        <${CintillaSample} />
     </div>
   `;
 

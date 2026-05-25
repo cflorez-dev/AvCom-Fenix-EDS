@@ -1038,6 +1038,149 @@
             "hero-destinations"
           ]
         }
+      },
+      {
+        "component": "select",
+        "name": "gradient-type",
+        "label": "Background Type",
+        "description": "Tipo de fondo. 'Sólido' usa solo el color 1. 'Lineal' aplica un gradiente recto entre color 1 y color 2 con la dirección configurada. 'Radial' aplica un gradiente circular desde la posición configurada.",
+        "value": "solid",
+        "options": [
+          {
+            "name": "Sólido (default)",
+            "value": "solid"
+          },
+          {
+            "name": "Lineal",
+            "value": "linear"
+          },
+          {
+            "name": "Radial",
+            "value": "radial"
+          }
+        ]
+      },
+      {
+        "component": "text",
+        "name": "bg-color-1",
+        "label": "Background Color 1",
+        "description": "Color principal en hex/RGBA o 'transparent' (ej. #fff1f7, rgba(255,1,1,.5), transparent). Si está vacío o 'transparent' en modo Sólido, no se aplica fondo custom."
+      },
+      {
+        "component": "text",
+        "name": "bg-color-2",
+        "label": "Background Color 2",
+        "description": "Color secundario en hex/RGBA o 'transparent'. Solo aplica para gradiente Lineal o Radial.",
+        "condition": {
+          "!==": [
+            {
+              "var": "gradient-type"
+            },
+            "solid"
+          ]
+        }
+      },
+      {
+        "component": "select",
+        "name": "gradient-direction",
+        "label": "Gradient Direction",
+        "description": "Dirección del gradiente lineal.",
+        "value": "180",
+        "options": [
+          {
+            "name": "↓ Vertical (default)",
+            "value": "180"
+          },
+          {
+            "name": "↑ Vertical inverso",
+            "value": "0"
+          },
+          {
+            "name": "→ Horizontal",
+            "value": "90"
+          },
+          {
+            "name": "← Horizontal inverso",
+            "value": "270"
+          },
+          {
+            "name": "↘ Diagonal abajo-derecha",
+            "value": "135"
+          },
+          {
+            "name": "↖ Diagonal arriba-izquierda",
+            "value": "315"
+          },
+          {
+            "name": "↗ Diagonal arriba-derecha",
+            "value": "45"
+          },
+          {
+            "name": "↙ Diagonal abajo-izquierda",
+            "value": "225"
+          }
+        ],
+        "condition": {
+          "===": [
+            {
+              "var": "gradient-type"
+            },
+            "linear"
+          ]
+        }
+      },
+      {
+        "component": "select",
+        "name": "radial-position",
+        "label": "Radial Position",
+        "description": "Posición desde donde irradia el gradiente radial.",
+        "value": "center",
+        "options": [
+          {
+            "name": "↖ Esquina sup-izq",
+            "value": "top-left"
+          },
+          {
+            "name": "↑ Arriba",
+            "value": "top"
+          },
+          {
+            "name": "↗ Esquina sup-der",
+            "value": "top-right"
+          },
+          {
+            "name": "← Izquierda",
+            "value": "left"
+          },
+          {
+            "name": "● Centro (default)",
+            "value": "center"
+          },
+          {
+            "name": "→ Derecha",
+            "value": "right"
+          },
+          {
+            "name": "↙ Esquina inf-izq",
+            "value": "bottom-left"
+          },
+          {
+            "name": "↓ Abajo",
+            "value": "bottom"
+          },
+          {
+            "name": "↘ Esquina inf-der",
+            "value": "bottom-right"
+          }
+        ],
+        "condition": {
+          "===": [
+            {
+              "var": "gradient-type"
+            },
+            "radial"
+          ]
+        }
       }
     ]
   },
@@ -2121,6 +2264,76 @@
             "value": "pt"
           }
         ]
+      }
+    ]
+  },
+  {
+    "id": "cintilla",
+    "fields": [
+      {
+        "component": "richtext",
+        "name": "content",
+        "label": "Content",
+        "valueType": "string",
+        "value": "",
+        "description": "Texto del cintillo. Permite formato mixto (bold/regular), enlaces y listas."
+      },
+      {
+        "component": "text",
+        "valueType": "string",
+        "name": "bgColor",
+        "label": "Background Color",
+        "value": "#fff1f7",
+        "description": "Color de fondo en hex/rgba (ej. #fff1f7 o rgba(255,241,247,1))."
+      },
+      {
+        "component": "text",
+        "valueType": "string",
+        "name": "textColor",
+        "label": "Text Color",
+        "value": "#1b1b1b",
+        "description": "Color del texto en hex/rgba."
+      },
+      {
+        "component": "text",
+        "valueType": "string",
+        "name": "linkColor",
+        "label": "Link Color",
+        "value": "#ff3093",
+        "description": "Color de los enlaces en hex/rgba."
+      },
+      {
+        "component": "select",
+        "name": "linkTarget",
+        "label": "Link Behavior",
+        "options": [
+          {
+            "name": "Same tab (default)",
+            "value": "self"
+          },
+          {
+            "name": "New tab",
+            "value": "blank"
+          }
+        ],
+        "value": "self",
+        "description": "Define si los enlaces se abren en la misma pestaña o en una nueva."
+      },
+      {
+        "component": "text",
+        "valueType": "string",
+        "name": "targetCountries",
+        "label": "Target Countries (comma-separated)",
+        "value": "",
+        "description": "Países objetivo separados por comas (ej. CO,PA,EC). Vacío = todos."
+      },
+      {
+        "component": "text",
+        "valueType": "string",
+        "name": "targetLanguages",
+        "label": "Target Languages (comma-separated)",
+        "value": "",
+        "description": "Idiomas objetivo separados por comas (ej. es,en). Vacío = todos."
       }
     ]
   },

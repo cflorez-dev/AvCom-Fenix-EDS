@@ -6,6 +6,18 @@ import { getLinkButtonStyles } from '../atoms/link-button/link-button.js';
 const VALID_COLOR_VARIANTS = ['informative', 'promotional', 'caution'];
 
 /**
+ * Validate that a value is a safe CSS color (hex 3-8 digits or rgb/rgba).
+ * Strict whitelist regex with anchors to prevent CSS injection
+ * (e.g. "red; background: url(javascript:...)" is rejected).
+ * @param {string} value
+ * @returns {boolean}
+ */
+const isSafeColor = (value) => {
+  if (!value || typeof value !== 'string') return false;
+  return /^(#[0-9a-fA-F]{3,8}|rgba?\([\d\s,.%]+\))$/.test(value.trim());
+};
+
+/**
  * Check if a URL is internal (same origin) or external
  * @param {string} url - The URL to check
  * @returns {boolean} True if internal, false if external
@@ -166,14 +178,28 @@ const addClassToTag = (htmlString, tagName, classNames) => {
  * @returns {string} Processed HTML string
  */
 const processLinkTags = (htmlString, linkButtonOptions = {}) => {
-  const linkButtonClasses = getLinkButtonStyles({
+  // NOTE: when linkButtonOptions.customLinkColor is passed, getLinkButtonStyles returns
+  // { className, style }. We only need className here for class processing — the style
+  // is applied as inline style="color: <hex>" in the final <a> tag below.
+  const linkButtonResult = getLinkButtonStyles({
     variant: linkButtonOptions.variant || 'link',
     size: linkButtonOptions.size || 'default',
     colorVariant: linkButtonOptions.colorVariant || 'informative',
     iconOnly: linkButtonOptions.iconOnly || false,
     disabled: linkButtonOptions.disabled || false,
     customClassName: linkButtonOptions.customClassName || '',
+    customColor: linkButtonOptions.customLinkColor || null,
   });
+
+  const linkButtonClasses = typeof linkButtonResult === 'string'
+    ? linkButtonResult
+    : linkButtonResult.className;
+
+  // Defense in depth: validate customLinkColor even if upstream callers should have
+  const rawCustomLinkColor = linkButtonOptions.customLinkColor || null;
+  const customLinkColor = rawCustomLinkColor && isSafeColor(rawCustomLinkColor)
+    ? rawCustomLinkColor
+    : null;
 
   // Replace border-border-stroke-focus with border-text-normal-primary
   const processedLinkButtonClasses = linkButtonClasses
@@ -259,6 +285,11 @@ const processLinkTags = (htmlString, linkButtonOptions = {}) => {
         }
       }
 
+      // Build inline style attribute if customLinkColor is provided
+      const inlineStyle = customLinkColor
+        ? ` style="color: ${customLinkColor}"`
+        : '';
+
       // Check if class attribute already exists
       const classMatch = processedAttributes.match(/class=["']([^"']*)["']/i);
       if (classMatch) {
@@ -272,15 +303,20 @@ const processLinkTags = (htmlString, linkButtonOptions = {}) => {
         const mergedClasses = [...new Set([...existingClassesArray, 'p-[2px]', 'group/link', 'hover:font-bold', 'active:font-bold', 'focus:font-bold', 'focus-visible:font-bold', 'focus-visible:after:!inset-[0px]', ...linkButtonClassesArray])]
           .filter(Boolean)
           .join(' ');
-        return `<a${processedAttributes.replace(
+        // Strip any existing style attribute from processedAttributes if customLinkColor came (we'll add ours)
+        let attrsForReturn = processedAttributes;
+        if (customLinkColor) {
+          attrsForReturn = attrsForReturn.replace(/\s*style=["'][^"']*["']/i, '');
+        }
+        return `<a${attrsForReturn.replace(
           /class=["']([^"']*)["']/i,
           `class="${mergedClasses}"`,
-        )}>${processedContent}</a>`;
+        )}${inlineStyle}>${processedContent}</a>`;
       }
       // No class attribute, add LinkButton classes with padding
       // Add hover, active, focus, and focus-visible font-bold states
       // Override focus border inset to 0px (right at the edge, not outside or too inside)
-      return `<a class="p-[2px] group/link hover:font-bold active:font-bold focus:font-bold focus-visible:font-bold focus-visible:after:!inset-[0px] ${processedLinkButtonClasses}"${processedAttributes}>${processedContent}</a>`;
+      return `<a class="p-[2px] group/link hover:font-bold active:font-bold focus:font-bold focus-visible:font-bold focus-visible:after:!inset-[0px] ${processedLinkButtonClasses}"${processedAttributes}${inlineStyle}>${processedContent}</a>`;
     },
   );
 };
@@ -309,6 +345,7 @@ export const processContentHTML = (htmlString, variant, options = {}) => {
     strongClassName = 'font-bold',
     linkButtonOptions,
     processRelAttributes = false,
+    customLinkColor = null,
   } = options;
 
   if (!htmlString) return '';
@@ -353,6 +390,7 @@ export const processContentHTML = (htmlString, variant, options = {}) => {
     colorVariant,
     alertVariant: variant,
     processRelAttributes,
+    customLinkColor: options.customLinkColor || linkButtonOptions?.customLinkColor || null,
   };
 
   processedHTML = processLinkTags(processedHTML, finalLinkButtonOptions);

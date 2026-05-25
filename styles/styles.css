@@ -70,6 +70,10 @@
   }
 }
 
+html {
+  overflow-x: clip;
+}
+
 body {
   display: none;
   margin: 0;
@@ -78,6 +82,7 @@ body {
   font-family: var(--body-font-family);
   font-size: var(--body-font-size-m);
   line-height: 1.6;
+  overflow-x: clip;
 }
 
 body.appear {
@@ -238,6 +243,32 @@ main > .section {
 
 main > .section:first-of-type {
   margin-top: 0;
+}
+
+main > .section.has-custom-bg,
+main > .mosaic-v2-mobile-container.has-custom-bg {
+  position: relative;
+  isolation: isolate;
+}
+
+main > .section.has-custom-bg::before,
+main > .mosaic-v2-mobile-container.has-custom-bg::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  left: calc(50% - 50vw);
+  width: 100vw;
+  background: var(--section-bg);
+  z-index: -1;
+  pointer-events: none;
+}
+
+/* mosaic-v2 carousel sets overflow:clip on the section to hide off-screen
+   slides. When `has-nav-padding` is set (autoplay/arrows), slide clipping is
+   done by the inner `.mosaic-v2-clip` wrapper, so the section's overflow is
+   redundant. Override it so the full-bleed bg pseudo-element is not clipped. */
+main > .section.has-custom-bg.mosaic-v2-container.has-nav-padding {
+  overflow: visible;
 }
 
 /* section metadata */
