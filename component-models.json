@@ -501,6 +501,10 @@
             "value": "multitab-item"
           },
           {
+            "name": "MultiTab Item Pill",
+            "value": "multitab-item-pill"
+          },
+          {
             "name": "Grid 12",
             "value": "grid-12"
           },
@@ -7377,7 +7381,7 @@
         "name": "size",
         "label": "Tab Size",
         "value": "large",
-        "description": "Size variant for the tabs: large (80px height) or small (64px height)",
+        "description": "Size and visual variant of the tabs. Default variants use a line indicator; Pill variants use a rounded border around the active tab.",
         "valueType": "string",
         "options": [
           {
@@ -7387,6 +7391,14 @@
           {
             "name": "Small (64px)",
             "value": "small"
+          },
+          {
+            "name": "Variant Pill - Large (80px)",
+            "value": "pill-large"
+          },
+          {
+            "name": "Variant Pill - Small (64px)",
+            "value": "pill-small"
           }
         ]
       },
