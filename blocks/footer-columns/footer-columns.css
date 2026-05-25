@@ -28,6 +28,55 @@
   }
 }
 
+/* === MODO COMPACT === */
+.footer-columns-compact .footer-columns-list,
+.footer-columns-container.footer-columns-compact .footer-columns-desktop {
+  grid-template-columns: repeat(4, 1fr);
+}
+
+/* Compact mode adopts the Figma "Minimal Footer Landings" desktop layout
+   starting at 1024px (instead of the default 1157px used by the full footer). */
+@media (1024px <= width <= 1156px) {
+  .footer-columns-container.footer-columns-compact .footer-columns-desktop {
+    display: flex;
+  }
+
+  .footer-columns-container.footer-columns-compact .footer-columns-mobile {
+    display: none;
+  }
+}
+
+@media (width <= 768px) {
+  .footer-columns-compact .footer-columns-list {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (width <= 480px) {
+  .footer-columns-compact .footer-columns-list {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Compact-only overrides for the Accordion molecule. The DS Accordion forces
+   `h-14` (56px) and `py-4` (32px vertical padding) on its title button — that
+   padding belongs on the *wrapper*, not the button. Figma compact-site-footer
+   (nodes 9205-27266 / 9205-28370) shows:
+     - Footer list wrapper: py-16  → 16px top + 16px bottom around each accordion
+     - Title row: natural height (24px icon), no padding
+   We re-locate the padding without touching the molecule. The [role="button"]
+   selector is stable (accessibility attr hardcoded in accordion.js:105). */
+.footer-columns-compact .footer-column-accordion {
+  padding-top: 16px;
+  padding-bottom: 16px;
+}
+
+.footer-columns-compact .footer-column-accordion > [role="button"] {
+  height: auto;
+  padding-top: 0;
+  padding-bottom: 0;
+}
+
 /* Individual column item */
 .footer-columns-item {
   display: flex;

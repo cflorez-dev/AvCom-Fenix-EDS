@@ -2774,6 +2774,45 @@
     "id": "footer-partners-logos",
     "fields": [
       {
+        "component": "boolean",
+        "name": "compact",
+        "label": "Modo Compact",
+        "value": false,
+        "description": "Activa el footer compacto. Cuando está activo: los logos institucionales se renderizan junto con el copyright y la insignia Star Alliance en una sola barra. El componente footer-bottom se oculta automáticamente. footer-columns muestra máximo 4 columnas."
+      },
+      {
+        "component": "reference",
+        "valueType": "string",
+        "name": "starAllianceImage",
+        "label": "Star Alliance Image",
+        "multi": false,
+        "description": "Imagen de la insignia 'A Star Alliance Member' (solo se usa en modo compact)."
+      },
+      {
+        "component": "text",
+        "valueType": "string",
+        "name": "starAllianceUrl",
+        "label": "Star Alliance URL",
+        "value": "",
+        "description": "URL opcional para envolver la insignia en un link (solo modo compact)."
+      },
+      {
+        "component": "text",
+        "valueType": "string",
+        "name": "starAllianceAlt",
+        "label": "Star Alliance Alt Text",
+        "value": "A Star Alliance Member",
+        "description": "Texto alternativo de la insignia (accesibilidad)."
+      },
+      {
+        "component": "text",
+        "valueType": "string",
+        "name": "copyrightText",
+        "label": "Copyright Text Override",
+        "value": "",
+        "description": "Texto de copyright opcional (modo compact). Si está vacío, usa la i18n key 'footer.bottom.copyrights'. Soporta '{year}' o '[XXXX]' para reemplazar por el año actual."
+      },
+      {
         "component": "multiselect",
         "name": "target-countries",
         "label": "Target Countries (POS)",

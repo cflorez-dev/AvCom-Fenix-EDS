@@ -1,5 +1,11 @@
 import { createOptimizedPicture } from '../../scripts/aem.js';
 import { shouldShowByTargeting } from '../../scripts/utils/target-filter.js';
+// eslint-disable-next-line import/no-cycle
+import {
+  isCompactMode,
+  decorateCompact,
+  COMPACT_PARENT_ROW_COUNT,
+} from './footer-partners-logos-compact.js';
 
 /**
  * Gets the text content of a specific cell within an element.
@@ -71,6 +77,20 @@ function hasBlockTargetingRows(block) {
 }
 
 /**
+ * Detects whether the block uses the new model (with compact parent fields).
+ * The new model puts a boolean text ("true"/"false") in row 0.
+ * @param {Element} block
+ * @returns {boolean}
+ */
+function hasNewModelParentRows(block) {
+  const firstRow = block.children[0];
+  if (!firstRow) return false;
+  if (firstRow.querySelector('picture') || firstRow.querySelector('img')) return false;
+  const text = (firstRow.textContent || '').trim().toLowerCase();
+  return text === 'true' || text === 'false';
+}
+
+/**
  * Maps the footer partners logos block data.
  * Block model fields (optional): 0=target-countries, 1=target-languages
  * Item model fields:  0=image, 1=alt, 2=url, 3=target-countries, 4=target-languages
@@ -81,8 +101,18 @@ function hasBlockTargetingRows(block) {
 export function mapFooterPartnersLogosData(block) {
   const items = [];
 
-  // Only skip first 2 rows if they are targeting fields (text-only, no images)
-  const skipRows = hasBlockTargetingRows(block) ? 2 : 0;
+  // Detect model variant to know how many rows to skip BEFORE the logo items.
+  //   - New model: 5 parent fields + 2 targeting rows = 7
+  //   - Old model with targeting rows: 2
+  //   - Old model without targeting (legacy fixtures): 0
+  let skipRows;
+  if (hasNewModelParentRows(block)) {
+    skipRows = COMPACT_PARENT_ROW_COUNT;
+  } else if (hasBlockTargetingRows(block)) {
+    skipRows = 2;
+  } else {
+    skipRows = 0;
+  }
   const contentChildren = [...block.children].slice(skipRows);
 
   contentChildren.forEach((item) => {
@@ -157,7 +187,7 @@ export function renderFooterPartnersLogos(items) {
  * Decorates the footer partners logos block
  * @param {Element} block The footer-partners-logos block element
  */
-export default function decorate(block) {
+export default async function decorate(block) {
   // Detect if we're in Universal Editor author environment
   const isAuthorEnv = window.xwalk?.isAuthorEnv;
 
@@ -172,22 +202,36 @@ export default function decorate(block) {
     return;
   }
 
-  // 2. Block-level targeting: only check if targeting rows exist (text-only, no images)
-  if (hasBlockTargetingRows(block)) {
-    const rows = [...block.children];
-    const getRowText = (rowIndex) => {
-      const row = rows[rowIndex];
-      if (!row || !row.children.length) return '';
-      return row.children[0]?.textContent?.trim() || '';
-    };
+  if (isCompactMode(block)) {
+    await decorateCompact(block);
+    return;
+  }
 
-    const targetCountries = getRowText(0);
-    const targetLanguages = getRowText(1);
+  // 2. Block-level targeting. Where targeting lives depends on the model:
+  //    - New model: rows 5 (countries) + 6 (languages)
+  //    - Old model with targeting rows: rows 0 + 1
+  //    - Old model without targeting rows: skip
+  const rows = [...block.children];
+  const getRowText = (rowIndex) => {
+    const row = rows[rowIndex];
+    if (!row || !row.children.length) return '';
+    return row.children[0]?.textContent?.trim() || '';
+  };
 
-    if (!shouldShowByTargeting(targetCountries, targetLanguages)) {
-      block.style.display = 'none';
-      return;
-    }
+  let targetCountries = '';
+  let targetLanguages = '';
+  if (hasNewModelParentRows(block)) {
+    targetCountries = getRowText(5);
+    targetLanguages = getRowText(6);
+  } else if (hasBlockTargetingRows(block)) {
+    targetCountries = getRowText(0);
+    targetLanguages = getRowText(1);
+  }
+
+  if ((targetCountries || targetLanguages)
+    && !shouldShowByTargeting(targetCountries, targetLanguages)) {
+    block.style.display = 'none';
+    return;
   }
 
   // 2. Mapear datos del bloque
