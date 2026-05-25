@@ -93,11 +93,11 @@
 .section.multitab-container .multitab-content > .cms-rich-text-wrapper:has(+ .default-content-wrapper) h1,
 .section.multitab-container .multitab-content > .cms-rich-text-wrapper:has(+ .default-content-wrapper) h2,
 .section.multitab-container .multitab-content > .cms-rich-text-wrapper:has(+ .default-content-wrapper) h3 {
-    font-size: var(--heading-h400-size);
     font-style: normal;
     font-weight: var(--heading-h400-weight);
     line-height: var(--heading-h400-line-height);
-    margin-bottom: var(--spacing-x-small);
+    margin-top: 0.8em;
+    margin-bottom: 0.25em;
 }
 
 /* Card title (first heading) has no top margin; subheadings get proper spacing */

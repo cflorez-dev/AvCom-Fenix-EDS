@@ -486,7 +486,7 @@ export const PassengerSelector = ({
               >
                <${Icon} icon="navigation/arrow-back" size="sm" />
               </button>
-              <h2 class="!text-[18px] font-bold text-[var(--color-text-normal-primary)]">${i18n['bookingBox.labels.whoFlies'] || stepTitle}</h2>
+              <h2 class="font-bold text-[var(--color-text-normal-primary)]">${i18n['bookingBox.labels.whoFlies'] || stepTitle}</h2>
               <button
                 type="button"
                 class="hover:opacity-60"
@@ -534,7 +534,7 @@ export const PassengerSelector = ({
               <!-- Helper Text (solo mostrar cuando total = 9) -->
               ${totalPassengers === MAX_TOTAL_PASSENGERS && html`
                 <p 
-                  class="!text-[14px] text-[var(--color-text-brand-disable)] leading-[1.5] link-container !m-0"
+                  class="text-[var(--color-text-brand-disable)] leading-[1.5] link-container !m-0"
                   dangerouslySetInnerHTML=${{ __html: groupTravelLinkProcessed }}
                 />
               `}
@@ -615,7 +615,7 @@ export const PassengerSelector = ({
 
             ${validationError && html`
               <div class="bg-red-50 border border-red-200 rounded-lg px-4 py-3 mb-4">
-                <p class="text-[14px] text-red-600">${validationError}</p>
+                <p class="text-red-600">${validationError}</p>
               </div>
             `}
 
@@ -639,7 +639,7 @@ export const PassengerSelector = ({
           class="absolute ${dropdownPositionStyles} bg-white rounded-[16px] shadow-[0px_2px_12px_0px_rgba(27,27,27,0.15)] p-[24px] z-50 flex flex-col gap-[16px] w-[359px]"
         >
           <!-- Title -->
-          <h3 class="!text-[16px] !font-bold text-[var(--color-text-normal-primary)] leading-[normal] !mt-0 !mb-0 h-[21px]">${i18n['bookingBox.labels.whoFlies'] || '¿Quiénes vuelan?'}</h3>
+          <h3 class="!font-bold text-[var(--color-text-normal-primary)] leading-[normal] !mt-0 !mb-0 h-[21px]">${i18n['bookingBox.labels.whoFlies'] || '¿Quiénes vuelan?'}</h3>
 
           <!-- Passenger List -->
           <div class="flex flex-col">
@@ -660,7 +660,7 @@ export const PassengerSelector = ({
             <!-- Helper Text (solo mostrar cuando total = 9) -->
             ${totalPassengers === MAX_TOTAL_PASSENGERS && html`
               <p 
-                class="text-[14px] text-[var(--color-text-brand-disable)] leading-[1.5] link-container !m-0"
+                class="text-[var(--color-text-brand-disable)] leading-[1.5] link-container !m-0"
                 dangerouslySetInnerHTML=${{ __html: groupTravelLinkProcessed }}
               />
             `}
@@ -744,7 +744,7 @@ export const PassengerSelector = ({
           <!-- Error Message -->
           ${validationError && html`
             <div class="bg-red-50 border border-red-200 rounded-lg px-4 py-3 mb-4">
-              <p class="text-[14px] text-red-600">${validationError}</p>
+              <p class="text-red-600">${validationError}</p>
             </div>
           `}
 
