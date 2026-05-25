@@ -41,6 +41,7 @@ export const NavbarMobile = ({
   const [menuIcon, setMenuIcon] = useState(null);
   const [chevronIcon, setChevronIcon] = useState(null);
   const [backIcon, setBackIcon] = useState(null);
+  const [posFormLabels, setPosFormLabels] = useState(() => window.__languageSelectorLabels || {});
 
   // Get all countries and languages from service (load once)
   const allCountries = getCountries();
@@ -174,6 +175,13 @@ export const NavbarMobile = ({
     navigateToPOS(newPos);
   };
 
+  // Sync labels published by the header-language-selector block
+  useEffect(() => {
+    const handler = (e) => setPosFormLabels(e.detail || {});
+    window.addEventListener('language-selector-labels', handler);
+    return () => window.removeEventListener('language-selector-labels', handler);
+  }, []);
+
   // Listen to cookie changes from header (desktop)
   useEffect(() => {
     const handleStorageChange = () => {
@@ -268,6 +276,10 @@ export const NavbarMobile = ({
             onClose=${handleLanguageFormClose}
             showCloseButton=${false}
             responsiveMode=${true}
+            title=${posFormLabels.title || null}
+            countryLabel=${posFormLabels.countryLabel || null}
+            languageLabel=${posFormLabels.languageLabel || null}
+            confirmButtonText=${posFormLabels.confirmButtonText || null}
           />
       </div>
     `;

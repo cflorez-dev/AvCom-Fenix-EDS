@@ -196,16 +196,25 @@ export default async function decorate(block) {
 
   // Extract functions from the loaded service
   const {
-    getStoredCountry,
-    getStoredLanguage,
     getStoredPos,
     setStoredPos,
     normalizePos,
-    validatePos,
   } = languageCountrySelector;
 
   // Map data from HTML structure
   const mappedData = mapBlockData(block);
+
+  // Publish labels so NavbarMobile can use the same CMS-authored values.
+  // Stored on window too so components that mount before this event fires can read it.
+  const blockLabels = {
+    title: mappedData.title,
+    countryLabel: mappedData.countryLabel,
+    languageLabel: mappedData.languageLabel,
+    confirmLabel: mappedData.confirmLabel,
+    confirmButtonText: mappedData.confirmButtonText,
+  };
+  window.__languageSelectorLabels = blockLabels;
+  window.dispatchEvent(new CustomEvent('language-selector-labels', { detail: blockLabels }));
 
   // Fallback to readBlockConfig if available
   const config = readBlockConfig(block);
@@ -216,33 +225,32 @@ export default async function decorate(block) {
   // Normalize and validate the default POS using the mapper
   const defaultPos = normalizePos(rawDefaultPos);
 
-  // eslint-disable-next-line no-console
-  console.log('[header-language-selector] Initializing with:', {
-    rawDefaultPos,
-    normalizedDefaultPos: defaultPos,
-    isValid: validatePos(defaultPos),
-  });
+  // Defer cookie initialization to resolveLocale() — the single source of truth.
+  // It reads URL language, preserves user's prior country cookie, and writes
+  // cookies coherently. The block's defaultPos is used only as a last-resort
+  // fallback when resolveLocale could not derive anything (no URL lang + no cookies).
+  try {
+    const { resolveLocale } = await import('../../scripts/utils/locale.js');
+    const resolvedLocale = await resolveLocale();
 
-  // Check if we have stored POS in cookies
-  const storedPos = getStoredPos();
-  const storedCountry = getStoredCountry();
-  const storedLanguage = getStoredLanguage();
+    const storedPos = getStoredPos();
 
-  // Set the default POS in cookies if not already set or if stored values are invalid
-  if (!storedPos || !storedCountry || !storedLanguage) {
+    if (!storedPos && resolvedLocale.source === 'default') {
+      // resolveLocale fell through to project defaults without writing cookies;
+      // honor the block-authored defaultPos as the configurable override.
+      setStoredPos(defaultPos);
+    } else if (storedPos) {
+      // Re-normalize legacy/mismapped cookies without overwriting user's choice.
+      const normalizedStoredPos = normalizePos(storedPos, defaultPos);
+      if (normalizedStoredPos !== storedPos) {
+        setStoredPos(normalizedStoredPos, defaultPos);
+      }
+    }
+  } catch (error) {
     // eslint-disable-next-line no-console
-    console.log('[header-language-selector] No valid stored POS found, setting default:', defaultPos);
-    setStoredPos(defaultPos);
-  } else {
-    // Validate stored POS and re-normalize if needed
-    const normalizedStoredPos = normalizePos(storedPos, defaultPos);
-    if (normalizedStoredPos !== storedPos) {
-      // eslint-disable-next-line no-console
-      console.log('[header-language-selector] Stored POS needs normalization:', {
-        original: storedPos,
-        normalized: normalizedStoredPos,
-      });
-      setStoredPos(normalizedStoredPos, defaultPos);
+    console.error('[header-language-selector] resolveLocale failed, falling back to defaultPos:', error);
+    if (!getStoredPos()) {
+      setStoredPos(defaultPos);
     }
   }
 

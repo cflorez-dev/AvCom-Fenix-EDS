@@ -60,8 +60,6 @@ export default function decorate(block) {
 
   // Check feature flag first
   if (!isFeatureEnabled()) {
-    // eslint-disable-next-line no-console
-    console.log('CMS Background Image: Feature is disabled via feature flag.');
     if (!isAuthorEnv) block.remove();
     return;
   }
@@ -125,8 +123,6 @@ export default function decorate(block) {
 
   // Check if block instance is enabled
   if (!config.enabled) {
-    // eslint-disable-next-line no-console
-    console.log('CMS Background Image: Block instance is disabled.');
     if (!isAuthorEnv) block.remove();
     return;
   }

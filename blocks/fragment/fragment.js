@@ -210,8 +210,6 @@ export default async function decorate(block) {
 
   // Fallback to Spanish for 404 pages if language-specific fragment not found
   if (!fragment && typeof path === 'string' && path.startsWith('/errors/404-')) {
-    // eslint-disable-next-line no-console
-    console.log(`[Fragment] 404 fragment not found for ${path}, falling back to /errors/404`);
     fragment = await loadFragment('/errors/404');
   }
 

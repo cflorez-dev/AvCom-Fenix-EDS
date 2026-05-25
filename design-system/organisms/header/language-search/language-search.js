@@ -135,8 +135,6 @@ export const LanguageSearch = ({
             initialPos = normalizePos(initialPos);
             if (validatePos(initialPos)) {
               setSelectedPos(initialPos);
-              // eslint-disable-next-line no-console
-              console.log('[LanguageSearch] Initialized with POS:', initialPos);
             } else {
               const fallbackPos = normalizePos('');
               setSelectedPos(fallbackPos);
@@ -209,14 +207,16 @@ export const LanguageSearch = ({
   // Get flag path for current country
   const currentFlagPath = currentCountry ? getCountryFlagPath(currentCountry) : null;
 
-  // Listen to cookie changes from other components
+  // Listen to cookie changes from other components.
+  // Re-derive from cookies on every event so partial updates (setStoredLanguage
+  // or setStoredCountry dispatched without `pos` in detail) still refresh the
+  // label once the pair is coherent (e.g., after resolveLocale corrects on /fr).
   useEffect(() => {
-    if (!service) return;
+    if (!service) return undefined;
 
-    const handleStorageChange = (event) => {
-      if (event.detail && event.detail.pos) {
-        const newPos = event.detail.pos;
-        // Allow any POS combination
+    const handleStorageChange = () => {
+      const newPos = getStoredPos();
+      if (newPos) {
         setSelectedPos(newPos);
       }
     };
@@ -241,8 +241,6 @@ export const LanguageSearch = ({
       newPos = normalizePos(newPos);
       if (validatePos(newPos)) {
         setSelectedPos(newPos);
-        // eslint-disable-next-line no-console
-        console.log('[LanguageSearch] Updated selectedPos:', newPos);
       } else {
         const fallbackPos = normalizePos('');
         setSelectedPos(fallbackPos);
@@ -380,8 +378,6 @@ export const LanguageSearch = ({
       if (onPosChange) {
         onPosChange(normalizedPos);
       }
-      // eslint-disable-next-line no-console
-      console.log('[LanguageSearch] POS confirmed:', normalizedPos);
 
       // Navigate to the new POS path (explicit user action)
       navigateToPOS(normalizedPos);
@@ -408,8 +404,6 @@ export const LanguageSearch = ({
       if (onPosChange) {
         onPosChange(normalizedPos);
       }
-      // eslint-disable-next-line no-console
-      console.log('[LanguageSearch] POS selected:', normalizedPos);
 
       // Navigate to the new POS path (explicit user action)
       navigateToPOS(normalizedPos);

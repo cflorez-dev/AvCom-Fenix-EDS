@@ -349,8 +349,8 @@ export const BookingBox = ({
     }
 
     const payload = {
-      cco: origin.iataCityCode,
-      ccd: destination.iataCityCode,
+      cco: origin.iataTerminal,
+      ccd: destination.iataTerminal,
       fi: formatDateToDdMMM(departureDate),
       ...(tripType !== 'round-trip' ? {} : { fr: formatDateToDdMMM(returnDate) }),
       tv: tripType === 'round-trip',
@@ -703,6 +703,7 @@ export const BookingBox = ({
                 destinationDropdownPositionStyles="md:top-full lg2:top-[calc(100%+32px)] ${someInputHasError ? 'lg2:top-[calc(100%+32px)]' : ''}"
                 originHasError=${validationErrors.origin}
                 destinationHasError=${validationErrors.destination}
+                skipAutoOrigin=${!!defaultOrigin}
                 i18n=${i18n}
             />
             </div>

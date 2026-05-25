@@ -177,8 +177,6 @@ export default function decorate(block) {
     if (footerWrapper) {
       // PROTECTION: Skip if container already has content (first matching block wins)
       if (footerWrapper.children.length > 0) {
-        // eslint-disable-next-line no-console
-        console.log('[footer-columns] Skipping render - container already has content');
         block.classList.add('hidden');
         return true;
       }
