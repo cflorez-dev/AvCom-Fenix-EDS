@@ -364,6 +364,15 @@ const toCountryDataEntry = (item, language = 'es') => {
   };
   const localizedLabel = labelByLanguage[language] || item?.countryName;
 
+  const iataCountryCode = String(item?.iataCountryCode || '').trim().toLowerCase();
+  const acceptLanguage = String(item?.acceptLanguage || '').trim().toLowerCase();
+
+  const rawAllowedLanguages = String(item?.AllowedLanguages || '').trim();
+  const rawDefaultLanguage = String(item?.DefaultLanguage || '').trim().toLowerCase();
+  const allowedLanguages = rawAllowedLanguages
+    ? rawAllowedLanguages.split(',').map((l) => l.trim().toLowerCase()).filter(Boolean)
+    : null;
+
   return {
     key: countryCode,
     value: {
@@ -371,7 +380,18 @@ const toCountryDataEntry = (item, language = 'es') => {
       flagFileName: item?.countryFlagFileName || '',
       currencyCode: item?.countryCurrencyCode || '',
       keyIso: String(item?.pos || '').trim().toLowerCase(),
-      iataCountryCode: String(item?.iataCountryCode || item?.pos || '').trim().toLowerCase(),
+      // Optional: IATA country code when it differs from the ISO keyIso
+      // (e.g. UK vs GB, OTHERS vs OT). Consumed by mapIsoToCountryCode so
+      // geolocation-layer POS values resolve to the correct catalog entry.
+      ...(iataCountryCode ? { iataCountryCode } : {}),
+      // Optional: language this country is the default for (e.g. COL→'es',
+      // BRA→'pt', OTH→'_fallback_'). Consumed by getDefaultCountryForLanguage
+      // to pick a country when no cookie is set.
+      ...(acceptLanguage ? { acceptLanguage } : {}),
+      // Optional: restricted language list for this POS (from countireslist spreadsheet).
+      // When present, the language selector only shows these options.
+      ...(allowedLanguages && allowedLanguages.length > 0 ? { allowedLanguages } : {}),
+      ...(rawDefaultLanguage ? { defaultLanguage: rawDefaultLanguage } : {}),
     },
   };
 };

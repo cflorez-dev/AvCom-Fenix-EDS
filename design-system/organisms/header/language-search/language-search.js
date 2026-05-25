@@ -178,6 +178,8 @@ export const LanguageSearch = ({
   const getCountryFlagPath = service?.getCountryFlagPath || (() => null);
   const normalizePos = service?.normalizePos || ((pos, fallback) => fallback || 'es-col');
   const validatePos = service?.validatePos || (() => false);
+  const getAllowedLanguages = service?.getAllowedLanguages || null;
+  const getDefaultLanguage = service?.getDefaultLanguage || null;
 
   // Get all countries and languages from service (recalculate when service is loaded)
   // Ensure flag paths are always absolute URLs
@@ -214,10 +216,15 @@ export const LanguageSearch = ({
     if (!service) return;
 
     const handleStorageChange = (event) => {
-      if (event.detail && event.detail.pos) {
-        const newPos = event.detail.pos;
-        // Allow any POS combination
-        setSelectedPos(newPos);
+      if (!event.detail) return;
+      if (event.detail.pos) {
+        setSelectedPos(event.detail.pos);
+      } else if (event.detail.language !== undefined || event.detail.country !== undefined) {
+        const stored = service.getStoredPos?.();
+        if (stored) {
+          const normalized = normalizePos(stored);
+          if (validatePos(normalized)) setSelectedPos(normalized);
+        }
       }
     };
 
@@ -298,6 +305,20 @@ export const LanguageSearch = ({
     };
   }, [isDropdownOpen]);
 
+  // Close this dropdown whenever a megamenu panel opens, so only one
+  // header dropdown is visible at a time.
+  useEffect(() => {
+    const handleMegamenuOpen = () => {
+      setIsDropdownOpen(false);
+      setShowPosForm(false);
+      setIsFocused(false);
+    };
+    window.addEventListener('avi:megamenu-open', handleMegamenuOpen);
+    return () => {
+      window.removeEventListener('avi:megamenu-open', handleMegamenuOpen);
+    };
+  }, []);
+
   // Create and remove overlay in main
   useEffect(() => {
     if (isDropdownOpen) {
@@ -336,7 +357,15 @@ export const LanguageSearch = ({
 
   const handleDropdownToggle = (e) => {
     e.preventDefault();
-    // Open PosForm instead of simple dropdown
+    if (isDropdownOpen) {
+      setIsDropdownOpen(false);
+      setIsFocused(false);
+      setShowPosForm(false);
+      e.currentTarget.blur();
+      return;
+    }
+    // Notify other header dropdowns (e.g. Megamenu) so they can close.
+    window.dispatchEvent(new CustomEvent('avi:language-search-open'));
     setShowPosForm(true);
     setIsDropdownOpen(true);
   };
@@ -467,7 +496,9 @@ export const LanguageSearch = ({
           variant="secondary"
           size="sm"
           onClick=${handleDropdownToggle}
-          aria-label="Select language and country"
+          aria-label=${currentLanguage
+            ? `Seleccionar país e idioma: ${formatPosDisplay(selectedPos)}, idioma ${currentLanguage.toUpperCase()}`
+            : 'Seleccionar país e idioma'}
           aria-expanded=${isDropdownOpen}
           customClassName="px-[12px]"
           borderActiveColor="alert-success-border"
@@ -513,6 +544,8 @@ export const LanguageSearch = ({
               countryLabel=${labels?.countryLabel || null}
               languageLabel=${labels?.languageLabel || null}
               confirmButtonText=${labels?.confirmButtonText || null}
+              getAllowedLanguages=${getAllowedLanguages}
+              getDefaultLanguage=${getDefaultLanguage}
             />
           </div>
         `}

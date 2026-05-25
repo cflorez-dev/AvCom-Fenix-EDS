@@ -207,6 +207,18 @@ export default async function decorate(block) {
   // Map data from HTML structure
   const mappedData = mapBlockData(block);
 
+  // Publish labels so NavbarMobile can use the same CMS-authored values.
+  // Stored on window too so components that mount before this event fires can read it.
+  const blockLabels = {
+    title: mappedData.title,
+    countryLabel: mappedData.countryLabel,
+    languageLabel: mappedData.languageLabel,
+    confirmLabel: mappedData.confirmLabel,
+    confirmButtonText: mappedData.confirmButtonText,
+  };
+  window.__languageSelectorLabels = blockLabels;
+  window.dispatchEvent(new CustomEvent('language-selector-labels', { detail: blockLabels }));
+
   // Fallback to readBlockConfig if available
   const config = readBlockConfig(block);
 
