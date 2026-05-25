@@ -157,6 +157,315 @@
             "value": "pt"
           }
         ]
+      },
+      {
+        "component": "text",
+        "valueType": "string",
+        "name": "hover-accent-color",
+        "label": "Hover Accent Color",
+        "value": "#ff0000",
+        "description": "Color of the bottom border line shown on hover and active state for navbar items. Use a hex value (e.g. #ff0000). Default: #ff0000."
+      }
+    ]
+  },
+  {
+    "id": "header-megamenu-form",
+    "fields": [
+      {
+        "component": "select",
+        "name": "form-type",
+        "label": "Form Type",
+        "value": "cabin-upgrade",
+        "description": "Select the form to display in the megamenu banner slot. When set, replaces any CMS block in the banner area.",
+        "options": [
+          {
+            "name": "Cabin Upgrade",
+            "value": "cabin-upgrade"
+          },
+          {
+            "name": "MMB Form",
+            "value": "mmb"
+          }
+        ]
+      },
+      {
+        "component": "text",
+        "valueType": "string",
+        "name": "form-label",
+        "label": "Form Label",
+        "value": "",
+        "description": "Title displayed above the form in the megamenu banner slot (e.g. 'Accede a tu reserva')."
+      },
+      {
+        "component": "multiselect",
+        "name": "target-countries",
+        "label": "Target Countries (POS)",
+        "valueType": "string",
+        "description": "Optional: Select target countries/POS. If empty, shows in all. Compared against 'selected-country' cookie (ISO-2 codes).",
+        "options": [
+          {
+            "name": "Argentina",
+            "value": "ar"
+          },
+          {
+            "name": "Bolivia",
+            "value": "bo"
+          },
+          {
+            "name": "Brasil",
+            "value": "br"
+          },
+          {
+            "name": "Canadá",
+            "value": "ca"
+          },
+          {
+            "name": "Chile",
+            "value": "cl"
+          },
+          {
+            "name": "Colombia",
+            "value": "co"
+          },
+          {
+            "name": "Costa Rica",
+            "value": "cr"
+          },
+          {
+            "name": "República Dominicana",
+            "value": "do"
+          },
+          {
+            "name": "Ecuador",
+            "value": "ec"
+          },
+          {
+            "name": "España",
+            "value": "eu"
+          },
+          {
+            "name": "Francia",
+            "value": "fr"
+          },
+          {
+            "name": "Reino Unido",
+            "value": "gb"
+          },
+          {
+            "name": "Guatemala",
+            "value": "gt"
+          },
+          {
+            "name": "Honduras",
+            "value": "hn"
+          },
+          {
+            "name": "México",
+            "value": "mx"
+          },
+          {
+            "name": "Nicaragua",
+            "value": "ni"
+          },
+          {
+            "name": "Otros",
+            "value": "ot"
+          },
+          {
+            "name": "Panamá",
+            "value": "pa"
+          },
+          {
+            "name": "Perú",
+            "value": "pe"
+          },
+          {
+            "name": "Paraguay",
+            "value": "py"
+          },
+          {
+            "name": "El Salvador",
+            "value": "sv"
+          },
+          {
+            "name": "Estados Unidos",
+            "value": "us"
+          },
+          {
+            "name": "Uruguay",
+            "value": "uy"
+          }
+        ]
+      },
+      {
+        "component": "multiselect",
+        "name": "target-languages",
+        "label": "Target Languages",
+        "valueType": "string",
+        "description": "Optional: Select target languages. If empty, shows in all. Compared against 'selected-language' cookie.",
+        "options": [
+          {
+            "name": "English",
+            "value": "en"
+          },
+          {
+            "name": "Spanish",
+            "value": "es"
+          },
+          {
+            "name": "French",
+            "value": "fr"
+          },
+          {
+            "name": "Portuguese",
+            "value": "pt"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "header-megamenu-column",
+    "fields": [
+      {
+        "component": "text",
+        "name": "column-title",
+        "label": "Column Title",
+        "value": "",
+        "description": "Title shown above the links in this megamenu column."
+      },
+      {
+        "component": "richtext",
+        "name": "column-links",
+        "label": "Column Links",
+        "value": "",
+        "description": "Links list. Each list item: label | /url (append ?ueLinkMode=icon-newtab for icon/new-tab behavior)."
+      },
+      {
+        "component": "multiselect",
+        "name": "target-countries",
+        "label": "Target Countries (POS)",
+        "valueType": "string",
+        "description": "Optional: Select target countries/POS. If empty, shows in all. Compared against 'selected-country' cookie (ISO-2 codes).",
+        "options": [
+          {
+            "name": "Argentina",
+            "value": "ar"
+          },
+          {
+            "name": "Bolivia",
+            "value": "bo"
+          },
+          {
+            "name": "Brasil",
+            "value": "br"
+          },
+          {
+            "name": "Canadá",
+            "value": "ca"
+          },
+          {
+            "name": "Chile",
+            "value": "cl"
+          },
+          {
+            "name": "Colombia",
+            "value": "co"
+          },
+          {
+            "name": "Costa Rica",
+            "value": "cr"
+          },
+          {
+            "name": "República Dominicana",
+            "value": "do"
+          },
+          {
+            "name": "Ecuador",
+            "value": "ec"
+          },
+          {
+            "name": "España",
+            "value": "eu"
+          },
+          {
+            "name": "Francia",
+            "value": "fr"
+          },
+          {
+            "name": "Reino Unido",
+            "value": "gb"
+          },
+          {
+            "name": "Guatemala",
+            "value": "gt"
+          },
+          {
+            "name": "Honduras",
+            "value": "hn"
+          },
+          {
+            "name": "México",
+            "value": "mx"
+          },
+          {
+            "name": "Nicaragua",
+            "value": "ni"
+          },
+          {
+            "name": "Otros",
+            "value": "ot"
+          },
+          {
+            "name": "Panamá",
+            "value": "pa"
+          },
+          {
+            "name": "Perú",
+            "value": "pe"
+          },
+          {
+            "name": "Paraguay",
+            "value": "py"
+          },
+          {
+            "name": "El Salvador",
+            "value": "sv"
+          },
+          {
+            "name": "Estados Unidos",
+            "value": "us"
+          },
+          {
+            "name": "Uruguay",
+            "value": "uy"
+          }
+        ]
+      },
+      {
+        "component": "multiselect",
+        "name": "target-languages",
+        "label": "Target Languages",
+        "valueType": "string",
+        "description": "Optional: Select target languages. If empty, shows in all. Compared against 'selected-language' cookie.",
+        "options": [
+          {
+            "name": "English",
+            "value": "en"
+          },
+          {
+            "name": "Spanish",
+            "value": "es"
+          },
+          {
+            "name": "French",
+            "value": "fr"
+          },
+          {
+            "name": "Portuguese",
+            "value": "pt"
+          }
+        ]
       }
     ]
   },
@@ -316,6 +625,13 @@
             "value": "pt"
           }
         ]
+      },
+      {
+        "component": "text",
+        "name": "megamenu-anchor",
+        "label": "Megamenu Anchor",
+        "value": "",
+        "description": "CSS class of the nav-page section containing the megamenu content (e.g. 'megamenu-lifemiles'). That section should have header-megamenu-column blocks and optionally a CMS block."
       }
     ]
   },
@@ -1038,6 +1354,13 @@
             "hero-destinations"
           ]
         }
+      },
+      {
+        "component": "text",
+        "name": "megamenu-id",
+        "label": "Megamenu ID",
+        "value": "",
+        "description": "Identifier que vincula esta sección como panel de megamenu. Debe coincidir con el campo 'Megamenu Anchor' del Header Menu Item (ej: 'megamenu-lifemiles'). La sección debe contener bloques Header Megamenu Column y opcionalmente un bloque CMS."
       }
     ]
   },

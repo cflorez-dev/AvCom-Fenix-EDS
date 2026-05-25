@@ -61,8 +61,77 @@
     }
 }
 
-@media (min-width: 1248px) {
+@media (min-width: 768px) {
+    .secondary-banner-content .megamenu-content-container {
+        width: 65%;
+    }
+}
+
+@media (min-width: 1024px) {
     .header-navbar-desktop {
         display: flex;
+    }
+
+    /* Megamenu banner content width — scales with viewport */
+    .secondary-banner-content.megamenu-column1 .megamenu-content-container {
+        width: 60% !important;
+    }
+
+    .secondary-banner-content.megamenu-column2 .megamenu-content-container {
+        width: 54% !important;
+    }
+
+    .secondary-banner-content.megamenu-column3 .megamenu-content-container {
+        width: 60% !important;
+    }
+}
+
+@media (min-width: 1136px) {
+    .secondary-banner-content.megamenu-column2 .megamenu-content-container {
+        width: 57% !important;
+    }
+
+    .secondary-banner-content.megamenu-column3 .megamenu-content-container {
+        width: 53% !important;
+    }
+}
+
+@media (min-width: 1248px) {
+    .secondary-banner-content {
+        justify-content: center;
+    }
+
+    .secondary-banner-content.megamenu-column1 .megamenu-content-container {
+        width: 65% !important;
+    }
+
+    .secondary-banner-content.megamenu-column2 .megamenu-content-container {
+        width: 64.35% !important;
+    }
+
+    .secondary-banner-content.megamenu-column3 .megamenu-content-container {
+        width: 63.6% !important;
+    }
+
+    .megamenu-banner .megamenu-content-one .megamenu-container-image {
+        width: 52%;
+        max-width: 464px;
+    }
+
+    .megamenu-banner .megamenu-content-one .megamenu-svg-image {
+        width: 76%;
+    }
+
+    .megamenu-banner .megamenu-content-two .megamenu-container-image {
+        width: 393px;
+        max-width: 393px;
+    }
+
+    .megamenu-banner .megamenu-content-two .megamenu-svg-image {
+        width: 78%;
+    }
+
+    .megamenu-banner .megamenu-content-three .megamenu-svg-image {
+        width: 84%;
     }
 }
