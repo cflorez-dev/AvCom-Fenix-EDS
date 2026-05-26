@@ -101,15 +101,12 @@
 })();
 </script>
 
-<!-- Modulepreload critical Preact dependencies — used by every Preact block
-     (marquesina, hero-banner, etc.). Without these, the first block's
-     import waits for scripts.js to parse before requesting them (~1s
-     delay on critical path). URLs must match the importmap exactly. -->
-<link rel="modulepreload" crossorigin="anonymous" href="https://cdn.jsdelivr.net/npm/preact@10.19.3/dist/preact.module.js" />
-<link rel="modulepreload" crossorigin="anonymous" href="https://cdn.jsdelivr.net/npm/preact@10.19.3/hooks/dist/hooks.module.js" />
-<link rel="modulepreload" crossorigin="anonymous" href="https://cdn.jsdelivr.net/npm/htm@3.1.1/dist/htm.module.js" />
-
-<!-- Import maps para dependencias de dropins -->
+<!-- Import maps para dependencias de dropins.
+     MUST appear before any <link rel="modulepreload"> whose target imports
+     a bare specifier (e.g. hooks.module.js does `import "preact"`). If the
+     preload is parsed first, the bare import resolves with no importmap
+     registered and the module gets cached as broken — breaking every
+     Preact block on the page. -->
 <script nonce="aem" type="importmap">
 {
   "imports": {
@@ -126,6 +123,14 @@
   }
 }
 </script>
+
+<!-- Modulepreload critical Preact dependencies — used by every Preact block
+     (marquesina, hero-banner, etc.). Without these, the first block's
+     import waits for scripts.js to parse before requesting them (~1s
+     delay on critical path). URLs must match the importmap exactly. -->
+<link rel="modulepreload" crossorigin="anonymous" href="https://cdn.jsdelivr.net/npm/preact@10.19.3/dist/preact.module.js" />
+<link rel="modulepreload" crossorigin="anonymous" href="https://cdn.jsdelivr.net/npm/preact@10.19.3/hooks/dist/hooks.module.js" />
+<link rel="modulepreload" crossorigin="anonymous" href="https://cdn.jsdelivr.net/npm/htm@3.1.1/dist/htm.module.js" />
 
 <!-- Modulepreload critical sub-dependencies so they start fetching in parallel
      with the top-level modules instead of waiting for scripts.js to be parsed. -->
