@@ -261,7 +261,6 @@ export const DateInput = ({
                 class=${inputClasses}
                 role="button"
                 aria-label=${label || ''}
-                aria-readonly="true"
               />
             </div>
           </div>
