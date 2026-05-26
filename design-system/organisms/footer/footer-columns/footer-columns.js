@@ -82,11 +82,11 @@ export const FooterColumns = ({
   // Render column for desktop
   const renderDesktopColumn = (column) => html`
     <div class="footer-column-desktop flex flex-col gap-[24px]">
-      <h4
-        class="footer-column-title !m-0 w-full !text-[18px] !font-bold break-words text-[var(--text-normal-lighter)]"
+      <h5
+        class="footer-column-title !m-0 w-full !font-bold break-words text-[var(--text-normal-lighter)]"
       >
         ${column.title}
-      </h4>
+      </h5>
       <ul class="footer-column-list flex flex-col list-none p-0 !m-0 gap-[12px]">
         ${column.subItems.map((item) => html`
           <li class="footer-column-item">

@@ -15,6 +15,28 @@ const ALL_DESTINATIONS_QUERY_NAME = 'getAllDestinations';
 
 let graphqlConfigCache = null;
 
+const readSessionCache = (cacheKey, label) => {
+  if (typeof sessionStorage === 'undefined') return null;
+
+  try {
+    const cached = sessionStorage.getItem(cacheKey);
+    return cached ? JSON.parse(cached) : null;
+  } catch (error) {
+    console.warn(`[hub-destination.service] Error reading ${label} from cache:`, error);
+    return null;
+  }
+};
+
+const writeSessionCache = (cacheKey, data, label) => {
+  if (typeof sessionStorage === 'undefined') return;
+
+  try {
+    sessionStorage.setItem(cacheKey, JSON.stringify(data));
+  } catch (error) {
+    console.warn(`[hub-destination.service] Error saving ${label} to cache:`, error);
+  }
+};
+
 /**
  * Loads GraphQL config from environment.json (AEM Author).
  * Required env keys:
@@ -129,11 +151,9 @@ export const fetchHubDestinationsData = async (dataType, useCache = USE_CACHE) =
   const cacheKey = `${CACHE_KEY_PREFIX}${dataType}`;
 
   // Check cache
-  if (useCache && typeof sessionStorage !== 'undefined') {
-    const cached = sessionStorage.getItem(cacheKey);
-    if (cached) {
-      return JSON.parse(cached);
-    }
+  if (useCache) {
+    const cached = readSessionCache(cacheKey, dataType);
+    if (cached) return cached;
   }
 
   const url = buildEndpointUrl(dataType);
@@ -151,9 +171,7 @@ export const fetchHubDestinationsData = async (dataType, useCache = USE_CACHE) =
     const data = await response.json();
 
     // Save to cache
-    if (typeof sessionStorage !== 'undefined') {
-      sessionStorage.setItem(cacheKey, JSON.stringify(data));
-    }
+    if (useCache) writeSessionCache(cacheKey, data, dataType);
 
     return data;
   } catch (error) {
@@ -270,15 +288,9 @@ export const fetchAllDestinationsGraphQL = async (useCache = USE_CACHE) => {
   const cacheKey = `${CACHE_KEY_PREFIX}graphql_all_destinations`;
 
   // Check cache
-  if (useCache && typeof sessionStorage !== 'undefined') {
-    const cached = sessionStorage.getItem(cacheKey);
-    if (cached) {
-      try {
-        return JSON.parse(cached);
-      } catch (error) {
-        console.warn('[hub-destination.service] Error parsing cached GraphQL data:', error);
-      }
-    }
+  if (useCache) {
+    const cached = readSessionCache(cacheKey, 'GraphQL data');
+    if (cached) return cached;
   }
 
   try {
@@ -297,13 +309,7 @@ export const fetchAllDestinationsGraphQL = async (useCache = USE_CACHE) => {
     const destinations = extractDestinationsFromResponse(result);
 
     // Save to cache
-    if (useCache && typeof sessionStorage !== 'undefined') {
-      try {
-        sessionStorage.setItem(cacheKey, JSON.stringify(destinations));
-      } catch (error) {
-        console.warn('[hub-destination.service] Error saving GraphQL data to cache:', error);
-      }
-    }
+    if (useCache) writeSessionCache(cacheKey, destinations, 'GraphQL data');
 
     return destinations;
   } catch (error) {

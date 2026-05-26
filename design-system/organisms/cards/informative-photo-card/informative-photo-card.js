@@ -120,7 +120,7 @@ export const InformativePhotoCard = ({
   } : null}
     >
         <div class="self-stretch h-44 bg-background-card-lighter rounded-tl-2xl rounded-tr-2xl inline-flex justify-center items-center overflow-hidden">
-            <img class="flex-1 object-cover object-top" src="${image}" alt="${imageAlt}" loading="${loading}" />
+            <img class="flex-1 object-cover object-top" src="${image}" alt="${imageAlt}" loading="${loading}" decoding="async" />
         </div>
         <div class="self-stretch flex-1 min-h-[149px] bg-background-card-lighter rounded-bl-2xl rounded-br-2xl flex flex-col justify-start items-start gap-2.5">
             <div class="self-stretch min-w-0 p-6 flex flex-col justify-center items-center gap-3">

@@ -2,7 +2,7 @@ import { getMetadata } from '../../scripts/aem.js';
 import { getLocalizedPathsForErrorPage } from '../../scripts/utils/locale.js';
 import { loadFragment } from '../fragment/fragment.js';
 
-const isMobileNavbar = window.matchMedia('(max-width: 1247px)');
+const isMobileNavbar = window.matchMedia('(max-width: 1023.98px)');
 /**
  * loads and decorates the header, mainly the nav
  * @param {Element} block The header block element

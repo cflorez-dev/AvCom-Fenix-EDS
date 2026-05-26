@@ -9,6 +9,7 @@ header.header-wrapper {
     top: var(--marquee-height, 0px);
     z-index: 500;
     background-color: var(--text-brand-light);
+    box-shadow: var(--shadows-axis-none, 0) var(--shadows-axis-none, 0) var(--shadows-blur-tiny, 6px) var(--shadows-spread-none, 0) var(--effect-shadow-light, rgba(90, 90, 90, 0.20));
     transition: height 200ms ease;
 
     .header.block {
@@ -31,6 +32,13 @@ header.header-wrapper {
   top: var(--marquee-height, 0px);
   z-index: 100;
   transition: height 200ms ease;
+}
+
+/* Elevate header content above any residual megamenu elements */
+header.header-wrapper > .header-wrapper > .header-container,
+header.header-wrapper > .header-wrapper > .header-user-actions {
+  position: relative;
+  z-index: 10;
 }
 
 header.header-wrapper.is-scrolled,
@@ -209,9 +217,10 @@ header nav .nav-sections ul > li > ul > li {
     }
 }
 
-@media (width >= 1248px) {
+@media (width >= 1024px) {
     header.header-wrapper {
         padding: 0 16px;
+        box-shadow: var(--shadows-axis-none, 0) var(--shadows-axis-none, 0) var(--shadows-blur-tiny, 6px) var(--shadows-spread-none, 0) var(--effect-shadow-light, rgba(90, 90, 90, 0.20));
     }
 }
 

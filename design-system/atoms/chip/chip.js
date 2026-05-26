@@ -107,8 +107,8 @@ export const Chip = ({
         </div>
       `}
       <p class=${variant === 'control'
-    ? '!m-0 text-[14px] font-[700] leading-[14px] tracking-inherit whitespace-inherit antialiased'
-    : '!m-0 font-inherit text-xs leading-inherit tracking-inherit whitespace-inherit antialiased'}>
+    ? '!m-0 font-[700] leading-[14px] tracking-inherit whitespace-inherit antialiased'
+    : '!m-0 font-inherit leading-inherit tracking-inherit whitespace-inherit antialiased'}>
         ${children}
       </p>
     </div>

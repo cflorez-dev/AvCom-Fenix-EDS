@@ -3,6 +3,10 @@ import htm from 'htm';
 import { FooterColumns } from '../../design-system/organisms/footer/footer-columns/footer-columns.js';
 import { shouldShowByTargeting } from '../../scripts/utils/target-filter.js';
 import { isSafeUrl } from '../../scripts/utils/sanitize.js';
+import {
+  getFooterCompactMode,
+  FOOTER_COMPACT_MODE_EVENT,
+} from '../../scripts/utils/event-constants.js';
 
 const html = htm.bind(h);
 
@@ -163,17 +167,36 @@ export default function decorate(block) {
   // 3. Production Mode: render Preact component
   const container = document.createElement('div');
 
+  let finalColumns = mappedData;
+  let extraClass = '';
+
+  if (getFooterCompactMode() === true) {
+    finalColumns = mappedData.slice(0, 4);
+    extraClass = 'footer-columns-compact';
+  }
+
   // Solo renderizar si hay contenido
   if (hasContent) {
     render(
-      html`<${FooterColumns} columns=${mappedData} />`,
+      html`<${FooterColumns} columns=${finalColumns} customClassName=${extraClass} />`,
       container,
     );
   }
 
+  // Si compact llega después de decorar
+  window.addEventListener(FOOTER_COMPACT_MODE_EVENT, ({ detail }) => {
+    if (detail.active) {
+      // Preact diff handles the update — clearing innerHTML would desync vDOM
+      render(
+        html`<${FooterColumns} columns=${mappedData.slice(0, 4)} customClassName="footer-columns-compact" />`,
+        container,
+      );
+    }
+  }, { once: true });
+
   // 4. Find the footer-columns-wrapper container in the footer
   const injectIntoFooter = () => {
-    const footerWrapper = document.querySelector('.footer-columns-wrapper');
+    const footerWrapper = document.querySelector('footer .footer-columns-wrapper');
     if (footerWrapper) {
       // PROTECTION: Skip if container already has content (first matching block wins)
       if (footerWrapper.children.length > 0) {
@@ -208,7 +231,7 @@ export default function decorate(block) {
     setTimeout(() => {
       clearInterval(retryInterval);
       // If not found after 5 seconds, insert as sibling
-      if (!document.querySelector('.footer-columns-wrapper')?.contains(container)) {
+      if (!document.querySelector('footer .footer-columns-wrapper')?.contains(container)) {
         block.parentNode.insertBefore(container, block.nextSibling);
       }
     }, 5000);

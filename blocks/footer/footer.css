@@ -21,6 +21,30 @@ div.footer-bottom-wrapper{
   background-color: var(--logo-avianca-primary);
 }
 
+/* In compact mode let the footer gradient show through */
+div.footer-bottom-wrapper:has(.footer-compact-bar) {
+  background-color: transparent;
+}
+
+/* Compact mode lateral padding by viewport (Figma compact-site-footer):
+   ≥1024: 32px (x-x-large) | ≤1023: 24px (x-large) | ≤767: 16px (x-medium) */
+div.footer-columns-wrapper:has(.footer-columns-compact) {
+  padding: var(--padding-24, 24px) var(--spacing-x-x-large, 32px);
+  border-bottom: none;
+}
+
+@media (width <= 1023px) {
+  div.footer-columns-wrapper:has(.footer-columns-compact) {
+    padding: var(--padding-24, 24px) var(--spacing-x-large, 24px);
+  }
+}
+
+@media (width <= 767px) {
+  div.footer-columns-wrapper:has(.footer-columns-compact) {
+    padding: var(--padding-24, 24px) var(--spacing-x-medium, 16px);
+  }
+}
+
 footer .footer > div {
   margin: auto;
   max-width: 1200px;

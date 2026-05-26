@@ -4,6 +4,10 @@ import { FooterBottom } from '../../design-system/organisms/footer/footer-bottom
 import { shouldShowByTargeting } from '../../scripts/utils/target-filter.js';
 import { fetchAEMData } from '../../scripts/utils/aem-data.js';
 import { resolveLocale } from '../../scripts/utils/locale.js';
+import {
+  getFooterCompactMode,
+  FOOTER_COMPACT_MODE_EVENT,
+} from '../../scripts/utils/event-constants.js';
 
 const html = htm.bind(h);
 
@@ -146,6 +150,23 @@ export default async function decorate(block) {
     return;
   }
 
+  const hideForCompact = () => {
+    block.style.display = 'none';
+    const wrapper = document.querySelector('footer .footer-bottom-wrapper');
+    if (wrapper) wrapper.innerHTML = '';
+  };
+
+  // Caso 1: footer-partners-logos compact ya decoró antes
+  if (getFooterCompactMode() === true) {
+    hideForCompact();
+    return;
+  }
+
+  // Caso 2: footer-bottom decora primero — suscribirse y reaccionar después
+  window.addEventListener(FOOTER_COMPACT_MODE_EVENT, ({ detail }) => {
+    if (detail.active) hideForCompact();
+  }, { once: true });
+
   // Targeting: positional rows 30=target-countries, 31=target-languages
   const rows = [...block.children];
   const getRowText = (rowIndex) => {
@@ -231,7 +252,7 @@ export default async function decorate(block) {
 
     setTimeout(() => {
       clearInterval(retryInterval);
-      if (!document.querySelector('.footer-bottom-wrapper')?.contains(container)) {
+      if (!document.querySelector('footer .footer-bottom-wrapper')?.contains(container)) {
         block.parentNode.insertBefore(container, block.nextSibling);
       }
     }, 5000);

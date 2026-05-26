@@ -134,6 +134,7 @@ function extractPictureElement(div) {
       const syntheticImg = div.ownerDocument.createElement('img');
       syntheticImg.setAttribute('src', href);
       syntheticImg.setAttribute('loading', 'lazy');
+      syntheticImg.setAttribute('decoding', 'async');
       syntheticPicture.append(syntheticImg);
       return {
         src: href,

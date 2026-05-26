@@ -273,7 +273,7 @@ const InteractiveTabs = ({
       label: getTabLabel('requirements'),
       content: html`
         <div class="p-6">
-          <h3 class="text-2xl font-bold mb-4">${i18n['hubDestinations.destination.tab.requirements'] || getTabLabel('requirements')}</h3>
+          <h3 class="font-bold mb-4">${i18n['hubDestinations.destination.tab.requirements'] || getTabLabel('requirements')}</h3>
           <div id="smartvel-widget-container" class="my-6">
             <smt-gcovwidget
               apikey=${smartvelApiKey}
