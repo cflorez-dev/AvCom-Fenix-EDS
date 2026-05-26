@@ -1,5 +1,5 @@
 import { h } from '@dropins/tools/preact.js';
-import { useState, useEffect } from '@dropins/tools/preact-hooks.js';
+import { useState, useEffect, useMemo } from '@dropins/tools/preact-hooks.js';
 import htm from 'htm';
 import { Select } from '../../../atoms/inputs/select/select.js';
 import { Button } from '../../../atoms/button/button.js';
@@ -41,6 +41,8 @@ export const PosForm = ({
   isDropdown = false,
   showCloseButton = true,
   responsiveMode = false,
+  getAllowedLanguages = null,
+  getDefaultLanguage = null,
   ...rest
 }) => {
   // Use default values if labels are null or empty string
@@ -60,6 +62,15 @@ export const PosForm = ({
   useEffect(() => {
     setSelectedLanguage(initialLanguage);
   }, [initialLanguage]);
+
+  // Filtered language list: restricted when the country has AllowedLanguages configured,
+  // identical to the full list otherwise (preserves current behavior for unconfigured countries).
+  const filteredLanguages = useMemo(() => {
+    if (!getAllowedLanguages || !selectedCountry) return languages;
+    const allowed = getAllowedLanguages(selectedCountry);
+    if (!allowed || allowed.length === 0) return languages;
+    return languages.filter((l) => allowed.includes(l.value));
+  }, [languages, selectedCountry, getAllowedLanguages]);
 
   // Determine if form is valid
   const isFormValid = selectedCountry && selectedLanguage;
@@ -81,6 +92,17 @@ export const PosForm = ({
   // Handle country change
   const handleCountryChange = (value) => {
     setSelectedCountry(value);
+
+    if (!getAllowedLanguages) return;
+
+    const allowed = getAllowedLanguages(value);
+    if (!allowed || allowed.length === 0) return;
+
+    const isCurrentValid = allowed.includes(selectedLanguage);
+    if (isCurrentValid) return;
+
+    const defaultLang = getDefaultLanguage ? getDefaultLanguage(value) : null;
+    setSelectedLanguage(defaultLang || '');
   };
 
   // Handle language change
@@ -121,13 +143,13 @@ export const PosForm = ({
   };
 
   const getOrderedLanguages = () => {
-    if (!selectedLanguage || languages.length === 0) return languages;
+    if (!selectedLanguage || filteredLanguages.length === 0) return filteredLanguages;
 
-    const selectedIndex = languages.findIndex((l) => l.value === selectedLanguage);
-    if (selectedIndex === -1) return languages;
+    const selectedIndex = filteredLanguages.findIndex((l) => l.value === selectedLanguage);
+    if (selectedIndex === -1) return filteredLanguages;
 
     // Create a new array with selected item first
-    const ordered = [...languages];
+    const ordered = [...filteredLanguages];
     const [selectedItem] = ordered.splice(selectedIndex, 1);
     return [selectedItem, ...ordered];
   };
@@ -144,9 +166,9 @@ export const PosForm = ({
     >
       <!-- Header with Title and Close Button -->
       <div class="flex items-center justify-between">
-        <h2 class="!text-[16px] !m-0 font-semibold text-[var(--text-normal-primary)] flex-1">
+        <h6 class="!m-0 font-semibold text-[var(--text-normal-primary)] flex-1">
           ${finalTitle}
-        </h2>
+        </h6>
         ${showCloseButton && html`
         <${Button}
           onClick=${handleClose}

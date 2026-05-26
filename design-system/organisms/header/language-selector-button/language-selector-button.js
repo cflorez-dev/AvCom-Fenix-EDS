@@ -115,15 +115,20 @@ export const LanguageSelectorButton = ({
     };
   }, []);
 
-  // Parse current selected POS to get current country
-  const { country: currentCountry } = parsePos(selectedPos);
+  // Parse current selected POS to get current country and language
+  const { country: currentCountry, language: currentLanguage } = parsePos(selectedPos);
   const currentFlagPath = currentCountry ? getCountryFlagPath(currentCountry) : null;
+  const displayText = formatPosForDisplay(selectedPos);
+  // Keep language in aria-label for screen readers even though it's hidden visually
+  const ariaLabel = currentLanguage
+    ? `Seleccionar país e idioma: ${displayText}, idioma ${currentLanguage.toUpperCase()}`
+    : 'Seleccionar país e idioma';
 
   return html`
     <button
       onClick=${onClick}
       type="button"
-      aria-label="Select language and country"
+      aria-label=${ariaLabel}
       class="flex gap-2 items-center bg-[var(--bg-brand-primary-lighter)] hover:bg-[var(--state-hover-lighten)] cursor-pointer transition-all w-full justify-between focus:outline-2 focus:outline-[var(--focus-primary)] focus:outline-offset-2 ${customClassName}"
       ...${rest}
     >
@@ -138,7 +143,7 @@ export const LanguageSelectorButton = ({
           <span class="w-5 h-[15px] shrink-0" />
         `}
         <span class="text-sm font-normal not-italic text-[var(--text-normal-primary)] m-0">
-          ${formatPosForDisplay(selectedPos) || 'Seleccionar'}
+          ${displayText || 'Seleccionar'}
         </span>
       </div>
       <span class="w-6 h-6 inline-flex items-center justify-center shrink-0">
