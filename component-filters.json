@@ -33,6 +33,7 @@
       "back-to-top-button",
       "breadcrumb",
       "marquesina",
+      "cintilla",
       "multitab",
       "mosaic-cards-v2",
       "origin-dropdown-selector",
@@ -54,7 +55,9 @@
       "html-embed",
       "destination-details",
       "hub-destinations",
-      "accordion-simplified"
+      "accordion-simplified",
+      "header-megamenu-column",
+      "header-megamenu-form"
     ]
   },
   {

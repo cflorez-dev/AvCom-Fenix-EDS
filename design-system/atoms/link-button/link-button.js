@@ -17,7 +17,13 @@ const html = htm.bind(h);
  * @param {boolean} options.disabled - Disabled state (default: false)
  * @param {string} options.customClassName - Additional CSS classes
  *   (default: "")
- * @returns {string} Combined CSS classes string
+ * @param {string|null} options.customColor - Optional inline color (hex/rgba). When provided,
+ *   the function returns an object { className, style } instead of a plain string.
+ *   Backward-compat: if customColor is null/undefined, returns plain string as before.
+ * @returns {string|{ className: string, style: { color: string } }}
+ *   - Plain string of CSS classes (when customColor is null/undefined) — backward-compat default.
+ *   - Object { className, style } when customColor is provided. Caller must handle both shapes
+ *     OR always pass customColor consistently to get predictable type.
  *
  * @example
  * const classes = getLinkButtonStyles({
@@ -36,6 +42,7 @@ export const getLinkButtonStyles = ({
   iconOnly = false,
   disabled = false,
   customClassName = '',
+  customColor = null,
 } = {}) => {
   // Base classes - layout and typography
   const baseClasses = 'inline-flex items-center justify-center '
@@ -202,6 +209,10 @@ export const getLinkButtonStyles = ({
     ${disabled ? 'cursor-not-allowed pointer-events-none' : 'cursor-pointer'}
     ${customClassName}
   `.trim().replace(/\s+/g, ' ');
+
+  if (customColor) {
+    return { className: finalClasses, style: { color: customColor } };
+  }
 
   return finalClasses;
 };

@@ -243,7 +243,7 @@ export const Alert = ({
 
   // Inner container classes
   const fullWidthClasses = fullWidth
-    ? marqueeMode ? 'py-4 px-6 w-full ' : 'py-4 px-4 w-full border-none'
+    ? marqueeMode ? 'py-4 px-6 w-full ' : 'py-4 px-4 w-full border-none '
       + 'text-[var(--paragraph-p200-size,1.4rem)] '
       + 'font-[var(--paragraph-p200-weight,400)] '
       + 'leading-[var(--line-height-150,1.5)]'
@@ -358,7 +358,7 @@ export const Alert = ({
   const processedContentHTML = preserveRawHTML
     ? contentHTML
     : processContentHTML(contentHTML, normalizedVariant, {
-      pClassName: `text-sm ${marqueeMode ? 'leading-6' : 'leading-[21px]'}`,
+      pClassName: `!text-sm ${marqueeMode ? 'leading-6' : 'leading-[21px]'}`,
       strongClassName: 'font-bold',
       processRelAttributes: true,
       linkButtonOptions: {

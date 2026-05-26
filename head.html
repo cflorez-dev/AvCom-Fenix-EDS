@@ -35,22 +35,23 @@
 
 <!-- Preload POS/Languages catalogs so they arrive in parallel with scripts.js
      (read by language-country-selector, geolocation, and locale resolution).
-     `crossorigin="anonymous"` matches the `fetch()` default credentials mode
-     (`same-origin`). Without it the browser keeps the preload in a separate
-     cache entry (credentials-include) and re-issues the request, triggering
-     "preload not used" warnings. -->
-<link rel="preload" as="fetch" crossorigin="anonymous" href="/countireslist.json"/>
-<link rel="preload" as="fetch" crossorigin="anonymous" href="/languageslist.json"/>
+     No `crossorigin` attr: fetch() default credentials mode is `same-origin`
+     (sends cookies for same-origin). A preload without crossorigin matches
+     that, so the browser reuses the preloaded response. With crossorigin
+     "anonymous" (=omit credentials), modes diverge and the preload is
+     ignored, triggering "preload not used" warnings. -->
+<link rel="preload" as="fetch" href="/countireslist.json"/>
+<link rel="preload" as="fetch" href="/languageslist.json"/>
 
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
 
 <!-- Critical CSS (render-blocking) -->
 <link rel="stylesheet" href="/styles/styles.css" />
 <link rel="stylesheet" href="/styles/tw.css" />
-<!-- sections.css — moved here from loadLazy to prevent FOUC on hero sections
-     (data-section-type is added by JS AFTER first paint, so the flex-row layout
-     was applying late). 93 lines, minimal LCP impact. -->
-<link rel="stylesheet" href="/styles/sections.css" />
+<!-- sections.css — preloaded (parallel download, non-blocking) and awaited in
+     loadLazy before sections lose their display:none, so no FOUC on
+     hero-destinations layouts. -->
+<link rel="preload" as="style" href="/styles/sections.css" />
 
 <!-- Centribal -->
 <link rel="stylesheet" href="https://avianca-help.centribal.com/api/v1/recaptcha-css/" />
@@ -99,6 +100,14 @@
   setTimeout(function(){if(!done)mo.disconnect();},5000);
 })();
 </script>
+
+<!-- Modulepreload critical Preact dependencies — used by every Preact block
+     (marquesina, hero-banner, etc.). Without these, the first block's
+     import waits for scripts.js to parse before requesting them (~1s
+     delay on critical path). URLs must match the importmap exactly. -->
+<link rel="modulepreload" crossorigin="anonymous" href="https://cdn.jsdelivr.net/npm/preact@10.19.3/dist/preact.module.js" />
+<link rel="modulepreload" crossorigin="anonymous" href="https://cdn.jsdelivr.net/npm/preact@10.19.3/hooks/dist/hooks.module.js" />
+<link rel="modulepreload" crossorigin="anonymous" href="https://cdn.jsdelivr.net/npm/htm@3.1.1/dist/htm.module.js" />
 
 <!-- Import maps para dependencias de dropins -->
 <script nonce="aem" type="importmap">

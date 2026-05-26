@@ -40,6 +40,7 @@ const TipsCards = ({
                   src=${card.icon}
                   alt=${card.iconAlt || 'Tip icon'}
                   loading=${loading}
+                  decoding="async"
                   class="w-5 h-5 left-[2px] top-[2px] absolute object-contain"
                 />
               </div>

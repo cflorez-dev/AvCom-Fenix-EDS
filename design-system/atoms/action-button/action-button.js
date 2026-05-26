@@ -75,13 +75,16 @@ export const ActionButton = ({
     if (!icon) return null;
 
     // Create icon content based on type (string or VNode)
+    // Icons are tiny SVGs (<1KB) used in booking-box and top-action-buttons
+    // (both always above-the-fold). Eager loading paints them with the
+    // first frame instead of waiting for IntersectionObserver discovery.
     const iconContent = typeof icon === 'string'
       ? html`<img
           src=${icon}
           alt=""
           role="presentation"
           class="w-[15px] h-[15px] object-contain"
-          loading="lazy"
+          loading="eager"
           decoding="async"
         />`
       : html`<div class="w-5 h-5 flex items-center justify-center" role="img" aria-hidden="true">${icon}</div>`;

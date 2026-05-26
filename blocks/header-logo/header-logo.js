@@ -26,9 +26,15 @@ function createPictureElement(logoData) {
   }
 
   // Add img element
+  // Logo is always above-the-fold (sits inside the sticky header) — use eager
+  // loading + high fetch priority so it paints with the first frame instead
+  // of waiting for IntersectionObserver to discover it (the previous lazy
+  // setting deferred it and contributed to a small CLS shift).
   const img = document.createElement('img');
   img.className = 'header-logo-img';
-  img.setAttribute('loading', 'lazy');
+  img.setAttribute('loading', 'eager');
+  img.setAttribute('fetchpriority', 'high');
+  img.setAttribute('decoding', 'async');
   if (logoData.src) img.setAttribute('src', logoData.src);
   if (logoData.alt) img.setAttribute('alt', logoData.alt);
   if (logoData.width) img.setAttribute('width', logoData.width);

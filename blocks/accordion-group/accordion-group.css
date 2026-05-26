@@ -43,7 +43,6 @@
 .section.accordion-item .accordion-group-content .columns-text-col h1,
 .section.accordion-item .accordion-group-content .columns-text-col h2,
 .section.accordion-item .accordion-group-content .columns-text-col h3 {
-    font-size: 20px;
     font-style: normal;
     font-weight: 700;
     line-height: 150%; /* 30px */
@@ -77,7 +76,6 @@
 /* text styles inside accordion */
 .section.accordion-item .accordion-group-content .columns-text-col li,
 .section.accordion-item .accordion-group-content .columns-text-col p {
-    font-size: 16px;
     font-style: normal;
     font-weight: 400;
     line-height: 150%; /* 24px */

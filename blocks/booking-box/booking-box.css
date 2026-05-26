@@ -1,6 +1,11 @@
 /* stylelint-disable no-empty-source */
 
 /* Booking Box Container Padding Bottom When Sticky */
+div.section.booking-box-container {
+  position: relative;
+  z-index: 100;
+}
+
 div.section.booking-box-container.booking-box-next-section {
   transition: padding-bottom 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94);
 }
