@@ -55,7 +55,9 @@
       "html-embed",
       "destination-details",
       "hub-destinations",
-      "accordion-simplified"
+      "accordion-simplified",
+      "header-megamenu-column",
+      "header-megamenu-form"
     ]
   },
   {

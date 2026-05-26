@@ -707,6 +707,36 @@
           }
         },
         {
+          "title": "Header Megamenu Column",
+          "id": "header-megamenu-column",
+          "plugins": {
+            "xwalk": {
+              "page": {
+                "resourceType": "core/franklin/components/block/v1/block",
+                "template": {
+                  "name": "Header Megamenu Column",
+                  "model": "header-megamenu-column"
+                }
+              }
+            }
+          }
+        },
+        {
+          "title": "Header Megamenu Form",
+          "id": "header-megamenu-form",
+          "plugins": {
+            "xwalk": {
+              "page": {
+                "resourceType": "core/franklin/components/block/v1/block",
+                "template": {
+                  "name": "Header Megamenu Form",
+                  "model": "header-megamenu-form"
+                }
+              }
+            }
+          }
+        },
+        {
           "title": "Header Menu Item",
           "id": "header-menu-item",
           "plugins": {
