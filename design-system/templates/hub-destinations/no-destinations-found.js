@@ -14,12 +14,11 @@ const html = htm.bind(h);
  * - `customClassName`: `string` – Additional classes.
  */
 export const NoDestinationsFound = ({
-	title = '',
-	description = '',
-	customClassName = '',
-	...rest
-}) => {
-	return html`
+  title = '',
+  description = '',
+  customClassName = '',
+  ...rest
+}) => html`
 		<div
 			data-name="noDestinationsFound"
 			class="w-full flex flex-col items-center gap-4 my-16 justify-center ${customClassName}"
@@ -34,13 +33,10 @@ export const NoDestinationsFound = ({
 					decoding="async"
 				/>
 			</picture>
-			<p class="text-lg font-bold text-text-normal-primary !m-0 text-[20px]"
-			style="line-height: normal;"
-			>
+			<p class="font-bold text-text-normal-primary !m-0">
 				${title}
 			</p>
 		</div>
 	`;
-};
 
 export default NoDestinationsFound;

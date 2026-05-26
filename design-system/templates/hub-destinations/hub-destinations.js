@@ -436,7 +436,7 @@ export const HubDestinations = ({
         class="w-full ${customClassName}"
         ...${rest}
       >
-        <p class="text-sm text-text-normal-secondary m-0">
+        <p class="text-text-normal-secondary m-0">
           ${i18n['hubDestinations.emptyData'] || 'No hay datos de destinos disponibles.'}
         </p>
       </div>

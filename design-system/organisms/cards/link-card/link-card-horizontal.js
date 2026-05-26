@@ -119,7 +119,7 @@ export const LinkCardHorizontal = ({
 
   // Title classes
   const titleClasses = '!m-0 font-[var(--heading-h500-family)] '
-    + 'font-[var(--heading-h500-weight)] text-[20px] '
+    + 'font-[var(--heading-h500-weight)] text-[var(--heading-h500-size)] '
     + 'leading-[var(--line-height-normal)] '
     + 'tracking-[var(--heading-h500-letter-spacing)] '
     + 'text-[var(--text-normal-primary)] w-full min-w-0 max-w-full relative shrink-0 break-words';

@@ -686,7 +686,7 @@ export const DateSelector = ({
                 </button>
 
                 <!-- Title -->
-                <h2 class="!text-[18px] font-bold text-[var(--color-text-normal-primary)] min-h-[24px]">
+                <h2 class="font-bold text-[var(--color-text-normal-primary)] min-h-[24px]">
                   ${actualStepTitle}
                 </h2>
 

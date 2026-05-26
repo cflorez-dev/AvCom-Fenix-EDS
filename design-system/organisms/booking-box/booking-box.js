@@ -651,7 +651,7 @@ export const BookingBox = ({
             >
               <${Icon} icon="navigation/arrow-back" size="sm" />
             </button>
-            <h2 class="!text-[18px] font-bold text-[var(--color-text-normal-primary)]">${i18n['bookingBox.labels.confirmSearch'] || 'Confirma tu búsqueda'}</h2>
+            <h2 class="font-bold text-[var(--color-text-normal-primary)]">${i18n['bookingBox.labels.confirmSearch'] || 'Confirma tu búsqueda'}</h2>
             <button
               type="button"
               class="hover:opacity-60"

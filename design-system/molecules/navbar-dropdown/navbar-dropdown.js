@@ -286,7 +286,7 @@ export const NavbarDropdown = ({
                     <div class="flex flex-1 flex-col gap-[var(--spacing-tiny)] items-start justify-center">
                       <p class=${`
                           !m-0 w-full text-left transition-[var(--transition-colors)] 
-                          font-[var(--paragraph-p300-family)] text-[16px] 
+                          font-[var(--paragraph-p300-family)] 
                           group-hover/sub-item:text-[var(--brand-secondary)]
                           leading-[var(--paragraph-p300-line-height)] tracking-[var(--paragraph-p300-letter-spacing)] 
                           text-[var(--text-normal-secondary)]

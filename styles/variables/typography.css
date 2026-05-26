@@ -10,16 +10,16 @@
   --font-weight-regular: 400;
   --font-weight-bold: 700;
   
-  /* Font Sizes */
-  --font-size-tiny: 12px;      /* 12px */
-  --font-size-small: 14px;     /* 14px */
-  --font-size-normal: 16px;    /* 16px */
-  --font-size-medium: 18px;    /* 18px */
-  --font-size-large: 20px;       /* 20px */
-  --font-size-x-large: 24px;   /* 24px */
-  --size-x-large: 24px;        /* 24px - Figma naming convention */
-  --font-size-huge: 32px;      /* 32px */
-  --font-size-x-huge: 36px;    /* 36px */
+  /* Font Sizes — fluid clamp() tokens (CU-226/CU-227) */
+  --font-size-tiny: 12px;      /* 12px — no fluido, uso en chips/labels pequeños */
+  --font-size-small: 14px;     /* 14px — no fluido, uso en captions */
+  --font-size-normal: clamp(1rem, 0.36vw + 0.89rem, 1.125rem);    /* p: 16px → 18px */
+  --font-size-medium: clamp(1.125rem, 0.54vw + 1.0179rem, 1.5rem); /* h4: 18px → 24px */
+  --font-size-large: clamp(1.25rem, 0.71vw + 1.1071rem, 1.75rem);  /* h3: 20px → 28px */
+  --font-size-x-large: clamp(1.5rem, 0.71vw + 1.3571rem, 2rem);    /* h2: 24px → 32px */
+  --size-x-large: clamp(1.5rem, 0.71vw + 1.3571rem, 2rem);         /* h2 alias Figma */
+  --font-size-huge: clamp(2rem, 1.43vw + 1.7143rem, 3rem);         /* h1/H800: 32px → 48px */
+  --font-size-x-huge: clamp(2.25rem, 1.43vw + 1.9643rem, 3.25rem); /* H900 display: 36px → 52px */
   
   /* Letter Spacing */
   --letter-spacing-normal: 0;
