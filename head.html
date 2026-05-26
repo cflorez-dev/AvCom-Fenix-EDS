@@ -101,6 +101,14 @@
 })();
 </script>
 
+<!-- Modulepreload critical Preact dependencies — used by every Preact block
+     (marquesina, hero-banner, etc.). Without these, the first block's
+     import waits for scripts.js to parse before requesting them (~1s
+     delay on critical path). URLs must match the importmap exactly. -->
+<link rel="modulepreload" crossorigin="anonymous" href="https://cdn.jsdelivr.net/npm/preact@10.19.3/dist/preact.module.js" />
+<link rel="modulepreload" crossorigin="anonymous" href="https://cdn.jsdelivr.net/npm/preact@10.19.3/hooks/dist/hooks.module.js" />
+<link rel="modulepreload" crossorigin="anonymous" href="https://cdn.jsdelivr.net/npm/htm@3.1.1/dist/htm.module.js" />
+
 <!-- Import maps para dependencias de dropins -->
 <script nonce="aem" type="importmap">
 {
