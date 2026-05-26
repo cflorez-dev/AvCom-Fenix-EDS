@@ -1,0 +1,12 @@
+/* Cintilla block styles — layout and colors are applied via Preact organism inline styles and Tailwind classes */
+
+/* Full-bleed override: the AEM `.section` ancestor caps width at 1248 with side
+   gutters. Break out of that constraint so the cintilla bg covers the entire
+   viewport (Figma spec). The inner content wrapper inside the organism keeps
+   the text bounded to max-w-[1248px] centered, so the visible content area
+   matches Figma's max-width while the bg goes edge-to-edge. */
+.cintilla-wrapper {
+  margin-left: calc(50% - 50vw);
+  width: 100vw;
+}
+
