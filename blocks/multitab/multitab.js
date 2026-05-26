@@ -381,7 +381,9 @@ export default async function decorate(block) {
     const isActive = index === activeTabIndex;
 
     // Size-specific dimensions (Figma specs)
-    const tabHeight = size === 'large' ? 'h-[80px]' : 'h-[64px]';
+    let tabHeight = size === 'large' ? 'h-[80px]' : 'h-[64px]';
+    if (isPill && size === 'large') tabHeight = 'h-[83px]';
+    else if (isPill && size === 'small') tabHeight = 'h-[60px]';
     let tabPadding = 'px-6 md:px-8';
     if (isPill) tabPadding = size === 'large' ? 'py-4 px-6' : 'py-2 px-5';
     let tabRadius = '';
@@ -551,8 +553,11 @@ export default async function decorate(block) {
       }
     } else {
       // No icon: use flex column layout
+      let contentGap = 'gap-[2px]';
+      if (isPill && size === 'large') contentGap = 'gap-[4px]';
+      else if (isPill && size === 'small') contentGap = 'gap-0';
       contentContainer.className = `
-        flex flex-col ${isPill ? 'gap-[4px]' : 'gap-[2px]'} items-center justify-center relative w-full z-[5]
+        flex flex-col ${contentGap} items-center justify-center relative w-full z-[5]
       `.trim().replace(/\s+/g, ' ');
 
       // Primary label
