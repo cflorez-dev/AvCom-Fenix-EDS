@@ -5375,7 +5375,7 @@
         "component": "text",
         "name": "title",
         "label": "Title (H2)",
-        "description": "Main title - uses H2 for SEO hierarchy",
+        "description": "Main title — H2 for legacy Secondary Banner layout, H4 for megamenu context (SEO hierarchy)",
         "valueType": "string",
         "value": ""
       },
@@ -5674,6 +5674,104 @@
         "valueType": "boolean",
         "description": "Display the condor decorative SVG element on the banner. Default: true.",
         "value": true
+      },
+      {
+        "component": "select",
+        "name": "imagePosition",
+        "label": "Image Position",
+        "description": "Position of the image: right (default, image on right with condor pattern) or left (inverted layout, image column on left, content on right).",
+        "valueType": "string",
+        "options": [
+          {
+            "name": "Right (default)",
+            "value": "right"
+          },
+          {
+            "name": "Left (inverted)",
+            "value": "left"
+          }
+        ],
+        "value": "right"
+      },
+      {
+        "component": "text",
+        "name": "cta2Text",
+        "label": "CTA 2 Text",
+        "description": "Second call-to-action button text (only applies to left variant)",
+        "valueType": "string",
+        "value": ""
+      },
+      {
+        "component": "text",
+        "name": "cta2Url",
+        "label": "CTA 2 URL",
+        "description": "Second call-to-action button link (only applies to left variant)",
+        "valueType": "string",
+        "value": ""
+      },
+      {
+        "component": "select",
+        "name": "cta2LinkType",
+        "label": "CTA 2 Link Type",
+        "description": "Link behavior for second CTA (SEO)",
+        "valueType": "string",
+        "options": [
+          {
+            "name": "Dofollow",
+            "value": "dofollow"
+          },
+          {
+            "name": "Nofollow",
+            "value": "nofollow"
+          },
+          {
+            "name": "Sponsored",
+            "value": "sponsored"
+          }
+        ],
+        "value": "dofollow"
+      },
+      {
+        "component": "select",
+        "name": "ctaStyle",
+        "label": "CTA Style (left variant only)",
+        "description": "Combination of CTA1 (primary, filled) + CTA2 (secondary, outlined). 'matched' = secondary uses same theme as primary; 'contrast' = secondary inverts theme. Ignored when image position is right.",
+        "valueType": "string",
+        "options": [
+          {
+            "name": "Light — CTA1 light filled / CTA2 dark filled",
+            "value": "light"
+          },
+          {
+            "name": "Dark — CTA1 dark filled / CTA2 light filled",
+            "value": "dark"
+          },
+          {
+            "name": "Light contrast — CTA1 light filled / CTA2 dark with light border",
+            "value": "light-contrast"
+          },
+          {
+            "name": "Light contrast inverse — CTA1 dark with light border / CTA2 light filled",
+            "value": "light-contrast-inverse"
+          },
+          {
+            "name": "Dark contrast — CTA1 dark filled / CTA2 light with dark border",
+            "value": "dark-contrast"
+          },
+          {
+            "name": "Dark contrast inverse — CTA1 light with dark border / CTA2 dark filled",
+            "value": "dark-contrast-inverse"
+          },
+          {
+            "name": "Light contrast 60 — CTA1 light filled / CTA2 dark@60% with light border",
+            "value": "light-contrast-60"
+          },
+          {
+            "name": "Light contrast 60 inverse — CTA1 dark@60% with light border / CTA2 light filled",
+            "value": "light-contrast-60-inverse"
+          }
+        ],
+        "value": "dark"
       }
     ]
   },
