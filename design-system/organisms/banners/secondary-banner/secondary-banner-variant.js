@@ -357,7 +357,7 @@ export const SecondaryBannerLeft = ({
 
   return html`
     <div
-      class="block max-w-[1248px] w-full relative rounded-[16px] shadow-[0px_2px_20px_2px_rgba(73,73,73,0.25)] my-[32px] mx-[16px] md:mx-[32px] overflow-hidden md:!h-[220px] lg:!h-[220px] xl:!h-[222px]"
+      class="secondary-banner-card max-w-[1248px] w-full relative rounded-[16px] shadow-[0px_2px_20px_2px_rgba(73,73,73,0.25)] my-[32px] mx-[16px] md:mx-[32px] overflow-hidden md:!h-[220px] lg:!h-[220px] xl:!h-[222px]"
       style=${bannerBackground}
       data-name="secondary-banner"
       data-image-position="left"

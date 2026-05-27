@@ -287,7 +287,7 @@ export const SecondaryBanner = ({
   return html`
     <!-- Desktop Version -->
     <div 
-      class="block max-w-[1248px] w-full h-[216px] min-[1024px]:h-[243px] relative rounded-[24px] shadow-[0px_2px_20px_2px_rgba(73,73,73,0.25)] my-[32px] mx-[16px] min-[1024px]:mx-[32px] overflow-hidden pb-[18px]"
+      class="secondary-banner-card max-w-[1248px] w-full h-[216px] min-[1024px]:h-[243px] relative rounded-[24px] shadow-[0px_2px_20px_2px_rgba(73,73,73,0.25)] my-[32px] mx-[16px] min-[1024px]:mx-[32px] overflow-hidden pb-[18px]"
       style=${bannerBackground}
     >
        <!-- Left content section -->
