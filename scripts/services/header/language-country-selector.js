@@ -1027,14 +1027,13 @@ export function setStoredPos(pos, fallback) {
   // Get currency from country data
   const currency = countryData[country]?.currencyCode || null;
 
-  // eslint-disable-next-line no-console
-  console.log('[language-country-selector] POS set successfully:', {
-    original: pos,
-    normalized: normalizedPos,
-    language,
-    country,
-    currency,
-  });
+  // console.log('[language-country-selector] POS set successfully:', {
+  //   original: pos,
+  //   normalized: normalizedPos,
+  //   language,
+  //   country,
+  //   currency,
+  // });
 
   // Dispatch event with POS format for compatibility
   window.dispatchEvent(new CustomEvent(STORAGE_EVENT, {
