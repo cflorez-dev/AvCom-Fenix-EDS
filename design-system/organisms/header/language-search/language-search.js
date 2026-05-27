@@ -135,8 +135,7 @@ export const LanguageSearch = ({
             initialPos = normalizePos(initialPos);
             if (validatePos(initialPos)) {
               setSelectedPos(initialPos);
-              // eslint-disable-next-line no-console
-              console.log('[LanguageSearch] Initialized with POS:', initialPos);
+              // console.log('[LanguageSearch] Initialized with POS:', initialPos);
             } else {
               const fallbackPos = normalizePos('');
               setSelectedPos(fallbackPos);
@@ -248,8 +247,7 @@ export const LanguageSearch = ({
       newPos = normalizePos(newPos);
       if (validatePos(newPos)) {
         setSelectedPos(newPos);
-        // eslint-disable-next-line no-console
-        console.log('[LanguageSearch] Updated selectedPos:', newPos);
+        // console.log('[LanguageSearch] Updated selectedPos:', newPos);
       } else {
         const fallbackPos = normalizePos('');
         setSelectedPos(fallbackPos);
@@ -409,8 +407,7 @@ export const LanguageSearch = ({
       if (onPosChange) {
         onPosChange(normalizedPos);
       }
-      // eslint-disable-next-line no-console
-      console.log('[LanguageSearch] POS confirmed:', normalizedPos);
+      // console.log('[LanguageSearch] POS confirmed:', normalizedPos);
 
       // Navigate to the new POS path (explicit user action)
       navigateToPOS(normalizedPos);
@@ -437,8 +434,7 @@ export const LanguageSearch = ({
       if (onPosChange) {
         onPosChange(normalizedPos);
       }
-      // eslint-disable-next-line no-console
-      console.log('[LanguageSearch] POS selected:', normalizedPos);
+      // console.log('[LanguageSearch] POS selected:', normalizedPos);
 
       // Navigate to the new POS path (explicit user action)
       navigateToPOS(normalizedPos);
