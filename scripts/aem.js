@@ -377,6 +377,18 @@ function createOptimizedPicture(
   const { pathname } = url;
   const ext = pathname.substring(pathname.lastIndexOf('.') + 1);
 
+  // SVGs are resolution-independent vectors: do not rasterize them to webp or
+  // generate width variants. Emitting a `type="image/webp"` source would make
+  // the browser download a rasterized, oversized copy instead of the crisp SVG.
+  if (ext.toLowerCase() === 'svg') {
+    const img = document.createElement('img');
+    img.setAttribute('loading', eager ? 'eager' : 'lazy');
+    img.setAttribute('alt', alt);
+    img.setAttribute('src', `${pathname}?format=svg&optimize=medium`);
+    picture.appendChild(img);
+    return picture;
+  }
+
   // webp
   breakpoints.forEach((br) => {
     const source = document.createElement('source');

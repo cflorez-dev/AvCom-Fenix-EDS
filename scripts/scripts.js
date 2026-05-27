@@ -508,6 +508,26 @@ export function decorateMain(main) {
   applySectionBackgrounds(main);
   decorateBlocks(main);
   stripInternalTrailingSlashes(main);
+  normalizeSvgPictures(main);
+}
+
+/**
+ * Prevents SVGs from being rasterized to WebP.
+ * The delivery pipeline renders authored images as a <picture> with
+ * `type="image/webp"` <source> elements. For an SVG those sources point at a
+ * rasterized, oversized copy (e.g. width=2000&format=webply) which the browser
+ * prefers over the crisp, lightweight vector. Removing the WebP sources from
+ * SVG pictures lets the browser use the SVG source/img instead.
+ * @param {Element} root The root element to process
+ */
+function normalizeSvgPictures(root) {
+  root.querySelectorAll('picture').forEach((picture) => {
+    const img = picture.querySelector('img');
+    const isSvg = !!picture.querySelector('source[type="image/svg+xml"]')
+      || /\.svg(?:$|[?#])/i.test(img?.getAttribute('src') || '');
+    if (!isSvg) return;
+    picture.querySelectorAll('source[type="image/webp"]').forEach((source) => source.remove());
+  });
 }
 
 /**
@@ -869,10 +889,16 @@ async function loadLazy(doc) {
   const main = doc.querySelector('main');
   const hasHash = Boolean(window.location.hash);
   try {
-    // sections.css is preloaded in head.html as non-blocking; await its
-    // attach here so hero-destinations layouts (data-section-type=...) are
-    // styled before sections lose display:none in loadSection.
-    await loadCSS(`${window.hlx.codeBasePath}/styles/sections.css`);
+    // sections.css and grid-layout.css are preloaded in head.html as
+    // non-blocking; await their attach here so section layouts
+    // (hero-destinations data-section-type, grid-4-8, ...) are styled before
+    // sections lose display:none in loadSection. Awaiting grid-layout.css here
+    // prevents the title/rich-text reflow that occurs when the grid columns
+    // apply only after the section is already visible (large CLS).
+    await Promise.all([
+      loadCSS(`${window.hlx.codeBasePath}/styles/sections.css`),
+      loadCSS(`${window.hlx.codeBasePath}/styles/grid-layout.css`),
+    ]);
 
     // Keep curtain active until visible content is ready.
     // If deep-linking to a hash, load all sections first for anchor reliability.
@@ -988,7 +1014,8 @@ async function loadLazy(doc) {
   loadCSS(`${window.hlx.codeBasePath}/styles/components/custom-scrollbar.css`);
   loadCSS(`${window.hlx.codeBasePath}/styles/migration-cards.css`);
   loadCSS(`${window.hlx.codeBasePath}/styles/utilities.css`);
-  loadCSS(`${window.hlx.codeBasePath}/styles/grid-layout.css`);
+  // grid-layout.css is now preloaded in head.html and awaited at the top of
+  // loadLazy (before sections become visible) to avoid the title reflow/CLS.
   loadCSS(`${window.hlx.codeBasePath}/styles/lazy-styles.css`);
   loadFonts();
 }
