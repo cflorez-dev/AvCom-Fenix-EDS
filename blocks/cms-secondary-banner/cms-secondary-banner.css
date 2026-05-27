@@ -32,7 +32,7 @@ main > .section.cms-secondary-banner-container[class*="grid-"].no-padding-y {
    `pb-[18px]` (padding) to space itself vertically inside the section.
    When the parent section has `.no-padding-y`, also zero those out so the
    visual spacing fully collapses. */
-.section.cms-secondary-banner-container.no-padding-y .cms-secondary-banner-content > .block {
+.section.cms-secondary-banner-container.no-padding-y .cms-secondary-banner-content > .secondary-banner-card {
   margin-top: 0 !important;
   margin-bottom: 0 !important;
   padding-top: 0 !important;
@@ -50,9 +50,12 @@ main > .section.cms-secondary-banner-container[class*="grid-"].no-padding-y {
   overflow: visible !important;
 }
 
-/* Remove the rendered block's built-in margin/mx so banners fill the grid
-   cell edge-to-edge, matching the alignment of surrounding content. */
-main > .section.cms-secondary-banner-container[class*="grid-"] .cms-secondary-banner-wrapper > .block:not([data-block-name]) {
+/* Remove the rendered card's built-in margin/mx so banners fill the grid
+   cell edge-to-edge, matching the alignment of surrounding content.
+   `.secondary-banner-card` is the SecondaryBanner render root. It must NOT use
+   the `.block` class: EDS's loadSection selects `div.block` and would try to
+   load it as a block (/blocks/undefined/*). */
+main > .section.cms-secondary-banner-container[class*="grid-"] .cms-secondary-banner-wrapper > .secondary-banner-card {
   margin: 0 !important;
   width: 100%;
   max-width: 100%;
@@ -60,7 +63,7 @@ main > .section.cms-secondary-banner-container[class*="grid-"] .cms-secondary-ba
 
 /* Dark gradient overlay on the image so white text stands out
    (mimics the original linear-gradient mask from avianca.com). */
-main > .section.cms-secondary-banner-container[class*="grid-"] .cms-secondary-banner-wrapper > .block:not([data-block-name]) > div > div > div:first-child {
+main > .section.cms-secondary-banner-container[class*="grid-"] .cms-secondary-banner-wrapper > .secondary-banner-card > div > div > div:first-child {
   background: linear-gradient(to bottom, rgba(0,0,0,0) 0%, rgba(0,0,0,0.25) 50%, rgba(0,0,0,0.7) 100%);
 }
 

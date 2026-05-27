@@ -33,8 +33,7 @@
   margin-bottom: var(--spacing-x-small, 8px);
 }
 
-.section.card-grid-2 .cms-rich-text-wrapper li,
-.section.card-grid-2 .cms-rich-text-wrapper p {
+.section.card-grid-2 .cms-rich-text-wrapper li{
   font-size: 16px;
   line-height: 1.5;
 }
@@ -163,9 +162,7 @@ main > .section.text-center > .default-content-wrapper:has(+ .cms-informative-ca
  * Override with --body-font-size-s (16px desktop / 19px mobile).
  * ──────────────────────────────────────────────────────────────────── */
 
-.section .default-content-wrapper p,
 .section .default-content-wrapper li,
-.section .cms-rich-text-wrapper p,
 .section .cms-rich-text-wrapper li {
   font-size: var(--body-font-size-s, 16px);
   line-height: 1.5;
