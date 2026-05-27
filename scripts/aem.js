@@ -270,7 +270,12 @@ function readBlockConfig(block) {
  */
 async function loadCSS(href) {
   return new Promise((resolve, reject) => {
-    if (!document.querySelector(`head > link[href="${href}"]`)) {
+    // Match only an already-applied STYLESHEET, not a `rel="preload"` link.
+    // head.html preloads some CSS (sections.css, grid-layout.css) for a
+    // non-blocking parallel fetch and relies on loadCSS to apply it. A plain
+    // `link[href]` match would treat that preload as "already loaded" and skip
+    // appending the stylesheet, so the CSS would download but never apply.
+    if (!document.querySelector(`head > link[rel="stylesheet"][href="${href}"]`)) {
       const link = document.createElement('link');
       link.rel = 'stylesheet';
       link.href = href;
