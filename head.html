@@ -52,6 +52,11 @@
      loadLazy before sections lose their display:none, so no FOUC on
      hero-destinations layouts. -->
 <link rel="preload" as="style" href="/styles/sections.css" />
+<!-- grid-layout.css — preloaded and awaited alongside sections.css in loadLazy
+     so section grid layouts (e.g. grid-4-8) apply before sections become
+     visible. Otherwise the grid columns load late and the title/rich-text
+     reflows from full-width to its narrow column (large layout shift / CLS). -->
+<link rel="preload" as="style" href="/styles/grid-layout.css" />
 
 <!-- Centribal -->
 <link rel="stylesheet" href="https://avianca-help.centribal.com/api/v1/recaptcha-css/" />
