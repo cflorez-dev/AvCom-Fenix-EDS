@@ -134,8 +134,8 @@ function mapBlockOptions(block) {
           return;
         }
 
-        // 9. formType (cabin-upgrade/none)
-        if (currentIndex === 8 && ['cabin-upgrade'].includes(textContent.toLowerCase())) {
+        // 9. formType (cabin-upgrade/mmb/none)
+        if (currentIndex === 8 && ['cabin-upgrade', 'mmb', 'none'].includes(textContent.toLowerCase())) {
           mappedOptions.formType = textContent.toLowerCase();
           currentIndex += 1;
           return;

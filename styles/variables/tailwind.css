@@ -271,6 +271,9 @@
   --line-height-relaxed: 1.625;
   --line-height-loose: 2;
   
+  /* Shadows */
+  --shadow-small: 0 0 var(--shadow-blur-tiny, 6px) 0 var(--effect-shadow-light, rgba(90, 90, 90, 0.20));
+
   /* Marquee Animation */
   --animate-alert-marquee: alert-marquee 60s linear infinite;
 }

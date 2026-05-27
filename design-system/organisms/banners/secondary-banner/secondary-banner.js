@@ -1,6 +1,5 @@
 import { h } from '@dropins/tools/preact.js';
 import {
-  useRef,
   useEffect,
   useState,
   useMemo,
@@ -57,10 +56,6 @@ export const SecondaryBanner = ({
   showCondor = true,
   loading = 'lazy',
 }) => {
-  // Refs for picture elements (if we need to insert cloned elements)
-  const desktopPictureRef = useRef(null);
-  const mobilePictureRef = useRef(null);
-
   // States for loaded SVG elements
   const [condorBgSVG, setCondorBgSVG] = useState(null);
   const [condorVectorSVG, setCondorVectorSVG] = useState(null);
@@ -97,43 +92,6 @@ export const SecondaryBanner = ({
       window.removeEventListener('resize', updateScreenSize);
     };
   }, []);
-
-  // Insert cloned picture elements if available
-  useEffect(() => {
-    if (pictureDesktop?.pictureElement && desktopPictureRef.current) {
-      const container = desktopPictureRef.current;
-      container.innerHTML = '';
-      const clonedPicture = pictureDesktop.pictureElement.cloneNode(true);
-      clonedPicture.className = 'w-full h-full';
-      const img = clonedPicture.querySelector('img');
-      if (img) {
-        img.className = 'w-full h-full object-cover object-[right_top]';
-        // Preserve loading attribute for SEO lazy loading
-        img.setAttribute('loading', loadingMode);
-        img.setAttribute('decoding', imageDecoding);
-        if (imageFetchPriority) img.setAttribute('fetchpriority', imageFetchPriority);
-      }
-      container.appendChild(clonedPicture);
-    }
-  }, [pictureDesktop, loadingMode, imageDecoding, imageFetchPriority]);
-
-  useEffect(() => {
-    if (pictureMobile?.pictureElement && mobilePictureRef.current) {
-      const container = mobilePictureRef.current;
-      container.innerHTML = '';
-      const clonedPicture = pictureMobile.pictureElement.cloneNode(true);
-      clonedPicture.className = 'w-full h-full';
-      const img = clonedPicture.querySelector('img');
-      if (img) {
-        img.className = 'w-full h-full object-cover object-[right_top]';
-        // Preserve loading attribute for SEO lazy loading
-        img.setAttribute('loading', loadingMode);
-        img.setAttribute('decoding', imageDecoding);
-        if (imageFetchPriority) img.setAttribute('fetchpriority', imageFetchPriority);
-      }
-      container.appendChild(clonedPicture);
-    }
-  }, [pictureMobile, loadingMode, imageDecoding, imageFetchPriority]);
 
   const basePath = window.hlx?.codeBasePath || '';
 
@@ -345,7 +303,7 @@ export const SecondaryBanner = ({
           <div class="w-full h-full relative z-20 flex flex-row gap-[8px] min-[769px]:gap-0">
               <div class=${`min-w-0 h-[216px] min-[1024px]:h-[243px] flex flex-col justify-between z-10 p-[16px] min-[1024px]:p-[24px] ${fullCoverImage ? 'w-full min-[1024px]:max-w-[510px]' : 'flex-1'}`}>
                 <div class="z-10 self-stretch flex flex-col justify-center items-start gap-[4px]">
-                  <h2 class=${`${ctaText && ctaUrl ? 'line-clamp-2' : 'line-clamp-4'} self-stretch justify-start ${textColorClasses} font-bold font-['Red_Hat_Display'] ${fullCoverImage ? 'banner-title-scaled' : '!text-[20px] min-[1024px]:!text-[32px]'}`}>
+                  <h2 class=${`${ctaText && ctaUrl ? 'line-clamp-2' : 'line-clamp-4'} self-stretch justify-start ${textColorClasses} font-bold font-['Red_Hat_Display'] ${fullCoverImage ? 'banner-title-scaled' : ''}`}>
                     ${title}
                   </h2>
                   <div class="${ctaText && ctaUrl ? 'line-clamp-2' : 'line-clamp-4'} self-stretch justify-start ${textColorClasses} leading-[21px] min-[769px]:!leading-[32px] text-[16px] min-[1024px]:text-[24px] font-normal font-['Red_Hat_Display']">
@@ -386,15 +344,15 @@ export const SecondaryBanner = ({
 
         <!-- Right image section - Mobile (< 1024px) -->
       <div class=${`absolute right-0 top-0 h-[216px] md:h-[230px] lg:hidden z-1 overflow-hidden ${fullCoverImage ? 'w-full max-w-full max-h-full' : 'max-w-[216px] max-h-[216px] w-full min-[480px]:w-[50%]'}`}>
-        <div ref=${mobilePictureRef} class="w-full h-full relative">
-          ${pictureMobile?.pictureElement ? '' : buildMobilePicture()}
+        <div class="w-full h-full relative">
+          ${buildMobilePicture()}
         </div>
       </div>
 
         <!-- Right image section - Desktop (>= 1024px) -->
       <div class=${`hidden lg:block absolute top-0 h-[243px] z-1 overflow-hidden ${fullCoverImage ? 'left-0 w-full max-w-full' : 'left-0 ml-[597px] max-w-[651px] w-[651px]'}`}>
-        <div ref=${desktopPictureRef} class="w-full h-full relative">
-          ${pictureDesktop?.pictureElement ? '' : buildDesktopPicture()}
+        <div class="w-full h-full relative">
+          ${buildDesktopPicture()}
         </div>
       </div>
 

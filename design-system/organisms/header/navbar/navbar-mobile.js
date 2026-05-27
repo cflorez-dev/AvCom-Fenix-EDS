@@ -1,5 +1,5 @@
 import { h } from '@dropins/tools/preact.js';
-import { useEffect, useState } from '@dropins/tools/preact-hooks.js';
+import { useEffect, useRef, useState } from '@dropins/tools/preact-hooks.js';
 import htm from 'htm';
 import { Modal } from '../../../molecules/modal/modal.js';
 import { Logo } from '../../../atoms/logo/logo.js';
@@ -8,9 +8,14 @@ import { PosForm } from '../pos-form/pos-form.js';
 import loadSVGIcon from '../../../../scripts/utils/svg.helper.js';
 import { waitForHlxCodeBasePath, buildIconPath } from '../../../../scripts/utils/hlx.helper.js';
 import { Icon } from '../../../atoms/icon/icon.js';
+import { MegamenuItem } from '../../../molecules/megamenu/megamenu.js';
+import { CabinUpgradeForm } from '../../forms/cabin-upgrade-form/cabin-upgrade-form.js';
+import { MMBForm } from '../../forms/mmb-form/mmb-form.js';
 import {
   getCountries,
   getLanguages,
+  getAllowedLanguages,
+  getDefaultLanguage,
   getStoredPos,
   parsePos,
   setStoredPos,
@@ -21,14 +26,95 @@ import {
 
 const html = htm.bind(h);
 
+// Inject CSS overrides for the CMS banner slot inside the mobile megamenu drawer.
+// 3-class chain beats (0,2,0) specificity in cms-secondary-banner.css.
+const MOBILE_MM_STYLE_ID = 'megamenu-mobile-banner-styles';
+if (!document.getElementById(MOBILE_MM_STYLE_ID)) {
+  const s = document.createElement('style');
+  s.id = MOBILE_MM_STYLE_ID;
+  s.textContent = [
+    '.megamenu-mobile-banner .cms-secondary-banner{height:auto;}',
+    '.megamenu-mobile-banner .cms-secondary-banner .cms-secondary-banner-content{padding:0;}',
+    '.megamenu-mobile-banner .cms-secondary-banner .cms-secondary-banner-content>div{',
+    'max-width:100%;width:100%;margin:0;padding-bottom:0;border-radius:0;box-shadow:none;}',
+  ].join('');
+  document.head.appendChild(s);
+}
+
 /**
- * NavbarMobile - Componente de navegación mobile del header
+ * MegaBannerSlot - Renders the banner area in the mobile megamenu drawer.
+ * When formType is set it renders the matching form component;
+ * otherwise it clones the decorated CMS block into the slot.
+ */
+const MegaBannerSlot = ({ cmsBlock, formType, formLabel }) => {
+  const slotRef = useRef(null);
+  useEffect(() => {
+    const el = slotRef.current;
+    if (!el || formType || !cmsBlock) return undefined;
+
+    let rafId = null;
+    // Debounced re-clone: collapses bursts of source mutations (e.g., during a
+    // resize sweep where Preact re-renders multiple times) into a single sync
+    // after the next frame. Also skips work when the slot is offscreen (modal
+    // hidden under desktop viewport) — there is no point updating an invisible
+    // slot, and avoiding the work prevents transient layouts from leaking.
+    const scheduleSync = () => {
+      if (rafId !== null) return;
+      rafId = requestAnimationFrame(() => {
+        rafId = null;
+        const slot = slotRef.current;
+        if (!slot) return;
+        if (slot.offsetParent === null) return;
+        slot.innerHTML = '';
+        const clone = cmsBlock.cloneNode(true);
+        clone.style.display = '';
+        slot.appendChild(clone);
+      });
+    };
+
+    scheduleSync();
+
+    // Observe SOURCE for changes (e.g., viewport-driven re-renders that swap
+    // condor SVGs or picture wrappers). Without this, the clone is a stale
+    // snapshot of whatever state the source had at the moment the modal
+    // opened, and the condor / picture would not appear after a desktop→mobile
+    // resize because the source mutates after the clone was made.
+    const observer = new MutationObserver(scheduleSync);
+    observer.observe(cmsBlock, { childList: true, subtree: true });
+
+    return () => {
+      observer.disconnect();
+      if (rafId !== null) cancelAnimationFrame(rafId);
+    };
+  }, [cmsBlock, formType]);
+
+  if (formType === 'cabin-upgrade') {
+    return html`
+      <div class="megamenu-mobile-banner rounded-[16px] mt-6">
+        <${CabinUpgradeForm} />
+      </div>
+    `;
+  }
+  if (formType === 'mmb') {
+    // The label is read from i18n (`mmbForm.megamenuLabel`) and rendered by
+    // the organism itself in simplified mode.
+    return html`
+      <div class="megamenu-mobile-banner rounded-[16px] mt-6 flex flex-col gap-4">
+        <${MMBForm} simplified=${true} context="megamenu" />
+      </div>
+    `;
+  }
+  return html`<div ref=${slotRef} class="megamenu-mobile-banner rounded-[16px] overflow-hidden md:min-h-[220px]" />`;
+};
+
+/**
+ * NavbarMobile - Mobile header navigation component
  *
  * ## Props
- * - `sections`: `Array` – Array de objetos con la estructura de navegación:
+ * - `sections`: `Array` – Array of objects with the navigation structure:
  *   `[{ itemLabel: string, url: string, subItems?: Array }]`.
- * - `customClassName`: Clases CSS adicionales.
- * - `...rest`: Otras propiedades válidas.
+ * - `customClassName`: Additional CSS classes.
+ * - `...rest`: Other valid properties.
  */
 export const NavbarMobile = ({
   sections = [],
@@ -137,12 +223,31 @@ export const NavbarMobile = ({
     setShowLanguageForm(false);
   };
 
+  // Auto-close mobile modal when viewport grows to desktop (≥1024). Otherwise
+  // the modal stays mounted with stale mobile-state clones that the source's
+  // MutationObserver can leak into the desktop megamenu — the user sees a
+  // broken layout until the modal is closed manually.
+  useEffect(() => {
+    if (!isModalOpen) return undefined;
+    const handleResize = () => {
+      if (window.innerWidth >= 1024) {
+        setIsModalOpen(false);
+        setSelectedSection(null);
+        setShowLanguageForm(false);
+      }
+    };
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, [isModalOpen]);
+
   const handleNavLinkClick = () => {
     handleCloseModal();
   };
 
   const handleSectionClick = (section) => {
     if (section.subItems && section.subItems.length > 0) {
+      setSelectedSection(section);
+    } else if (section.megamenu && section.megamenu.columns?.length > 0) {
       setSelectedSection(section);
     }
   };
@@ -209,12 +314,14 @@ export const NavbarMobile = ({
         <ul class="list-none p-0 !m-0 flex flex-col border-b border-[var(--border-stroke-default)]">
           ${sections.map((section) => {
     const hasSubItems = section.subItems && section.subItems.length > 0;
+    const hasMegamenu = section.megamenu && section.megamenu.columns?.length > 0;
+    const isExpandable = hasSubItems || hasMegamenu;
 
-    if (hasSubItems) {
+    if (isExpandable) {
       return html`
-                <li class="group/itemList flex flex-row items-center h-[72px]" key=${section.url}>
+              <li class="group/itemList flex flex-row items-center" key=${section.url}>
                   <div class="hidden group-hover/itemList:block bg-[var(--color-background-brand-highlight-default)] h-[36px] w-[4px]"></div>
-                  <div class="w-full py-[24px] h-[72px] px-[16px] text-[16px] group-hover/itemList:translate-x-2 transition-transform">
+                  <div class="w-full py-4 px-0 text-[16px] group-hover/itemList:translate-x-2 transition-transform">
                     <button
                       type="button"
                       class=${`
@@ -240,7 +347,7 @@ export const NavbarMobile = ({
     return html`
               <li class="group/itemList flex flex-row items-center" key=${section.url}>
                 <div class="hidden group-hover/itemList:block bg-[var(--color-background-brand-highlight-default)] h-[36px] w-[4px]"></div>
-                <div class="w-full py-[24px] px-[16px] text-[16px] group-hover:translate-x-2 transition-transform" >
+                <div class="w-full py-4 px-0 text-[16px] group-hover:translate-x-2 transition-transform" >
                   <a
                     href=${section.url}
                     class="flex items-center justify-between no-underline text-base font-normal text-[var(--text-normal)] w-full transition-colors group-hover/itemList:text-[var(--brand-secondary)] [&:hover]:scale-100"
@@ -254,7 +361,7 @@ export const NavbarMobile = ({
   })}
         </ul>
         <!-- Language Selector Button -->
-        <div class="px-[1rem] py-[1.5rem]">
+        <div class="px-0 py-4">
           <${LanguageSelectorButton} onClick=${handleLanguageButtonClick} customClassName="[&:hover]:scale-100" />
         </div>
       </nav>
@@ -276,6 +383,8 @@ export const NavbarMobile = ({
             onClose=${handleLanguageFormClose}
             showCloseButton=${false}
             responsiveMode=${true}
+            getAllowedLanguages=${getAllowedLanguages}
+            getDefaultLanguage=${getDefaultLanguage}
             title=${posFormLabels.title || null}
             countryLabel=${posFormLabels.countryLabel || null}
             languageLabel=${posFormLabels.languageLabel || null}
@@ -285,9 +394,63 @@ export const NavbarMobile = ({
     `;
   };
 
-  // Render sub-items view
+  // Render sub-items view — handles both legacy subItems and megamenu columns
   const renderSubItemsView = () => {
-    if (!selectedSection || !selectedSection.subItems) return null;
+    if (!selectedSection) return null;
+
+    // Build a flat list of items to display
+    let itemsToRender = [];
+
+    if (selectedSection.megamenu && selectedSection.megamenu.columns?.length > 0) {
+      // Megamenu: render each column as a titled group
+      const { columns } = selectedSection.megamenu;
+      return html`
+        <div class="flex flex-col gap-6 md:gap-4">
+          <div
+            class="flex items-center gap-3 cursor-pointer py-3"
+            onClick=${handleBackClick}
+            role="button"
+            tabIndex="0"
+            aria-label="Volver al menú principal"
+            onKeyDown=${handleBackKeyDown}
+          >
+            <button
+              type="button"
+              aria-label="Volver"
+              class="inline-flex items-center justify-center w-6 h-6 p-0 bg-transparent border-none cursor-pointer shrink-0 text-[var(--text-normal-primary)]"
+            >
+              ${renderIcon(backIcon)}
+            </button>
+            <h2 class="font-bold text-[var(--text-normal-primary)] m-0 flex-1">${selectedSection.itemLabel}</h2>
+          </div>
+          <nav role="navigation" aria-label=${`Submenú de ${selectedSection.itemLabel}`} class="flex flex-col gap-4 md:grid md:grid-cols-3 lg:gap-6">
+            ${columns.map((col) => html`
+              <div class="flex flex-col gap-4" key=${col.title}>
+                ${col.title && html`
+                  <p class="font-bold text-[#2B3C46] mb-4 !m-0">${col.title}</p>
+                `}
+                <ul class="list-none p-0 !m-0 flex flex-col" onClick=${handleNavLinkClick}>
+                  ${col.items.map((item) => html`
+                    <${MegamenuItem}
+                      key=${item.url || item.label}
+                      label=${item.label}
+                      url=${item.url}
+                      openMode=${item.openMode}
+                      iconName=${item.iconName}
+                    />
+                  `)}
+                </ul>
+              </div>
+            `)}
+          </nav>          ${(selectedSection.megamenu.cmsBlock || selectedSection.megamenu.formType) && html`
+            <${MegaBannerSlot} cmsBlock=${selectedSection.megamenu.cmsBlock} formType=${selectedSection.megamenu.formType} formLabel=${selectedSection.megamenu.formLabel} />
+          `}        </div>
+      `;
+    }
+
+    // Legacy: flat subItems list
+    if (!selectedSection.subItems) return null;
+    itemsToRender = selectedSection.subItems;
 
     return html`
       <div>
@@ -306,11 +469,11 @@ export const NavbarMobile = ({
           >
             ${renderIcon(backIcon)}
           </button>
-          <h2 class="!text-lg font-bold text-[var(--color-text-normal-primary)] m-0 flex-1">${selectedSection.itemLabel}</h2>
+          <h2 class="font-bold text-[var(--color-text-normal-primary)] m-0 flex-1">${selectedSection.itemLabel}</h2>
         </div>
         <nav role="navigation" aria-label=${`Submenú de ${selectedSection.itemLabel}`}>
-          <ul class="list-none p-0 m-0 flex flex-col">
-            ${selectedSection.subItems.map((subItem) => {
+          <ul class="list-none p-0 !m-0 flex flex-col">
+            ${itemsToRender.map((subItem) => {
     const [isHovered, setIsHovered] = useState(false);
     const isExternalLink = subItem.url && subItem.url.startsWith('http');
     return html`
@@ -380,7 +543,7 @@ export const NavbarMobile = ({
         contentClassName="!rounded-[0]"
       >
         <div>
-          <header class="flex items-center justify-between p-4 lg:px-8 !h-[76px] mb-6">
+          <header class="flex items-center justify-between px-4 lg:px-8 !h-[76px] mb-0 shadow-small">
             <div class="w-auto !h-[24px]">
                <${Logo} variant="primary" mode="mobile" size="small" customImageClassName="!w-auto !h-[24px]" />
             </div>
@@ -393,7 +556,7 @@ export const NavbarMobile = ({
               <${Icon} icon="action/close-14" size="xl" color="var(--brand-primary)" />
             </button>
           </header>
-          <div class="px-[16px] lg:px-8">
+          <div class="p-4 md:p-6 lg:px-8">
             ${renderModalContent()}
           </div>
         </div>
