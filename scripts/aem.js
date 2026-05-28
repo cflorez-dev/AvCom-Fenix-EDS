@@ -270,7 +270,12 @@ function readBlockConfig(block) {
  */
 async function loadCSS(href) {
   return new Promise((resolve, reject) => {
-    if (!document.querySelector(`head > link[href="${href}"]`)) {
+    // Match only an already-applied STYLESHEET, not a `rel="preload"` link.
+    // head.html preloads some CSS (sections.css, grid-layout.css) for a
+    // non-blocking parallel fetch and relies on loadCSS to apply it. A plain
+    // `link[href]` match would treat that preload as "already loaded" and skip
+    // appending the stylesheet, so the CSS would download but never apply.
+    if (!document.querySelector(`head > link[rel="stylesheet"][href="${href}"]`)) {
       const link = document.createElement('link');
       link.rel = 'stylesheet';
       link.href = href;
@@ -376,6 +381,18 @@ function createOptimizedPicture(
   const picture = document.createElement('picture');
   const { pathname } = url;
   const ext = pathname.substring(pathname.lastIndexOf('.') + 1);
+
+  // SVGs are resolution-independent vectors: do not rasterize them to webp or
+  // generate width variants. Emitting a `type="image/webp"` source would make
+  // the browser download a rasterized, oversized copy instead of the crisp SVG.
+  if (ext.toLowerCase() === 'svg') {
+    const img = document.createElement('img');
+    img.setAttribute('loading', eager ? 'eager' : 'lazy');
+    img.setAttribute('alt', alt);
+    img.setAttribute('src', `${pathname}?format=svg&optimize=medium`);
+    picture.appendChild(img);
+    return picture;
+  }
 
   // webp
   breakpoints.forEach((br) => {

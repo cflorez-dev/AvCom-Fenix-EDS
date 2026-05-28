@@ -108,7 +108,7 @@ export const Incrementer = ({
       </button>
 
       <!-- Number Display -->
-      <p class="min-w-[40px] text-center text-text-normal-primary text-2xl font-bold leading-[normal] !m-0 min-h-[32px]">
+      <p class="min-w-[40px] text-center text-text-normal-primary font-bold leading-[normal] !m-0 min-h-[32px]">
         ${currentValue}
       </p>
 

@@ -79,11 +79,14 @@
 
 .accordion-simplified-content li,
 .accordion-simplified-content p {
-    font-size: 16px;
     font-style: normal;
     font-weight: 400;
     line-height: 150%; /* 24px */
     margin: 0;
+}
+
+.accordion-simplified-content li {
+    font-size: 16px;
 }
 
 /* link styles — mirrors accordion-group */

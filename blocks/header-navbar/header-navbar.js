@@ -1,8 +1,13 @@
 import { h, render } from '@dropins/tools/preact.js';
 import htm from 'htm';
-import { extractHeaderNavbarData, validateHeaderNavbarData, convertToNavbarSections } from './header-navbar-helper.js';
+import {
+  extractHeaderNavbarData,
+  validateHeaderNavbarData,
+  convertToNavbarSections,
+  parseMegamenuSection,
+} from './header-navbar-helper.js';
 import { Navbar } from '../../design-system/organisms/header/navbar/navbar.js';
-import { readBlockConfig } from '../../scripts/aem.js';
+import { readBlockConfig, loadBlock } from '../../scripts/aem.js';
 import { shouldShowByTargeting } from '../../scripts/utils/target-filter.js';
 
 const html = htm.bind(h);
@@ -27,7 +32,7 @@ const html = htm.bind(h);
  *
  * @param {Element} block The header-navbar block element
  */
-export default function decorate(block) {
+export default async function decorate(block) {
   // 1. Detectar Author Mode
   const isAuthorEnv = window.xwalk?.isAuthorEnv;
 
@@ -48,8 +53,11 @@ export default function decorate(block) {
   // Leer targeting desde config (formato estándar: target-countries | co)
   let targetCountries = config['target-countries'] || '';
   let targetLanguages = config['target-languages'] || '';
+  let accentColor = config['hover-accent-color'] || '';
 
-  // Fallback: Si no hay config con nombre, leer de las primeras dos filas simples
+  // Fallback: Si no hay config con nombre, leer de las primeras filas simples
+  // AEM UE escribe los campos del modelo como filas de un solo valor (no key-value),
+  // por lo que readBlockConfig no las lee correctamente.
   // SOLO si el contenido parece ser un código de país/idioma válido
   if (!targetCountries && !targetLanguages) {
     const validCountries = ['co', 'ar', 'mx', 'pe', 'ec', 'sv', 'cr', 'br', 'bo', 'cl', 'ca', 'gt', 'hn', 'ni', 'pa', 'py', 'do', 'eu', 'gb', 'uy', 'ot', 'us'];
@@ -69,6 +77,17 @@ export default function decorate(block) {
         targetLanguages = secondRowValue;
       }
     }
+  }
+
+  // Fallback: leer hover-accent-color de las primeras 3 filas cuando readBlockConfig no lo encontró
+  // (el campo es single-column en AEM UE, no key-value)
+  if (!accentColor) {
+    const colorRows = Array.from(block.querySelectorAll(':scope > div')).slice(0, 3);
+    const colorRow = colorRows.find((row) => {
+      const val = row.children[0]?.textContent?.trim();
+      return val && /^#[0-9a-fA-F]{3,8}$/.test(val);
+    });
+    if (colorRow) accentColor = colorRow.children[0].textContent.trim();
   }
 
   if (!shouldShowByTargeting(targetCountries, targetLanguages)) {
@@ -102,6 +121,27 @@ export default function decorate(block) {
   // Convertir datos al formato esperado por el componente Navbar
   const sections = convertToNavbarSections(navbarData);
 
+  // For sections with a megamenu anchor: find the nav-page section, hide it,
+  // and parse its header-megamenu-column blocks + CMS block into the section data.
+  // IMPORTANT: The nav page is loaded as a detached fragment (<main>), so we
+  // search within block.closest('main') — NOT document — to find the sections.
+  const navRoot = block.closest('main') || document;
+  await Promise.all(sections.map(async (section) => {
+    if (!section.megamenu?.anchor) return;
+    const anchorEl = navRoot.querySelector(`[data-megamenu-id="${section.megamenu.anchor}"]`);
+    if (!anchorEl) return;
+    const { columns, cmsBlock, formType, formLabel } = parseMegamenuSection(anchorEl);
+    // Force decoration of the CMS block BEFORE hiding the section,
+    // so it is fully rendered when the megamenu clones it.
+    if (cmsBlock) await loadBlock(cmsBlock);
+    // Hide the megamenu section from normal page flow (after decoration)
+    anchorEl.style.display = 'none';
+    // eslint-disable-next-line no-param-reassign
+    section.megamenu = {
+      anchor: section.megamenu.anchor, columns, cmsBlock, formType, formLabel,
+    };
+  }));
+
   // Variables para tracking de contenedores y listeners
   let mobileContainer = null;
   let desktopContainer = null;
@@ -133,7 +173,7 @@ export default function decorate(block) {
     if (mobileContainer && !mobileHasContent) {
       mobileContainer.innerHTML = '';
       render(
-        html`<${Navbar} mode="mobile" sections=${sections} />`,
+        html`<${Navbar} mode="mobile" sections=${sections} accentColor=${accentColor} />`,
         mobileContainer,
       );
     }
@@ -142,7 +182,7 @@ export default function decorate(block) {
     if (desktopContainer && !desktopHasContent) {
       desktopContainer.innerHTML = '';
       render(
-        html`<${Navbar} mode="desktop" sections=${sections} />`,
+        html`<${Navbar} mode="desktop" sections=${sections} accentColor=${accentColor} />`,
         desktopContainer,
       );
     }
@@ -165,14 +205,14 @@ export default function decorate(block) {
       if (!isInitialRender || forceRerender) {
         // Remove existing listeners if any
         if (resizeHandler) {
-          window.matchMedia('(min-width: 900px)').removeEventListener('change', resizeHandler);
+          window.matchMedia('(min-width: 1024px)').removeEventListener('change', resizeHandler);
         }
         if (headerResizeHandler) {
           window.removeEventListener('header-resize', headerResizeHandler);
         }
 
         // Create new handlers for re-rendering
-        const isDesktop = window.matchMedia('(min-width: 900px)');
+        const isDesktop = window.matchMedia('(min-width: 1024px)');
         resizeHandler = () => {
           // Re-render when size changes
           renderNavbarInContainers(mobile, desktop, true);

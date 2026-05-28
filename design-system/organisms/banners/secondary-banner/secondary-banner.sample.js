@@ -1,6 +1,7 @@
 import { h } from '@dropins/tools/preact.js';
 import htm from 'htm';
 import { SecondaryBanner } from './secondary-banner.js';
+import { SecondaryBannerLeft } from './secondary-banner-variant.js';
 
 const html = htm.bind(h);
 
@@ -135,9 +136,30 @@ export const SecondaryBannerSample = () => {
           loading="lazy"
         />
       </div>
+
+      <!-- Image Position Left (Gradient - Figma 4426-13585) -->
+      <div class="mb-12">
+        <h2 class="mb-6 text-2xl font-bold text-[var(--text-normal-primary)]">Image Position Left (Gradient)</h2>
+        <${SecondaryBannerLeft}
+          title="Tu próximo viaje empieza aquí"
+          firstLabel="Encuentra vuelos, elige tu tarifa y reserva fácil en avianca.com."
+          secondaryLabel=""
+          imageDesktop=${sampleImageDesktop}
+          imageMobile=${sampleImageMobile}
+          imageAlt="Avianca Viaje"
+          ctaText="Button"
+          ctaUrl="/vuelos"
+          ctaLinkType="dofollow"
+          mode="light"
+          backgroundType="gradient"
+          gradientColorStart="#3c9aa1"
+          gradientColorEnd="#2a7183"
+          showCondor=${true}
+          loading="lazy"
+        />
+      </div>
     </div>
   `;
 };
 
 export default SecondaryBannerSample;
-

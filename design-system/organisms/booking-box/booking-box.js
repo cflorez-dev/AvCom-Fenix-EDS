@@ -651,7 +651,7 @@ export const BookingBox = ({
             >
               <${Icon} icon="navigation/arrow-back" size="sm" />
             </button>
-            <h2 class="!text-[18px] font-bold text-[var(--color-text-normal-primary)]">${i18n['bookingBox.labels.confirmSearch'] || 'Confirma tu búsqueda'}</h2>
+            <h2 class="font-bold text-[var(--color-text-normal-primary)]">${i18n['bookingBox.labels.confirmSearch'] || 'Confirma tu búsqueda'}</h2>
             <button
               type="button"
               class="hover:opacity-60"
@@ -703,7 +703,7 @@ export const BookingBox = ({
                 destinationDropdownPositionStyles="md:top-full lg2:top-[calc(100%+32px)] ${someInputHasError ? 'lg2:top-[calc(100%+32px)]' : ''}"
                 originHasError=${validationErrors.origin}
                 destinationHasError=${validationErrors.destination}
-                skipAutoOrigin=${!!defaultDestination}
+                skipAutoOrigin=${!!defaultOrigin}
                 i18n=${i18n}
             />
             </div>

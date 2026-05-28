@@ -30,10 +30,6 @@ function isAuthorEnvironment() {
   }
 }
 
-// Languages that must never trigger a funnel redirect, even if the AEM
-// languages catalog briefly fails to load or marks one inactive by mistake.
-const SUPPORTED_LANGUAGES = new Set(['es', 'en', 'pt', 'fr']);
-
 // Cookie names
 const COUNTRY_COOKIE = 'selected-country';
 const LANGUAGE_COOKIE = 'selected-language';
@@ -41,148 +37,53 @@ const CURRENCY_COOKIE = 'selected-currency';
 const STORAGE_EVENT = 'pos-storage-change';
 const COUNTRY_DATA_EVENT = 'pos-country-data-updated';
 
-// Country data mapping: code -> {label, flagFileName, currencyCode}
+// Minimal safety seed for the country catalog.
+//
+// Source of truth is the AEM `countrieslist` spreadsheet (loaded via
+// get-pos-data.js). These 5 entries are a defensive fallback used only when
+// both the network fetch and the persistent localStorage cache are unavailable
+// (first-ever visit offline, CORS failure, incognito + network error).
+//
+// Why these 5: they cover the `acceptLanguage` mapping for every supported
+// language (es→col, en→us, pt→bra, fr→fra) plus the `_fallback_` bucket for
+// any unsupported language — enough for `getDefaultCountryForLanguage` and
+// the header to render something coherent while the real catalog loads.
 const COUNTRY_DATA = {
   col: {
     label: 'Colombia',
     flagFileName: 'colombia-flag.svg',
     currencyCode: 'COP',
     keyIso: 'co',
+    acceptLanguage: 'es',
   },
   us: {
     label: 'Estados Unidos',
     flagFileName: 'estados-unidos-flag.svg',
     currencyCode: 'USD',
     keyIso: 'us',
-  },
-  mex: {
-    label: 'México',
-    flagFileName: 'mexico-flag.svg',
-    currencyCode: 'USD',
-    keyIso: 'mx',
-  },
-  per: {
-    label: 'Perú',
-    flagFileName: 'peru-flag.svg',
-    currencyCode: 'USD',
-    keyIso: 'pe',
-  },
-  ecu: {
-    label: 'Ecuador',
-    flagFileName: 'ecuador-flag.svg',
-    currencyCode: 'USD',
-    keyIso: 'ec',
-  },
-  slv: {
-    label: 'El Salvador',
-    flagFileName: 'el-salvador-flag.svg',
-    currencyCode: 'USD',
-    keyIso: 'sv',
-  },
-  cri: {
-    label: 'Costa Rica',
-    flagFileName: 'costa-rica-flag.svg',
-    currencyCode: 'USD',
-    keyIso: 'cr',
+    acceptLanguage: 'en',
   },
   bra: {
     label: 'Brasil',
     flagFileName: 'brasil-flag.svg',
     currencyCode: 'BRL',
     keyIso: 'br',
-  },
-  arg: {
-    label: 'Argentina',
-    flagFileName: 'argentina-flag.svg',
-    currencyCode: 'ARS',
-    keyIso: 'ar',
-  },
-  bol: {
-    label: 'Bolivia',
-    flagFileName: 'bolivia-flag.svg',
-    currencyCode: 'USD',
-    keyIso: 'bo',
-  },
-  chl: {
-    label: 'Chile',
-    flagFileName: 'chile-flag.svg',
-    currencyCode: 'USD',
-    keyIso: 'cl',
-  },
-  can: {
-    label: 'Canadá',
-    flagFileName: 'canada-flag.svg',
-    currencyCode: 'USD',
-    keyIso: 'ca',
-  },
-  gtm: {
-    label: 'Guatemala',
-    flagFileName: 'guatemala-flag.svg',
-    currencyCode: 'USD',
-    keyIso: 'gt',
-  },
-  hnd: {
-    label: 'Honduras',
-    flagFileName: 'honduras-flag.svg',
-    currencyCode: 'USD',
-    keyIso: 'hn',
-  },
-  nic: {
-    label: 'Nicaragua',
-    flagFileName: 'nicaragua-flag.svg',
-    currencyCode: 'USD',
-    keyIso: 'ni',
-  },
-  pan: {
-    label: 'Panamá',
-    flagFileName: 'panama-flag.svg',
-    currencyCode: 'USD',
-    keyIso: 'pa',
-  },
-  pry: {
-    label: 'Paraguay',
-    flagFileName: 'paraguay-flag.svg',
-    currencyCode: 'USD',
-    keyIso: 'py',
-  },
-  dom: {
-    label: 'República Dominicana',
-    flagFileName: 'republica-dominicana-flag.svg',
-    currencyCode: 'USD',
-    keyIso: 'do',
-  },
-  esp: {
-    label: 'España',
-    flagFileName: 'spain-flag.svg',
-    currencyCode: 'EUR',
-    keyIso: 'es',
-    iataCountryCode: 'es',
+    acceptLanguage: 'pt',
   },
   fra: {
-    label: 'France',
+    label: 'Francia',
     flagFileName: 'france-flag.svg',
     currencyCode: 'EUR',
     keyIso: 'fr',
-    iataCountryCode: 'fr',
-  },
-  gbr: {
-    label: 'Reino Unido',
-    flagFileName: 'uk-flag.svg',
-    currencyCode: 'GBP',
-    keyIso: 'gb',
-    iataCountryCode: 'uk',
-  },
-  ury: {
-    label: 'Uruguay',
-    flagFileName: 'uruguay-flag.svg',
-    currencyCode: 'USD',
-    keyIso: 'uy',
+    acceptLanguage: 'fr',
   },
   oth: {
     label: 'Otros países',
     flagFileName: 'others-flag.svg',
     currencyCode: 'USD',
     keyIso: 'ot',
+    iataCountryCode: 'others', // IATA "OTHERS" bucket; ISO-equivalent stored as 'ot'
+    acceptLanguage: '_fallback_',
   },
 };
 
@@ -209,6 +110,9 @@ function isCountryDataDifferent(nextData) {
       || current.flagFileName !== next.flagFileName
       || current.currencyCode !== next.currencyCode
       || current.keyIso !== next.keyIso
+      || current.iataCountryCode !== next.iataCountryCode
+      || JSON.stringify(current.allowedLanguages) !== JSON.stringify(next.allowedLanguages)
+      || current.defaultLanguage !== next.defaultLanguage
     );
   });
 }
@@ -311,7 +215,7 @@ export function validateAndFixStoredPos() {
 
   // Detect current URL language
   const urlLang = typeof window !== 'undefined'
-    ? (window.location.pathname.match(/^\/([a-z]{2})\//)?.[1] || '')
+    ? (window.location.pathname.match(/^\/([a-z]{2})(\/|$)/)?.[1] || '')
     : '';
 
   // If URL language is not in the active list, redirect to default
@@ -436,15 +340,10 @@ if (typeof window !== 'undefined' && !isAuthorEnvironment()) {
     const defaultPos = normalizePos('');
     const { language: defaultLang } = parsePos(defaultPos);
 
-    // Defensive guards against unintended funnel redirects:
-    //  - catalog empty (load failure) → without this, every user gets redirected
-    //  - core language → never redirect away from /es/, /en/, /pt/, /fr/
-    const isCatalogEmpty = Object.keys(languages).length === 0;
-
     // 1. Check URL language is active
-    const urlLang = window.location.pathname.match(/^\/([a-z]{2})\//)?.[1] || '';
+    const urlLang = window.location.pathname.match(/^\/([a-z]{2})(\/|$)/)?.[1] || '';
     if (!urlLang) return; // Non-language URLs (e.g. /development/) — skip validation
-    if (!languages[urlLang] && !isCatalogEmpty && !SUPPORTED_LANGUAGES.has(urlLang)) {
+    if (!languages[urlLang]) {
       if (defaultLang && defaultLang !== urlLang) {
         // eslint-disable-next-line no-console
         console.warn('[language-country-selector] URL language inactive, redirecting:', { urlLang, defaultPos });
@@ -460,27 +359,27 @@ if (typeof window !== 'undefined' && !isAuthorEnvironment()) {
     if (!storedLang && !storedCountry) return; // No cookies, nothing to fix
     // countries map is keyed by countryCode ("fra", "col"), not ISO — convert before lookup
     const storedCountryCode = storedCountry ? mapIsoToCountryCode(storedCountry) : null;
+
+    // 2.5. Check URL language is allowed for the stored country's POS
+    if (storedCountryCode) {
+      const allowed = getAllowedLanguages(storedCountryCode);
+      if (allowed && !allowed.includes(urlLang)) {
+        const defaultLangForCountry = getDefaultLanguage(storedCountryCode) || defaultLang;
+        // eslint-disable-next-line no-console
+        console.warn('[language-country-selector] URL language not allowed for stored country, redirecting:', {
+          urlLang, storedCountryCode, allowed, defaultLangForCountry,
+        });
+        if (defaultLangForCountry && defaultLangForCountry !== urlLang) {
+          setStoredPos(buildPos(defaultLangForCountry, storedCountryCode));
+          window.location.href = `/${defaultLangForCountry}/`;
+          return;
+        }
+      }
+    }
+
     const langActive = !storedLang || !!languages[storedLang];
     const countryActive = !storedCountry || (!!storedCountryCode && !!countries[storedCountryCode]);
     if (langActive && countryActive) return; // Both active, nothing to do
-
-    // If only country is invalid, fix it silently without resetting language or redirecting
-    if (langActive && !countryActive) {
-      const inferredCountry = getDefaultCountryForLanguage(storedLang)
-        || parsePos(defaultPos).country;
-      // eslint-disable-next-line no-console
-      console.warn(
-        '[language-country-selector] Stored country inactive, fixing country only:',
-        { storedCountry, inferredCountry },
-      );
-      setStoredCountry(inferredCountry);
-      return;
-    }
-
-    // Language itself is inactive — reset POS and redirect to active language home.
-    // Skip if catalog failed to load or the stored language is a core language
-    // (the catalog may be momentarily wrong; cookie POS is harmless to keep).
-    if (isCatalogEmpty || SUPPORTED_LANGUAGES.has(storedLang || '')) return;
     // eslint-disable-next-line no-console
     console.warn('[language-country-selector] Stored POS inactive, switching to default:', { storedLang, storedCountry, defaultPos });
     setStoredPos(defaultPos);
@@ -489,16 +388,6 @@ if (typeof window !== 'undefined' && !isAuthorEnvironment()) {
     }
   });
 }
-
-// Default country mapping per language
-// Used when no country cookie exists to provide logical defaults
-// Prevents illogical combinations like PT (Portuguese) + CO (Colombia/COP)
-const LANGUAGE_DEFAULT_COUNTRY = {
-  es: 'co', // Spanish -> Colombia
-  en: 'us', // English -> United States
-  pt: 'br', // Portuguese -> Brazil
-  fr: 'fr', // French -> France (matches pos:'fr' in countireslist.json)
-};
 
 /**
  * Get base path for icons
@@ -730,11 +619,16 @@ export function mapIsoToCountryCode(isoCode) {
   if (!isoCode || typeof isoCode !== 'string') {
     return null;
   }
+  const normalized = isoCode.toLowerCase();
   const countryData = getCountryData();
 
-  // Search in COUNTRY_DATA for the country that has this keyIso
+  // Match against either the ISO 3166-1 code (keyIso) used for cookies or the
+  // IATA country code used by the geolocation layer. The two vocabularies
+  // diverge for a few countries (e.g. UK/GB, OTHERS/OT); the catalog holds
+  // both so no hardcoded alias is needed here.
   const found = Object.entries(countryData)
-    .find(([, data]) => data.keyIso === isoCode.toLowerCase());
+    .find(([, data]) => data.keyIso === normalized
+      || data.iataCountryCode === normalized);
 
   if (found) {
     return found[0];
@@ -742,8 +636,8 @@ export function mapIsoToCountryCode(isoCode) {
 
   // If not found by keyIso, check if isoCode is already an internal code
   // (for backward compatibility with old cookies)
-  if (countryData[isoCode.toLowerCase()]) {
-    return isoCode.toLowerCase();
+  if (countryData[normalized]) {
+    return normalized;
   }
 
   return null;
@@ -769,9 +663,32 @@ export function getIataCountryCode(posIso) {
 }
 
 /**
- * Get default country ISO code for a language
- * Used when no country cookie exists to provide logical defaults
- * Prevents illogical combinations like PT (Portuguese) + CO (Colombia)
+ * Normalize any country code (ISO, IATA country, or internal) to the canonical
+ * ISO 3166-1 alpha-2 code used by cookies and downstream consumers. Returns
+ * null when the code is unknown.
+ * @param {string} code
+ * @returns {string|null}
+ */
+export function normalizeToIsoCountry(code) {
+  const internalCode = mapIsoToCountryCode(code);
+  if (!internalCode) return null;
+  return getCountryData()[internalCode]?.keyIso || null;
+}
+
+/**
+ * Get default country ISO code for a language.
+ *
+ * Source of truth: `acceptLanguage` column in the AEM `countrieslist` sheet.
+ * Rows whose `acceptLanguage` matches the language code decide the default
+ * country for that language (e.g. COL→'es', BRA→'pt', FRA→'fr'). The 5-row
+ * `COUNTRY_DATA` seed covers the same mapping as a defensive fallback when
+ * the catalog is unavailable.
+ *
+ * Fallback chain:
+ *   1. Catalog (or seed) match via `acceptLanguage`
+ *   2. Row marked `_fallback_` (the "others" bucket)
+ *   3. `getDefaultCountryIsoCode()` from spreadsheet `default=true` row
+ *
  * @param {string} language - Language code (e.g., 'es', 'pt', 'en', 'fr')
  * @returns {string} Default country ISO code (e.g., 'co', 'br', 'us')
  */
@@ -781,7 +698,17 @@ export function getDefaultCountryForLanguage(language) {
   }
 
   const normalizedLang = language.toLowerCase().trim();
-  return LANGUAGE_DEFAULT_COUNTRY[normalizedLang] || getDefaultCountryIsoCode();
+  const countries = getCountryData();
+
+  const match = Object.values(countries)
+    .find((c) => c?.acceptLanguage === normalizedLang);
+  if (match?.keyIso) return match.keyIso;
+
+  const fallbackBucket = Object.values(countries)
+    .find((c) => c?.acceptLanguage === '_fallback_');
+  if (fallbackBucket?.keyIso) return fallbackBucket.keyIso;
+
+  return getDefaultCountryIsoCode();
 }
 
 /**
@@ -1100,6 +1027,14 @@ export function setStoredPos(pos, fallback) {
   // Get currency from country data
   const currency = countryData[country]?.currencyCode || null;
 
+  // console.log('[language-country-selector] POS set successfully:', {
+  //   original: pos,
+  //   normalized: normalizedPos,
+  //   language,
+  //   country,
+  //   currency,
+  // });
+
   // Dispatch event with POS format for compatibility
   window.dispatchEvent(new CustomEvent(STORAGE_EVENT, {
     detail: {
@@ -1144,12 +1079,11 @@ export function navigateToPOS(pos) {
 }
 
 /**
- * Format POS for display: "language-country" -> "CURRENCY - LANGUAGE"
- * (e.g., "es-col" -> "COP - ES")
- * Shows currency code first (from COUNTRY_DATA), then language code (uppercase)
- * Falls back to country code if currency code is not available
+ * Format POS for display: shows only the currency code of the selected country.
+ * (e.g., "es-col" -> "COP", "fr-fra" -> "EUR")
+ * Falls back to uppercase country code if currency data is not available.
  * @param {string} pos - POS value in format "language-country"
- * @returns {string} Formatted POS for display (e.g., "COP - ES")
+ * @returns {string} Currency code for display (e.g., "COP")
  */
 export function formatPosForDisplay(pos) {
   if (!pos || typeof pos !== 'string') {
@@ -1160,14 +1094,42 @@ export function formatPosForDisplay(pos) {
     return '';
   }
 
-  // Obtener el código de moneda del país desde COUNTRY_DATA
   const countryCode = country.toLowerCase();
   const countries = getCountryData();
   const countryData = countries[countryCode];
-  const currencyCode = countryData?.currencyCode || country.toUpperCase();
+  return countryData?.currencyCode || country.toUpperCase();
+}
 
-  // Return "CURRENCY - LANGUAGE" format (uppercase)
-  return `${currencyCode} - ${language.toUpperCase()}`;
+/**
+ * Get the list of allowed language codes for a given POS country.
+ * Returns null when no restriction is configured (all languages allowed).
+ * @param {string} countryCode - Country code (e.g., 'col', 'fra')
+ * @returns {string[]|null} Array of allowed language codes, or null if unrestricted
+ */
+export function getAllowedLanguages(countryCode) {
+  if (!countryCode || typeof countryCode !== 'string') return null;
+  const countries = getCountryData();
+  const data = countries[countryCode.toLowerCase()];
+  if (!data || !Array.isArray(data.allowedLanguages) || data.allowedLanguages.length === 0) {
+    return null;
+  }
+  return data.allowedLanguages;
+}
+
+/**
+ * Get the default language code for a given POS country.
+ * Returns null when no default is configured.
+ * @param {string} countryCode - Country code (e.g., 'col', 'fra')
+ * @returns {string|null} Default language code or null
+ */
+export function getDefaultLanguage(countryCode) {
+  if (!countryCode || typeof countryCode !== 'string') return null;
+  const countries = getCountryData();
+  const data = countries[countryCode.toLowerCase()];
+  if (!data || !data.defaultLanguage || typeof data.defaultLanguage !== 'string') {
+    return null;
+  }
+  return data.defaultLanguage;
 }
 
 /**

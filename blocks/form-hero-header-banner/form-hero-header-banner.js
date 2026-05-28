@@ -39,6 +39,8 @@ function mapBlockOptions(block) {
     alertContent: '',
     targetCountries: '',
     targetLanguages: '',
+    formType: 'none', // default according to model
+    openInNewTab: undefined, // undefined → MMBForm falls back to i18n key `mmbForm.openInNewTab`
   };
 
   let currentIndex = 0;
@@ -126,9 +128,9 @@ function mapBlockOptions(block) {
           return;
         }
 
-        // 10. alertContent (plain text fallback — rich text handled below)
+        // 10. alertContent — keep the <p> wrapper so Alert's typography classes apply
         if (currentIndex === 9) {
-          mappedOptions.alertContent = textContent;
+          mappedOptions.alertContent = innerHTML;
           currentIndex += 1;
           return;
         }
@@ -146,6 +148,20 @@ function mapBlockOptions(block) {
           currentIndex += 1;
           return;
         }
+
+        // 13. formType (none/mmb)
+        if (currentIndex === 12 && ['none', 'mmb'].includes(textContent.toLowerCase())) {
+          mappedOptions.formType = textContent.toLowerCase();
+          currentIndex += 1;
+          return;
+        }
+
+        // 14. openInNewTab (true/false)
+        if (currentIndex === 13 && (textContent === 'true' || textContent === 'false')) {
+          mappedOptions.openInNewTab = textContent === 'true';
+          currentIndex += 1;
+          return;
+        }
       }
 
       // 10. alertContent (richtext HTML or plain text) - always advance past index 9
@@ -156,9 +172,23 @@ function mapBlockOptions(block) {
           // Rich or plain HTML — capture as-is (e.g. <p>text</p> or <p><strong>text</strong></p>)
           mappedOptions.alertContent = innerHTML;
         } else if (textContent) {
-          // Plain text without HTML wrapper
-          mappedOptions.alertContent = textContent;
+          // Wrap plain text in <p> so Alert's typography classes (text-sm, etc.) apply.
+          mappedOptions.alertContent = `<p>${textContent}</p>`;
         }
+        currentIndex += 1;
+        return;
+      }
+
+      // 11. targetCountries — always advance even if empty (empty = show in all)
+      if (currentIndex === 10) {
+        mappedOptions.targetCountries = textContent; // Can be empty string
+        currentIndex += 1;
+        return;
+      }
+
+      // 12. targetLanguages — always advance even if empty (empty = show in all)
+      if (currentIndex === 11) {
+        mappedOptions.targetLanguages = textContent;
         currentIndex += 1;
       }
     });
@@ -210,6 +240,8 @@ export default function decorate(block) {
     alertType,
     alertDismissible,
     alertContent,
+    formType: mappedOptions.formType || 'none',
+    openInNewTab: mappedOptions.openInNewTab !== undefined ? mappedOptions.openInNewTab : true,
   };
 
   // 5. Clear block and render INSIDE (compatible with editor-support.js re-decoration)

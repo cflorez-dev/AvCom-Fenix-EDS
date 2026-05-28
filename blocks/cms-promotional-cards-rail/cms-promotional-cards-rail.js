@@ -215,7 +215,7 @@ async function renderCards(container, ofertas, blockConfig) {
   container.innerHTML = '';
 
   if (!ofertas || ofertas.length === 0) {
-    container.innerHTML = '<p class="text-center text-sm text-gray-500">No hay ofertas disponibles para este origen</p>';
+    container.innerHTML = '<p class="text-center text-gray-500">No hay ofertas disponibles para este origen</p>';
     return;
   }
 

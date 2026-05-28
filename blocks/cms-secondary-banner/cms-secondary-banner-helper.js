@@ -1,7 +1,7 @@
 /**
  * Maps block HTML data to a structured configuration object for CMS Secondary Banner
  *
- * Expected structure: 18 divs containing (in order):
+ * Expected structure: 24 divs containing (in order):
  * - Div 0: Title
  * - Div 1: First label
  * - Div 2: Secondary Label
@@ -20,6 +20,12 @@
  * - Div 15: Loading
  * - Div 16: Target Countries (comma-separated)
  * - Div 17: Target Languages (comma-separated)
+ * - Div 18: Show Condor (boolean, default: true)
+ * - Div 19: Image Position ('right' | 'left', default: 'right')
+ * - Div 20: CTA 2 Text
+ * - Div 21: CTA 2 URL (link)
+ * - Div 22: CTA 2 Link Type (empty, defaults to 'dofollow')
+ * - Div 23: CTA Style ('dark' | 'light', default: 'dark') — only applies to left variant
  *
  * @param {Element} block The cms-secondary-banner block element
  * @returns {Object} Mapped configuration object with all banner properties
@@ -58,6 +64,11 @@ export function mapCmsSecondaryBannerData(block) {
     targetCountries: extractTextValue(divs[16]) || '',
     targetLanguages: extractTextValue(divs[17]) || '',
     showCondor: (extractShowCondorValue(divs[18]) || 'true') !== 'false',
+    imagePosition: extractTextValue(divs[19]) || 'right',
+    cta2Text: extractTextValue(divs[20]) || '',
+    cta2Url: extractLinkValue(divs[21]) || '',
+    cta2LinkType: extractTextValue(divs[22]) || 'dofollow',
+    ctaStyle: extractTextValue(divs[23]) || 'dark',
   };
 
   return mappedData;
@@ -258,6 +269,7 @@ function getDefaultConfig() {
     condorStrokeColor: '',
     loading: 'lazy',
     showCondor: true,
+    imagePosition: 'right',
   };
 }
 

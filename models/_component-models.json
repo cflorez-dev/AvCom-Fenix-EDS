@@ -157,6 +157,311 @@
             "value": "pt"
           }
         ]
+      },
+      {
+        "component": "text",
+        "valueType": "string",
+        "name": "hover-accent-color",
+        "label": "Hover Accent Color",
+        "value": "#ff0000",
+        "description": "Color of the bottom border line shown on hover and active state for navbar items. Use a hex value (e.g. #ff0000). Default: #ff0000."
+      }
+    ]
+  },
+  {
+    "id": "header-megamenu-form",
+    "fields": [
+      {
+        "component": "select",
+        "name": "form-type",
+        "label": "Form Type",
+        "value": "cabin-upgrade",
+        "description": "Select the form to display in the megamenu banner slot. When set, replaces any CMS block in the banner area.",
+        "options": [
+          {
+            "name": "Cabin Upgrade",
+            "value": "cabin-upgrade"
+          }
+        ]
+      },
+      {
+        "component": "text",
+        "valueType": "string",
+        "name": "form-label",
+        "label": "Form Label",
+        "value": "",
+        "description": "Title displayed above the form in the megamenu banner slot (e.g. 'Accede a tu reserva')."
+      },
+      {
+        "component": "multiselect",
+        "name": "target-countries",
+        "label": "Target Countries (POS)",
+        "valueType": "string",
+        "description": "Optional: Select target countries/POS. If empty, shows in all. Compared against 'selected-country' cookie (ISO-2 codes).",
+        "options": [
+          {
+            "name": "Argentina",
+            "value": "ar"
+          },
+          {
+            "name": "Bolivia",
+            "value": "bo"
+          },
+          {
+            "name": "Brasil",
+            "value": "br"
+          },
+          {
+            "name": "Canadá",
+            "value": "ca"
+          },
+          {
+            "name": "Chile",
+            "value": "cl"
+          },
+          {
+            "name": "Colombia",
+            "value": "co"
+          },
+          {
+            "name": "Costa Rica",
+            "value": "cr"
+          },
+          {
+            "name": "República Dominicana",
+            "value": "do"
+          },
+          {
+            "name": "Ecuador",
+            "value": "ec"
+          },
+          {
+            "name": "España",
+            "value": "eu"
+          },
+          {
+            "name": "Francia",
+            "value": "fr"
+          },
+          {
+            "name": "Reino Unido",
+            "value": "gb"
+          },
+          {
+            "name": "Guatemala",
+            "value": "gt"
+          },
+          {
+            "name": "Honduras",
+            "value": "hn"
+          },
+          {
+            "name": "México",
+            "value": "mx"
+          },
+          {
+            "name": "Nicaragua",
+            "value": "ni"
+          },
+          {
+            "name": "Otros",
+            "value": "ot"
+          },
+          {
+            "name": "Panamá",
+            "value": "pa"
+          },
+          {
+            "name": "Perú",
+            "value": "pe"
+          },
+          {
+            "name": "Paraguay",
+            "value": "py"
+          },
+          {
+            "name": "El Salvador",
+            "value": "sv"
+          },
+          {
+            "name": "Estados Unidos",
+            "value": "us"
+          },
+          {
+            "name": "Uruguay",
+            "value": "uy"
+          }
+        ]
+      },
+      {
+        "component": "multiselect",
+        "name": "target-languages",
+        "label": "Target Languages",
+        "valueType": "string",
+        "description": "Optional: Select target languages. If empty, shows in all. Compared against 'selected-language' cookie.",
+        "options": [
+          {
+            "name": "English",
+            "value": "en"
+          },
+          {
+            "name": "Spanish",
+            "value": "es"
+          },
+          {
+            "name": "French",
+            "value": "fr"
+          },
+          {
+            "name": "Portuguese",
+            "value": "pt"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "header-megamenu-column",
+    "fields": [
+      {
+        "component": "text",
+        "name": "column-title",
+        "label": "Column Title",
+        "value": "",
+        "description": "Title shown above the links in this megamenu column."
+      },
+      {
+        "component": "richtext",
+        "name": "column-links",
+        "label": "Column Links",
+        "value": "",
+        "description": "Links list. Each list item: label | /url (append ?ueLinkMode=icon-newtab for icon/new-tab behavior)."
+      },
+      {
+        "component": "multiselect",
+        "name": "target-countries",
+        "label": "Target Countries (POS)",
+        "valueType": "string",
+        "description": "Optional: Select target countries/POS. If empty, shows in all. Compared against 'selected-country' cookie (ISO-2 codes).",
+        "options": [
+          {
+            "name": "Argentina",
+            "value": "ar"
+          },
+          {
+            "name": "Bolivia",
+            "value": "bo"
+          },
+          {
+            "name": "Brasil",
+            "value": "br"
+          },
+          {
+            "name": "Canadá",
+            "value": "ca"
+          },
+          {
+            "name": "Chile",
+            "value": "cl"
+          },
+          {
+            "name": "Colombia",
+            "value": "co"
+          },
+          {
+            "name": "Costa Rica",
+            "value": "cr"
+          },
+          {
+            "name": "República Dominicana",
+            "value": "do"
+          },
+          {
+            "name": "Ecuador",
+            "value": "ec"
+          },
+          {
+            "name": "España",
+            "value": "eu"
+          },
+          {
+            "name": "Francia",
+            "value": "fr"
+          },
+          {
+            "name": "Reino Unido",
+            "value": "gb"
+          },
+          {
+            "name": "Guatemala",
+            "value": "gt"
+          },
+          {
+            "name": "Honduras",
+            "value": "hn"
+          },
+          {
+            "name": "México",
+            "value": "mx"
+          },
+          {
+            "name": "Nicaragua",
+            "value": "ni"
+          },
+          {
+            "name": "Otros",
+            "value": "ot"
+          },
+          {
+            "name": "Panamá",
+            "value": "pa"
+          },
+          {
+            "name": "Perú",
+            "value": "pe"
+          },
+          {
+            "name": "Paraguay",
+            "value": "py"
+          },
+          {
+            "name": "El Salvador",
+            "value": "sv"
+          },
+          {
+            "name": "Estados Unidos",
+            "value": "us"
+          },
+          {
+            "name": "Uruguay",
+            "value": "uy"
+          }
+        ]
+      },
+      {
+        "component": "multiselect",
+        "name": "target-languages",
+        "label": "Target Languages",
+        "valueType": "string",
+        "description": "Optional: Select target languages. If empty, shows in all. Compared against 'selected-language' cookie.",
+        "options": [
+          {
+            "name": "English",
+            "value": "en"
+          },
+          {
+            "name": "Spanish",
+            "value": "es"
+          },
+          {
+            "name": "French",
+            "value": "fr"
+          },
+          {
+            "name": "Portuguese",
+            "value": "pt"
+          }
+        ]
       }
     ]
   },
@@ -316,6 +621,13 @@
             "value": "pt"
           }
         ]
+      },
+      {
+        "component": "text",
+        "name": "megamenu-anchor",
+        "label": "Megamenu Anchor",
+        "value": "",
+        "description": "CSS class of the nav-page section containing the megamenu content (e.g. 'megamenu-lifemiles'). That section should have header-megamenu-column blocks and optionally a CMS block."
       }
     ]
   },
@@ -499,6 +811,10 @@
           {
             "name": "MultiTab Item",
             "value": "multitab-item"
+          },
+          {
+            "name": "MultiTab Item Pill",
+            "value": "multitab-item-pill"
           },
           {
             "name": "Grid 12",
@@ -1038,6 +1354,156 @@
             "hero-destinations"
           ]
         }
+      },
+      {
+        "component": "select",
+        "name": "gradient-type",
+        "label": "Background Type",
+        "description": "Tipo de fondo. 'Sólido' usa solo el color 1. 'Lineal' aplica un gradiente recto entre color 1 y color 2 con la dirección configurada. 'Radial' aplica un gradiente circular desde la posición configurada.",
+        "value": "solid",
+        "options": [
+          {
+            "name": "Sólido (default)",
+            "value": "solid"
+          },
+          {
+            "name": "Lineal",
+            "value": "linear"
+          },
+          {
+            "name": "Radial",
+            "value": "radial"
+          }
+        ]
+      },
+      {
+        "component": "text",
+        "name": "bg-color-1",
+        "label": "Background Color 1",
+        "description": "Color principal en hex/RGBA o 'transparent' (ej. #fff1f7, rgba(255,1,1,.5), transparent). Si está vacío o 'transparent' en modo Sólido, no se aplica fondo custom."
+      },
+      {
+        "component": "text",
+        "name": "bg-color-2",
+        "label": "Background Color 2",
+        "description": "Color secundario en hex/RGBA o 'transparent'. Solo aplica para gradiente Lineal o Radial.",
+        "condition": {
+          "!==": [
+            {
+              "var": "gradient-type"
+            },
+            "solid"
+          ]
+        }
+      },
+      {
+        "component": "select",
+        "name": "gradient-direction",
+        "label": "Gradient Direction",
+        "description": "Dirección del gradiente lineal.",
+        "value": "180",
+        "options": [
+          {
+            "name": "↓ Vertical (default)",
+            "value": "180"
+          },
+          {
+            "name": "↑ Vertical inverso",
+            "value": "0"
+          },
+          {
+            "name": "→ Horizontal",
+            "value": "90"
+          },
+          {
+            "name": "← Horizontal inverso",
+            "value": "270"
+          },
+          {
+            "name": "↘ Diagonal abajo-derecha",
+            "value": "135"
+          },
+          {
+            "name": "↖ Diagonal arriba-izquierda",
+            "value": "315"
+          },
+          {
+            "name": "↗ Diagonal arriba-derecha",
+            "value": "45"
+          },
+          {
+            "name": "↙ Diagonal abajo-izquierda",
+            "value": "225"
+          }
+        ],
+        "condition": {
+          "===": [
+            {
+              "var": "gradient-type"
+            },
+            "linear"
+          ]
+        }
+      },
+      {
+        "component": "select",
+        "name": "radial-position",
+        "label": "Radial Position",
+        "description": "Posición desde donde irradia el gradiente radial.",
+        "value": "center",
+        "options": [
+          {
+            "name": "↖ Esquina sup-izq",
+            "value": "top-left"
+          },
+          {
+            "name": "↑ Arriba",
+            "value": "top"
+          },
+          {
+            "name": "↗ Esquina sup-der",
+            "value": "top-right"
+          },
+          {
+            "name": "← Izquierda",
+            "value": "left"
+          },
+          {
+            "name": "● Centro (default)",
+            "value": "center"
+          },
+          {
+            "name": "→ Derecha",
+            "value": "right"
+          },
+          {
+            "name": "↙ Esquina inf-izq",
+            "value": "bottom-left"
+          },
+          {
+            "name": "↓ Abajo",
+            "value": "bottom"
+          },
+          {
+            "name": "↘ Esquina inf-der",
+            "value": "bottom-right"
+          }
+        ],
+        "condition": {
+          "===": [
+            {
+              "var": "gradient-type"
+            },
+            "radial"
+          ]
+        }
+      },
+      {
+        "component": "text",
+        "name": "megamenu-id",
+        "label": "Megamenu ID",
+        "value": "",
+        "description": "Identifier que vincula esta sección como panel de megamenu. Debe coincidir con el campo 'Megamenu Anchor' del Header Menu Item (ej: 'megamenu-lifemiles'). La sección debe contener bloques Header Megamenu Column y opcionalmente un bloque CMS."
       }
     ]
   },
@@ -2125,6 +2591,76 @@
     ]
   },
   {
+    "id": "cintilla",
+    "fields": [
+      {
+        "component": "richtext",
+        "name": "content",
+        "label": "Content",
+        "valueType": "string",
+        "value": "",
+        "description": "Texto del cintillo. Permite formato mixto (bold/regular), enlaces y listas."
+      },
+      {
+        "component": "text",
+        "valueType": "string",
+        "name": "bgColor",
+        "label": "Background Color",
+        "value": "#fff1f7",
+        "description": "Color de fondo en hex/rgba (ej. #fff1f7 o rgba(255,241,247,1))."
+      },
+      {
+        "component": "text",
+        "valueType": "string",
+        "name": "textColor",
+        "label": "Text Color",
+        "value": "#1b1b1b",
+        "description": "Color del texto en hex/rgba."
+      },
+      {
+        "component": "text",
+        "valueType": "string",
+        "name": "linkColor",
+        "label": "Link Color",
+        "value": "#ff3093",
+        "description": "Color de los enlaces en hex/rgba."
+      },
+      {
+        "component": "select",
+        "name": "linkTarget",
+        "label": "Link Behavior",
+        "options": [
+          {
+            "name": "Same tab (default)",
+            "value": "self"
+          },
+          {
+            "name": "New tab",
+            "value": "blank"
+          }
+        ],
+        "value": "self",
+        "description": "Define si los enlaces se abren en la misma pestaña o en una nueva."
+      },
+      {
+        "component": "text",
+        "valueType": "string",
+        "name": "targetCountries",
+        "label": "Target Countries (comma-separated)",
+        "value": "",
+        "description": "Países objetivo separados por comas (ej. CO,PA,EC). Vacío = todos."
+      },
+      {
+        "component": "text",
+        "valueType": "string",
+        "name": "targetLanguages",
+        "label": "Target Languages (comma-separated)",
+        "value": "",
+        "description": "Idiomas objetivo separados por comas (ej. es,en). Vacío = todos."
+      }
+    ]
+  },
+  {
     "id": "carousel",
     "fields": [
       {
@@ -2773,6 +3309,45 @@
   {
     "id": "footer-partners-logos",
     "fields": [
+      {
+        "component": "boolean",
+        "name": "compact",
+        "label": "Modo Compact",
+        "value": false,
+        "description": "Activa el footer compacto. Cuando está activo: los logos institucionales se renderizan junto con el copyright y la insignia Star Alliance en una sola barra. El componente footer-bottom se oculta automáticamente. footer-columns muestra máximo 4 columnas."
+      },
+      {
+        "component": "reference",
+        "valueType": "string",
+        "name": "starAllianceImage",
+        "label": "Star Alliance Image",
+        "multi": false,
+        "description": "Imagen de la insignia 'A Star Alliance Member' (solo se usa en modo compact)."
+      },
+      {
+        "component": "text",
+        "valueType": "string",
+        "name": "starAllianceUrl",
+        "label": "Star Alliance URL",
+        "value": "",
+        "description": "URL opcional para envolver la insignia en un link (solo modo compact)."
+      },
+      {
+        "component": "text",
+        "valueType": "string",
+        "name": "starAllianceAlt",
+        "label": "Star Alliance Alt Text",
+        "value": "A Star Alliance Member",
+        "description": "Texto alternativo de la insignia (accesibilidad)."
+      },
+      {
+        "component": "text",
+        "valueType": "string",
+        "name": "copyrightText",
+        "label": "Copyright Text Override",
+        "value": "",
+        "description": "Texto de copyright opcional (modo compact). Si está vacío, usa la i18n key 'footer.bottom.copyrights'. Soporta '{year}' o '[XXXX]' para reemplazar por el año actual."
+      },
       {
         "component": "multiselect",
         "name": "target-countries",
@@ -4800,7 +5375,7 @@
         "component": "text",
         "name": "title",
         "label": "Title (H2)",
-        "description": "Main title - uses H2 for SEO hierarchy",
+        "description": "Main title — H2 for legacy Secondary Banner layout, H4 for megamenu context (SEO hierarchy)",
         "valueType": "string",
         "value": ""
       },
@@ -5099,6 +5674,104 @@
         "valueType": "boolean",
         "description": "Display the condor decorative SVG element on the banner. Default: true.",
         "value": true
+      },
+      {
+        "component": "select",
+        "name": "imagePosition",
+        "label": "Image Position",
+        "description": "Position of the image: right (default, image on right with condor pattern) or left (inverted layout, image column on left, content on right).",
+        "valueType": "string",
+        "options": [
+          {
+            "name": "Right (default)",
+            "value": "right"
+          },
+          {
+            "name": "Left (inverted)",
+            "value": "left"
+          }
+        ],
+        "value": "right"
+      },
+      {
+        "component": "text",
+        "name": "cta2Text",
+        "label": "CTA 2 Text",
+        "description": "Second call-to-action button text (only applies to left variant)",
+        "valueType": "string",
+        "value": ""
+      },
+      {
+        "component": "text",
+        "name": "cta2Url",
+        "label": "CTA 2 URL",
+        "description": "Second call-to-action button link (only applies to left variant)",
+        "valueType": "string",
+        "value": ""
+      },
+      {
+        "component": "select",
+        "name": "cta2LinkType",
+        "label": "CTA 2 Link Type",
+        "description": "Link behavior for second CTA (SEO)",
+        "valueType": "string",
+        "options": [
+          {
+            "name": "Dofollow",
+            "value": "dofollow"
+          },
+          {
+            "name": "Nofollow",
+            "value": "nofollow"
+          },
+          {
+            "name": "Sponsored",
+            "value": "sponsored"
+          }
+        ],
+        "value": "dofollow"
+      },
+      {
+        "component": "select",
+        "name": "ctaStyle",
+        "label": "CTA Style (left variant only)",
+        "description": "Combination of CTA1 (primary, filled) + CTA2 (secondary, outlined). 'matched' = secondary uses same theme as primary; 'contrast' = secondary inverts theme. Ignored when image position is right.",
+        "valueType": "string",
+        "options": [
+          {
+            "name": "Light — CTA1 light filled / CTA2 dark filled",
+            "value": "light"
+          },
+          {
+            "name": "Dark — CTA1 dark filled / CTA2 light filled",
+            "value": "dark"
+          },
+          {
+            "name": "Light contrast — CTA1 light filled / CTA2 dark with light border",
+            "value": "light-contrast"
+          },
+          {
+            "name": "Light contrast inverse — CTA1 dark with light border / CTA2 light filled",
+            "value": "light-contrast-inverse"
+          },
+          {
+            "name": "Dark contrast — CTA1 dark filled / CTA2 light with dark border",
+            "value": "dark-contrast"
+          },
+          {
+            "name": "Dark contrast inverse — CTA1 light with dark border / CTA2 dark filled",
+            "value": "dark-contrast-inverse"
+          },
+          {
+            "name": "Light contrast 60 — CTA1 light filled / CTA2 dark@60% with light border",
+            "value": "light-contrast-60"
+          },
+          {
+            "name": "Light contrast 60 inverse — CTA1 dark@60% with light border / CTA2 light filled",
+            "value": "light-contrast-60-inverse"
+          }
+        ],
+        "value": "dark"
       }
     ]
   },
@@ -7377,7 +8050,7 @@
         "name": "size",
         "label": "Tab Size",
         "value": "large",
-        "description": "Size variant for the tabs: large (80px height) or small (64px height)",
+        "description": "Size and visual variant of the tabs. Default variants use a line indicator; Pill variants use a rounded border around the active tab.",
         "valueType": "string",
         "options": [
           {
@@ -7387,6 +8060,14 @@
           {
             "name": "Small (64px)",
             "value": "small"
+          },
+          {
+            "name": "Variant Pill - Large (80px)",
+            "value": "pill-large"
+          },
+          {
+            "name": "Variant Pill - Small (64px)",
+            "value": "pill-small"
           }
         ]
       },

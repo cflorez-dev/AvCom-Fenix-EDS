@@ -3,6 +3,7 @@ import { useState } from '@dropins/tools/preact-hooks.js';
 import htm from 'htm';
 import { Alert } from '../../molecules/alert/alert.js';
 import { CabinUpgradeForm } from '../../organisms/forms/cabin-upgrade-form/cabin-upgrade-form.js';
+import { MMBForm } from '../../organisms/forms/mmb-form/mmb-form.js';
 
 const html = htm.bind(h);
 
@@ -19,7 +20,8 @@ const html = htm.bind(h);
  * @param {string} [props.subtitleText=''] - Subtitle text
  * @param {'h2'|'h3'|'h4'|'h5'|'h6'|'p'} [props.subtitleLevel='p'] - Semantic level of the subtitle
  * @param {'left'|'center'|'right'} [props.contentAlignment='left'] - Content alignment
- * @param {'cabin-upgrade'|'none'} [props.formType='cabin-upgrade'] - Type of form to display
+ * @param {'cabin-upgrade'|'mmb'|'none'} [props.formType='cabin-upgrade'] - Type of form to display
+ * @param {boolean} [props.openInNewTab=true] - MMB form: open deeplink in new tab
  * @param {boolean} [props.showAlert=false] - Show alert
  * @param {'info'|'success'|'warning'|'error'} [props.alertType='info'] - Alert type
  * @param {boolean} [props.alertDismissible=true] - Allow closing the alert
@@ -39,6 +41,7 @@ export const FormHeaderBanner = ({
   subtitleLevel = 'p',
   contentAlignment = 'left',
   formType = 'cabin-upgrade',
+  openInNewTab,
   showAlert = false,
   alertType = 'info',
   alertDismissible = true,
@@ -70,15 +73,21 @@ export const FormHeaderBanner = ({
   // Render form based on formType
   const renderForm = () => {
     if (formType === 'cabin-upgrade') {
-      return html`<${CabinUpgradeForm} 
+      return html`<${CabinUpgradeForm}
       modalDescription=${modalDescription}
       modalImageData=${modalImageData}
-      modalImageAlt=${modalImageAlt} 
+      modalImageAlt=${modalImageAlt}
       onSubmit=${onFormSubmit} />`;
     }
-    // if (formType === 'otro-formulario') {
-    //   return html`<${OtroFormulario} onSubmit=${onFormSubmit} />`;
-    // }
+    if (formType === 'mmb') {
+      // simplified=true because the banner already renders its own title/subtitle.
+      // context="headerBanner" → the organism reads mmbForm.showHelperText.headerBanner from i18n.
+      // openInNewTab is read from i18n (`mmbForm.openInNewTab`) inside the organism.
+      return html`<${MMBForm}
+      simplified=${true}
+      context="headerBanner"
+      onSubmit=${onFormSubmit} />`;
+    }
     return null; // Si formType === 'none' o no reconocido
   };
 
@@ -87,9 +96,14 @@ export const FormHeaderBanner = ({
   // For lazy loading, don't set fetchpriority (or use "low")
   const fetchPriority = loadingMode === 'eager' ? 'high' : null;
 
+  // Serve the original uploaded asset (no AEM optimization) per client request:
+  // the AEM-authored fallback src carries ?width=750&format=webply&optimize=medium,
+  // which re-encoded the PNG at medium quality and looked pixelated. Strip query params.
+  const imageSrc = imageData?.src ? imageData.src.split('?')[0] : undefined;
+
   // Build img attributes object
   const imgAttributes = {
-    src: imageData?.src,
+    src: imageSrc,
     alt: imageData?.alt || imageAlt || '',
     loading: loadingMode,
     class: 'w-full h-full object-cover',
@@ -115,8 +129,8 @@ export const FormHeaderBanner = ({
 
               <div class="self-stretch p-4 min-[1024px]:p-8 bg-background-card-lighter flex flex-col justify-start items-start gap-6 w-[100%] min-[1024px]:min-w-[660px] min-[1024px]:w-[660px] min-[1248px]:max-w-[848px] min-[1248px]:w-[848px]">
                   <div class="self-stretch flex flex-col justify-start items-start gap-[4px]">
-                      <${titleLevel} class="!m-0 self-stretch justify-start text-text-normal-primary !text-[24px] min-[1024px]:!text-[32px] font-bold">${titleText}</${titleLevel}>
-                      <${subtitleLevel} class="!m-0 self-stretch justify-start text-text-normal-primary !font-normal !text-[16px] min-[1024px]:!text-[20px] leading-[30px]">${subtitleText}</${subtitleLevel}>
+                      <${titleLevel} class="!m-0 self-stretch justify-start text-text-normal-primary !leading-[32px] min-[1024px]:!leading-[42px] font-bold">${titleText}</${titleLevel}>
+                      <${subtitleLevel} class="!m-0 self-stretch justify-start text-text-normal-primary !font-normal leading-[30px]">${subtitleText}</${subtitleLevel}>
                   </div>
                   ${formType !== 'none' ? html`
                     <div class="self-stretch flex flex-col justify-center items-start w-full gap-4">

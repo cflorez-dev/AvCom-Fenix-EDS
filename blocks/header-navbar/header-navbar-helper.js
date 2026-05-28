@@ -2,11 +2,37 @@
  * Helper functions for Header Navbar block
  */
 
+import { shouldShowByTargeting } from '../../scripts/utils/target-filter.js';
+
+/**
+ * Parses the ?ueLinkMode query param from a URL and returns openMode + clean URL.
+ * Modes: default | icon | newtab | icon-newtab
+ * @param {string} rawUrl
+ * @returns {{ url: string, openMode: string }}
+ */
+function parseUeLinkMode(rawUrl) {
+  if (!rawUrl || rawUrl === '#') return { url: rawUrl || '#', openMode: 'default' };
+  try {
+    // Support relative URLs by prepending a dummy base
+    const base = rawUrl.startsWith('http') ? undefined : 'https://x.x';
+    const parsed = new URL(rawUrl, base);
+    const mode = parsed.searchParams.get('ueLinkMode') || 'default';
+    parsed.searchParams.delete('ueLinkMode');
+    // Reconstruct: if relative, remove the dummy base
+    const cleanUrl = base
+      ? parsed.pathname + (parsed.search || '') + (parsed.hash || '')
+      : parsed.toString();
+    return { url: cleanUrl || '#', openMode: mode };
+  } catch {
+    return { url: rawUrl, openMode: 'default' };
+  }
+}
+
 /**
  * Parses a sub-item string in format "label | url | icon"
  * @param {string} subItemText - Text content from <li> element
  *   (e.g., "item 1 | /item-1 | item-1-icon")
- * @returns {Object} Object with label, url, and iconName
+ * @returns {Object} Object with label, url, iconName, and openMode
  */
 function parseSubItem(subItemText) {
   if (!subItemText || typeof subItemText !== 'string') {
@@ -14,6 +40,7 @@ function parseSubItem(subItemText) {
       label: '',
       url: '#',
       iconName: '',
+      openMode: 'default',
     };
   }
 
@@ -26,16 +53,20 @@ function parseSubItem(subItemText) {
       label: trimmed,
       url: '#',
       iconName: '',
+      openMode: 'default',
     };
   }
 
   // Split by pipe character and trim each part
   const parts = trimmed.split('|').map((part) => part.trim()).filter((part) => part.length > 0);
+  const rawUrl = parts[1] || '#';
+  const { url, openMode } = parseUeLinkMode(rawUrl);
 
   return {
     label: parts[0] || '',
-    url: parts[1] || '#',
+    url,
     iconName: parts[2] || '',
+    openMode,
   };
 }
 
@@ -101,9 +132,164 @@ function extractSubItems(subItemsColumn) {
 }
 
 /**
- * Extracts a single navbar item from a row element
- * @param {Element} rowElement - The row element containing the item data
- * @returns {Object|null} Object with label, url, iconName, and subItems array, or null if invalid
+ * Parses one `header-megamenu-column` block element from the nav page.
+ * Row 0 = column title, Row 1 = links richtext (ul/li).
+ * Row 2 = target-countries (comma-separated), Row 3 = target-languages.
+ * @param {Element} blockEl - The .header-megamenu-column block element
+ * @returns {{ title: string, items: Array, targetCountries: string, targetLanguages: string }|null}
+ */
+function parseMegamenuColumnBlock(blockEl) {
+  if (!blockEl || !blockEl.textContent?.trim()) return null;
+
+  const rows = Array.from(blockEl.children);
+
+  // Row 0, Cell 0 → title
+  const titleEl = rows[0]?.querySelector('p, strong, b, h2, h3, h4, h5, h6');
+  const title = titleEl?.textContent?.trim() || rows[0]?.textContent?.trim() || '';
+
+  // Row 1, Cell 0 → links rich text (ul/li with optional <a>)
+  const linksCell = rows[1]?.querySelector('div') || rows[1];
+  const items = [];
+
+  if (linksCell) {
+    const listItems = linksCell.querySelectorAll('li');
+    listItems.forEach((li) => {
+      const rawText = li.textContent?.trim() || '';
+      const anchor = li.querySelector('a');
+      const anchorHref = anchor ? (anchor.getAttribute('href') || '').trim() : '';
+
+      if (rawText) {
+        const parsed = parseSubItem(rawText);
+        if (anchorHref) {
+          const { url, openMode } = parseUeLinkMode(anchorHref);
+          parsed.url = url;
+          parsed.openMode = openMode;
+          // When the <a> only wraps the label (normal AEM authoring), li.textContent is
+          // "label | icon-name" — parseSubItem mistakes "icon-name" for the url, leaving
+          // parsed.iconName empty. Recover iconName from the non-anchor text nodes.
+          if (!parsed.iconName) {
+            const nonAnchorText = Array.from(li.childNodes)
+              .filter((n) => n !== anchor)
+              .map((n) => n.textContent.trim())
+              .join('')
+              .replace(/^\|+\s*/, '') // strip leading pipe(s)
+              .trim();
+            if (nonAnchorText) parsed.iconName = nonAnchorText;
+          }
+          // Ensure label is clean anchor text (no pipe artifacts)
+          parsed.label = anchor.textContent.trim().split('|')[0].trim();
+        }
+        if (parsed.label) items.push(parsed);
+      }
+    });
+
+    // Standalone links not in <li>
+    const standaloneLinks = linksCell.querySelectorAll('p > a, div > a');
+    standaloneLinks.forEach((a) => {
+      const rawHref = a.getAttribute('href') || '';
+      const linkLabel = a.textContent?.trim() || '';
+      if (linkLabel && rawHref && !items.some((i) => i.label === linkLabel)) {
+        const { url, openMode } = parseUeLinkMode(rawHref);
+        items.push({
+          label: linkLabel, url, iconName: '', openMode,
+        });
+      }
+    });
+  }
+
+  if (!title && items.length === 0) return null;
+
+  // Row 2 = target-countries, Row 3 = target-languages
+  const targetCountries = rows[2]?.textContent?.trim() || '';
+  const targetLanguages = rows[3]?.textContent?.trim() || '';
+
+  return {
+    title, items, targetCountries, targetLanguages,
+  };
+}
+
+/**
+ * Parses a nav-page section element into megamenu content.
+ * Finds up to 3 `header-megamenu-column` blocks for the link columns,
+ * and any remaining non-column block as the CMS panel.
+ * If a `header-megamenu-form` block is present it takes priority over any
+ * CMS block — `formType` will be set and `cmsBlock` will be null.
+ * @param {Element} sectionEl - The section DOM element (e.g. .megamenu-lifemiles)
+ * @returns {{ columns: Array, cmsBlock: Element|null, formType: string|null }}
+ */
+export function parseMegamenuSection(sectionEl) {
+  if (!sectionEl) return {
+    columns: [], cmsBlock: null, formType: null, formLabel: '',
+  };
+
+  const columnBlocks = Array.from(
+    sectionEl.querySelectorAll('.header-megamenu-column'),
+  );
+  const columns = columnBlocks
+    .map((b) => parseMegamenuColumnBlock(b))
+    .filter(Boolean)
+    .filter((col) => shouldShowByTargeting(col.targetCountries, col.targetLanguages))
+    .slice(0, 3);
+
+  // Check for a form block first — it takes priority over any CMS block.
+  const formBlock = sectionEl.querySelector('.header-megamenu-form');
+  if (formBlock) {
+    const rows = Array.from(formBlock.children);
+    // Row 0 = form-type
+    // New format: Row 1 = form-label, Row 2 = target-countries, Row 3 = target-languages
+    // Old format (backward compat): Row 1 = target-countries, Row 2 = target-languages
+    const formType = rows[0]?.textContent?.trim() || 'cabin-upgrade';
+    const row1Text = rows[1]?.textContent?.trim() || '';
+
+    // Detect old format: row 1 is empty or matches comma-separated 2-letter ISO codes
+    const isPosCode = row1Text === '' || /^[a-z]{2}(,[a-z]{2})*$/i.test(row1Text);
+
+    let formLabel = '';
+    let formTargetCountries;
+    let formTargetLanguages;
+
+    if (isPosCode) {
+      // Old format — no label field
+      formTargetCountries = row1Text;
+      formTargetLanguages = rows[2]?.textContent?.trim() || '';
+    } else {
+      // New format — label present
+      formLabel = row1Text;
+      formTargetCountries = rows[2]?.textContent?.trim() || '';
+      formTargetLanguages = rows[3]?.textContent?.trim() || '';
+    }
+
+    if (!shouldShowByTargeting(formTargetCountries, formTargetLanguages)) {
+      // Form block is filtered out — fall through to CMS block
+    } else {
+      return {
+        columns, cmsBlock: null, formType, formLabel,
+      };
+    }
+  }
+
+  // Find first CMS block in section subtree.
+  // Direct children of the section are EDS wrapper divs (not blocks themselves),
+  // so we use querySelector to find the block at any depth.
+  const cmsBlock = sectionEl.querySelector(
+    '.block:not(.header-megamenu-column)',
+  ) || null;
+
+  return { columns, cmsBlock, formType: null, formLabel: '' };
+}
+
+/**
+ * Extracts a single navbar item from a row element.
+ * Column positions:
+ *   col[0] = label
+ *   col[1] = url
+ *   col[2] = icon name
+ *   col[3] = submenu (legacy rich text, <ul><li> pipe format)
+ *   col[4] = target-countries
+ *   col[5] = target-languages
+ *   col[6] = megamenu-anchor (CSS class of a nav-page section, e.g. 'megamenu-lifemiles')
+ * @param {Element} rowElement
+ * @returns {Object|null}
  */
 function extractNavbarItem(rowElement) {
   if (!rowElement || !rowElement.children) {
@@ -112,18 +298,15 @@ function extractNavbarItem(rowElement) {
 
   const cols = Array.from(rowElement.children);
 
-  // Columna 0: label (Menu item label)
+  // Columna 0: label
   const labelCol = cols[0];
   const label = labelCol?.querySelector('p')?.textContent?.trim()
                 || labelCol?.textContent?.trim()
                 || '';
 
-  // Si no hay label, el item no es válido
-  if (!label) {
-    return null;
-  }
+  if (!label) return null;
 
-  // Columna 1: url (Menu item URL)
+  // Columna 1: url
   const urlCol = cols[1];
   let url = '#';
   if (urlCol) {
@@ -131,28 +314,27 @@ function extractNavbarItem(rowElement) {
     if (link) {
       url = link.getAttribute('href') || link.textContent?.trim() || '#';
     } else {
-      // Si no hay link, buscar en el texto
       url = urlCol.textContent?.trim() || '#';
     }
   }
 
-  // Columna 2: iconName (Menu item Icon Name)
+  // Columna 2: iconName
   const iconCol = cols[2];
   const iconName = iconCol?.querySelector('p')?.textContent?.trim()
                    || iconCol?.textContent?.trim()
                    || '';
 
-  // Columna 3: subItems (Sub-menu items)
-  const subItemsCol = cols[3];
-  const subItems = extractSubItems(subItemsCol);
+  // Columna 3: legacy submenu (subItems <ul><li>)
+  const col3 = cols[3];
+  const subItems = extractSubItems(col3);
 
-  // Columna 4: target-countries (Optional - targeting per menu item)
+  // Columna 4: target-countries, Columna 5: target-languages
   const targetCountries = cols[4]?.textContent?.trim() || '';
-
-  // Columna 5: target-languages (Optional - targeting per menu item)
   const targetLanguages = cols[5]?.textContent?.trim() || '';
 
-  // Construir el objeto del item
+  // Columna 6: megamenu-anchor (CSS class of a nav-page section)
+  const megamenuAnchor = cols[6]?.textContent?.trim() || '';
+
   const item = {
     label,
     url: url || '#',
@@ -161,8 +343,10 @@ function extractNavbarItem(rowElement) {
     'target-languages': targetLanguages,
   };
 
-  // Solo agregar subItems si hay elementos
-  if (subItems.length > 0) {
+  if (megamenuAnchor) {
+    // Megamenu: columns are resolved later via DOM lookup in header-navbar.js
+    item.megamenu = { anchor: megamenuAnchor };
+  } else if (subItems.length > 0) {
     item.subItems = subItems;
   }
 
@@ -230,8 +414,21 @@ export function extractHeaderNavbarData(block) {
     const hasOnlyTargetingColumns = rows[adjustedIndex].children.length <= 2;
     const hasValidLanguageCode = secondRowValue
       && (validLanguages.includes(secondRowValue) || secondRowValue.split(',').every((l) => validLanguages.includes(l.trim())));
+    const isEmptyLanguage = !secondRowValue || secondRowValue === '';
 
-    if (hasOnlyTargetingColumns && hasValidLanguageCode) {
+    if (hasOnlyTargetingColumns && (hasValidLanguageCode || isEmptyLanguage)) {
+      startIndex += 1;
+    }
+  }
+
+  // Check next row for a hex color value (hover-accent-color UE model field).
+  // AEM UE writes single-column value rows — the hex color would be read as a nav
+  // item label without this guard.
+  if (rows.length > startIndex) {
+    const colorRowValue = rows[startIndex]?.children[0]?.textContent?.trim();
+    const hasOneOrTwoColumns = rows[startIndex].children.length <= 2;
+    const isHexColor = /^#[0-9a-fA-F]{3,8}$/.test(colorRowValue || '');
+    if (hasOneOrTwoColumns && isHexColor) {
       startIndex += 1;
     }
   }
@@ -325,11 +522,18 @@ export function convertToNavbarSections(navbarData) {
       url: item.url || '#',
     };
 
-    // Convert subItems if they exist
+    // Megamenu: anchor pointer — columns resolved later via parseMegamenuSection
+    if (item.megamenu) {
+      section.megamenu = { anchor: item.megamenu.anchor };
+      return section;
+    }
+
+    // Legacy dropdown format: flat subItems list
     if (item.subItems && Array.isArray(item.subItems) && item.subItems.length > 0) {
       section.subItems = item.subItems.map((subItem) => ({
         itemLabel: subItem.label || '',
         url: subItem.url || '#',
+        openMode: subItem.openMode || 'default',
       }));
     }
 

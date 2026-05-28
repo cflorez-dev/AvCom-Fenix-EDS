@@ -135,6 +135,7 @@ export const LanguageSearch = ({
             initialPos = normalizePos(initialPos);
             if (validatePos(initialPos)) {
               setSelectedPos(initialPos);
+              // console.log('[LanguageSearch] Initialized with POS:', initialPos);
             } else {
               const fallbackPos = normalizePos('');
               setSelectedPos(fallbackPos);
@@ -176,6 +177,8 @@ export const LanguageSearch = ({
   const getCountryFlagPath = service?.getCountryFlagPath || (() => null);
   const normalizePos = service?.normalizePos || ((pos, fallback) => fallback || 'es-col');
   const validatePos = service?.validatePos || (() => false);
+  const getAllowedLanguages = service?.getAllowedLanguages || null;
+  const getDefaultLanguage = service?.getDefaultLanguage || null;
 
   // Get all countries and languages from service (recalculate when service is loaded)
   // Ensure flag paths are always absolute URLs
@@ -207,17 +210,20 @@ export const LanguageSearch = ({
   // Get flag path for current country
   const currentFlagPath = currentCountry ? getCountryFlagPath(currentCountry) : null;
 
-  // Listen to cookie changes from other components.
-  // Re-derive from cookies on every event so partial updates (setStoredLanguage
-  // or setStoredCountry dispatched without `pos` in detail) still refresh the
-  // label once the pair is coherent (e.g., after resolveLocale corrects on /fr).
+  // Listen to cookie changes from other components
   useEffect(() => {
-    if (!service) return undefined;
+    if (!service) return;
 
-    const handleStorageChange = () => {
-      const newPos = getStoredPos();
-      if (newPos) {
-        setSelectedPos(newPos);
+    const handleStorageChange = (event) => {
+      if (!event.detail) return;
+      if (event.detail.pos) {
+        setSelectedPos(event.detail.pos);
+      } else if (event.detail.language !== undefined || event.detail.country !== undefined) {
+        const stored = service.getStoredPos?.();
+        if (stored) {
+          const normalized = normalizePos(stored);
+          if (validatePos(normalized)) setSelectedPos(normalized);
+        }
       }
     };
 
@@ -241,6 +247,7 @@ export const LanguageSearch = ({
       newPos = normalizePos(newPos);
       if (validatePos(newPos)) {
         setSelectedPos(newPos);
+        // console.log('[LanguageSearch] Updated selectedPos:', newPos);
       } else {
         const fallbackPos = normalizePos('');
         setSelectedPos(fallbackPos);
@@ -296,6 +303,20 @@ export const LanguageSearch = ({
     };
   }, [isDropdownOpen]);
 
+  // Close this dropdown whenever a megamenu panel opens, so only one
+  // header dropdown is visible at a time.
+  useEffect(() => {
+    const handleMegamenuOpen = () => {
+      setIsDropdownOpen(false);
+      setShowPosForm(false);
+      setIsFocused(false);
+    };
+    window.addEventListener('avi:megamenu-open', handleMegamenuOpen);
+    return () => {
+      window.removeEventListener('avi:megamenu-open', handleMegamenuOpen);
+    };
+  }, []);
+
   // Create and remove overlay in main
   useEffect(() => {
     if (isDropdownOpen) {
@@ -334,7 +355,15 @@ export const LanguageSearch = ({
 
   const handleDropdownToggle = (e) => {
     e.preventDefault();
-    // Open PosForm instead of simple dropdown
+    if (isDropdownOpen) {
+      setIsDropdownOpen(false);
+      setIsFocused(false);
+      setShowPosForm(false);
+      e.currentTarget.blur();
+      return;
+    }
+    // Notify other header dropdowns (e.g. Megamenu) so they can close.
+    window.dispatchEvent(new CustomEvent('avi:language-search-open'));
     setShowPosForm(true);
     setIsDropdownOpen(true);
   };
@@ -378,6 +407,7 @@ export const LanguageSearch = ({
       if (onPosChange) {
         onPosChange(normalizedPos);
       }
+      // console.log('[LanguageSearch] POS confirmed:', normalizedPos);
 
       // Navigate to the new POS path (explicit user action)
       navigateToPOS(normalizedPos);
@@ -404,6 +434,7 @@ export const LanguageSearch = ({
       if (onPosChange) {
         onPosChange(normalizedPos);
       }
+      // console.log('[LanguageSearch] POS selected:', normalizedPos);
 
       // Navigate to the new POS path (explicit user action)
       navigateToPOS(normalizedPos);
@@ -461,7 +492,9 @@ export const LanguageSearch = ({
           variant="secondary"
           size="sm"
           onClick=${handleDropdownToggle}
-          aria-label="Select language and country"
+          aria-label=${currentLanguage
+            ? `Seleccionar país e idioma: ${formatPosDisplay(selectedPos)}, idioma ${currentLanguage.toUpperCase()}`
+            : 'Seleccionar país e idioma'}
           aria-expanded=${isDropdownOpen}
           customClassName="px-[12px]"
           borderActiveColor="alert-success-border"
@@ -473,6 +506,8 @@ export const LanguageSearch = ({
                 src=${currentFlagPath}
                 alt=""
                 class="block w-[16px] h-[16px] object-contain flex-shrink-0"
+                loading="eager"
+                decoding="async"
               />
             ` : html`
               <span class="w-5 h-[15px] flex-shrink-0" />
@@ -507,6 +542,8 @@ export const LanguageSearch = ({
               countryLabel=${labels?.countryLabel || null}
               languageLabel=${labels?.languageLabel || null}
               confirmButtonText=${labels?.confirmButtonText || null}
+              getAllowedLanguages=${getAllowedLanguages}
+              getDefaultLanguage=${getDefaultLanguage}
             />
           </div>
         `}
@@ -534,6 +571,8 @@ export const LanguageSearch = ({
                           src=${countryData.flagPath}
                           alt=${countryData.label}
                           class="w-full h-full object-contain"
+                          loading="lazy"
+                          decoding="async"
                         />
                       </span>
                     `}

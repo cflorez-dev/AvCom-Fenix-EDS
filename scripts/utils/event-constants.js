@@ -156,6 +156,47 @@ export function clearUserOriginSelection() {
 }
 
 /**
+ * PBI 1242768 — Coordinación cross-block del footer compact.
+ *
+ * Cuando footer-partners-logos detecta el switch `compact=true`, dispara este
+ * evento + setea `window.footerCompactMode = true`. footer-bottom y
+ * footer-columns leen ambas señales para auto-ocultarse / capar columnas a 4.
+ *
+ * Patrón validado: idéntico a CITY_FROM_ORIGIN_DROPDOWN_EVENT (ver arriba).
+ *
+ * @event footer-compact-mode-set
+ * @type {CustomEvent}
+ * @property {Object} detail
+ * @property {boolean} detail.active - true si compact ON, false si OFF (revertido por targeting)
+ */
+export const FOOTER_COMPACT_MODE_EVENT = 'footer-compact-mode-set';
+
+export function setFooterCompactMode(active) {
+  if (typeof window === 'undefined') return;
+
+  // Store last value for late subscribers (race condition handling)
+  window.footerCompactMode = active;
+
+  const event = new CustomEvent(FOOTER_COMPACT_MODE_EVENT, {
+    detail: { active },
+    bubbles: true,
+    composed: true,
+  });
+
+  window.dispatchEvent(event);
+}
+
+/**
+ * @returns {boolean | undefined} `undefined` si todavía no se determinó
+ *   (footer-partners-logos no decoró aún). Los callers DEBEN distinguir
+ *   `undefined` (esperar evento) de `false` (modo legacy confirmado).
+ */
+export function getFooterCompactMode() {
+  if (typeof window === 'undefined') return undefined;
+  return window.footerCompactMode;
+}
+
+/**
  * Event dispatched when a promotional card (or similar UI) requests the
  * Booking Box to set its destination field to a specific city.
  *

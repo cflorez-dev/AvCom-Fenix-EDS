@@ -79,6 +79,20 @@ async function loadFonts() {
 
 const INITIAL_VISIBLE_SECTIONS_COUNT = 6;
 
+// Mark <html> when running inside the Universal Editor canvas so block CSS can
+// override viewport-relative rules (e.g. min-height: 100vh) that otherwise
+// trigger an infinite iframe resize loop in the editor.
+(function markUniversalEditor() {
+  const isAuthorEnv = !!(
+    window.xwalk?.isAuthorEnv
+    || window.hlx?.aue
+    || document.querySelector('meta[name="urn:auecon:aemconnection"]')
+    || (window.location.hostname.includes('author-')
+      && window.location.pathname.startsWith('/content/'))
+  );
+  if (isAuthorEnv) document.documentElement.classList.add('is-aue');
+}());
+
 /**
  * Read and apply cms-background-image config before its block is loaded.
  * This avoids late background swaps that hurt LCP/CLS.
@@ -329,6 +343,158 @@ function buildAutoBlocks(main) {
 }
 
 /**
+ * Apply per-section background customization (solid, linear or radial gradient)
+ * from section-metadata. Reads data-bg-color-1, data-bg-color-2,
+ * data-gradient-direction, data-gradient-type and data-radial-position (all set
+ * by decorateSections from section-metadata) and applies validated values as
+ * inline style on each .section.
+ *
+ * Background type dispatch:
+ *   - solid (default):  background = color1
+ *   - linear:           background = linear-gradient(direction, color1, color2)
+ *   - radial:           background = radial-gradient(circle at position, color1, color2)
+ *
+ * Validation: silent regex whitelist with fallback to default (no inline style
+ * applied) if value is invalid. Color values accept hex (#RGB..#RRGGBBAA),
+ * rgb/rgba, or the 'transparent' keyword. transparent in solid mode is treated
+ * as empty (no background applied). When linear/radial is selected but color2
+ * is missing/invalid, falls back to applying color1 as solid (retro-compat).
+ *
+ * @param {Element} main The main element containing .section nodes
+ */
+function applySectionBackgrounds(main) {
+  const COLOR_RE = /^(#[0-9a-fA-F]{3,8}|rgba?\([\d\s,.%]+\)|transparent)$/;
+  const DIR_RE = /^\d+$/;
+  const VALID_TYPES = new Set(['solid', 'linear', 'radial']);
+  const RADIAL_POSITION_TO_CSS = {
+    'top-left': 'top left',
+    top: 'top',
+    'top-right': 'top right',
+    left: 'left',
+    center: 'center',
+    right: 'right',
+    'bottom-left': 'bottom left',
+    bottom: 'bottom',
+    'bottom-right': 'bottom right',
+  };
+
+  // AEM Universal Editor prepends the page URL when the value starts with '#'
+  // e.g. "https://example.com/page#00FF00" → "#00FF00"
+  const extractColor = (val) => {
+    if (!val) return '';
+    const trimmed = val.trim();
+    try {
+      const url = new URL(trimmed);
+      if (url.hash) return url.hash;
+    } catch { /* not a URL — use as-is */ }
+    return trimmed;
+  };
+
+  // mosaic-cards-v2 hides its desktop carousel section on mobile and renders into
+  // a sibling div.mosaic-v2-mobile-container (not a .section). Mirror the bg
+  // onto that sibling so the gradient still shows in mobile view.
+  const mirrorToMobileSibling = (section, bg) => {
+    const next = section.nextElementSibling;
+    if (!next?.classList.contains('mosaic-v2-mobile-container')) return;
+    if (bg) {
+      next.style.setProperty('--section-bg', bg);
+      next.classList.add('has-custom-bg');
+    } else {
+      next.style.removeProperty('--section-bg');
+      next.classList.remove('has-custom-bg');
+    }
+  };
+
+  const clearBg = (section) => {
+    section.style.removeProperty('--section-bg');
+    section.classList.remove('has-custom-bg');
+    mirrorToMobileSibling(section, null);
+  };
+
+  const applyToSection = (section) => {
+    const c1 = extractColor(section.dataset['bgColor-1']);
+    const c2 = extractColor(section.dataset['bgColor-2']);
+    const dir = section.dataset.gradientDirection?.trim() || '180';
+    const rawType = section.dataset.gradientType?.trim() || 'solid';
+    const type = VALID_TYPES.has(rawType) ? rawType : 'solid';
+    const rawPos = section.dataset.radialPosition?.trim() || 'center';
+    const pos = RADIAL_POSITION_TO_CSS[rawPos] || 'center';
+
+    const c1Valid = c1 && COLOR_RE.test(c1);
+    const c2Valid = c2 && COLOR_RE.test(c2);
+    const dirValid = DIR_RE.test(dir);
+
+    let bg = null;
+
+    if (type === 'solid') {
+      // transparent in solid is treated as empty (no background applied).
+      if (c1Valid && c1 !== 'transparent') bg = c1;
+    } else if (type === 'linear') {
+      if (c1Valid && c2Valid && c1 !== c2 && dirValid
+          && !(c1 === 'transparent' && c2 === 'transparent')) {
+        bg = `linear-gradient(${dir}deg, ${c1}, ${c2})`;
+      } else if (c1Valid && c1 !== 'transparent') {
+        // Retro-compat fallback: linear chosen but color2 missing/invalid → apply color1 solid.
+        bg = c1;
+      }
+    } else if (type === 'radial') {
+      if (c1Valid && c2Valid
+          && !(c1 === 'transparent' && c2 === 'transparent')) {
+        bg = `radial-gradient(circle at ${pos}, ${c1}, ${c2})`;
+      } else if (c1Valid && c1 !== 'transparent') {
+        // Retro-compat fallback similar to linear.
+        bg = c1;
+      }
+    }
+
+    if (!bg) {
+      clearBg(section);
+      return;
+    }
+
+    section.style.setProperty('--section-bg', bg);
+    section.classList.add('has-custom-bg');
+    mirrorToMobileSibling(section, bg);
+  };
+
+  const observeSection = (section) => {
+    applyToSection(section);
+    // Re-apply when author edits attribute in place (UE patch path)
+    new MutationObserver(() => applyToSection(section)).observe(section, {
+      attributes: true,
+      attributeFilter: [
+        'data-bg-color-1',
+        'data-bg-color-2',
+        'data-gradient-direction',
+        'data-gradient-type',
+        'data-radial-position',
+      ],
+    });
+  };
+
+  main.querySelectorAll(':scope > div.section').forEach(observeSection);
+
+  // Re-apply when UE replaces the section div entirely (UE re-render path),
+  // or when mosaic-cards-v2 inserts its mobile-only sibling container after a
+  // section that already has a bg.
+  new MutationObserver((mutations) => {
+    mutations.forEach((m) => {
+      m.addedNodes.forEach((node) => {
+        if (node.nodeType !== 1) return;
+        if (node.matches?.('div.section')) {
+          observeSection(node);
+        } else if (node.matches?.('.mosaic-v2-mobile-container')) {
+          const prev = node.previousElementSibling;
+          if (prev?.classList.contains('has-custom-bg')) {
+            mirrorToMobileSibling(prev, prev.style.getPropertyValue('--section-bg'));
+          }
+        }
+      });
+    });
+  }).observe(main, { childList: true });
+}
+
+/**
  * Decorates the main element.
  * @param {Element} main The main element
  */
@@ -339,8 +505,29 @@ export function decorateMain(main) {
   decorateIcons(main);
   buildAutoBlocks(main);
   decorateSections(main);
+  applySectionBackgrounds(main);
   decorateBlocks(main);
   stripInternalTrailingSlashes(main);
+  normalizeSvgPictures(main);
+}
+
+/**
+ * Prevents SVGs from being rasterized to WebP.
+ * The delivery pipeline renders authored images as a <picture> with
+ * `type="image/webp"` <source> elements. For an SVG those sources point at a
+ * rasterized, oversized copy (e.g. width=2000&format=webply) which the browser
+ * prefers over the crisp, lightweight vector. Removing the WebP sources from
+ * SVG pictures lets the browser use the SVG source/img instead.
+ * @param {Element} root The root element to process
+ */
+function normalizeSvgPictures(root) {
+  root.querySelectorAll('picture').forEach((picture) => {
+    const img = picture.querySelector('img');
+    const isSvg = !!picture.querySelector('source[type="image/svg+xml"]')
+      || /\.svg(?:$|[?#])/i.test(img?.getAttribute('src') || '');
+    if (!isSvg) return;
+    picture.querySelectorAll('source[type="image/webp"]').forEach((source) => source.remove());
+  });
 }
 
 /**
@@ -585,7 +772,9 @@ async function loadEager(doc) {
 
   // Load DOMPurify from CDN early so sanitizeHTML() is available synchronously in blocks.
   // No longer vendored in the repo — loaded from jsdelivr with pinned version (closes F4 / 117).
-  loadScript('https://cdn.jsdelivr.net/npm/dompurify@3.3.3/dist/purify.min.js');
+  // crossorigin matches the <link rel=preload> in head.html so the browser reuses
+  // the preloaded resource (otherwise it warns "credentials mode does not match").
+  loadScript('https://cdn.jsdelivr.net/npm/dompurify@3.3.3/dist/purify.min.js', { crossorigin: 'anonymous' });
 
   // Start locale resolution early but don't block DOM work that doesn't need it
   const localeReady = initLocaleGlobals();
@@ -700,6 +889,17 @@ async function loadLazy(doc) {
   const main = doc.querySelector('main');
   const hasHash = Boolean(window.location.hash);
   try {
+    // sections.css and grid-layout.css are preloaded in head.html as
+    // non-blocking; await their attach here so section layouts
+    // (hero-destinations data-section-type, grid-4-8, ...) are styled before
+    // sections lose display:none in loadSection. Awaiting grid-layout.css here
+    // prevents the title/rich-text reflow that occurs when the grid columns
+    // apply only after the section is already visible (large CLS).
+    await Promise.all([
+      loadCSS(`${window.hlx.codeBasePath}/styles/sections.css`),
+      loadCSS(`${window.hlx.codeBasePath}/styles/grid-layout.css`),
+    ]);
+
     // Keep curtain active until visible content is ready.
     // If deep-linking to a hash, load all sections first for anchor reliability.
     if (hasHash) {
@@ -808,13 +1008,14 @@ async function loadLazy(doc) {
     }
   }
 
-  // Non-critical global CSS (moved from head.html to avoid render-blocking)
+  // Non-critical global CSS (moved from head.html to avoid render-blocking).
+  // sections.css is awaited at the top of loadLazy (preloaded in head.html).
   loadCSS(`${window.hlx.codeBasePath}/styles/components/component.css`);
   loadCSS(`${window.hlx.codeBasePath}/styles/components/custom-scrollbar.css`);
   loadCSS(`${window.hlx.codeBasePath}/styles/migration-cards.css`);
   loadCSS(`${window.hlx.codeBasePath}/styles/utilities.css`);
-  loadCSS(`${window.hlx.codeBasePath}/styles/sections.css`);
-  loadCSS(`${window.hlx.codeBasePath}/styles/grid-layout.css`);
+  // grid-layout.css is now preloaded in head.html and awaited at the top of
+  // loadLazy (before sections become visible) to avoid the title reflow/CLS.
   loadCSS(`${window.hlx.codeBasePath}/styles/lazy-styles.css`);
   loadFonts();
 }

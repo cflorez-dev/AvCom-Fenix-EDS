@@ -2,6 +2,7 @@ import { h, render } from '@dropins/tools/preact.js';
 import htm from 'htm';
 import { readBlockConfig } from '../../scripts/aem.js';
 import { SecondaryBanner } from '../../design-system/organisms/banners/secondary-banner/secondary-banner.js';
+import { SecondaryBannerLeft } from '../../design-system/organisms/banners/secondary-banner/secondary-banner-variant.js';
 import { mapCmsSecondaryBannerData } from './cms-secondary-banner-helper.js';
 import { shouldShowByTargeting, hideBlockWithSection } from '../../scripts/utils/target-filter.js';
 
@@ -38,7 +39,16 @@ export default function decorate(block) {
     loading: mappedConfig.loading || fallbackConfig.loading || 'lazy',
     targetCountries: mappedConfig.targetCountries || fallbackConfig.targetCountries || '',
     targetLanguages: mappedConfig.targetLanguages || fallbackConfig.targetLanguages || '',
-    showCondor: mappedConfig.showCondor !== undefined ? mappedConfig.showCondor : (fallbackConfig.showCondor !== undefined ? fallbackConfig.showCondor : true),
+    showCondor: (() => {
+      if (mappedConfig.showCondor !== undefined) return mappedConfig.showCondor;
+      if (fallbackConfig.showCondor !== undefined) return fallbackConfig.showCondor;
+      return true;
+    })(),
+    imagePosition: mappedConfig.imagePosition || fallbackConfig.imagePosition || 'right',
+    cta2Text: mappedConfig.cta2Text || fallbackConfig.cta2Text || '',
+    cta2Url: mappedConfig.cta2Url || fallbackConfig.cta2Url || '',
+    cta2LinkType: mappedConfig.cta2LinkType || fallbackConfig.cta2LinkType || 'dofollow',
+    ctaStyle: mappedConfig.ctaStyle || fallbackConfig.ctaStyle || 'dark',
   };
 
   // Country and language filtering
@@ -69,10 +79,11 @@ export default function decorate(block) {
   container.className = 'cms-secondary-banner-content w-[100%]';
   block.appendChild(container);
 
-  // 4. Render the SecondaryBanner organism
+  // 4. Render the SecondaryBanner organism (or left variant)
+  const BannerComponent = config.imagePosition === 'left' ? SecondaryBannerLeft : SecondaryBanner;
   render(
     html`
-      <${SecondaryBanner}
+      <${BannerComponent}
         title=${config.title}
         firstLabel=${config.firstLabel}
         secondaryLabel=${config.secondaryLabel}
@@ -92,6 +103,10 @@ export default function decorate(block) {
         condorStrokeColor=${config.condorStrokeColor}
         showCondor=${config.showCondor}
         loading=${config.loading}
+        cta2Text=${config.cta2Text}
+        cta2Url=${config.cta2Url}
+        cta2LinkType=${config.cta2LinkType}
+        ctaStyle=${config.ctaStyle}
       />
     `,
     container,

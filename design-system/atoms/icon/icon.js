@@ -89,11 +89,22 @@ export const Icon = ({
   // Component base classes
   const baseClasses = 'inline-flex shrink-0';
 
-  // If customSize is provided, don't add any base classes (let parent container control everything)
-  // Otherwise use baseClasses + size prop
-  const classes = customSize 
-    ? customClassName
+  // Only treat customSize as a real pixel value when it is a number (or numeric string).
+  // Booleans (customSize={true}) are kept as a legacy "let parent control sizing" flag.
+  const customPx = typeof customSize === 'number' || (typeof customSize === 'string' && customSize.trim() !== '' && !Number.isNaN(Number(customSize)))
+    ? Number(customSize)
+    : null;
+
+  // Only skip the size Tailwind class when a real numeric pixel size is provided.
+  // customSize={true} (legacy "parent controls size") falls back to the size prop classes.
+  const classes = customPx !== null
+    ? `${baseClasses} ${customClassName}`.trim()
     : `${baseClasses} ${sizeClasses[size] || sizeClasses.m} ${customClassName}`.trim();
+
+  // Inline pixel sizing only when customSize is a real number.
+  const sizeStyle = customPx !== null
+    ? { width: `${customPx}px`, height: `${customPx}px` }
+    : null;
 
   // Accessibility properties
   const accessibilityProps = ariaLabel
@@ -105,6 +116,7 @@ export const Icon = ({
     return html`
       <span
         class="${classes}"
+        style=${sizeStyle}
         data-name="icon-placeholder"
         ...${accessibilityProps}
       />
@@ -114,6 +126,7 @@ export const Icon = ({
   return html`
     <span
       class="${classes}"
+      style=${sizeStyle}
       dangerouslySetInnerHTML=${{ __html: svgContent }}
       data-name="icon"
       data-icon-name=${icon}
