@@ -108,9 +108,9 @@ export const Incrementer = ({
       </button>
 
       <!-- Number Display -->
-      <p class="min-w-[40px] text-center text-text-normal-primary font-bold leading-[normal] !m-0 min-h-[32px]">
+      <span class="inline-flex justify-center items-center min-w-[40px] min-h-[32px] text-center text-[24px] text-text-normal-primary font-bold leading-[normal]">
         ${currentValue}
-      </p>
+      </span>
 
       <!-- Increase Button (Add icon) -->
       <button
