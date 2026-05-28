@@ -106,11 +106,11 @@ export const Chip = ({
           <img src=${icon} alt="" class="w-full h-full block max-w-none" />
         </div>
       `}
-      <p class=${variant === 'control'
-    ? '!m-0 font-[700] leading-[14px] tracking-inherit whitespace-inherit antialiased'
-    : '!m-0 font-inherit leading-inherit tracking-inherit whitespace-inherit antialiased'}>
+      <span class=${variant === 'control'
+      ? '!m-0 font-[700] leading-[14px] tracking-inherit whitespace-inherit antialiased'
+      : '!m-0 font-inherit leading-inherit tracking-inherit whitespace-inherit antialiased'}>
         ${children}
-      </p>
+      </span>
     </div>
   `;
 };
