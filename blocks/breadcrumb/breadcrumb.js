@@ -252,6 +252,27 @@ export default async function decorate(block) {
 
   const scrollArea = container.querySelector('.breadcrumb-scroll-area');
 
+  // Below this width (mobile) the trail collapses to Home > previous > current
+  // when there are more than 3 levels. At >= 768 (tablet/desktop) all levels show.
+  const mobileQuery = window.matchMedia('(max-width: 767px)');
+  const levels = items.length;
+
+  // Mobile collapse: with more than 3 levels keep only the last two items
+  // (previous + current) inside the scroll area; the middle ones are hidden
+  // (display:none — still in the DOM and in the structured data for SEO).
+  const applyCollapse = () => {
+    if (!scrollArea) return;
+    const children = Array.from(scrollArea.children);
+    children.forEach((el) => { el.style.display = ''; });
+
+    if (mobileQuery.matches && levels > 3) {
+      const itemEls = children.filter((el) => !el.classList.contains('breadcrumb-separator'));
+      const previousEl = itemEls[itemEls.length - 2];
+      const keepFrom = children.indexOf(previousEl);
+      for (let i = 0; i < keepFrom; i += 1) children[i].style.display = 'none';
+    }
+  };
+
   // Width (px) of the edge fade that signals hidden content while scrolling.
   const FADE = 28;
   // Distance (px) before the right end over which the "..." indicator fades out.
@@ -290,31 +311,42 @@ export default async function decorate(block) {
   };
 
   let rafId = null;
-  const scheduleMask = () => {
+  let pendingCollapse = false;
+  const schedule = (recheckCollapse) => {
+    if (recheckCollapse) pendingCollapse = true;
     if (rafId) return;
     rafId = requestAnimationFrame(() => {
       rafId = null;
+      if (pendingCollapse) {
+        pendingCollapse = false;
+        applyCollapse();
+      }
       updateScrollMask();
     });
   };
+  const scheduleMask = () => schedule(false); // scroll: collapse doesn't change
+  const scheduleAll = () => schedule(true); // resize / breakpoint change
 
+  applyCollapse();
   updateScrollMask();
 
   if (scrollArea) scrollArea.addEventListener('scroll', scheduleMask, { passive: true });
-  const resizeObserver = new ResizeObserver(scheduleMask);
+  const resizeObserver = new ResizeObserver(scheduleAll);
   if (scrollArea) resizeObserver.observe(scrollArea);
-  window.addEventListener('resize', scheduleMask);
+  window.addEventListener('resize', scheduleAll);
+  mobileQuery.addEventListener('change', scheduleAll);
   // Re-check once fonts/icons settle (content width changes after load)
   if (document.fonts && document.fonts.ready) {
-    document.fonts.ready.then(scheduleMask);
+    document.fonts.ready.then(scheduleAll);
   }
-  const settleTimeout = setTimeout(scheduleMask, 200);
+  const settleTimeout = setTimeout(scheduleAll, 200);
 
   block.addEventListener('unload', () => {
     if (rafId) cancelAnimationFrame(rafId);
     clearTimeout(settleTimeout);
     resizeObserver.disconnect();
     if (scrollArea) scrollArea.removeEventListener('scroll', scheduleMask);
-    window.removeEventListener('resize', scheduleMask);
+    window.removeEventListener('resize', scheduleAll);
+    mobileQuery.removeEventListener('change', scheduleAll);
   });
 }
