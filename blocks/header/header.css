@@ -41,6 +41,17 @@ header.header-wrapper > .header-wrapper > .header-user-actions {
   z-index: 10;
 }
 
+/* The mobile menu modal (overlay: fixed z-[9999]) renders inside
+   .header-container. Because .header-container and .header-user-actions are
+   sibling stacking contexts with the same z-index, source order made
+   .header-user-actions (POS/language selector) paint OVER the modal — covering
+   the close button (clicks intercepted) and showing the POS selector on top of
+   the menu header. Elevating .header-container above its sibling lets the modal
+   overlay cover the whole header as intended. */
+header.header-wrapper > .header-wrapper > .header-container {
+  z-index: 20;
+}
+
 header.header-wrapper.is-scrolled,
 .header-wrapper.is-scrolled {
     height: 50px;
