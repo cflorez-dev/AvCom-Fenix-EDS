@@ -161,12 +161,12 @@ export const FooterBottom = ({
   // Light / White: --brand-primary, Dark: --logo-avianca-light
   const copyrightColor = theme === 'dark' ? 'var(--logo-avianca-light)' : 'var(--brand-primary)';
   const copyrightClass = theme === 'dark'
-    ? 'text-sm !text-[var(--logo-avianca-light)] !m-0'
-    : 'text-sm !text-[var(--brand-primary)] !m-0';
+    ? '!text-sm !text-[var(--logo-avianca-light)] !m-0'
+    : '!text-sm !text-[var(--brand-primary)] !m-0';
 
   // Si no hay contenido, no renderizar
   // Nota: Siempre mostramos el copyright (con texto por defecto si no viene uno)
-  
+
 
   return html`
     <div
