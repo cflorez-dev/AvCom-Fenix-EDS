@@ -13,7 +13,7 @@
   /* Font Sizes — fluid clamp() tokens (CU-226/CU-227) */
   --font-size-tiny: 12px;      /* 12px — no fluido, uso en chips/labels pequeños */
   --font-size-small: 14px;     /* 14px — no fluido, uso en captions */
-  --font-size-normal: clamp(1rem, 0.36vw + 0.89rem, 1.125rem);    /* p: 16px → 18px */
+  --font-size-normal: clamp(0.875rem, 0.36vw + 0.765rem, 1rem);    /* p: 16px → 18px */
   --font-size-medium: clamp(1.125rem, 0.54vw + 1.0179rem, 1.5rem); /* h4: 18px → 24px */
   --font-size-large: clamp(1.25rem, 0.71vw + 1.1071rem, 1.75rem);  /* h3: 20px → 28px */
   --font-size-x-large: clamp(1.5rem, 0.71vw + 1.3571rem, 2rem);    /* h2: 24px → 32px */

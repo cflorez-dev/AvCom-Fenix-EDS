@@ -171,7 +171,7 @@ h3 { font-size: var(--heading-font-size-l); }
 h4 { font-size: var(--heading-font-size-m); }
 h5 { font-size: var(--heading-font-size-s); }
 h6 { font-size: var(--heading-font-size-xs); }
-p  { font-size: clamp(1rem, 0.36vw + 0.89rem, 1.125rem); }
+p  { font-size: clamp(0.875rem, 0.36vw + 0.765rem, 1rem); }
 
 /* context-h1: production utility — h2 styled as h1 visual size */
 .section.text-center h2 {
@@ -217,13 +217,17 @@ a:any-link {
 }
 
 main > .section {
-  max-width: 1248px;
+  max-width: var(--container-xl);
   margin: auto;
   padding: 32px var(--main-section-div-padding, 16px);
 }
 
 main > .section:first-of-type {
   margin-top: 0;
+}
+
+main.has-custom-bg:not(.has-background-image) {
+  background: var(--page-bg);
 }
 
 main > .section.has-custom-bg,
@@ -303,6 +307,10 @@ main div.section.padding-title {
   padding-top: 0;
 }
 
+.section.no-padding-bottom {
+  padding-bottom: 0;
+}
+
 .section.no-padding-y {
   padding-top: 0;
   padding-bottom: 0;
@@ -345,8 +353,20 @@ main div.section.padding-title {
   }
 }
 
-/* Tablet and desktop media queries */
-@media (width >= 480px) and (width <= 1247px) {
+/* Responsive padding-inline breakpoints */
+/* Tablet: 768px – 1023px → 24px */
+@media (width >= 768px) and (width <= 1023px) {
+    :root {
+        --main-section-div-padding: 24px;
+    }
+
+    main > .section > div {
+        box-sizing: content-box;
+    }
+}
+
+/* Desktop: 1024px – 1247px → 32px */
+@media (width >= 1024px) and (width <= 1247px) {
     :root {
         --main-section-div-padding: 32px;
     }
