@@ -150,77 +150,46 @@ const Breadcrumb = ({
     return null;
   }
 
-  const totalLevels = items.length;
-
-  // Mobile: restrict to Home > Previous > Current when more than 3 levels
-  let mobileItems = [...items];
-  if (totalLevels > 3) {
-    const homeItem = items[0]; // Home
-    const previousItem = items[totalLevels - 2]; // Previous to current
-    const currentItem = items[totalLevels - 1]; // Current/Active
-
-    mobileItems = [homeItem, previousItem, currentItem];
-  }
-
-  // Desktop: always show all items
-  const desktopItems = [...items];
+  // Home stays pinned; the rest of the trail lives in a horizontally
+  // scrollable area so every level remains reachable. The block's decorate()
+  // (see blocks/breadcrumb/breadcrumb.js — updateScrollMask) applies an edge
+  // fade-mask to signal hidden content on each side — works on any background,
+  // no pseudo-element.
+  const [homeItem, ...restItems] = items;
+  const separator = () => html`
+    <div class="breadcrumb-separator w-6 h-6 relative flex items-center justify-center text-normal-tertiary flex-shrink-0" aria-hidden="true">
+      <${Icon} icon="navigation/chevron-right" customSize=${true} color="currentColor" />
+    </div>
+  `;
 
   return html`
     <div>
       <${StructuredBreadcrumb} items=${items} />
-      <nav 
-        class="flex md:hidden justify-start items-center gap-2 ${customClassName}"
+      <nav
+        class="breadcrumb-nav flex justify-start items-center gap-3 ${customClassName}"
         aria-label="Breadcrumb"
         data-name="breadcrumb"
       >
-        ${mobileItems.length > 0 && html`
-          <${BreadcrumbItem} 
-            key="mobile-home" 
-            ...${mobileItems[0]} 
-            onClick=${onItemClick}
-            homeLabel=${homeLabel}
-          />
-        `}
-        ${mobileItems.length > 1 && html`
-          <div class="w-6 h-6 relative flex items-center justify-center text-normal-tertiary flex-shrink-0" aria-hidden="true">
-            <${Icon} icon="navigation/chevron-right" customSize=${true} color="currentColor" />
-          </div>
-          <div class="flex items-center gap-2 overflow-x-auto breadcrumb-scroll-area flex-1 min-w-0 scroll-smooth">
-            ${mobileItems.slice(1).map((item, index) => html`
-              <${BreadcrumbItem} 
-                key=${`mobile-${index + 1}`} 
-                ...${item} 
+        <${BreadcrumbItem}
+          key="bc-home"
+          ...${homeItem}
+          onClick=${onItemClick}
+          homeLabel=${homeLabel}
+        />
+        ${restItems.length > 0 && html`
+          ${separator()}
+          <div class="breadcrumb-scroll-area flex justify-start items-center gap-3 overflow-x-auto flex-1 min-w-0 scroll-smooth">
+            ${restItems.map((item, index) => html`
+              <${BreadcrumbItem}
+                key=${`bc-${index + 1}`}
+                ...${item}
                 onClick=${onItemClick}
                 homeLabel=${homeLabel}
               />
-              ${index < mobileItems.length - 2 && html`
-                <div class="w-6 h-6 relative flex items-center justify-center text-normal-tertiary flex-shrink-0" aria-hidden="true">
-                  <${Icon} icon="navigation/chevron-right" customSize=${true} color="currentColor" />
-                </div>
-              `}
+              ${index < restItems.length - 1 && separator()}
             `)}
           </div>
         `}
-      </nav>
-      
-      <nav 
-        class="hidden md:flex justify-start items-center gap-3 overflow-x-auto ${customClassName}"
-        aria-label="Breadcrumb"
-        data-name="breadcrumb"
-      >
-        ${desktopItems.map((item, index) => html`
-          <${BreadcrumbItem} 
-            key=${`desktop-${index}`} 
-            ...${item} 
-            onClick=${onItemClick}
-            homeLabel=${homeLabel}
-          />
-          ${index < desktopItems.length - 1 && html`
-            <div class="w-6 h-6 relative flex items-center justify-center text-normal-tertiary flex-shrink-0" aria-hidden="true">
-              <${Icon} icon="navigation/chevron-right" customSize=${true} color="currentColor" />
-            </div>
-          `}
-        `)}
       </nav>
     </div>
   `;
