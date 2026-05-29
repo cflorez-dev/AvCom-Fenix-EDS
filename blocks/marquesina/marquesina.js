@@ -195,6 +195,63 @@ function normalizeIcon(iconValue) {
 }
 
 /**
+ * Parse a targeting field (array or comma-separated string) into a clean list.
+ * @param {string|Array<string>} value
+ * @returns {Array<string>}
+ */
+function parseTargetList(value) {
+  if (!value) return [];
+  if (Array.isArray(value)) return value.map((v) => String(v).trim()).filter(Boolean);
+  return String(value).split(',').map((v) => v.trim()).filter(Boolean);
+}
+
+/**
+ * Specificity score for a marquesina's targeting. Higher = more specific.
+ * Used to pick a single winner when several marquesinas match the same user:
+ * country targeting beats language, which beats page-type, which beats "no
+ * targeting" (shown to everyone). Mirrors the field precedence used by
+ * shouldShowByTargetingLegacy so the score matches the show/hide decision.
+ * @param {Object} config
+ * @returns {number}
+ */
+function targetingSpecificity(config) {
+  const countries = parseTargetList(
+    config['target-countries'] || config.targetCountries || config.targetMarkets,
+  );
+  const languages = parseTargetList(config['target-languages'] || config.targetLanguages);
+  const pageTypes = parseTargetList(config.targetPageTypes);
+  let score = 0;
+  if (countries.length) score += 4;
+  if (languages.length) score += 2;
+  if (pageTypes.length) score += 1;
+  return score;
+}
+
+// Coalesce the "collapse the empty placeholder" check across the independent
+// decorate() calls of every authored marquesina on the page.
+let marquesinaFinalizeScheduled = false;
+
+/**
+ * Collapse the shared CLS-reservation placeholder ONLY if, after all marquesinas
+ * have decorated, none of them rendered (i.e. none matched the current user).
+ * A non-matching marquesina must NOT remove the container itself, or it would
+ * wipe out a sibling that already matched and rendered into the shared slot.
+ */
+function scheduleMarquesinaFinalize() {
+  if (marquesinaFinalizeScheduled) return;
+  marquesinaFinalizeScheduled = true;
+  setTimeout(() => {
+    marquesinaFinalizeScheduled = false;
+    const container = document.querySelector('.marquesina-global-container');
+    if (!container) return;
+    if (!container.querySelector('[data-name="marquesina"]')) {
+      container.remove();
+      document.documentElement.style.setProperty('--marquee-height', '0px');
+    }
+  }, 150);
+}
+
+/**
  * Decorates the Marquesina block
  * @param {Element} block The marquesina block element
  */
@@ -271,7 +328,7 @@ export default function decorate(block) {
         linkTarget = configTarget;
       }
     }
-    // Read targeting rows (8, 9, 10)
+    // Legacy comma-separated text targeting rows (8, 9, 10) + publish dates (11, 12)
     let targetMarkets = '';
     let targetLanguages = '';
     let targetPageTypes = '';
@@ -296,10 +353,29 @@ export default function decorate(block) {
       publishEnd = rows[12].children[0].textContent.trim();
     }
 
-    // Set targeting values in config
+    // Multiselect targeting fields the Universal Editor actually writes:
+    //   row 13 = "Target Countries (POS)", row 14 = "Target Languages".
+    // These are the fields authors fill in; the legacy text rows (8-10) above are
+    // almost always empty. Previously only row 8 was read, so every marquesina
+    // matched every POS and a country-targeted banner showed in the wrong country.
+    let targetCountriesMulti = '';
+    let targetLanguagesMulti = '';
+
+    if (rows[13]?.children[0]?.textContent?.trim()) {
+      targetCountriesMulti = rows[13].children[0].textContent.trim();
+    }
+
+    if (rows[14]?.children[0]?.textContent?.trim()) {
+      targetLanguagesMulti = rows[14].children[0].textContent.trim();
+    }
+
+    // Set targeting values in config (multiselect fields take precedence in
+    // shouldShowByTargetingLegacy / targetingSpecificity via the 'target-*' keys)
     config.targetMarkets = targetMarkets;
     config.targetLanguages = targetLanguages;
     config.targetPageTypes = targetPageTypes;
+    config['target-countries'] = targetCountriesMulti;
+    config['target-languages'] = targetLanguagesMulti;
   } else {
     const contentRow = rows.find((row) => {
       const key = row.children[0]?.textContent?.trim().toLowerCase();
@@ -343,18 +419,18 @@ export default function decorate(block) {
   config.targetPageTypes = config.targetPageTypes || config.targetpagetypes || config['target page types'] || '';
 
   if (!shouldShowMarquesina(config)) {
-    // Remove placeholder created by bootstrapMarqueeHeight
-    const existingPlaceholder = document.querySelector('.marquesina-global-container');
-    if (existingPlaceholder) {
-      existingPlaceholder.remove();
-      document.documentElement.style.setProperty('--marquee-height', '0px');
-    }
-    // Add p-0 class to parent section container
+    // This marquesina is not for the current user. Remove ONLY its own block —
+    // never touch the shared .marquesina-global-container here, or we would wipe
+    // out a sibling marquesina that already matched and rendered into the shared
+    // slot (multiple marquesinas can be authored on the same page). The empty
+    // placeholder is collapsed centrally by scheduleMarquesinaFinalize() if, and
+    // only if, NO marquesina ends up rendering.
     const sectionContainer = block.closest('.section.marquesina-container');
     if (sectionContainer) {
       sectionContainer.classList.add('!p-0');
     }
     block.remove();
+    scheduleMarquesinaFinalize();
     return;
   }
 
@@ -403,6 +479,29 @@ export default function decorate(block) {
       document.body.insertBefore(marquesinaWrapper, document.body.firstChild);
     }
   }
+
+  // Only ONE marquesina can occupy the shared container. When several are
+  // authored on the same page and more than one matches the user, the most
+  // specific targeting wins (country > language > page-type), with DOM order as
+  // the tie-break. This replaces the old "last decorate() wins" behaviour that
+  // let an untargeted marquesina overwrite a country-targeted one.
+  const mySpecificity = targetingSpecificity(config);
+  const hasWinner = marquesinaWrapper.querySelector('[data-name="marquesina"]') !== null;
+  const winnerSpecificity = Number(marquesinaWrapper.dataset.marquesinaSpecificity ?? '-1');
+  if (hasWinner && winnerSpecificity >= mySpecificity) {
+    // A more (or equally) specific marquesina already claimed the slot. Drop this
+    // one without touching the shared container.
+    const sectionToRemove = block.closest('.section');
+    if (sectionToRemove) {
+      sectionToRemove.remove();
+    } else {
+      block.remove();
+    }
+    return;
+  }
+  marquesinaWrapper.dataset.marquesinaSpecificity = String(mySpecificity);
+  marquesinaWrapper.dataset.marquesinaAlertId = alertId;
+
   render(
     html`
       <${Marquesina}
