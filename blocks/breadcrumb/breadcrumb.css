@@ -3,7 +3,14 @@
   padding-bottom: 0;
 }
 
+/* Home stays pinned; the rest of the trail scrolls horizontally here.
+   Scrollbar is hidden; the overflow indicator is an edge fade-mask applied by
+   JS (see breadcrumb.js updateScrollMask) — background-independent, no
+   pseudo-element. */
 .breadcrumb-scroll-area {
+  /* Reserve a little room on the right so the scrolling text never sits flush
+     under the "..." indicator. */
+  margin-right: 20px;
   scrollbar-width: none;
   -ms-overflow-style: none;
 }
@@ -12,26 +19,23 @@
   display: none;
 }
 
-/* Overflow indicator (::after pseudo-element) */
-.breadcrumb-container::after {
+/* Right "more content" indicator: literal "..." that fades out as the user
+   scrolls toward the right end (opacity driven by JS via --bc-more-right) and
+   disappears at the far right. Transparent background; the scroll-area's right
+   edge fade-mask keeps the dots legible over the underlying text. */
+.breadcrumb-container:not(.section)::after {
   content: '...';
   position: absolute;
   right: 0;
   top: 50%;
   transform: translateY(-50%);
-  background: white;
-  padding-left: 3px;
-  padding-right: 3px;
+  background: transparent;
+  padding-left: 4px;
   pointer-events: none;
   font-size: 16px;
   font-weight: 700;
-  color: var(--color-zinc-900);
-  opacity: var(--overflow-indicator-opacity, 0);
-  transition: opacity 0.2s ease;
-}
-
-@media (min-width: 768px) {
-  .breadcrumb-container::after {
-    display: none;
-  }
+  line-height: 1;
+  color: var(--color-text-normal-primary, #1b1b1b);
+  opacity: var(--bc-more-right, 0);
+  transition: opacity 0.15s ease;
 }

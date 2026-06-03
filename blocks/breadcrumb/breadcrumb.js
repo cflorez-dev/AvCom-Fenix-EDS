@@ -252,51 +252,101 @@ export default async function decorate(block) {
 
   const scrollArea = container.querySelector('.breadcrumb-scroll-area');
 
-  let scrollTimeout;
+  // Below this width (mobile) the trail collapses to Home > previous > current
+  // when there are more than 3 levels. At >= 768 (tablet/desktop) all levels show.
+  const mobileQuery = window.matchMedia('(max-width: 767px)');
+  const levels = items.length;
 
-  const updateOverflowIndicator = () => {
+  // Mobile collapse: with more than 3 levels keep only the last two items
+  // (previous + current) inside the scroll area; the middle ones are hidden
+  // (display:none — still in the DOM and in the structured data for SEO).
+  const applyCollapse = () => {
     if (!scrollArea) return;
+    const children = Array.from(scrollArea.children);
+    children.forEach((el) => { el.style.display = ''; });
 
-    const hasOverflow = scrollArea.scrollWidth > scrollArea.clientWidth;
-
-    if (!hasOverflow) {
-      container.style.setProperty('--overflow-indicator-opacity', '0');
-      return;
+    if (mobileQuery.matches && levels > 3) {
+      const itemEls = children.filter((el) => !el.classList.contains('breadcrumb-separator'));
+      const previousEl = itemEls[itemEls.length - 2];
+      const keepFrom = children.indexOf(previousEl);
+      for (let i = 0; i < keepFrom; i += 1) children[i].style.display = 'none';
     }
+  };
+
+  // Width (px) of the edge fade that signals hidden content while scrolling.
+  const FADE = 28;
+  // Distance (px) before the right end over which the "..." indicator fades out.
+  const DOTS_FADE_ZONE = 32;
+
+  // Overflow indicators, both background-independent (no painted color):
+  // - a literal "..." (::after, driven by --bc-more-right) on the right: full
+  //   while there is more content ahead, fading over the last DOTS_FADE_ZONE px
+  //   and gone at the far right / when there is no overflow.
+  // - a CSS edge fade-mask on the scroll area: right while more is ahead, left
+  //   once scrolled (covers what's behind). It also keeps the "..." legible by
+  //   fading the underlying text at the right edge.
+  const updateScrollMask = () => {
+    if (!scrollArea) return;
 
     const { scrollLeft, scrollWidth, clientWidth } = scrollArea;
     const maxScroll = scrollWidth - clientWidth;
 
-    const scrollProgress = maxScroll > 0 ? scrollLeft / maxScroll : 0;
-    const opacity = Math.max(0, 1 - scrollProgress);
+    const moreRight = maxScroll > 0
+      ? Math.min(Math.max((maxScroll - scrollLeft) / DOTS_FADE_ZONE, 0), 1)
+      : 0;
+    container.style.setProperty('--bc-more-right', String(moreRight));
 
-    container.style.setProperty('--overflow-indicator-opacity', opacity.toString());
+    const fadeLeft = scrollLeft > 1 ? FADE : 0;
+    const fadeRight = scrollLeft < maxScroll - 1 ? FADE : 0;
+
+    if (!fadeLeft && !fadeRight) {
+      scrollArea.style.webkitMaskImage = '';
+      scrollArea.style.maskImage = '';
+      return;
+    }
+
+    const mask = `linear-gradient(to right, rgba(0,0,0,0) 0, rgba(0,0,0,1) ${fadeLeft}px, rgba(0,0,0,1) calc(100% - ${fadeRight}px), rgba(0,0,0,0) 100%)`;
+    scrollArea.style.webkitMaskImage = mask;
+    scrollArea.style.maskImage = mask;
   };
 
-  const throttledUpdate = () => {
-    if (scrollTimeout) return;
-    scrollTimeout = setTimeout(() => {
-      scrollTimeout = null;
-      updateOverflowIndicator();
-    }, 16); // ~60fps
+  let rafId = null;
+  let pendingCollapse = false;
+  const schedule = (recheckCollapse) => {
+    if (recheckCollapse) pendingCollapse = true;
+    if (rafId) return;
+    rafId = requestAnimationFrame(() => {
+      rafId = null;
+      if (pendingCollapse) {
+        pendingCollapse = false;
+        applyCollapse();
+      }
+      updateScrollMask();
+    });
   };
+  const scheduleMask = () => schedule(false); // scroll: collapse doesn't change
+  const scheduleAll = () => schedule(true); // resize / breakpoint change
 
-  const initialCheckTimeout = setTimeout(updateOverflowIndicator, 100);
+  applyCollapse();
+  updateScrollMask();
 
-  const resizeHandler = () => throttledUpdate();
-  const scrollHandler = () => throttledUpdate();
-
-  window.addEventListener('resize', resizeHandler);
-  if (scrollArea) {
-    scrollArea.addEventListener('scroll', scrollHandler, { passive: true });
+  if (scrollArea) scrollArea.addEventListener('scroll', scheduleMask, { passive: true });
+  const resizeObserver = new ResizeObserver(scheduleAll);
+  if (scrollArea) resizeObserver.observe(scrollArea);
+  window.addEventListener('resize', scheduleAll);
+  mobileQuery.addEventListener('change', scheduleAll);
+  // Re-check once fonts/icons settle (content width changes after load)
+  if (document.fonts && document.fonts.ready) {
+    document.fonts.ready.then(scheduleAll);
   }
+  const settleTimeout = setTimeout(scheduleAll, 200);
 
   block.addEventListener('unload', () => {
-    clearTimeout(initialCheckTimeout);
-    clearTimeout(scrollTimeout);
-    window.removeEventListener('resize', resizeHandler);
-    if (scrollArea) {
-      scrollArea.removeEventListener('scroll', scrollHandler);
-    }
+    if (rafId) cancelAnimationFrame(rafId);
+    clearTimeout(settleTimeout);
+    resizeObserver.disconnect();
+    if (scrollArea) scrollArea.removeEventListener('scroll', scheduleMask);
+    window.removeEventListener('resize', scheduleAll);
+    mobileQuery.removeEventListener('change', scheduleAll);
   });
 }
