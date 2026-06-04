@@ -844,18 +844,24 @@ async function loadEager(doc) {
     }
   }
 
-  // Safety net: scripts injected late by GTM (e.g. Zendesk chat) assign
-  // window.onload after the load event has already fired, so the handler
-  // never runs. Intercept the assignment and execute immediately when late.
+  // Safety net: scripts injected late (e.g. the Centribal/Zendesk chat loaded
+  // from delayed.js) assign window.onload after the load event has already
+  // fired, so the handler never runs. Intercept the assignment and execute it
+  // immediately when late.
+  // NOTE: this block can itself install AFTER the load event (loadEager does
+  // async section work, so on heavy pages it reaches here past loadEventEnd).
+  // We therefore seed pageFullyLoaded from document.readyState and also check
+  // readyState in the setter — relying only on the 'load' listener would leave
+  // the net inert whenever it installs late (the very case it must cover).
   {
-    let pageFullyLoaded = false;
+    let pageFullyLoaded = document.readyState === 'complete';
     let currentOnloadHandler = window.onload;
     window.addEventListener('load', () => { pageFullyLoaded = true; });
     Object.defineProperty(window, 'onload', {
       get() { return currentOnloadHandler; },
       set(fn) {
         currentOnloadHandler = fn;
-        if (pageFullyLoaded && typeof fn === 'function') {
+        if ((pageFullyLoaded || document.readyState === 'complete') && typeof fn === 'function') {
           setTimeout(fn, 0);
         }
       },
