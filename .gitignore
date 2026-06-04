@@ -14,3 +14,6 @@ fix-canva/
 test-smartvel-boot.html
 well-known/
 improvements/
+
+# Throwaway local E2E test pages (see docs/local-e2e-head-testing.md)
+e2e-*.html

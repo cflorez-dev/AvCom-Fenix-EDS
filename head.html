@@ -24,7 +24,6 @@
 <link rel="preconnect" href="https://cdn.jsdelivr.net"/>
 <link rel="dns-prefetch" href="https://cdn.jsdelivr.net"/>
 <link rel="preload" as="script" crossorigin="anonymous" href="https://cdn.jsdelivr.net/npm/dompurify@3.3.3/dist/purify.min.js"/>
-<link rel="dns-prefetch" href="https://avianca-help.centribal.com"/>
 
 <!-- Favicon — cross-browser & cross-device -->
 <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
@@ -57,10 +56,6 @@
      visible. Otherwise the grid columns load late and the title/rich-text
      reflows from full-width to its narrow column (large layout shift / CLS). -->
 <link rel="preload" as="style" href="/styles/grid-layout.css" />
-
-<!-- Centribal -->
-<link rel="stylesheet" href="https://avianca-help.centribal.com/api/v1/recaptcha-css/" />
-<script nonce="aem" src="https://avianca-help.centribal.com/api/v1/recaptcha-jsx/"></script>
 
 <!-- Early LCP preload: detect the cms-background-image block as the HTML
      parser builds the DOM and inject a <link rel="preload"> for the
