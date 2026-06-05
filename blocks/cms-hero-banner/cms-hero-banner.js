@@ -6,6 +6,7 @@ import { PromotionalCountdownCard, AbsoluteCountdown } from '../../design-system
 import { fetchAEMData } from '../../scripts/utils/aem-data.js';
 import { shouldShowByTargeting, hideBlockWithSection } from '../../scripts/utils/target-filter.js';
 import { getStoredLanguage } from '../../scripts/services/header/language-country-selector.js';
+import { sanitizeHTMLAsync, isSafeUrl } from '../../scripts/utils/sanitize.js';
 
 const html = htm.bind(h);
 
@@ -170,13 +171,21 @@ export default async function decorate(block) {
   const cardContainer = document.createElement('div');
   cardContainer.className = 'w-full max-w-full min-[1248px]:h-full relative z-10';
 
+  // Sanitize the author-controlled rich-text values that PromotionalCountdownCard
+  // renders via dangerouslySetInnerHTML (title, subtitle), and validate the CTA URL
+  // scheme to block javascript:/data: XSS. The remaining props (price/route/labels/
+  // buttonText) render as Preact text children and are auto-escaped.
+  const safeTitle = await sanitizeHTMLAsync(title || '');
+  const safeDescription = await sanitizeHTMLAsync(description || '');
+  const safeCtaUrl = isSafeUrl(ctaurl) ? ctaurl : '#';
+
   // Render PromotionalCountdownCard component wrapped with auto-hide logic
   render(
     html`
       <${HeroBannerWrapper}>
         <${PromotionalCountdownCard}
-          title=${title || ''}
-          subtitle=${description || ''}
+          title=${safeTitle}
+          subtitle=${safeDescription}
           countdownLabel=${countdowntitle || 'La oferta termina en'}
           endDateTime=${enddate || ''}
           showCountdown=${showcountdown === 'true' || showcountdown === true}
@@ -185,7 +194,7 @@ export default async function decorate(block) {
           routeLabel=${route || ''}
           showPrice=${showpricetag === 'true' || showpricetag === true}
           buttonText=${ctatext || 'Reservar'}
-          buttonUrl=${ctaurl || '#'}
+          buttonUrl=${safeCtaUrl}
           showButton=${showbutton === 'true' || showbutton === true}
           daysLabel=${daysLabel}
           hoursLabel=${hoursLabel}

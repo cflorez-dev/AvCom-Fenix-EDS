@@ -774,7 +774,7 @@ async function loadEager(doc) {
   // No longer vendored in the repo — loaded from jsdelivr with pinned version (closes F4 / 117).
   // crossorigin matches the <link rel=preload> in head.html so the browser reuses
   // the preloaded resource (otherwise it warns "credentials mode does not match").
-  loadScript('https://cdn.jsdelivr.net/npm/dompurify@3.3.3/dist/purify.min.js', { crossorigin: 'anonymous' });
+  loadScript('https://cdn.jsdelivr.net/npm/dompurify@3.4.0/dist/purify.min.js', { crossorigin: 'anonymous' });
 
   // Start locale resolution early but don't block DOM work that doesn't need it
   const localeReady = initLocaleGlobals();
@@ -844,24 +844,18 @@ async function loadEager(doc) {
     }
   }
 
-  // Safety net: scripts injected late (e.g. the Centribal/Zendesk chat loaded
-  // from delayed.js) assign window.onload after the load event has already
-  // fired, so the handler never runs. Intercept the assignment and execute it
-  // immediately when late.
-  // NOTE: this block can itself install AFTER the load event (loadEager does
-  // async section work, so on heavy pages it reaches here past loadEventEnd).
-  // We therefore seed pageFullyLoaded from document.readyState and also check
-  // readyState in the setter — relying only on the 'load' listener would leave
-  // the net inert whenever it installs late (the very case it must cover).
+  // Safety net: scripts injected late by GTM (e.g. Zendesk chat) assign
+  // window.onload after the load event has already fired, so the handler
+  // never runs. Intercept the assignment and execute immediately when late.
   {
-    let pageFullyLoaded = document.readyState === 'complete';
+    let pageFullyLoaded = false;
     let currentOnloadHandler = window.onload;
     window.addEventListener('load', () => { pageFullyLoaded = true; });
     Object.defineProperty(window, 'onload', {
       get() { return currentOnloadHandler; },
       set(fn) {
         currentOnloadHandler = fn;
-        if ((pageFullyLoaded || document.readyState === 'complete') && typeof fn === 'function') {
+        if (pageFullyLoaded && typeof fn === 'function') {
           setTimeout(fn, 0);
         }
       },
