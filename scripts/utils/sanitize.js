@@ -1,6 +1,6 @@
 import { loadScript } from '../aem.js';
 
-const DOMPURIFY_CDN = 'https://cdn.jsdelivr.net/npm/dompurify@3.3.3/dist/purify.min.js';
+const DOMPURIFY_CDN = 'https://cdn.jsdelivr.net/npm/dompurify@3.4.0/dist/purify.min.js';
 let domPurifyLoaded = false;
 
 /**

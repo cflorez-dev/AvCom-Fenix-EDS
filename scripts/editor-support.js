@@ -35,7 +35,7 @@ async function applyChanges(event) {
   if (!content) return false;
 
   // Ensure DOMPurify is loaded from CDN before sanitizing
-  await loadScript('https://cdn.jsdelivr.net/npm/dompurify@3.3.3/dist/purify.min.js');
+  await loadScript('https://cdn.jsdelivr.net/npm/dompurify@3.4.0/dist/purify.min.js');
   const sanitizedContent = window.DOMPurify.sanitize(content, { USE_PROFILES: { html: true } });
   const parsedUpdate = new DOMParser().parseFromString(sanitizedContent, 'text/html');
   const element = document.querySelector(`[data-aue-resource="${resource}"]`);
