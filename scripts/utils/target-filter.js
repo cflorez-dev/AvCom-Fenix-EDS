@@ -28,7 +28,7 @@ const COUNTRY_CODE_TO_ISO = {
   pan: 'pa',
   pry: 'py',
   dom: 'do',
-  esp: 'eu',
+  esp: 'es',
   gbr: 'gb',
   ury: 'uy',
   oth: 'ot',
@@ -66,6 +66,18 @@ function isAuthorEnvironment() {
 }
 
 /**
+ * Legacy targeting-value aliases. The Universal Editor model historically offered
+ * Spain with the value 'eu' (a stale "Europe" code that never existed in the POS
+ * catalog — Spain's real POS code is 'es'). Content authored before the model was
+ * fixed still carries 'eu', so we normalize it to 'es' at read time. Without this,
+ * every Spain-targeted block stays hidden because a real Spain visitor's cookie is
+ * 'es' and 'eu' matches nothing.
+ */
+const LEGACY_TARGET_COUNTRY_ALIASES = {
+  eu: 'es',
+};
+
+/**
  * Parse target values from config (supports both array and comma-separated string formats)
  * @param {string|Array<string>} targetValue - Target value from block config
  * @returns {Array<string>} Array of lowercase, trimmed target values
@@ -75,16 +87,21 @@ function parseTargetValues(targetValue) {
     return [];
   }
 
+  const normalize = (v) => {
+    const code = String(v).trim().toLowerCase();
+    return LEGACY_TARGET_COUNTRY_ALIASES[code] || code;
+  };
+
   // If already an array (multiselect returns array)
   if (Array.isArray(targetValue)) {
-    return targetValue.map((v) => String(v).trim().toLowerCase()).filter(Boolean);
+    return targetValue.map(normalize).filter(Boolean);
   }
 
   // If string (comma-separated or single value)
   if (typeof targetValue === 'string') {
     return targetValue
       .split(',')
-      .map((v) => v.trim().toLowerCase())
+      .map(normalize)
       .filter(Boolean);
   }
 
