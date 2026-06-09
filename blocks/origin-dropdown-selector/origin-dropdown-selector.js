@@ -6,7 +6,7 @@ import {
   GEO_NEAREST_AIRPORT_REFRESHED_EVENT,
 } from '../../scripts/utils/event-constants.js';
 import { fetchAEMData } from '../../scripts/utils/aem-data.js';
-import { getMainCityForCurrentPos } from '../../scripts/services/header/language-country-selector.js';
+import { getMainCityForCurrentPos, getStoredLanguage } from '../../scripts/services/header/language-country-selector.js';
 
 const html = htm.bind(h);
 
@@ -60,9 +60,11 @@ function getNearestAirportForCurrentPos(posCode) {
 }
 
 /**
- * Gets the city name from IATA code
+ * Gets the localized city name from IATA code.
+ * Uses the language-specific column (ciudad_en/_fr/_pt) so the displayed
+ * name matches the active language — e.g. "Bogota" (en) vs "Bogotá" (es).
  * @param {string} iataCode - IATA code (e.g., 'MDE', 'CLO')
- * @returns {string} City name or code if not found
+ * @returns {string} Localized city name or code if not found
  */
 function getCityNameFromIata(iataCode) {
   if (!iataCode || !iataCache) return iataCode;
@@ -71,7 +73,17 @@ function getCityNameFromIata(iataCode) {
     (item) => item.codigo_iata?.toUpperCase() === iataCode.toUpperCase(),
   );
 
-  return cityData?.ciudad || iataCode;
+  if (!cityData) return iataCode;
+
+  const language = getStoredLanguage() || 'es';
+  const columnMap = {
+    es: 'ciudad',
+    en: 'ciudad_en',
+    fr: 'ciudad_fr',
+    pt: 'ciudad_pt',
+  };
+  const column = columnMap[language] || 'ciudad';
+  return (cityData[column] || cityData.ciudad || iataCode).trim();
 }
 
 /**
