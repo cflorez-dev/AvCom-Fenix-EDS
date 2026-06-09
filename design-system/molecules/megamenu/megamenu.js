@@ -121,10 +121,17 @@ export const MegamenuItem = ({
     const cloned = svgEl.cloneNode(true);
     cloned.setAttribute('width', size);
     cloned.setAttribute('height', size);
+    // Append the already-parsed SVG node directly via a ref callback instead of
+    // serializing it back to a string and re-injecting through
+    // dangerouslySetInnerHTML (a DOM XSS sink). renderSvgIcon is a plain helper,
+    // not a component, so it must stay hook-free — a ref callback is safe here.
+    const attachSvg = (spanEl) => {
+      if (spanEl) spanEl.replaceChildren(cloned);
+    };
     return html`
       <span
         class="inline-flex items-center justify-center"
-        dangerouslySetInnerHTML=${{ __html: cloned.outerHTML }}
+        ref=${attachSvg}
       />
     `;
   };
