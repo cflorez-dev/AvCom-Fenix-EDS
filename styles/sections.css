@@ -76,8 +76,8 @@ div.section[data-section-type='hero-destinations'] div.default-content-wrapper{
 
   div.section[data-section-type='hero-destinations-detail'] .default-content-wrapper {
     img {
-      aspect-ratio: 2;
-      object-fit: fill;
+      width: 100%;
+      height: auto;
     }
   }
 }
