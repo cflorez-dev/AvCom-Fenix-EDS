@@ -35,7 +35,7 @@ export const DestinationCard = ({
   // dummy href — avoiding broken link affordances.
   const safeHref = href && isSafeUrl(href) ? href : null;
   const Tag = safeHref ? 'a' : 'div';
-  const linkProps = safeHref ? { href: safeHref, target: '_blank', rel: 'noopener noreferrer' } : {};
+  const linkProps = safeHref ? { href: safeHref } : {};
 
   return html`
     <${Tag}
