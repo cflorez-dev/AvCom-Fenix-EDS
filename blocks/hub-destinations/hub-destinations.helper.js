@@ -113,7 +113,6 @@ function getMappedDestination(destinations, language, zoneLabel, i18n, allCities
       href: `/${language}/${preSlug}-${toSlug(destinationName || '')}`,
       onClick: () => {
         setCookie(DESTINATION_IATA_COOKIE, iataCityCode, DESTINATION_IATA_COOKIE_DAYS);
-        window.location.href = `/${language}/${preSlug}-${toSlug(destinationName || '')}`;
       },
     });
     return acc;
@@ -231,7 +230,6 @@ function getDestinationsByCountrie(country, language, i18n, allCitiesData) {
       href: `/${language}/${preSlug}-${toSlug(destinationName || '')}`,
       onClick: () => {
         setCookie(DESTINATION_IATA_COOKIE, iataCityCode, DESTINATION_IATA_COOKIE_DAYS);
-        window.location.href = `/${language}/${preSlug}-${toSlug(destinationName || '')}`;
       },
     });
     return acc;
