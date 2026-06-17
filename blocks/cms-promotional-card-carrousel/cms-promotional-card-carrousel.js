@@ -4,6 +4,7 @@ import { extractCmsPromotionalCardCarrouselProps, extractCarouselCards } from '.
 import { PromotionalCardCarrousel } from '../../design-system/organisms/cards/promotional-card-carrousel/promotional-card-carrousel.js';
 import { Carousel } from '../../design-system/molecules/carousel/carousel.js';
 import { shouldShowByTargeting, hideBlockWithSection } from '../../scripts/utils/target-filter.js';
+import { sanitizeHTMLAsync } from '../../scripts/utils/sanitize.js';
 
 const html = htm.bind(h);
 
@@ -145,7 +146,7 @@ function renderMultiCardsCarousel(cards, loadingMode) {
  * Decorates the CMS Promotional Card Carrousel block
  * @param {Element} block The cms-promotional-card-carrousel block element
  */
-export default function decorate(block) {
+export default async function decorate(block) {
   // Extract configuration and cards using helper
   const props = extractCmsPromotionalCardCarrouselProps(block);
 
@@ -185,6 +186,15 @@ export default function decorate(block) {
   container.className = 'cms-promotional-card-carrousel-content w-full pt-4 pb-8';
   container.dataset.loading = loadingMode;
 
+  // Defensively sanitize author-controlled card fields before rendering.
+  // description is richtext (innerHTML extraction); title is plain text. Both
+  // render as Preact text-children; sanitizing here adds defense in depth.
+  const safeCards = await Promise.all(cards.map(async (c) => ({
+    ...c,
+    title: await sanitizeHTMLAsync(c.title || ''),
+    description: await sanitizeHTMLAsync(c.description || ''),
+  })));
+
   /**
    * Render logic based on cards count and viewport width
    * Rules:
@@ -201,16 +211,16 @@ export default function decorate(block) {
 
     // ONLY exception to carousel: 3 cards + Desktop
     if (totalCards === 3 && isDesktop) {
-      render(renderThreeCardsGrid(cards, loadingMode), container);
+      render(renderThreeCardsGrid(safeCards, loadingMode), container);
     } else if (totalCards === 3) {
       // 3 cards on mobile
-      render(renderThreeCardsCarousel(cards, loadingMode), container);
+      render(renderThreeCardsCarousel(safeCards, loadingMode), container);
     } else if (totalCards >= 4) {
       // 4+ cards
-      render(renderMultiCardsCarousel(cards, loadingMode), container);
+      render(renderMultiCardsCarousel(safeCards, loadingMode), container);
     } else {
       // 1-2 cards (fallback carousel)
-      render(renderThreeCardsCarousel(cards, loadingMode), container);
+      render(renderThreeCardsCarousel(safeCards, loadingMode), container);
     }
   };
 
