@@ -1,0 +1,103 @@
+/* ============================================================
+ * Contact Promo Block — minimal CSS layer
+ *
+ * Most styling lives as Tailwind utilities directly on the
+ * Preact organism (design-system/organisms/contact-promo-block).
+ *
+ * This file ONLY contains rules that target HTML the AUTHOR
+ * injects through the richtext fields (rightTitle, rightDescription).
+ * Those nodes cannot receive Tailwind classes, so we scope them
+ * with the parent class.
+ * ============================================================ */
+
+/* NOTE: Section-level lateral padding is handled by a separate ticket
+   that configures section padding globally. Not overriding here. */
+
+/* --- Richtext margin resets (CASO 2) ---
+   Kill ALL margins on children injected via dangerouslySetInnerHTML,
+   not just first/last child. Phantom spacing from global h/p styles. */
+
+.contact-promo-block .cpb-contact-title > *,
+.contact-promo-block .cpb-app-title > *,
+.contact-promo-block .cpb-app-desc > * {
+  margin-top: 0;
+  margin-bottom: 0;
+}
+
+/* --- Title typography (CASO 6, 12) ---
+   Force font-weight/size/line-height on title wrappers regardless
+   of what tag the author uses inside (h2, h3, p). */
+
+.contact-promo-block .cpb-contact-title,
+.contact-promo-block .cpb-contact-title > * {
+  font-size: 20px;
+  font-weight: 700;
+  line-height: normal;
+  color: var(--text-normal-primary, #1b1b1b);
+}
+
+.contact-promo-block .cpb-app-title,
+.contact-promo-block .cpb-app-title > * {
+  font-size: 18px;
+  font-weight: 700;
+  line-height: normal;
+  color: var(--text-normal-primary, #1b1b1b);
+}
+
+@media (width >= 768px) {
+  .contact-promo-block .cpb-app-title,
+  .contact-promo-block .cpb-app-title > * {
+    font-size: 20px;
+  }
+}
+
+/* --- App description color (CASO 4) --- */
+.contact-promo-block .cpb-app-desc {
+  color: var(--text-normal-primary, #1b1b1b);
+}
+
+.contact-promo-block .cpb-contact-title h2,
+.contact-promo-block .cpb-app-title h2,
+.contact-promo-block .cpb-contact-title h3,
+.contact-promo-block .cpb-app-title h3,
+.contact-promo-block .cpb-contact-title h4,
+.contact-promo-block .cpb-app-title h4,
+.contact-promo-block .cpb-contact-title h5,
+.contact-promo-block .cpb-app-title h5,
+.contact-promo-block .cpb-contact-title h6,
+.contact-promo-block .cpb-app-title h6 {
+    font-weight: 700;
+    line-height: 26px;
+}
+
+/* Bullet list inside richtext description (author writes raw <ul>) */
+.contact-promo-block .cpb-app-desc ul {
+  list-style: disc;
+  margin: 0;
+  padding-left: 21px;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.contact-promo-block .cpb-app-desc ul li {
+  font-size: clamp(0.875rem, 0.824rem + 0.225vw, 1rem); /* 14px → 16px */
+  font-style: normal;
+  font-weight: 400;
+  line-height: 150%; /* 24px */
+  letter-spacing: var(--letter-spacing-normal, 0);
+  color: var(--text-normal-primary, #1b1b1b);
+}
+
+@media (width <= 767px) {
+    main > .section.contact-promo-block-container {
+        padding-top: 24px;
+        padding-bottom: 24px;
+    }
+}
+
+@media (width >= 768px) {
+  .contact-promo-block .cpb-app-desc ul {
+    padding-left: 24px;
+  }
+}
