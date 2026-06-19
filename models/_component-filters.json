@@ -21,6 +21,7 @@
       "cms-modal",
       "cms-rich-text",
       "cms-hero-banner",
+      "cms-new-hero-banner",
       "cms-secondary-banner",
       "cms-promotional-cards-rail",
       "cms-promotional-card-carrousel",
@@ -52,12 +53,14 @@
       "tips-cards",
       "tables",
       "cms-interactive-banner",
+      "cms-flexible-content-banner",
       "html-embed",
       "destination-details",
       "hub-destinations",
       "accordion-simplified",
       "header-megamenu-column",
-      "header-megamenu-form"
+      "header-megamenu-form",
+      "contact-promo-block"
     ]
   },
   {
@@ -164,6 +167,12 @@
     ]
   },
   {
+    "id": "cms-new-hero-banner",
+    "components": [
+      "cms-new-hero-banner-action-button"
+    ]
+  },
+  {
     "id": "rte-lab-richtext",
     "components": [
       "richtext"
@@ -186,5 +195,12 @@
         }
       }
     }
+  },
+  {
+    "id": "contact-promo-block",
+    "components": [
+      "contact-promo-block-item",
+      "contact-promo-block-social"
+    ]
   }
 ]

@@ -1,0 +1,209 @@
+/* CMS New Hero Banner — Organism
+   Hard values centralized as local CSS variables for easier maintenance and
+   to allow overrides from consumer blocks. Project-wide tokens
+   (--max-width-content, --font-*, --text-normal-*) are pulled from
+   /styles/variables/*. Media-query breakpoints: mobile ≤767,
+   tablet 768-1079, desktop ≥1080. (Boundary tablet/desktop subido desde
+   1023/1024 por requerimiento; Figma HOME-13052026 original usaba 1023/1024.)
+   CSS vars cannot be used inside @media per the CSS spec, so the px values
+   are duplicated literally — same pattern as cms-hero-banner.css.
+
+   Specs source: Figma file W7BmGIUHKyqd8PemYVWNTc (HOME-13052026):
+   - 9505:116358 → Banner + BookingBox medidas/data
+   - 9505:116133 → Banner + Botón medidas/data
+   - 9515:72690 → Text-shadow config */
+
+.cms-new-hero-banner {
+  /* Local design tokens — altura de la IMAGEN del banner según Figma HOME-13052026
+     (nodos 9505:114290 mobile, 9504:69491 tablet, 9207:44112 desktop).
+     Mobile: button mode = 322 (9505:116727), booking mode = 332 (override en
+     la regla [data-action-mode="booking"] más abajo). Tablet/Desktop: idénticos
+     en ambos modos. */
+  --cms-new-hero-min-height-mobile: 322px;
+  --cms-new-hero-min-height-tablet: 340px;
+  --cms-new-hero-min-height-desktop: 400px;
+
+  /* Booking-mode overlap: how much the BookingBox extends below the bg image.
+     Figma indica 208/200/84; ajustado +80 en tablet/mobile (288/280) para que
+     el booking quede visualmente más abajo del banner. */
+  --cms-new-hero-overlap-mobile: 215px;
+  --cms-new-hero-overlap-tablet: 210px;
+  --cms-new-hero-overlap-desktop: 84px;
+
+  /* Overlay tint on the background image */
+  --cms-new-hero-overlay-bg: rgba(27, 27, 27, 0.15);
+
+  /* Description font-size y line-height por breakpoint — valores FIJOS
+     (Figma HOME-13052026). No usar --font-size-medium/large: son clamps
+     fluidos y hacen "danzar" el tamaño con cada px del viewport (QA caso 3/4/5). */
+  --cms-new-hero-description-size-mobile: 21px;
+  --cms-new-hero-description-size-tablet: 24px;
+  --cms-new-hero-description-size-desktop: 28px;
+  --cms-new-hero-description-lh-mobile: 28px;
+  --cms-new-hero-description-lh-tablet: 32px;
+  --cms-new-hero-description-lh-desktop: 37px;
+
+  position: relative;
+  width: 100%;
+  min-height: var(--cms-new-hero-min-height-mobile);
+  overflow: visible;
+  display: flex;
+  justify-content: center;
+}
+
+/* Background image layer (image URL CSS vars are set by the adapter).
+   Sin z-index: el bg va detrás del content por orden DOM (bg viene primero).
+   Forzar z-index aquí creaba stacking contexts que ocluyen el header sticky. */
+.cms-new-hero-banner__bg {
+  position: absolute;
+  inset: 0;
+  background-image: var(--cms-new-hero-mobile);
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+/* Booking mode: bg image se recorta `overlap` px antes del bottom del section,
+   dejando que el BookingBox solape esos `overlap` px finales. Valores fijos
+   por breakpoint según Figma HOME-13052026: mobile 208, tablet 200, desktop 84. */
+.cms-new-hero-banner[data-action-mode="booking"] .cms-new-hero-banner__bg {
+  bottom: var(--cms-new-hero-overlap-mobile);
+}
+
+/* Booking mode: el section crece (altura-imagen + overlap) para que la imagen
+   quede visible en su altura completa (332/340/400 Figma) y el BookingBox
+   solape solo abajo. Mobile booking usa 332 explícito (10 px más que button
+   mode = 322). */
+.cms-new-hero-banner[data-action-mode="booking"] {
+  min-height: calc(332px + var(--cms-new-hero-overlap-mobile));
+}
+
+/* Subtle dark overlay to improve text legibility over any image */
+.cms-new-hero-banner__bg::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-color: var(--cms-new-hero-overlay-bg);
+  pointer-events: none;
+}
+
+/* Force title + description to inherit color from parent text container,
+   overriding any global h1-h6 color rules from /styles/styles.css */
+.cms-new-hero-banner__title,
+.cms-new-hero-banner__description {
+  color: inherit;
+}
+
+/* Description responsive font-size + weight via local tokens.
+   Also target inner <p> because AEM richtext emits the content wrapped in a paragraph
+   and the global p { font-size } from /styles/styles.css would otherwise win. */
+.cms-new-hero-banner__description,
+.cms-new-hero-banner__description > p {
+  font-size: var(--cms-new-hero-description-size-mobile);
+  font-weight: var(--font-weight-bold, 700);
+  line-height: var(--cms-new-hero-description-lh-mobile);
+  margin: 0;
+}
+
+/* When the author formats the title as a Heading, AEM richtext emits a nested
+   heading (e.g. <h1 id="...">) INSIDE the titleLevel wrapper. The global
+   h1-h6 rule in /styles/styles.css then leaks margin (0.8em/0.25em),
+   line-height (1.25) and font-weight (600) onto it, adding the unwanted
+   top/bottom space QA reported (bug 1258898). The `!m-0` on the wrapper only
+   neutralizes the OUTER element, not this nested heading. Reset the nested
+   heading so it inherits the wrapper's intended typography (text size, weight
+   and line-height) with no margin. Specificity (0,1,1) beats the global
+   h1-h6 rule (0,0,1), so no !important is needed. */
+.cms-new-hero-banner__title :is(h1, h2, h3, h4, h5, h6) {
+  margin: 0;
+  font-size: inherit;
+  font-weight: inherit;
+  line-height: inherit;
+  color: inherit;
+}
+
+/* Content overlay always above background.
+   Layout grid:
+   - Row 1 = 1fr (toma el espacio libre), `.__text` con align-self: center
+     se centra vertical en ese espacio. Cumple "Auto arriba/abajo" del Figma.
+   - Row 2 = auto (toma la altura natural). `.__booking` se acomoda aquí cuando
+     existe, quedando anclado al fondo del section.
+   `grid-template-columns: 1fr` es obligatorio para que ambos items compartan
+   una sola columna (sin él, el grid auto-genera columnas y colapsa el text).
+   En modo button/none no hay booking; row 2 colapsa a 0 y el text queda
+   centrado en todo el min-height (= altura imagen). */
+.cms-new-hero-banner__content {
+  position: relative;
+  width: 100%;
+  min-height: inherit;
+  display: grid;
+  grid-template-columns: 1fr;
+  grid-template-rows: 1fr auto;
+}
+
+.cms-new-hero-banner__text {
+  align-self: center;
+}
+
+/* Booking box width constraint inside hero — uses project-wide content max-width token */
+.cms-new-hero-banner__booking {
+  width: 100%;
+  max-width: var(--max-width-content);
+  margin-inline: auto;
+}
+
+/* Tablet (768-1079 — boundary subido desde 1023 por requerimiento) */
+@media (width >= 768px) and (width <= 1079px) {
+  .cms-new-hero-banner {
+    min-height: var(--cms-new-hero-min-height-tablet);
+  }
+
+  .cms-new-hero-banner__bg {
+    background-image: var(--cms-new-hero-tablet);
+  }
+
+  .cms-new-hero-banner[data-action-mode="booking"] .cms-new-hero-banner__bg {
+    bottom: var(--cms-new-hero-overlap-tablet);
+  }
+
+  .cms-new-hero-banner[data-action-mode="booking"] {
+    min-height: calc(
+      var(--cms-new-hero-min-height-tablet) +
+      var(--cms-new-hero-overlap-tablet)
+    );
+  }
+
+  .cms-new-hero-banner__description,
+  .cms-new-hero-banner__description > p {
+    font-size: var(--cms-new-hero-description-size-tablet);
+    line-height: var(--cms-new-hero-description-lh-tablet);
+  }
+}
+
+/* Desktop (≥1080 — boundary subido desde 1024 por requerimiento) */
+@media (width >= 1080px) {
+  .cms-new-hero-banner {
+    min-height: var(--cms-new-hero-min-height-desktop);
+  }
+
+  .cms-new-hero-banner__bg {
+    background-image: var(--cms-new-hero-desktop);
+  }
+
+  .cms-new-hero-banner[data-action-mode="booking"] .cms-new-hero-banner__bg {
+    bottom: var(--cms-new-hero-overlap-desktop);
+  }
+
+  .cms-new-hero-banner[data-action-mode="booking"] {
+    min-height: calc(
+      var(--cms-new-hero-min-height-desktop) +
+      var(--cms-new-hero-overlap-desktop)
+    );
+  }
+
+  .cms-new-hero-banner__description,
+  .cms-new-hero-banner__description > p {
+    font-size: var(--cms-new-hero-description-size-desktop);
+    line-height: var(--cms-new-hero-description-lh-desktop);
+  }
+}
