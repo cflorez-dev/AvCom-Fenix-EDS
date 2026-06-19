@@ -49,7 +49,7 @@ export const ContactPromoBlock = ({
 
   return html`
     <div class="contact-promo-block w-full" data-name="contactPromoBlock">
-      <div class="flex flex-col gap-8 w-full min-[513px]:gap-9 md:flex-row md:items-stretch md:gap-6 lg:gap-8">
+      <div class="flex flex-col gap-8 w-full min-[513px]:gap-9 md:flex-row md:items-stretch md:gap-6 lg:items-center lg:gap-8">
 
         <section
           class="flex flex-col gap-6 flex-1 min-h-[204px] md:flex-1 md:min-w-0 rounded-none"
@@ -127,7 +127,7 @@ export const ContactPromoBlock = ({
         ></div>
 
         <section
-          class="flex flex-col items-center gap-4 rounded-2xl min-[513px]:flex-row min-[513px]:items-end min-[513px]:justify-center md:flex-row md:items-center md:gap-8 md:flex-[2_1_0] md:min-w-0"
+          class="flex flex-col items-center gap-4 rounded-2xl min-[513px]:flex-row min-[513px]:items-end min-[513px]:justify-center md:flex-row md:items-center md:gap-8 md:flex-[2_1_0] md:min-w-0 lg:flex-1"
           aria-labelledby="cpb-app-title"
         >
           ${rightImage && html`
