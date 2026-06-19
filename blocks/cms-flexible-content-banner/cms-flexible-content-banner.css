@@ -1,0 +1,124 @@
+/* CMS Flexible Content Banner — block-specific styles.
+ * Most layout/colour is driven by Tailwind classes inside the organism Preact
+ * component. This file complements it with:
+ *   - section padding override (mobile vs desktop)
+ *   - explicit responsive line-clamp rules backed by data-truncate attributes
+ *     (mirrors PBI 1242943: title 2 lines, description 3 lines on ≥ 768px;
+ *     no clamping on mobile so text + container expand naturally).
+ */
+
+main > .section.cms-flexible-content-banner-container {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: center;
+  padding-inline: 16px;
+}
+
+/* Force every wrapper in the block chain to take the full section width.
+   Without these, the AEM wrappers (`.cms-flexible-content-banner-wrapper`
+   and the inner `.block`) shrink to their natural content width when the
+   parent uses `display: flex`, causing the banner to look half-width inside
+   a section that is actually wider. */
+.cms-flexible-content-banner-wrapper,
+.cms-flexible-content-banner-wrapper > .cms-flexible-content-banner.block {
+  width: 100%;
+  max-width: 100%;
+}
+
+/* Figma drop shadow (node 9156:36439). Applied via CSS instead of Tailwind
+   utility because the rgba() commas break Tailwind v4 arbitrary value scanning. */
+.cms-flexible-content-banner-content [data-name="flexible-content-banner"] {
+  box-shadow: 0 2px 25px 2px rgb(120 124 130 / 15%);
+}
+
+@media (width >= 1024px) {
+  main > .section.cms-flexible-content-banner-container {
+    padding-inline: 32px;
+  }
+}
+
+/* From 1280px upward the banner's own max-w-[1248px] is the binding constraint;
+   the section's padding-inline only steals width from the banner without adding
+   visible breathing room (the section is already capped at 1248px by the project
+   default). Drop the padding here so the banner reaches its Figma-spec 1248px. */
+@media (width >= 1280px) {
+  main > .section.cms-flexible-content-banner-container {
+    padding-inline: 0;
+  }
+}
+
+/* Mobile: no truncation — text expands naturally with the container. */
+.cms-flexible-content-banner-content [data-name="flexible-content-banner"] [data-truncate="title"],
+.cms-flexible-content-banner-content [data-name="flexible-content-banner"] [data-truncate="description"] {
+  display: block;
+  overflow: visible;
+}
+
+/* Reset paragraph margins inside the description.
+   dangerouslySetInnerHTML injects a <p> whose default browser margin
+   (14.4px / 4.5px) leaks into the banner layout. The `[&_p]:m-0` Tailwind
+   variant we set on the wrapper doesn't always win against project resets,
+   so we enforce it here at the block scope. */
+.cms-flexible-content-banner-content [data-name="flexible-content-banner"] [data-truncate="description"] > p {
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+/* CTA Figma-exact overrides.
+   The organism passes size="xs" on mobile (<768) and size="md" on tablet+desktop
+   so the atom Button emits its own h-8/h-12 and px-4/px-6 utilities. The padding
+   horizontal still needs nudging (18 not 16, 26 not 24) and the typography is
+   forced because the project's fluid type scale drifts the atom's defaults.
+   Figma spec: mobile 14/19, tablet+desktop 20/26. */
+.cms-flexible-content-banner-content [data-name="flexible-content-banner"] [data-cta-kind] {
+  padding-inline: 18px !important;
+}
+
+/* Typography rules target both the link element and its inner <span> because
+   the atom Button puts the label text inside a span with its own `text-sm` /
+   `text-xl` class — those Tailwind utilities ship a paired line-height that
+   would otherwise override the value we set on the link. */
+.cms-flexible-content-banner-content [data-name="flexible-content-banner"] [data-cta-kind],
+.cms-flexible-content-banner-content [data-name="flexible-content-banner"] [data-cta-kind] > span {
+  font-size: 14px !important;
+  line-height: 19px !important;
+}
+
+@media (width >= 768px) {
+  .cms-flexible-content-banner-content [data-name="flexible-content-banner"] [data-cta-kind] {
+    padding-inline: 26px !important;
+  }
+
+  .cms-flexible-content-banner-content [data-name="flexible-content-banner"] [data-cta-kind],
+  .cms-flexible-content-banner-content [data-name="flexible-content-banner"] [data-cta-kind] > span {
+    font-size: 20px !important;
+    line-height: 26px !important;
+  }
+}
+
+/* Tablet + desktop: clamp title to 2 lines, description to 3 lines.
+   The description is rendered via dangerouslySetInnerHTML so its DOMPurified
+   payload wraps the text in a <p>. Webkit's -webkit-line-clamp only clamps
+   the line boxes of the same element it's applied to — applying it to the
+   wrapper div has no effect when an inner block-level <p> takes over the
+   line flow. The selector below targets both the wrapper and the inner <p>
+   so the clamp works whether the author types plain text or richtext. */
+@media (width >= 768px) {
+  .cms-flexible-content-banner-content [data-name="flexible-content-banner"] [data-truncate="title"] {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .cms-flexible-content-banner-content [data-name="flexible-content-banner"] [data-truncate="description"],
+  .cms-flexible-content-banner-content [data-name="flexible-content-banner"] [data-truncate="description"] > p {
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+}

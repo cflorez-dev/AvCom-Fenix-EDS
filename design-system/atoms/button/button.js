@@ -9,8 +9,15 @@ const html = htm.bind(h);
  * Button - Componente de botón de Avianca basado en diseño Figma
  *
  * ## Props
- * - `variant`: `"primary" | "secondary" | "tertiary" | "danger" | "transparent"` –
- *   Variante visual del botón (por defecto: `"primary"`).
+ * - `variant`: Variante visual del botón (por defecto: `"primary"`).
+ *   Valores: `"primary"`, `"secondary"`, `"primary-dark"`, `"secondary-dark"`,
+ *   `"tertiary"`, `"danger"`, `"transparent"`.
+ *   - `primary`: filled dark sobre fondos CLAROS.
+ *   - `secondary`: filled white outlined sobre fondos CLAROS.
+ *   - `primary-dark`: filled white sobre fondos OSCUROS (Figma 9195:17636).
+ *   - `secondary-dark`: outlined white con bg 60% opacity sobre fondos OSCUROS
+ *     (Figma 9195:17881). El bg se vuelve sólido cuando recibe TAB focus
+ *     (`focus-visible`) para destacar el elemento focuseado por teclado.
  * - `size`: `"xxxs" | "xxs" | "xs" | "sm" | "md" | "lg" | "icon"` –
  *   Tamaño del botón (por defecto: `"md"`).
  * - `iconOnly`: `boolean` – Modo solo icono (por defecto: `false`).
@@ -77,6 +84,7 @@ export const Button = ({
       basesClases: `
         ${disabled ? 'bg-background-brand-secondary-disable' : 'bg-background-brand-secondary-default'}
         border-transparent
+        no-underline
       `,
       basesClaesIneractions: `
         ${disabled === false && `
@@ -119,9 +127,54 @@ export const Button = ({
       basesClasesChild: `${disabled ? 'text-text-brand-disable' : 'text-text-brand-secondary'}`,
       basesClasesChildInteractions: `${disabled === false && 'group-hover:text-text-brand-secondary'}`,
     },
+    // Filled white para usarse sobre fondos OSCUROS (Figma 9195:17636).
+    'primary-dark': {
+      basesClases: `
+        ${disabled ? 'bg-background-brand-secondary-disable' : 'bg-background-brand-secondary-default'}
+        ${disabled ? 'border-border-brand-secondary-disable' : 'border-white'}
+      `,
+      basesClaesIneractions: `
+        ${disabled === false && `
+          hover:bg-background-brand-secondary-hover
+          hover:border-background-brand-secondary-hover
+          active:bg-background-brand-secondary-active
+          active:border-background-brand-secondary-active
+        `}
+      `,
+      basesClasesChild: `${disabled ? 'text-text-brand-disable' : 'text-text-brand-secondary'}`,
+      basesClasesChildInteractions: `${disabled === false && 'group-hover:text-text-brand-secondary'}`,
+    },
+    // Outlined white con bg 60% opacity para usarse sobre fondos OSCUROS o
+    // imágenes (Figma 9195:17881). El bg pasa a sólido cuando recibe TAB focus
+    // (focus-visible) para destacar el elemento focuseado por teclado, sin
+    // afectar la interacción con mouse.
+    'secondary-dark': {
+      basesClases: `
+        ${disabled ? 'bg-background-brand-primary-default/30' : 'bg-background-brand-primary-default/60'}
+        ${disabled ? 'border-white/50' : 'border-white'}
+      `,
+      basesClaesIneractions: `
+        ${disabled === false && `
+          hover:bg-background-brand-primary-hover
+          hover:border-white
+          active:bg-background-brand-primary-active
+          active:border-white
+          focus-visible:bg-background-brand-primary-default
+          focus-visible:border-white
+        `}
+      `,
+      basesClasesChild: `${disabled ? 'text-text-brand-disable' : 'text-text-brand-primary'}`,
+      basesClasesChildInteractions: `${disabled === false && 'group-hover:text-text-brand-primary'}`,
+    },
   };
 
-  const isDarkLoaderVariation = variant === 'secondary' || variant === 'tertiary' || variant === 'transparent';
+  // Loader colour: variants whose default bg is LIGHT need a dark loader so it
+  // remains visible. `primary-dark` has white bg, so it falls in this group too.
+  // `secondary-dark` has a dark bg → keeps the default (light) loader.
+  const isDarkLoaderVariation = variant === 'secondary'
+    || variant === 'tertiary'
+    || variant === 'transparent'
+    || variant === 'primary-dark';
 
   const sizeStyles = {
     xxxs: {

@@ -439,6 +439,37 @@
           }
         },
         {
+          "title": "CMS New Hero Banner",
+          "id": "cms-new-hero-banner",
+          "plugins": {
+            "xwalk": {
+              "page": {
+                "resourceType": "core/franklin/components/block/v1/block",
+                "template": {
+                  "name": "CMS New Hero Banner",
+                  "model": "cms-new-hero-banner",
+                  "filter": "cms-new-hero-banner"
+                }
+              }
+            }
+          }
+        },
+        {
+          "title": "CMS New Hero Banner Action Button",
+          "id": "cms-new-hero-banner-action-button",
+          "plugins": {
+            "xwalk": {
+              "page": {
+                "resourceType": "core/franklin/components/block/v1/block/item",
+                "template": {
+                  "name": "CMS New Hero Banner Action Button",
+                  "model": "cms-new-hero-banner-action-button"
+                }
+              }
+            }
+          }
+        },
+        {
           "title": "Marquesina",
           "id": "marquesina",
           "plugins": {
@@ -634,6 +665,52 @@
                 "template": {
                   "name": "Accordion Simplified Item",
                   "model": "accordion-simplified-item"
+                }
+              }
+            }
+          }
+        },
+        {
+          "title": "Contact Promo Block",
+          "id": "contact-promo-block",
+          "plugins": {
+            "xwalk": {
+              "page": {
+                "resourceType": "core/franklin/components/block/v1/block",
+                "template": {
+                  "name": "Contact Promo Block",
+                  "model": "contact-promo-block",
+                  "filter": "contact-promo-block"
+                }
+              }
+            }
+          }
+        },
+        {
+          "title": "Contact Promo Block Item",
+          "id": "contact-promo-block-item",
+          "plugins": {
+            "xwalk": {
+              "page": {
+                "resourceType": "core/franklin/components/block/v1/block/item",
+                "template": {
+                  "name": "Contact Promo Block Item",
+                  "model": "contact-promo-block-item"
+                }
+              }
+            }
+          }
+        },
+        {
+          "title": "Contact Promo Block Social",
+          "id": "contact-promo-block-social",
+          "plugins": {
+            "xwalk": {
+              "page": {
+                "resourceType": "core/franklin/components/block/v1/block/item",
+                "template": {
+                  "name": "Contact Promo Block Social",
+                  "model": "contact-promo-block-social"
                 }
               }
             }
@@ -927,6 +1004,21 @@
           }
         },
         {
+          "title": "CMS Flexible Content Banner",
+          "id": "cms-flexible-content-banner",
+          "plugins": {
+            "xwalk": {
+              "page": {
+                "resourceType": "core/franklin/components/block/v1/block",
+                "template": {
+                  "name": "CMS Flexible Content Banner",
+                  "model": "cms-flexible-content-banner"
+                }
+              }
+            }
+          }
+        },
+        {
           "title": "CMS Interactive Banner Item",
           "id": "cms-interactive-banner-item",
           "plugins": {
@@ -971,7 +1063,7 @@
             }
           }
         },
-         {
+        {
           "title": "Hub Destinations",
           "id": "hub-destinations",
           "plugins": {
