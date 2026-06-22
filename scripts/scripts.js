@@ -818,6 +818,24 @@ async function loadEager(doc) {
     console.warn('[scripts] POS geolocation failed; falling back to existing defaults:', error);
   }
 
+  // Reconcile the URL language against the resolved POS now that resolvePOS()
+  // has written `selected-country`. Fixes the cross-state where /fr is served
+  // for a POS that disallows fr (e.g. geolocated CO/EC) — the URL must redirect
+  // to the POS default language instead of staying out of sync with the header.
+  // Triggered here (post-resolvePOS) rather than from a module-load IIFE so the
+  // country cookie is guaranteed present: removes the prior race that left the
+  // page in French while the selector reconciled to Spanish. Fire-and-forget so
+  // the catalog wait never blocks paint; it redirects as soon as data settles.
+  (async () => {
+    try {
+      const { reconcileUrlLanguageWithPos } = await import('./services/header/language-country-selector.js');
+      await reconcileUrlLanguageWithPos();
+    } catch (error) {
+      // eslint-disable-next-line no-console
+      console.warn('[scripts] locale/POS reconciliation failed:', error);
+    }
+  })();
+
   // Ensure languages catalog (best-effort, bounded) is settled before decorate.
   await languagesReady;
 
