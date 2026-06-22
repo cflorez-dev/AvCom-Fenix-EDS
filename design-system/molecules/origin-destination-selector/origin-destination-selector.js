@@ -193,7 +193,13 @@ export const OriginDestinationSelector = ({
       setIsLoadingCities(true);
       try {
         const destinationOptions = await fetchCities({
-          originCode: origin.iataCityCode,
+          // Combinability must be queried by the physical TERMINAL, not the
+          // metropolitan city code. Multi-airport cities (e.g. Chicago: city
+          // CHI / terminal ORD) return HTTP 404 when queried by city code, so
+          // selecting them as origin would leave the destination list empty.
+          // Single-airport cities have terminal === city, so this is a no-op
+          // for them. Falls back to the city code defensively.
+          originCode: origin.iataTerminal || origin.iataCityCode,
           destinationCode: '',
           useCache: false,
         });

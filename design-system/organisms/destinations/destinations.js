@@ -4,6 +4,7 @@ import htm from 'htm';
 import { resolveLocale } from '../../../scripts/utils/locale.js';
 import { fetchAEMData } from '../../../scripts/utils/aem-data.js';
 import { BookingBox } from '../booking-box/booking-box.js';
+import { fetchCities } from '../../molecules/origin-destination-selector/origin-destination-selector.service.js';
 import { sanitizeHTML } from '../../../scripts/utils/sanitize.js';
 
 const html = htm.bind(h);
@@ -405,6 +406,13 @@ export const Destinations = ({
   const [language, setLanguage] = useState('es');
   const [slug, setSlug] = useState(null);
   const [smartvelApiKey, setSmartvelApiKey] = useState('');
+  // Real airport terminal for the destination's city IATA, resolved from the
+  // combinability catalog. The CF only stores the metropolitan city code
+  // (e.g. Chicago = "CHI"); the Booking Box must search by physical terminal
+  // (e.g. "ORD"), so for multi-airport cities we look it up here. Stays null
+  // until resolved — the render falls back to the city code so single-airport
+  // cities (city === terminal) and any catalog miss keep today's behaviour.
+  const [resolvedTerminal, setResolvedTerminal] = useState(null);
 
   // Detect language and fetch preSlug from lang file, then extract slug
   useEffect(() => {
@@ -457,15 +465,39 @@ export const Destinations = ({
       setSmartvelApiKey(envSmartvelApiKey);
       // Allow consumers to override apiUrl via prop; otherwise use the environment value.
       const resolvedApiUrl = apiUrl || envApiUrl;
-      const data = await fetchContentFragments(
-        resolvedApiUrl,
-        'getContentFragments',
-        site,
-        queryName,
-        variables,
-        true,
-      );
+      const [data, cityCatalog] = await Promise.all([
+        fetchContentFragments(
+          resolvedApiUrl,
+          'getContentFragments',
+          site,
+          queryName,
+          variables,
+          true,
+        ),
+        // Combinability catalog, used only to map the destination's city code
+        // to its physical airport terminal for the Booking Box prefill.
+        // Best-effort and fetched in parallel so it adds no latency; on failure
+        // we fall back to the city code (today's behaviour).
+        fetchCities({ originCode: '', destinationCode: '' }).catch(() => []),
+      ]);
       setDestinationData(data);
+
+      // Resolve the real airport terminal for the destination's city IATA.
+      // The CF only stores the metropolitan city code (e.g. Chicago = "CHI"),
+      // but the Booking Box searches by physical terminal (e.g. "ORD"). Match
+      // by city code and, for multi-airport metros, take the FIRST matching
+      // airport — preserving the existing "use the first airport" behaviour.
+      // Resolved BEFORE setLoading(false) so the Booking Box (which only reads
+      // its defaultDestination once, on mount) starts with the right terminal.
+      const destIata = data?.data?.data?.destinationList?.items?.[0]?.iata;
+      const cityCode = destIata ? String(destIata).toUpperCase() : '';
+      const terminalMatch = cityCode && Array.isArray(cityCatalog)
+        ? cityCatalog.find((c) => String(c.iataCityCode || '').toUpperCase() === cityCode)
+        : null;
+      setResolvedTerminal(
+        terminalMatch?.iataTerminal ? String(terminalMatch.iataTerminal).toUpperCase() : null,
+      );
+
       setLoading(false);
     };
     loadDestination();
@@ -612,7 +644,7 @@ export const Destinations = ({
         <div class="max-w-7xl mx-auto">
           <${BookingBox}
             defaultDestination=${destination?.iata
-    ? { iataCityCode: destination.iata, name: getLocalizedField('cityName') || '', iataTerminal: destination.iata }
+    ? { iataCityCode: destination.iata, name: getLocalizedField('cityName') || '', iataTerminal: resolvedTerminal || destination.iata }
     : null}
             i18n=${i18n}
           />
