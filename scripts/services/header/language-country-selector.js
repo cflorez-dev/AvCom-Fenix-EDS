@@ -328,67 +328,6 @@ const cachedLanguageData = getLanguagesDataSnapshot();
 setLanguageDataSnapshot(cachedLanguageData);
 scheduleLanguageDataLoad();
 
-// Once both datasets are loaded, validate URL language and stored POS against active lists
-// Skip entirely in author mode — redirects break the Universal Editor
-if (typeof window !== 'undefined' && !isAuthorEnvironment()) {
-  Promise.all([
-    scheduleCountryDataLoad(),
-    scheduleLanguageDataLoad(),
-  ]).then(() => {
-    const languages = getLanguageData();
-    const countries = getCountryData();
-    const defaultPos = normalizePos('');
-    const { language: defaultLang } = parsePos(defaultPos);
-
-    // 1. Check URL language is active
-    const urlLang = window.location.pathname.match(/^\/([a-z]{2})(\/|$)/)?.[1] || '';
-    if (!urlLang) return; // Non-language URLs (e.g. /development/) — skip validation
-    if (!languages[urlLang]) {
-      if (defaultLang && defaultLang !== urlLang) {
-        // eslint-disable-next-line no-console
-        console.warn('[language-country-selector] URL language inactive, redirecting:', { urlLang, defaultPos });
-        setStoredPos(defaultPos);
-        window.location.href = `/${defaultLang}/`;
-        return;
-      }
-    }
-
-    // 2. Check stored cookies reference active country/language
-    const storedLang = getStoredLanguage();
-    const storedCountry = getStoredCountry(); // ISO code from cookie (e.g. "fr", "co")
-    if (!storedLang && !storedCountry) return; // No cookies, nothing to fix
-    // countries map is keyed by countryCode ("fra", "col"), not ISO — convert before lookup
-    const storedCountryCode = storedCountry ? mapIsoToCountryCode(storedCountry) : null;
-
-    // 2.5. Check URL language is allowed for the stored country's POS
-    if (storedCountryCode) {
-      const allowed = getAllowedLanguages(storedCountryCode);
-      if (allowed && !allowed.includes(urlLang)) {
-        const defaultLangForCountry = getDefaultLanguage(storedCountryCode) || defaultLang;
-        // eslint-disable-next-line no-console
-        console.warn('[language-country-selector] URL language not allowed for stored country, redirecting:', {
-          urlLang, storedCountryCode, allowed, defaultLangForCountry,
-        });
-        if (defaultLangForCountry && defaultLangForCountry !== urlLang) {
-          setStoredPos(buildPos(defaultLangForCountry, storedCountryCode));
-          window.location.href = `/${defaultLangForCountry}/`;
-          return;
-        }
-      }
-    }
-
-    const langActive = !storedLang || !!languages[storedLang];
-    const countryActive = !storedCountry || (!!storedCountryCode && !!countries[storedCountryCode]);
-    if (langActive && countryActive) return; // Both active, nothing to do
-    // eslint-disable-next-line no-console
-    console.warn('[language-country-selector] Stored POS inactive, switching to default:', { storedLang, storedCountry, defaultPos });
-    setStoredPos(defaultPos);
-    if (defaultLang && defaultLang !== urlLang) {
-      window.location.href = `/${defaultLang}/`;
-    }
-  });
-}
-
 /**
  * Get base path for icons
  * Flags are served from assets/icons/flags/ which is accessible in AEM EDS
@@ -1146,4 +1085,89 @@ export function getStorageEventName() {
  */
 export function getCountryDataEventName() {
   return COUNTRY_DATA_EVENT;
+}
+
+/**
+ * Reconcile the URL language against the active language/country catalogs and
+ * the stored POS's allowed languages, redirecting when the combination is
+ * incoherent (e.g. `/fr` while the stored country's POS only allows es/en).
+ *
+ * Deterministic replacement for the previous fire-and-forget module-load IIFE.
+ * That IIFE evaluated ONCE at module load, racing `resolvePOS()` (which writes
+ * `selected-country`) and `resolveLocale()` (which writes `selected-language`).
+ * On a cold/incognito first load it consistently read the cookies before
+ * resolvePOS had written them, took a silent early-return, and never re-ran —
+ * leaving the URL (`/fr`) out of sync with the resolved POS (e.g. CO/EC, whose
+ * dropdown then reconciled to Spanish while the page stayed French).
+ *
+ * Callers (loadEager) MUST invoke this AFTER `await resolvePOS()` so the
+ * country cookie is guaranteed present. The catalogs are awaited internally,
+ * so by the time the decision is made both inputs (cookie + allowedLanguages)
+ * are settled — no race.
+ *
+ * Skipped in author mode (redirects break the Universal Editor).
+ *
+ * @returns {Promise<boolean>} true if a redirect was triggered, false otherwise
+ */
+export async function reconcileUrlLanguageWithPos() {
+  if (typeof window === 'undefined' || isAuthorEnvironment()) return false;
+
+  await Promise.all([
+    scheduleCountryDataLoad(),
+    scheduleLanguageDataLoad(),
+  ]);
+
+  const languages = getLanguageData();
+  const countries = getCountryData();
+  const defaultPos = normalizePos('');
+  const { language: defaultLang } = parsePos(defaultPos);
+
+  // 1. Check URL language is active
+  const urlLang = window.location.pathname.match(/^\/([a-z]{2})(\/|$)/)?.[1] || '';
+  if (!urlLang) return false; // Non-language URLs (e.g. /development/) — skip validation
+  if (!languages[urlLang]) {
+    if (defaultLang && defaultLang !== urlLang) {
+      // eslint-disable-next-line no-console
+      console.warn('[language-country-selector] URL language inactive, redirecting:', { urlLang, defaultPos });
+      setStoredPos(defaultPos);
+      window.location.href = `/${defaultLang}/`;
+      return true;
+    }
+  }
+
+  // 2. Check stored cookies reference active country/language
+  const storedLang = getStoredLanguage();
+  const storedCountry = getStoredCountry(); // ISO code from cookie (e.g. "fr", "co")
+  if (!storedLang && !storedCountry) return false; // No cookies, nothing to fix
+  // countries map is keyed by countryCode ("fra", "col"), not ISO — convert before lookup
+  const storedCountryCode = storedCountry ? mapIsoToCountryCode(storedCountry) : null;
+
+  // 2.5. Check URL language is allowed for the stored country's POS
+  if (storedCountryCode) {
+    const allowed = getAllowedLanguages(storedCountryCode);
+    if (allowed && !allowed.includes(urlLang)) {
+      const defaultLangForCountry = getDefaultLanguage(storedCountryCode) || defaultLang;
+      // eslint-disable-next-line no-console
+      console.warn('[language-country-selector] URL language not allowed for stored country, redirecting:', {
+        urlLang, storedCountryCode, allowed, defaultLangForCountry,
+      });
+      if (defaultLangForCountry && defaultLangForCountry !== urlLang) {
+        setStoredPos(buildPos(defaultLangForCountry, storedCountryCode));
+        window.location.href = `/${defaultLangForCountry}/`;
+        return true;
+      }
+    }
+  }
+
+  const langActive = !storedLang || !!languages[storedLang];
+  const countryActive = !storedCountry || (!!storedCountryCode && !!countries[storedCountryCode]);
+  if (langActive && countryActive) return false; // Both active, nothing to do
+  // eslint-disable-next-line no-console
+  console.warn('[language-country-selector] Stored POS inactive, switching to default:', { storedLang, storedCountry, defaultPos });
+  setStoredPos(defaultPos);
+  if (defaultLang && defaultLang !== urlLang) {
+    window.location.href = `/${defaultLang}/`;
+    return true;
+  }
+  return false;
 }
