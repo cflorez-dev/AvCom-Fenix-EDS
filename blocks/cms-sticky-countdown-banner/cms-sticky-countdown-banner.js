@@ -8,6 +8,7 @@ import {
 import { StickyCountdownBanner } from '../../design-system/molecules/sticky-countdown-banner/sticky-countdown-banner.js';
 import { shouldShowByTargeting, hideBlockWithSection } from '../../scripts/utils/target-filter.js';
 import { getStoredLanguage } from '../../scripts/services/header/language-country-selector.js';
+import { sanitizeHTMLAsync } from '../../scripts/utils/sanitize.js';
 
 const html = htm.bind(h);
 
@@ -98,12 +99,18 @@ export default async function decorate(block) {
     container.className = 'fixed bottom-0 left-0 right-0 w-full z-[400] md:bottom-[48px] md:left-1/2 md:right-auto md:-translate-x-1/2 md:max-w-[1140px] md:px-8 xl:px-0';
   }
 
+  // Defensively sanitize author-controlled text before rendering. title/subtitle
+  // render as Preact text-children (already auto-escaped); sanitizing here adds
+  // defense in depth, consistent with cms-hero-banner.
+  const safeTitle = await sanitizeHTMLAsync(props.title || '');
+  const safeSubtitle = await sanitizeHTMLAsync(props.subtitle || '');
+
   // Render Preact component
   render(
     html`
       <${StickyCountdownBanner}
-        title=${props.title || ''}
-        subtitle=${props.subtitle || ''}
+        title=${safeTitle}
+        subtitle=${safeSubtitle}
         endDateTime=${props.endDateTime}
         dismissible=${isDismissible}
         backgroundColor=${props.backgroundColor || '#000000'}

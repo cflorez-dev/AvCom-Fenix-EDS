@@ -237,6 +237,28 @@ let marquesinaFinalizeScheduled = false;
  * A non-matching marquesina must NOT remove the container itself, or it would
  * wipe out a sibling that already matched and rendered into the shared slot.
  */
+/**
+ * Mirror of the dismiss check performed inside the <Marquesina> component
+ * (design-system/organisms/marquesina). Lets decorate() know, BEFORE rendering,
+ * whether the user already dismissed this marquee. Without this, a dismissed
+ * marquee still passes targeting, so the component mounts and immediately
+ * self-hides (returns null) — leaving the anti-CLS placeholder and its reserved
+ * `--marquee-height` in place, i.e. an empty gap above the sticky header that
+ * becomes visible on scroll. Same storage key/strategy as `checkDismissed`.
+ * @param {string} alertId
+ * @param {'session'|'permanent'|'none'} strategy
+ * @returns {boolean}
+ */
+function isMarquesinaDismissed(alertId, strategy) {
+  if (!alertId || strategy === 'none') return false;
+  try {
+    const storage = strategy === 'permanent' ? localStorage : sessionStorage;
+    return storage.getItem(`marquesina-dismissed-${alertId}`) === 'true';
+  } catch (e) {
+    return false;
+  }
+}
+
 function scheduleMarquesinaFinalize() {
   if (marquesinaFinalizeScheduled) return;
   marquesinaFinalizeScheduled = true;
@@ -463,6 +485,24 @@ export default function decorate(block) {
       `,
       previewContainer,
     );
+    return;
+  }
+
+  // If the user already dismissed this marquee, do NOT render it. The
+  // <Marquesina> component would otherwise mount and self-hide on its first
+  // effect, leaving the reserved placeholder (and `--marquee-height`) behind as
+  // an empty gap above the header. Treat it exactly like a non-matching
+  // marquesina: drop the block and let scheduleMarquesinaFinalize() collapse the
+  // shared placeholder and reset `--marquee-height` to 0 (only if no other
+  // marquesina ends up rendering into the shared slot).
+  if (isMarquesinaDismissed(alertId, dismissStrategy)) {
+    const sectionParent = block.closest('.section');
+    if (sectionParent) {
+      sectionParent.remove();
+    } else {
+      block.remove();
+    }
+    scheduleMarquesinaFinalize();
     return;
   }
 

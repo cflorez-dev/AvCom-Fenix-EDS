@@ -1,0 +1,43 @@
+/* CMS New Hero Banner — Block wrapper
+   AEM EDS auto-wraps each block in a .section.{block}-container which by default has
+   padding 32px and max-width 1248px. The Hero must occupy the full viewport width
+   (image + content can span the entire screen) — same pattern used by
+   form-hero-header-banner.css. The content inside the organism handles its own
+   inner max-width + responsive paddings. */
+main > .section.cms-new-hero-banner-container {
+  max-width: 100% !important;
+  width: 100% !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+.cms-new-hero-banner-wrapper > .cms-new-hero-banner {
+  width: 100%;
+}
+
+.cms-new-hero-banner {
+  width: 100%;
+  display: block;
+  margin: 0;
+  padding: 0;
+}
+
+.cms-new-hero-banner-content {
+  width: 100%;
+  display: block;
+}
+
+/* Author mode visualization */
+.cms-new-hero-banner-author-mode {
+  border: 2px dashed #0066cc;
+  padding: 16px;
+  background-color: #f9f9f9;
+}
+
+.cms-new-hero-banner-author-mode > div {
+  margin-bottom: 12px;
+  padding: 12px;
+  background: white;
+  border: 1px solid #e0e0e0;
+  border-radius: 4px;
+}

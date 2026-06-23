@@ -776,6 +776,69 @@ async function loadEager(doc) {
   // the preloaded resource (otherwise it warns "credentials mode does not match").
   loadScript('https://cdn.jsdelivr.net/npm/dompurify@3.4.0/dist/purify.min.js', { crossorigin: 'anonymous' });
 
+  // Synchronous consumers (header, language selector) read the snapshot on first
+  // render — this await ensures they see real data instead of the hardcoded
+  // seeds. Race against a 400ms budget so a slow AEM endpoint never blocks paint.
+  const languagesReady = Promise.race([
+    (async () => {
+      try {
+        const { ensureLanguagesDataLoaded } = await import('./services/header/get-pos-data.js');
+        await ensureLanguagesDataLoaded();
+      } catch (error) {
+        // eslint-disable-next-line no-console
+        console.warn('[scripts] Languages catalog load failed:', error);
+      }
+    })(),
+    new Promise((resolve) => { setTimeout(resolve, 400); }),
+  ]);
+
+  // Pre-warm the country catalog in the language-country-selector before
+  // resolvePOS runs. Bounded to 400ms so a slow AEM never blocks paint.
+  const countriesReady = Promise.race([
+    (async () => {
+      try {
+        const { ensureCountryDataLoaded } = await import('./services/header/language-country-selector.js');
+        await ensureCountryDataLoaded();
+      } catch (error) {
+        // eslint-disable-next-line no-console
+        console.warn('[scripts] Country catalog load failed:', error);
+      }
+    })(),
+    new Promise((resolve) => { setTimeout(resolve, 400); }),
+  ]);
+  await countriesReady;
+
+  // Resolve POS via the geolocation hierarchy (URL → W3C geo → Accept-Language)
+  // BEFORE locale — initLocaleGlobals reads the cookies set here.
+  try {
+    const { resolvePOS } = await import('./services/geolocation/geolocation.service.js');
+    await resolvePOS({ timeout: 400 });
+  } catch (error) {
+    // eslint-disable-next-line no-console
+    console.warn('[scripts] POS geolocation failed; falling back to existing defaults:', error);
+  }
+
+  // Reconcile the URL language against the resolved POS now that resolvePOS()
+  // has written `selected-country`. Fixes the cross-state where /fr is served
+  // for a POS that disallows fr (e.g. geolocated CO/EC) — the URL must redirect
+  // to the POS default language instead of staying out of sync with the header.
+  // Triggered here (post-resolvePOS) rather than from a module-load IIFE so the
+  // country cookie is guaranteed present: removes the prior race that left the
+  // page in French while the selector reconciled to Spanish. Fire-and-forget so
+  // the catalog wait never blocks paint; it redirects as soon as data settles.
+  (async () => {
+    try {
+      const { reconcileUrlLanguageWithPos } = await import('./services/header/language-country-selector.js');
+      await reconcileUrlLanguageWithPos();
+    } catch (error) {
+      // eslint-disable-next-line no-console
+      console.warn('[scripts] locale/POS reconciliation failed:', error);
+    }
+  })();
+
+  // Ensure languages catalog (best-effort, bounded) is settled before decorate.
+  await languagesReady;
+
   // Start locale resolution early but don't block DOM work that doesn't need it
   const localeReady = initLocaleGlobals();
 
@@ -1014,6 +1077,47 @@ async function loadLazy(doc) {
   loadCSS(`${window.hlx.codeBasePath}/styles/components/custom-scrollbar.css`);
   loadCSS(`${window.hlx.codeBasePath}/styles/migration-cards.css`);
   loadCSS(`${window.hlx.codeBasePath}/styles/utilities.css`);
+
+  // Show geo POS conflict modal if `resolvePOS()` tagged one during loadEager.
+  // Runs post-render so it doesn't block LCP. Also wires the manual-POS-change
+  // listener so the modal reappears when the user picks a different country.
+  try {
+    const { maybeShowGeoConflictModal, registerManualPosChangeListener } = await import(
+      './services/geolocation/geo-conflict-modal.service.js'
+    );
+    registerManualPosChangeListener();
+    await maybeShowGeoConflictModal();
+  } catch (error) {
+    // eslint-disable-next-line no-console
+    console.warn('[scripts] geo conflict modal failed:', error);
+  }
+
+  // Lazy phase: request geolocation permission now that LCP is complete.
+  try {
+    const { lazyGeolocationRequest } = await import(
+      './services/geolocation/geolocation.service.js'
+    );
+    const result = await lazyGeolocationRequest();
+    if (result?.source === 'w3c-geo' && result?.hasConflict) {
+      const { maybeShowGeoConflictModal } = await import(
+        './services/geolocation/geo-conflict-modal.service.js'
+      );
+      await maybeShowGeoConflictModal();
+    }
+  } catch (error) {
+    // eslint-disable-next-line no-console
+    console.warn('[scripts] lazy geolocation request failed:', error);
+  }
+
+  // Re-emit the origin-dropdown event after all blocks are decorated (race fix:
+  // cms-promotional-cards-rail may decorate before origin-dropdown-selector).
+  if (window.lastOriginDropdownCity) {
+    const { dispatchCityFromOriginDropdownEvent } = await import(
+      './utils/event-constants.js'
+    );
+    dispatchCityFromOriginDropdownEvent(window.lastOriginDropdownCity);
+  }
+
   // grid-layout.css is now preloaded in head.html and awaited at the top of
   // loadLazy (before sections become visible) to avoid the title reflow/CLS.
   loadCSS(`${window.hlx.codeBasePath}/styles/lazy-styles.css`);

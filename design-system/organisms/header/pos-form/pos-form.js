@@ -72,6 +72,24 @@ export const PosForm = ({
     return languages.filter((l) => allowed.includes(l.value));
   }, [languages, selectedCountry, getAllowedLanguages]);
 
+  // Reconcile the selected language against the country's allowed languages.
+  // handleCountryChange already does this on user-driven country changes, but the
+  // INITIAL state (and any external initialLanguage/initialCountry update) is applied
+  // verbatim. When the app is in a country/language cross-state — e.g. geolocation
+  // sets country=Ecuador (allows es/en) while a /fr URL sets language=fr — the language
+  // select receives a value that isn't in its filtered options and renders blank.
+  // Snap it to the country's default (or the first allowed language) so it never blanks.
+  useEffect(() => {
+    if (!selectedLanguage) return;
+    if (filteredLanguages.some((l) => l.value === selectedLanguage)) return;
+    const fallbackLang = (getDefaultLanguage && selectedCountry
+      ? getDefaultLanguage(selectedCountry)
+      : null) || filteredLanguages[0]?.value || '';
+    if (fallbackLang && fallbackLang !== selectedLanguage) {
+      setSelectedLanguage(fallbackLang);
+    }
+  }, [filteredLanguages, selectedLanguage, selectedCountry, getDefaultLanguage]);
+
   // Determine if form is valid
   const isFormValid = selectedCountry && selectedLanguage;
 
@@ -199,7 +217,7 @@ export const PosForm = ({
               value=${selectedCountry}
               onChange=${handleCountryChange}
               state=${countryState}
-              required=${true}
+              required=${false}
               id="pos-country"
               hasPrefixIcon=${false}
               dropdownMaxHeight="13.813rem"
@@ -218,7 +236,7 @@ export const PosForm = ({
               value=${selectedLanguage}
               onChange=${handleLanguageChange}
               state=${languageState}
-              required=${true}
+              required=${false}
               id="pos-language"
               name="language"
               hasPrefixIcon=${false}
