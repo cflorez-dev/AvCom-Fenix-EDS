@@ -262,6 +262,48 @@ export function hideBlockWithSection(block) {
   }
 }
 
+// Debounce flag so the orphan-placeholder collapse is coalesced across the
+// independent applySectionTargeting() calls of every section on the page.
+let marqueeCollapseScheduled = false;
+
+/**
+ * Collapse the CLS-reservation marquesina placeholder when it has been orphaned.
+ *
+ * `bootstrapMarqueeHeight()` (scripts.js) reserves `--marquee-height` and a
+ * `.marquesina-global-container` placeholder as soon as a `.marquesina.block`
+ * exists in the DOM, to prevent layout shift. Normally the block's decorate()
+ * either renders into that placeholder or, when it does not match the user,
+ * collapses it via scheduleMarquesinaFinalize(). But when the marquesina's
+ * SECTION is hidden by targeting, the section is never loaded, decorate() never
+ * runs, and the empty 55px placeholder is left behind as a permanent gap above
+ * the sticky header (visible on scroll). This collapses that orphan.
+ *
+ * Coalesced + debounced because several sections may be hidden in the same tick;
+ * the re-check on fire ensures we only collapse once EVERY marquesina is gone.
+ */
+function scheduleMarqueePlaceholderCollapse() {
+  if (marqueeCollapseScheduled) return;
+  marqueeCollapseScheduled = true;
+  setTimeout(() => {
+    marqueeCollapseScheduled = false;
+    const container = document.querySelector('.marquesina-global-container');
+    // A marquesina already rendered into the shared slot; keep its reservation.
+    if (container && container.querySelector('[data-name="marquesina"]')) return;
+    // Another marquesina is still live (its section was not hidden by targeting)
+    // and may yet render into the shared slot; do not collapse prematurely.
+    const liveMarquesina = [...document.querySelectorAll('.marquesina.block, .marquesina')]
+      .some((b) => {
+        const sec = b.closest('.section');
+        return sec
+          && !sec.classList.contains('hidden-by-targeting')
+          && sec.dataset.sectionStatus !== 'hidden';
+      });
+    if (liveMarquesina) return;
+    if (container) container.remove();
+    document.documentElement.style.setProperty('--marquee-height', '0px');
+  }, 150);
+}
+
 /**
  * Apply targeting rules to a section based on metadata
  * This is meant to be called during section decoration
@@ -300,6 +342,14 @@ export function applySectionTargeting(section, meta) {
     section.style.overflow = 'hidden';
     section.classList.add('hidden-by-targeting');
     section.dataset.sectionStatus = 'hidden';
+
+    // If the hidden section holds a marquesina, its decorate() will never run, so
+    // the CLS placeholder reserved by bootstrapMarqueeHeight() would otherwise be
+    // orphaned as a permanent gap above the sticky header. Collapse it (only once
+    // no other marquesina remains live).
+    if (section.querySelector('.marquesina.block, .marquesina')) {
+      scheduleMarqueePlaceholderCollapse();
+    }
   }
 
   return shouldShow;
