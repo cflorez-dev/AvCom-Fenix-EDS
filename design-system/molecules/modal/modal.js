@@ -111,9 +111,27 @@ export const Modal = ({
   }, [shouldRender, escapeToClose, isClosing, onClose]);
 
   useEffect(() => {
-    if (shouldRender) document.body.classList.add('overflow-hidden');
-    else document.body.classList.remove('overflow-hidden');
-    return () => document.body.classList.remove('overflow-hidden');
+    const { documentElement: rootEl, body } = document;
+    // Lock the page behind the modal. The document scrolls via <html> (the
+    // viewport scroller): per the CSS overflow-propagation rule, only the root
+    // element's overflow reaches the viewport, so `overflow:hidden` on <body>
+    // alone leaves the page scrollable behind the fixed overlay (the bug). Lock
+    // <html> too, and pad it by the now-removed scrollbar width so the page
+    // behind doesn't shift sideways when the scrollbar disappears.
+    const unlock = () => {
+      rootEl.classList.remove('overflow-hidden');
+      body.classList.remove('overflow-hidden');
+      rootEl.style.paddingRight = '';
+    };
+    if (shouldRender) {
+      const scrollbarWidth = window.innerWidth - rootEl.clientWidth;
+      if (scrollbarWidth > 0) rootEl.style.paddingRight = `${scrollbarWidth}px`;
+      rootEl.classList.add('overflow-hidden');
+      body.classList.add('overflow-hidden');
+    } else {
+      unlock();
+    }
+    return unlock;
   }, [shouldRender]);
 
   useEffect(() => {
