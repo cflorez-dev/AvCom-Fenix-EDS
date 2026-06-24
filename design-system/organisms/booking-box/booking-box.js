@@ -542,18 +542,31 @@ export const BookingBox = ({
     };
   }, [isMobile]);
 
-  // Block body scroll when any mobile modal/step is open (centralized)
-  // This covers: route steps (city-selector), date steps (date-selector), and confirmation modal
+  // Block page scroll when any mobile modal/step is open (centralized)
+  // This covers: route steps (city-selector), date steps (date-selector), and confirmation modal.
+  // The document scrolls via <html> (the viewport scroller): per the CSS
+  // overflow-propagation rule only the root element's overflow reaches the
+  // viewport, so `overflow:hidden` on <body> alone leaves the page scrollable
+  // behind the overlay. Lock <html> too, padding it by the now-removed
+  // scrollbar width so the page behind doesn't shift sideways.
   useEffect(() => {
+    const { documentElement: rootEl, body } = document;
     const shouldBlock = isMobile && (activeStep !== null || showConfirmModal);
 
+    const unlock = () => {
+      rootEl.classList.remove('!overflow-hidden');
+      body.classList.remove('!overflow-hidden');
+      rootEl.style.paddingRight = '';
+    };
+
     if (shouldBlock) {
-      document.body.classList.add('!overflow-hidden');
+      const scrollbarWidth = window.innerWidth - rootEl.clientWidth;
+      if (scrollbarWidth > 0) rootEl.style.paddingRight = `${scrollbarWidth}px`;
+      rootEl.classList.add('!overflow-hidden');
+      body.classList.add('!overflow-hidden');
     }
 
-    return () => {
-      document.body.classList.remove('!overflow-hidden');
-    };
+    return unlock;
   }, [activeStep, showConfirmModal, isMobile]);
 
   // ========== OVERLAY BEHAVIOR ==========
