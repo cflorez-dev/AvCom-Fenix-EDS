@@ -542,31 +542,25 @@ export const BookingBox = ({
     };
   }, [isMobile]);
 
-  // Block page scroll when any mobile modal/step is open (centralized)
-  // This covers: route steps (city-selector), date steps (date-selector), and confirmation modal.
-  // The document scrolls via <html> (the viewport scroller): per the CSS
-  // overflow-propagation rule only the root element's overflow reaches the
-  // viewport, so `overflow:hidden` on <body> alone leaves the page scrollable
-  // behind the overlay. Lock <html> too, padding it by the now-removed
-  // scrollbar width so the page behind doesn't shift sideways.
+  // Block body scroll when any mobile modal/step is open (centralized)
+  // This covers: route steps (city-selector), date steps (date-selector), and confirmation modal
   useEffect(() => {
-    const { documentElement: rootEl, body } = document;
     const shouldBlock = isMobile && (activeStep !== null || showConfirmModal);
 
-    const unlock = () => {
-      rootEl.classList.remove('!overflow-hidden');
-      body.classList.remove('!overflow-hidden');
-      rootEl.style.paddingRight = '';
-    };
-
     if (shouldBlock) {
-      const scrollbarWidth = window.innerWidth - rootEl.clientWidth;
-      if (scrollbarWidth > 0) rootEl.style.paddingRight = `${scrollbarWidth}px`;
-      rootEl.classList.add('!overflow-hidden');
-      body.classList.add('!overflow-hidden');
+      document.body.classList.add('!overflow-hidden');
+      // Lift the booking box above the sticky site header while a mobile modal
+      // is open. The step/confirm modals render `fixed inset-0` but live inside
+      // `.section.booking-box-container` (z-index:100), whose stacking context
+      // otherwise traps them below the header (z-index:500 mobile / 1000 ≥768px)
+      // — the site header would cover the modal's own header. See booking-box.css.
+      document.documentElement.classList.add('booking-box-modal-open');
     }
 
-    return unlock;
+    return () => {
+      document.body.classList.remove('!overflow-hidden');
+      document.documentElement.classList.remove('booking-box-modal-open');
+    };
   }, [activeStep, showConfirmModal, isMobile]);
 
   // ========== OVERLAY BEHAVIOR ==========

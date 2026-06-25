@@ -6,6 +6,16 @@ div.section.booking-box-container {
   z-index: 100;
 }
 
+/* While a mobile step/confirmation modal is open, lift the booking box above
+   the sticky site header. The modals render `fixed inset-0` inside this
+   section, but its z-index:100 stacking context would otherwise keep them
+   below the header (z-index:500 mobile / 1000 ≥768px), covering the modal's
+   own header. Scoped to the open state so normal sticky-scroll layering on
+   desktop is unaffected. Class toggled by booking-box.js. */
+html.booking-box-modal-open div.section.booking-box-container {
+  z-index: 1001;
+}
+
 div.section.booking-box-container.booking-box-next-section {
   transition: padding-bottom 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94);
 }
