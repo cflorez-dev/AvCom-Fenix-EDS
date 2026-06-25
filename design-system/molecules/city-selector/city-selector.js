@@ -1,5 +1,4 @@
 import { h } from '@dropins/tools/preact.js';
-import { createPortal } from '@dropins/tools/preact-compat.js';
 import { useState, useRef, useEffect, useMemo, useCallback } from '@dropins/tools/preact-hooks.js';
 import htm from 'htm';
 import { Icon } from '../../atoms/icon/icon.js';
@@ -18,20 +17,6 @@ const DROPDOWN_MAX_WIDTH = '360px';
  * @param {string} color - Color del icono (opcional)
  * @returns {object} Ref con el HTML del icono renderizado
  */
-const usePrerenderedIcon = (icon, size = 'm', color = '') => {
-  const [iconHtml, setIconHtml] = useState('');
-
-  useEffect(() => {
-    const tempDiv = document.createElement('div');
-    import('@dropins/tools/preact.js').then(({ render }) => {
-      render(h(Icon, { icon, size, customClassName: color ? `[&_path]:fill-[${color}]` : '' }), tempDiv);
-      setIconHtml(tempDiv.innerHTML);
-    });
-  }, [icon, size, color]);
-
-  return iconHtml;
-};
-
 /**
  * CitySelector - Selector de ciudades con búsqueda, modo step mobile/desktop
  *
@@ -176,9 +161,6 @@ export const CitySelector = ({
     }
   }, [onOpenChange]);
 
-  // Pre-renderizar iconos para usar en portal
-  const arrowBackIconHtml = usePrerenderedIcon('navigation/arrow-back', 'sm');
-  const closeIconHtml = usePrerenderedIcon('navigation/close', 'sm');
 
   // Detectar viewport mobile
   useEffect(() => {
@@ -705,7 +687,7 @@ export const CitySelector = ({
               onClick=${handleBack}
               aria-label="Volver"
             >
-              ${arrowBackIconHtml && html`<div class="flex" dangerouslySetInnerHTML=${{ __html: arrowBackIconHtml }} />`}
+              <${Icon} icon="navigation/arrow-back" size="sm" />
             </button>
 
             <!-- Title -->
@@ -722,7 +704,7 @@ export const CitySelector = ({
               onClick=${handleClose}
               aria-label="Cerrar"
             >
-              ${closeIconHtml && html`<div class="flex" dangerouslySetInnerHTML=${{ __html: closeIconHtml }} />`}
+              <${Icon} icon="navigation/close" size="sm" />
             </button>
           </div>
         `}

@@ -177,8 +177,6 @@ export const DateSelector = ({
 
   const containerRef = useRef(null);
   const popupRef = useRef(null);
-  const [arrowBackIconHtml, setArrowBackIconHtml] = useState('');
-  const [closeIconHtml, setCloseIconHtml] = useState('');
   const monthRefs = useRef({});
   const scrollContainerRef = useRef(null);
   const isProgrammaticScrollRef = useRef(false);
@@ -220,18 +218,6 @@ export const DateSelector = ({
     }
   }, [isOpen, startMonth, startYear]);
 
-  // Pre-render icons for portal
-  useEffect(() => {
-    const tempDivBack = document.createElement('div');
-    const tempDivClose = document.createElement('div');
-
-    import('@dropins/tools/preact.js').then(({ render: renderPreact }) => {
-      renderPreact(h(Icon, { icon: 'navigation/arrow-back', size: 'sm' }), tempDivBack);
-      renderPreact(h(Icon, { icon: 'navigation/close', size: 'sm' }), tempDivClose);
-      setArrowBackIconHtml(tempDivBack.innerHTML);
-      setCloseIconHtml(tempDivClose.innerHTML);
-    });
-  }, []);
 
   // Mobile: Auto-scroll to startMonth when calendar opens
   useEffect(() => {
@@ -681,7 +667,7 @@ export const DateSelector = ({
                   onClick=${handleBack}
                   aria-label=${i18n['bookingBox.labels.back'] || 'Back'}
                 >
-                  ${arrowBackIconHtml && html`<div class="flex" dangerouslySetInnerHTML=${{ __html: arrowBackIconHtml }} />`}
+                  <${Icon} icon="navigation/arrow-back" size="sm" />
                 </button>
 
                 <!-- Title -->
@@ -696,7 +682,7 @@ export const DateSelector = ({
                   onClick=${handleClose}
                   aria-label=${i18n['bookingBox.labels.close'] || 'Close'}
                 >
-                  ${closeIconHtml && html`<div class="flex" dangerouslySetInnerHTML=${{ __html: closeIconHtml }} />`}
+                  <${Icon} icon="navigation/close" size="sm" />
                 </button>
               </div>
             </div>
