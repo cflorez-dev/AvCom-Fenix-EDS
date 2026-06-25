@@ -2,6 +2,7 @@ import { h } from '@dropins/tools/preact.js';
 import {
   useState,
   useEffect,
+  useLayoutEffect,
   useRef,
   useCallback,
   useMemo,
@@ -266,7 +267,9 @@ export const BookingBox = ({
 
       if (allStepsComplete) {
         setShowConfirmModal(true);
-        closeStep();
+        // closeStep() is intentionally omitted here: onOpenChange(false) from
+        // PassengerSelector calls it synchronously in the same event flush,
+        // avoiding a redundant state update that could cause an intermediate render.
       }
     }
   }, [onChange, isMobile, origin, destination, departureDate, tripType, returnDate, closeStep]);
@@ -544,7 +547,9 @@ export const BookingBox = ({
 
   // Block body scroll when any mobile modal/step is open (centralized)
   // This covers: route steps (city-selector), date steps (date-selector), and confirmation modal
-  useEffect(() => {
+  // useLayoutEffect so the class/z-index is applied before the browser paints the modal,
+  // preventing a single frame where the modal renders below the sticky header (Bug 1).
+  useLayoutEffect(() => {
     const shouldBlock = isMobile && (activeStep !== null || showConfirmModal);
 
     if (shouldBlock) {
