@@ -181,6 +181,7 @@ export const DateSelector = ({
   const [closeIconHtml, setCloseIconHtml] = useState('');
   const monthRefs = useRef({});
   const scrollContainerRef = useRef(null);
+  const isProgrammaticScrollRef = useRef(false);
 
   // ========== HELPERS ==========
 
@@ -208,10 +209,14 @@ export const DateSelector = ({
   }, []);
 
   // Update calendar position when startMonth/startYear change and selector is open
+  // Also reset scroll state on each open so TripTypeToggle is visible on fresh open
   useEffect(() => {
     if (isOpen && startMonth !== null && startYear !== null) {
       setCurrentMonth(startMonth);
       setCurrentYear(startYear);
+    }
+    if (!isOpen) {
+      setHasScrolled(false);
     }
   }, [isOpen, startMonth, startYear]);
 
@@ -236,7 +241,10 @@ export const DateSelector = ({
     const timer = setTimeout(() => {
       const monthElement = monthRefs.current[`${startYear}-${startMonth}`];
       if (monthElement) {
+        isProgrammaticScrollRef.current = true;
         monthElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        // Reset after smooth scroll animation completes (~600ms) so user scrolls are detected normally
+        setTimeout(() => { isProgrammaticScrollRef.current = false; }, 700);
       }
     }, 100);
 
@@ -468,6 +476,7 @@ export const DateSelector = ({
   }, [mode, departureDate]);
 
   const handleScroll = useCallback((e) => {
+    if (isProgrammaticScrollRef.current) return;
     const { scrollTop } = e.target;
     setHasScrolled(scrollTop > 0);
   }, []);
