@@ -19,26 +19,17 @@ const DROPDOWN_MAX_WIDTH = '360px';
  * @returns {object} Ref con el HTML del icono renderizado
  */
 const usePrerenderedIcon = (icon, size = 'm', color = '') => {
-  const iconRef = useRef(null);
+  const [iconHtml, setIconHtml] = useState('');
 
   useEffect(() => {
     const tempDiv = document.createElement('div');
-    const iconElement = h(Icon, { icon, size, customClassName: color ? `[&_path]:fill-[${color}]` : '' });
-    // Render icon to temp div for innerHTML extraction
     import('@dropins/tools/preact.js').then(({ render }) => {
-      render(iconElement, tempDiv);
+      render(h(Icon, { icon, size, customClassName: color ? `[&_path]:fill-[${color}]` : '' }), tempDiv);
+      setIconHtml(tempDiv.innerHTML);
     });
-    iconRef.current = tempDiv;
-
-    // Cleanup
-    return () => {
-      if (iconRef.current && iconRef.current.parentNode) {
-        iconRef.current.parentNode.removeChild(iconRef.current);
-      }
-    };
   }, [icon, size, color]);
 
-  return iconRef;
+  return iconHtml;
 };
 
 /**
@@ -186,8 +177,8 @@ export const CitySelector = ({
   }, [onOpenChange]);
 
   // Pre-renderizar iconos para usar en portal
-  const arrowBackIconRef = usePrerenderedIcon('navigation/arrow-back', 'sm');
-  const closeIconRef = usePrerenderedIcon('navigation/close', 'sm');
+  const arrowBackIconHtml = usePrerenderedIcon('navigation/arrow-back', 'sm');
+  const closeIconHtml = usePrerenderedIcon('navigation/close', 'sm');
 
   // Detectar viewport mobile
   useEffect(() => {
@@ -714,7 +705,7 @@ export const CitySelector = ({
               onClick=${handleBack}
               aria-label="Volver"
             >
-              ${arrowBackIconRef.current && html`<div class="flex" dangerouslySetInnerHTML=${{ __html: arrowBackIconRef.current.innerHTML }} />`}
+              ${arrowBackIconHtml && html`<div class="flex" dangerouslySetInnerHTML=${{ __html: arrowBackIconHtml }} />`}
             </button>
 
             <!-- Title -->
@@ -731,7 +722,7 @@ export const CitySelector = ({
               onClick=${handleClose}
               aria-label="Cerrar"
             >
-              ${closeIconRef.current && html`<div class="flex" dangerouslySetInnerHTML=${{ __html: closeIconRef.current.innerHTML }} />`}
+              ${closeIconHtml && html`<div class="flex" dangerouslySetInnerHTML=${{ __html: closeIconHtml }} />`}
             </button>
           </div>
         `}

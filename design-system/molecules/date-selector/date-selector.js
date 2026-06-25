@@ -177,8 +177,8 @@ export const DateSelector = ({
 
   const containerRef = useRef(null);
   const popupRef = useRef(null);
-  const arrowBackIconRef = useRef(null);
-  const closeIconRef = useRef(null);
+  const [arrowBackIconHtml, setArrowBackIconHtml] = useState('');
+  const [closeIconHtml, setCloseIconHtml] = useState('');
   const monthRefs = useRef({});
   const scrollContainerRef = useRef(null);
 
@@ -223,19 +223,9 @@ export const DateSelector = ({
     import('@dropins/tools/preact.js').then(({ render: renderPreact }) => {
       renderPreact(h(Icon, { icon: 'navigation/arrow-back', size: 'sm' }), tempDivBack);
       renderPreact(h(Icon, { icon: 'navigation/close', size: 'sm' }), tempDivClose);
+      setArrowBackIconHtml(tempDivBack.innerHTML);
+      setCloseIconHtml(tempDivClose.innerHTML);
     });
-
-    arrowBackIconRef.current = tempDivBack;
-    closeIconRef.current = tempDivClose;
-
-    return () => {
-      if (arrowBackIconRef.current && arrowBackIconRef.current.parentNode) {
-        arrowBackIconRef.current.parentNode.removeChild(arrowBackIconRef.current);
-      }
-      if (closeIconRef.current && closeIconRef.current.parentNode) {
-        closeIconRef.current.parentNode.removeChild(closeIconRef.current);
-      }
-    };
   }, []);
 
   // Mobile: Auto-scroll to startMonth when calendar opens
@@ -682,11 +672,11 @@ export const DateSelector = ({
                   onClick=${handleBack}
                   aria-label=${i18n['bookingBox.labels.back'] || 'Back'}
                 >
-                  ${arrowBackIconRef.current && html`<div class="flex" dangerouslySetInnerHTML=${{ __html: arrowBackIconRef.current.innerHTML }} />`}
+                  ${arrowBackIconHtml && html`<div class="flex" dangerouslySetInnerHTML=${{ __html: arrowBackIconHtml }} />`}
                 </button>
 
                 <!-- Title -->
-                <h2 class="font-bold text-[var(--color-text-normal-primary)] min-h-[24px]">
+                <h2 class="font-bold !text-[18px] text-[var(--color-text-normal-primary)] min-h-[24px]">
                   ${actualStepTitle}
                 </h2>
 
@@ -697,7 +687,7 @@ export const DateSelector = ({
                   onClick=${handleClose}
                   aria-label=${i18n['bookingBox.labels.close'] || 'Close'}
                 >
-                  ${closeIconRef.current && html`<div class="flex" dangerouslySetInnerHTML=${{ __html: closeIconRef.current.innerHTML }} />`}
+                  ${closeIconHtml && html`<div class="flex" dangerouslySetInnerHTML=${{ __html: closeIconHtml }} />`}
                 </button>
               </div>
             </div>
