@@ -176,17 +176,10 @@ export const PassengerSelector = ({
       document.addEventListener('keydown', handleEscape);
     }, 10);
 
-    if (isMobile) {
-      document.body.style.overflow = 'hidden';
-    }
-
     return () => {
       clearTimeout(timeoutId);
       document.removeEventListener('mousedown', handleClickOutside);
       document.removeEventListener('keydown', handleEscape);
-      if (isMobile) {
-        document.body.style.overflow = '';
-      }
     };
   }, [isOpen, isMobile, isOpenProp, onOpenChange]);
 
