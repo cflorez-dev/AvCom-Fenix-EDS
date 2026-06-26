@@ -16,6 +16,20 @@ html.booking-box-modal-open div.section.booking-box-container {
   z-index: 1001;
 }
 
+/* Bug #1: while a mobile step/confirm modal is open the marquee and the sticky
+   site header must never be visible — "the transition must be immediate". The
+   full-screen modal already covers them via z-index, but on slower devices the
+   modal can paint a frame after the class flips, briefly exposing them. Hiding
+   them under the synchronously-applied (useLayoutEffect) modal-open class
+   guarantees no flash. `visibility` keeps their layout slot so there is no shift
+   when the modal closes and the class is removed. The booking-box step modals
+   build their own headers from <div>s, so the bare `header` selector only ever
+   targets the site header. */
+html.booking-box-modal-open header,
+html.booking-box-modal-open .marquesina-global-container {
+  visibility: hidden;
+}
+
 div.section.booking-box-container.booking-box-next-section {
   transition: padding-bottom 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94);
 }
