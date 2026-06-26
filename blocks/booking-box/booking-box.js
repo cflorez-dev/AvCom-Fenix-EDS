@@ -1,16 +1,36 @@
 import htm from 'htm';
 import { h, render } from '@dropins/tools/preact.js';
 import { BookingBox } from '../../design-system/organisms/booking-box/booking-box.js';
+import { preloadIcons } from '../../design-system/atoms/icon/icon.js';
 import { fetchAEMData } from '../../scripts/utils/aem-data.js';
 import { resolveLocale } from '../../scripts/utils/locale.js';
 
 const html = htm.bind(h);
+
+// Icons rendered across the booking-box step flow (field + modal-header icons).
+// Warming the module cache here means the first time the user opens a step
+// modal the icons paint synchronously instead of flashing an empty placeholder
+// while each SVG is fetched (bugs #2 / #11).
+const BOOKING_BOX_ICONS = [
+  'action/plane',
+  'action/plane-landing',
+  'action/calendar',
+  'action/addpeople',
+  'navigation/expand-more',
+  'navigation/arrow-back',
+  'navigation/close',
+];
 
 /**
  * Decorates the Booking Box Block
  * @param {Element} block The booking-box block element
  */
 export default async function decorate(block) {
+  // Warm the icon cache as early as possible so the first step modal paints its
+  // field + header icons synchronously (bugs #2 / #11). Fires concurrently with
+  // the AEM data fetches below; best-effort, failures fall back to per-icon fetch.
+  preloadIcons(BOOKING_BOX_ICONS);
+
   const rows = [...block.children];
   const actionButtons = [];
 

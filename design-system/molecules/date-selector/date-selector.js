@@ -147,6 +147,7 @@ export const DateSelector = ({
   onOpenChange,
   onClose,
   onBack,
+  onFieldSelect,
   showHeader = true,
   stepTitle,
   showPriceIndicator = true,
@@ -168,7 +169,14 @@ export const DateSelector = ({
   const [internalIsOpen, setInternalIsOpen] = useState(false);
   const isOpen = isOpenProp !== undefined ? isOpenProp : internalIsOpen;
 
-  const [isMobile, setIsMobile] = useState(false);
+  // Initialize synchronously from the viewport width so the mobile step modal
+  // (`isOpen && isMobile`) renders on the very first paint. Initializing to
+  // false and flipping it in a post-mount effect left a frame where this
+  // freshly-mounted selector's modal was absent, exposing the Home page behind
+  // it during the destination→dates transition (booking-box bug #4).
+  const [isMobile, setIsMobile] = useState(
+    typeof window !== 'undefined' ? window.innerWidth < MOBILE_BREAKPOINT : false,
+  );
   const [currentMonth, setCurrentMonth] = useState(new Date().getMonth());
   const [currentYear, setCurrentYear] = useState(new Date().getFullYear());
   const [pricingData, setPricingData] = useState({});
@@ -209,12 +217,16 @@ export const DateSelector = ({
   // Update calendar position when startMonth/startYear change and selector is open
   // Also reset scroll state on each open so TripTypeToggle is visible on fresh open
   useEffect(() => {
+    // Reset scroll state on open/close and whenever the anchor month changes, so a
+    // scroll in one view doesn't keep the TripTypeToggle/swap hidden in the next
+    // (bug #6). NOTE: this alone is not enough for the departure→return jump — the
+    // return view auto-scrolls to the departure month, and those programmatic
+    // scroll events can re-set hasScrolled; the auto-scroll effect below clears it
+    // again once the animation settles.
+    setHasScrolled(false);
     if (isOpen && startMonth !== null && startYear !== null) {
       setCurrentMonth(startMonth);
       setCurrentYear(startYear);
-    }
-    if (!isOpen) {
-      setHasScrolled(false);
     }
   }, [isOpen, startMonth, startYear]);
 
@@ -229,8 +241,14 @@ export const DateSelector = ({
       if (monthElement) {
         isProgrammaticScrollRef.current = true;
         monthElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        // Reset after smooth scroll animation completes (~600ms) so user scrolls are detected normally
-        setTimeout(() => { isProgrammaticScrollRef.current = false; }, 700);
+        // Reset after smooth scroll animation completes (~600ms) so user scrolls are detected normally.
+        // Also force hasScrolled back to false: the programmatic scroll can leak a
+        // late scroll event past the ref guard, which would otherwise hide the
+        // TripTypeToggle/swap on the return view even though the user never scrolled (bug #6).
+        setTimeout(() => {
+          isProgrammaticScrollRef.current = false;
+          setHasScrolled(false);
+        }, 700);
       }
     }, 100);
 
@@ -700,7 +718,10 @@ export const DateSelector = ({
           `}
 
           <!-- Date Inputs -->
-          <div class="flex my-6 px-[var(--spacing-x-x-large)] pointer-events-none">
+          <!-- Tapping a field jumps to that sub-step (bug #5). The fields used to
+               be inert (pointer-events-none, no onClick) so the only way to edit a
+               date was by re-selecting it in the calendar. -->
+          <div class="flex my-6 px-[var(--spacing-x-x-large)]">
             ${(mode === 'departure' || mode === 'return') && html`
               <div class="flex flex-1 items-center outline outline-offset-[-1px] outline-neutral-400 rounded-lg bg-background-input-default overflow-hidden">
                 <${DateInput}
@@ -711,6 +732,7 @@ export const DateSelector = ({
                   active=${mode === 'departure'}
                   hasError=${false}
                   showErrorMessage=${showErrorMessage}
+                  onClick=${() => mode !== 'departure' && onFieldSelect && onFieldSelect('departure')}
                   i18n=${i18n}
                 />
 
@@ -725,6 +747,7 @@ export const DateSelector = ({
                   active=${mode === 'return'}
                   hasError=${false}
                   showErrorMessage=${showErrorMessage}
+                  onClick=${() => mode !== 'return' && onFieldSelect && onFieldSelect('return')}
                   i18n=${i18n}
                 />
               </div>
@@ -759,7 +782,7 @@ export const DateSelector = ({
           <div 
             ref=${scrollContainerRef}
             onScroll=${handleScroll}
-            class="flex-1 pl-[var(--spacing-x-x-large)] pr-[10px] mr-[10px] pb-[var(--spacing-x-x-large)] overflow-y-auto"
+            class="flex-1 pl-[var(--spacing-x-x-large)] pr-[10px] mr-[10px] pb-[var(--spacing-x-x-large)] overflow-y-auto overscroll-contain"
           >
             <!-- Months in vertical scroll -->
             ${monthsToRender.map(({ year: y, month: m }, index) => html`

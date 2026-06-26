@@ -767,6 +767,7 @@ export const BookingBox = ({
                 dropdownPositionStyles="${isSticky ? 'top-[calc(100%+28px)]' : 'top-[calc(100%+8px)]'} right-0"
                 containerRelative=${false}
                 showCabinClass=${false}
+                noTransition=${showConfirmModal && isMobile}
                 i18n=${i18n}
                 />
             </div>

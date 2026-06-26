@@ -137,7 +137,14 @@ export const CitySelector = ({
   const isOpen = isOpenProp !== undefined ? isOpenProp : internalIsOpen;
   const [searchQuery, setSearchQuery] = useState('');
   const [focusedIndex, setFocusedIndex] = useState(-1);
-  const [isMobile, setIsMobile] = useState(false);
+  // Initialize synchronously from the viewport width so the mobile step modal
+  // (`isOpen && isMobile`) renders on the very first paint. Initializing to
+  // false and flipping it in a post-mount effect left a frame where a
+  // freshly-mounted selector's modal was absent, exposing the Home page behind
+  // it during step transitions (booking-box bugs #4/#7).
+  const [isMobile, setIsMobile] = useState(
+    typeof window !== 'undefined' ? window.innerWidth < MOBILE_BREAKPOINT : false,
+  );
   const [desktopListHasScrollbar, setDesktopListHasScrollbar] = useState(false);
 
   // Reactive state: true si hay al menos 1 carácter en búsqueda
@@ -198,12 +205,16 @@ export const CitySelector = ({
       onBack();
     }
 
-    // Solo cerrar automáticamente en modo NO controlado
-    // En modo controlado, el padre maneja el estado
+    // Always clear the local search/focus state: it's internal to the selector,
+    // never owned by the parent. Leaving it set meant a stale search query
+    // survived back/close and, on reopen, filtered the list so the selected city
+    // was hidden — making the field look like it lost its state (bug #3).
+    setSearchQuery('');
+    setFocusedIndex(-1);
+
+    // Only self-close in uncontrolled mode; in controlled mode the parent owns isOpen.
     if (isOpenProp === undefined) {
       setIsOpenState(false);
-      setSearchQuery('');
-      setFocusedIndex(-1);
     }
   }, [onBack, isOpenProp, setIsOpenState]);
 
@@ -212,10 +223,11 @@ export const CitySelector = ({
       onClose();
     }
 
+    setSearchQuery('');
+    setFocusedIndex(-1);
+
     if (isOpenProp === undefined) {
       setIsOpenState(false);
-      setSearchQuery('');
-      setFocusedIndex(-1);
     }
   }, [onClose, isOpenProp, setIsOpenState]);
 
@@ -785,7 +797,7 @@ export const CitySelector = ({
             <div class="self-stretch justify-start text-text-normal-secondary text-base font-bold mt-[16px]">${isSearching ? (i18n['bookingBox.labels.results'] || 'Resultados') : (i18n['bookingBox.stepTitles.allAirports'] || 'Todos los aeropuertos')}</div>
           ` : ''}
           ${filteredCities.length > 0 && !isLoading ? html`
-            <div class="overflow-y-auto">
+            <div class="overflow-y-auto overscroll-contain">
               ${filteredCities.map((city, index) => renderCityItem(city, index))}
             </div>
           ` : html`
