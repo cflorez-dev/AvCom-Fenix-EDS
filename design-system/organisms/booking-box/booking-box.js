@@ -2,6 +2,7 @@ import { h } from '@dropins/tools/preact.js';
 import {
   useState,
   useEffect,
+  useLayoutEffect,
   useRef,
   useCallback,
   useMemo,
@@ -266,7 +267,9 @@ export const BookingBox = ({
 
       if (allStepsComplete) {
         setShowConfirmModal(true);
-        closeStep();
+        // closeStep() is intentionally omitted here: onOpenChange(false) from
+        // PassengerSelector calls it synchronously in the same event flush,
+        // avoiding a redundant state update that could cause an intermediate render.
       }
     }
   }, [onChange, isMobile, origin, destination, departureDate, tripType, returnDate, closeStep]);
@@ -542,31 +545,27 @@ export const BookingBox = ({
     };
   }, [isMobile]);
 
-  // Block page scroll when any mobile modal/step is open (centralized)
-  // This covers: route steps (city-selector), date steps (date-selector), and confirmation modal.
-  // The document scrolls via <html> (the viewport scroller): per the CSS
-  // overflow-propagation rule only the root element's overflow reaches the
-  // viewport, so `overflow:hidden` on <body> alone leaves the page scrollable
-  // behind the overlay. Lock <html> too, padding it by the now-removed
-  // scrollbar width so the page behind doesn't shift sideways.
-  useEffect(() => {
-    const { documentElement: rootEl, body } = document;
+  // Block body scroll when any mobile modal/step is open (centralized)
+  // This covers: route steps (city-selector), date steps (date-selector), and confirmation modal
+  // useLayoutEffect so the class/z-index is applied before the browser paints the modal,
+  // preventing a single frame where the modal renders below the sticky header (Bug 1).
+  useLayoutEffect(() => {
     const shouldBlock = isMobile && (activeStep !== null || showConfirmModal);
 
-    const unlock = () => {
-      rootEl.classList.remove('!overflow-hidden');
-      body.classList.remove('!overflow-hidden');
-      rootEl.style.paddingRight = '';
-    };
-
     if (shouldBlock) {
-      const scrollbarWidth = window.innerWidth - rootEl.clientWidth;
-      if (scrollbarWidth > 0) rootEl.style.paddingRight = `${scrollbarWidth}px`;
-      rootEl.classList.add('!overflow-hidden');
-      body.classList.add('!overflow-hidden');
+      document.body.classList.add('!overflow-hidden');
+      // Lift the booking box above the sticky site header while a mobile modal
+      // is open. The step/confirm modals render `fixed inset-0` but live inside
+      // `.section.booking-box-container` (z-index:100), whose stacking context
+      // otherwise traps them below the header (z-index:500 mobile / 1000 ≥768px)
+      // — the site header would cover the modal's own header. See booking-box.css.
+      document.documentElement.classList.add('booking-box-modal-open');
     }
 
-    return unlock;
+    return () => {
+      document.body.classList.remove('!overflow-hidden');
+      document.documentElement.classList.remove('booking-box-modal-open');
+    };
   }, [activeStep, showConfirmModal, isMobile]);
 
   // ========== OVERLAY BEHAVIOR ==========
@@ -768,6 +767,7 @@ export const BookingBox = ({
                 dropdownPositionStyles="${isSticky ? 'top-[calc(100%+28px)]' : 'top-[calc(100%+8px)]'} right-0"
                 containerRelative=${false}
                 showCabinClass=${false}
+                noTransition=${showConfirmModal && isMobile}
                 i18n=${i18n}
                 />
             </div>

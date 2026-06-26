@@ -107,6 +107,11 @@ export const PassengerSelector = ({
   onOpenChange,
   dropdownPositionStyles = 'top-[calc(100%+8px)] left-0',
   containerRelative = true,
+  // When true, the trigger renders its resting (default) state without the
+  // open→close CSS transitions. The mobile confirm summary sets this so the
+  // passenger field appears directly in default, with no intermediate animation
+  // from the previous "selected" (open) state (bug #8).
+  noTransition = false,
   i18n = {},
   ...rest
 }) => {
@@ -121,7 +126,14 @@ export const PassengerSelector = ({
   const [validationError, setValidationError] = useState(null);
   const [internalIsOpen, setInternalIsOpen] = useState(false);
   const isOpen = isOpenProp !== undefined ? isOpenProp : internalIsOpen;
-  const [isMobile, setIsMobile] = useState(false);
+  // Initialize synchronously from the viewport width so the mobile step modal
+  // (`isOpen && isMobile`) renders on the very first paint. Initializing to
+  // false and flipping it in a post-mount effect left a frame where this
+  // freshly-mounted selector's modal was absent, exposing the Home page behind
+  // it during the dates→passengers transition (booking-box bug #7).
+  const [isMobile, setIsMobile] = useState(
+    typeof window !== 'undefined' ? window.innerWidth < 768 : false,
+  );
   const [showInfoBanner, setShowInfoBanner] = useState(true);
   const dropdownRef = useRef(null);
   const triggerRef = useRef(null);
@@ -176,17 +188,10 @@ export const PassengerSelector = ({
       document.addEventListener('keydown', handleEscape);
     }, 10);
 
-    if (isMobile) {
-      document.body.style.overflow = 'hidden';
-    }
-
     return () => {
       clearTimeout(timeoutId);
       document.removeEventListener('mousedown', handleClickOutside);
       document.removeEventListener('keydown', handleEscape);
-      if (isMobile) {
-        document.body.style.overflow = '';
-      }
     };
   }, [isOpen, isMobile, isOpenProp, onOpenChange]);
 
@@ -447,7 +452,7 @@ export const PassengerSelector = ({
         <button
           ref=${triggerRef}
           type="button"
-          class="flex-1 flex flex-col cursor-pointer transition-all duration-200 outline-0 bg-white max-w-full group/passengerTrigger"
+          class="flex-1 flex flex-col cursor-pointer ${noTransition ? '' : 'transition-all duration-200'} outline-0 bg-white max-w-full group/passengerTrigger"
           onClick=${handleTriggerClick}
           aria-expanded=${isOpen}
           aria-haspopup="true"
@@ -461,20 +466,20 @@ export const PassengerSelector = ({
               <div class="self-stretch h-5 justify-start text-[var(--text-normal-primary)] text-base font-bold truncate">${getDisplayText}</div>
             </div>
             <div class="w-5 h-5 flex justify-center items-center">
-              <div class="${isOpen ? 'rotate-180' : ''} transition-transform duration-200 flex items-center justify-center h-5">
+              <div class="${isOpen ? 'rotate-180' : ''} ${noTransition ? '' : 'transition-transform duration-200'} flex items-center justify-center h-5">
                 <${Icon} icon="navigation/expand-more" size="xsm" />
               </div>
             </div>
           </div>
           <!-- Green bottom line (straight, no border-radius) -->
-          <div class="w-full h-[3px] bg-transparent transition-colors duration-200 group-hover/passengerTrigger:bg-border-input-positive group-focus-within/passengerTrigger:bg-border-input-positive ${isOpen ? '!bg-border-input-positive' : ''}" aria-hidden="true"></div>
+          <div class="w-full h-[3px] bg-transparent ${noTransition ? '' : 'transition-colors duration-200'} group-hover/passengerTrigger:bg-border-input-positive group-focus-within/passengerTrigger:bg-border-input-positive ${isOpen ? '!bg-border-input-positive' : ''}" aria-hidden="true"></div>
         </button>
       </div>
 
       <!-- Desktop Popup / Mobile Modal -->
       ${isOpen && (isMobile ? html`
         <!-- Mobile Full-Screen Modal -->
-        <div class="fixed inset-0 bg-white z-[700] flex flex-col max-w-[100vw] min-h-svh">
+        <div class="fixed inset-0 bg-white z-[700] flex flex-col max-w-[100vw] min-h-svh overscroll-contain">
           <!-- Header (condicional - solo si showHeader=true) -->
           ${showHeader && html`
             <div class="px-[16px] py-[24px] flex items-center justify-between">
@@ -499,7 +504,11 @@ export const PassengerSelector = ({
           `}
 
           <!-- Content -->
-          <div class="flex-1 overflow-y-auto px-[32px] pt-[16px] pb-0 flex flex-col gap-[16px]">
+          <!-- overscroll-contain stops the scroll from chaining to the page body,
+               so no part of the Home screen shows while scrolling the passenger
+               flow (bug #9). Does NOT re-lock body scroll (that was removed in
+               5bbb817 to avoid the iOS bounce). -->
+          <div class="flex-1 overflow-y-auto overscroll-contain px-[32px] pt-[16px] pb-0 flex flex-col gap-[16px]">
             <!-- Selected Passengers Display (Input Style) -->
             <div class="self-stretch inline-flex flex-col justify-start items-start gap-1">
               <div class="self-stretch h-12 rounded-lg outline-1 outline-offset-[-1px] outline-[var(--color-border-default)] inline-flex justify-start items-start overflow-hidden">

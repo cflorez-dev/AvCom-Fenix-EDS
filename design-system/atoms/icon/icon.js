@@ -5,6 +5,83 @@ import htm from 'htm';
 
 const html = htm.bind(h);
 
+// ============================================================================
+// Module-level SVG cache
+// ----------------------------------------------------------------------------
+// Each <Icon> used to fetch `/icons/<name>.svg` inside a useEffect on every
+// mount and render an empty placeholder until the request resolved. Because the
+// booking-box step modals (city / date / passenger selectors) mount their
+// header back/close icons and field icons fresh on every open, the user saw a
+// perceptible icon "load delay" each time (bugs #2 / #11).
+//
+// We cache the RAW svg text once per icon name at module scope so that:
+//   • the first component to need an icon fetches it (or uses a preload),
+//   • every subsequent render reads it synchronously and paints the real icon
+//     on the FIRST frame — no placeholder flash, no refetch.
+// The (cheap) string post-processing is done per render since it depends on the
+// `color` prop; only the network round-trip is shared.
+const rawSvgCache = new Map(); // name -> raw svg text
+const failedIcons = new Set(); // names that 404'd (avoid refetch loops)
+const inFlight = new Map(); // name -> Promise (dedupe concurrent fetches)
+
+const fetchRawSvg = (name) => {
+  if (rawSvgCache.has(name)) return Promise.resolve(rawSvgCache.get(name));
+  if (failedIcons.has(name)) return Promise.reject(new Error('icon failed'));
+  if (inFlight.has(name)) return inFlight.get(name);
+
+  const p = fetch(`/icons/${name}.svg`)
+    .then((response) => {
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      return response.text();
+    })
+    .then((text) => {
+      rawSvgCache.set(name, text);
+      inFlight.delete(name);
+      return text;
+    })
+    .catch((err) => {
+      failedIcons.delete(name);
+      inFlight.delete(name);
+      failedIcons.add(name);
+      throw err;
+    });
+
+  inFlight.set(name, p);
+  return p;
+};
+
+// Normalize the raw svg so it adapts to the container and (optionally) recolors.
+const processSvg = (rawText, color) => {
+  let svgText = rawText
+    .replace(/\s*width="[^"]*"/g, '')
+    .replace(/\s*height="[^"]*"/g, '')
+    .replace('<svg', '<svg width="100%" height="100%"');
+
+  if (color) {
+    svgText = svgText
+      .replace(/fill="#[^"]*"/g, `fill="${color}"`)
+      .replace(/fill='#[^']*'/g, `fill='${color}'`);
+  }
+
+  return svgText;
+};
+
+/**
+ * Warm the module cache for a set of icon names before they are rendered.
+ * Call this once (e.g. when a block that uses many icons decorates) so the
+ * first paint of every icon is synchronous. Best-effort: failures are swallowed
+ * and simply fall back to the per-component fetch.
+ *
+ * @param {string[]} names - Icon names without extension (e.g. "navigation/close").
+ */
+export const preloadIcons = (names = []) => {
+  if (typeof window === 'undefined') return;
+  names.forEach((name) => {
+    if (!name || rawSvgCache.has(name) || inFlight.has(name)) return;
+    fetchRawSvg(name).catch(() => {});
+  });
+};
+
 /**
  * Icon - Reusable component for rendering system SVG icons
  *
@@ -27,54 +104,50 @@ export const Icon = ({
   ariaLabel,
   ...rest
 }) => {
-  const [svgContent, setSvgContent] = useState(null);
-  const [error, setError] = useState(false);
+  // Bump to force a re-render once an async fetch populates the cache.
+  const [, setLoadedTick] = useState(0);
+  const [error, setError] = useState(() => failedIcons.has(icon));
 
-  // Load SVG dynamically
+  // Fetch only when the icon isn't already cached. When it IS cached the raw
+  // text is read synchronously below, so the icon paints on the first frame
+  // with no placeholder.
   useEffect(() => {
     let mounted = true;
 
-    const loadSvg = async () => {
-      try {
-        // Fetch SVG from /icons/ root
-        const response = await fetch(`/icons/${icon}.svg`);
-        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    if (rawSvgCache.has(icon)) {
+      if (error) setError(false);
+      return undefined;
+    }
 
-        let svgText = await response.text();
+    if (failedIcons.has(icon)) {
+      setError(true);
+      return undefined;
+    }
 
-        // Remove width and height attributes from SVG to respect container size
-        svgText = svgText.replace(/\s*width="[^"]*"/g, '');
-        svgText = svgText.replace(/\s*height="[^"]*"/g, '');
-
-        // Ensure it has width and height at 100% to adapt to container
-        svgText = svgText.replace('<svg', '<svg width="100%" height="100%"');
-
-        // Only replace fill if color prop is passed
-        if (color) {
-          svgText = svgText.replace(/fill="#[^"]*"/g, `fill="${color}"`);
-          svgText = svgText.replace(/fill='#[^']*'/g, `fill='${color}'`);
-        }
-
+    fetchRawSvg(icon)
+      .then(() => {
         if (mounted) {
-          setSvgContent(svgText);
           setError(false);
+          setLoadedTick((n) => n + 1);
         }
-      } catch (err) {
+      })
+      .catch(() => {
         if (mounted) {
           // eslint-disable-next-line no-console
           console.warn(`Icon "${icon}" no encontrado en /icons/${icon}.svg`);
           setError(true);
         }
-      }
-    };
-
-    loadSvg();
+      });
 
     return () => {
       mounted = false;
     };
-  }, [icon, color]); // Re-run if color changes
- 
+  }, [icon]);
+
+  // Read (possibly cached) raw svg and process synchronously for this render.
+  const rawSvg = rawSvgCache.get(icon);
+  const svgContent = rawSvg !== undefined ? processSvg(rawSvg, color) : null;
+
   // Map sizes to Tailwind classes
   const sizeClasses = {
     xs: 'w-2 h-2', // 8x8px
@@ -111,7 +184,7 @@ export const Icon = ({
     ? { 'aria-label': ariaLabel, role: 'img' }
     : { 'aria-hidden': 'true' };
 
-  // If loading or error, show placeholder
+  // If still loading (uncached) or error, show placeholder
   if (!svgContent || error) {
     return html`
       <span

@@ -1,16 +1,46 @@
 import htm from 'htm';
 import { h, render } from '@dropins/tools/preact.js';
 import { BookingBox } from '../../design-system/organisms/booking-box/booking-box.js';
+import { preloadIcons } from '../../design-system/atoms/icon/icon.js';
 import { fetchAEMData } from '../../scripts/utils/aem-data.js';
 import { resolveLocale } from '../../scripts/utils/locale.js';
 
 const html = htm.bind(h);
+
+// Icons rendered across the booking-box step flow (field + modal-header icons).
+// Warming the module cache here means the first time the user opens a step
+// modal the icons paint synchronously instead of flashing an empty placeholder
+// while each SVG is fetched (bugs #2 / #11).
+const BOOKING_BOX_ICONS = [
+  'action/plane',
+  'action/plane-landing',
+  'action/calendar',
+  'action/addpeople',
+  'navigation/expand-more',
+  'navigation/arrow-back',
+  'navigation/close',
+];
 
 /**
  * Decorates the Booking Box Block
  * @param {Element} block The booking-box block element
  */
 export default async function decorate(block) {
+  // Warm the icon cache so the first step modal paints its field + header icons
+  // synchronously (bugs #2 / #11). Deferred to browser-idle (with a timeout
+  // fallback, and a setTimeout for Safari which lacks requestIdleCallback) so the
+  // 7 SVG fetches don't compete with the LCP/critical path on mobile — the user
+  // takes far longer than this to open a step, so the cache is still warm in time.
+  // Best-effort: failures fall back to the per-icon fetch on mount.
+  const warmBookingBoxIcons = () => preloadIcons(BOOKING_BOX_ICONS);
+  if (typeof window !== 'undefined') {
+    if (typeof window.requestIdleCallback === 'function') {
+      window.requestIdleCallback(warmBookingBoxIcons, { timeout: 2000 });
+    } else {
+      setTimeout(warmBookingBoxIcons, 1200);
+    }
+  }
+
   const rows = [...block.children];
   const actionButtons = [];
 
