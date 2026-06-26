@@ -26,10 +26,20 @@ const BOOKING_BOX_ICONS = [
  * @param {Element} block The booking-box block element
  */
 export default async function decorate(block) {
-  // Warm the icon cache as early as possible so the first step modal paints its
-  // field + header icons synchronously (bugs #2 / #11). Fires concurrently with
-  // the AEM data fetches below; best-effort, failures fall back to per-icon fetch.
-  preloadIcons(BOOKING_BOX_ICONS);
+  // Warm the icon cache so the first step modal paints its field + header icons
+  // synchronously (bugs #2 / #11). Deferred to browser-idle (with a timeout
+  // fallback, and a setTimeout for Safari which lacks requestIdleCallback) so the
+  // 7 SVG fetches don't compete with the LCP/critical path on mobile — the user
+  // takes far longer than this to open a step, so the cache is still warm in time.
+  // Best-effort: failures fall back to the per-icon fetch on mount.
+  const warmBookingBoxIcons = () => preloadIcons(BOOKING_BOX_ICONS);
+  if (typeof window !== 'undefined') {
+    if (typeof window.requestIdleCallback === 'function') {
+      window.requestIdleCallback(warmBookingBoxIcons, { timeout: 2000 });
+    } else {
+      setTimeout(warmBookingBoxIcons, 1200);
+    }
+  }
 
   const rows = [...block.children];
   const actionButtons = [];
