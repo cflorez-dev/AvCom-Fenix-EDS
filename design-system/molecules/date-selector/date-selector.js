@@ -524,8 +524,14 @@ export const DateSelector = ({
     [currentYear, limitYear, currentMonth, limitMonth],
   );
 
+  // Disable "next" once the LAST visible month reaches the max booking month. The
+  // desktop calendar shows two months (current + current+1) and navigates in steps of
+  // MONTHS_TO_NAVIGATE (2), so we cap on `currentMonth + 1` (the right/last month) and
+  // use a >= comparison, NOT exact equality: an exact `=== maxDate.getMonth()` check
+  // could be skipped by the 2-month step (e.g. May -> July, skipping June), never
+  // disabling navigation and letting the user scroll years past the 355-day limit.
   const isMaxMonth = useMemo(
-    () => currentYear === maxDate.getFullYear() && currentMonth === maxDate.getMonth(),
+    () => (currentYear * 12 + currentMonth + 1) >= (maxDate.getFullYear() * 12 + maxDate.getMonth()),
     [currentYear, maxDate, currentMonth],
   );
 
