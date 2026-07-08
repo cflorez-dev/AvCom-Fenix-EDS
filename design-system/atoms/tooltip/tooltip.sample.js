@@ -45,6 +45,53 @@ export const TooltipSample = () => html`
         </button>
       </${Tooltip}>
     </div>
+
+    <h3 class="text-lg font-bold mt-10 mb-2">Variant: hint (Figma 12:18324)</h3>
+    <p class="text-sm text-text-normal-secondary mb-4">
+      Pensado para identificar la acción de un botón icon-only en headers /
+      barras de acciones. El wrapper aplica <code>cursor-pointer</code>
+      automáticamente.
+    </p>
+    <div class="flex flex-wrap items-center gap-8 min-h-[180px]">
+      <${Tooltip} content="Carrito de compra" variant="hint" position="bottom">
+        <button
+          type="button"
+          aria-label="Carrito de compra"
+          class="inline-flex h-9 w-9 items-center justify-center rounded-full border border-border-stroke-default bg-transparent hover:bg-[var(--color-background-brand-secondary-hover)] transition-colors"
+        >
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+            <path d="M2 2h2l1.5 9h7.5l1.5-6H5" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
+            <circle cx="6.5" cy="13.5" r="1" fill="currentColor"/>
+            <circle cx="12.5" cy="13.5" r="1" fill="currentColor"/>
+          </svg>
+        </button>
+      </${Tooltip}>
+
+      <${Tooltip} content="Mi perfil" variant="hint" position="bottom">
+        <button
+          type="button"
+          aria-label="Mi perfil"
+          class="inline-flex h-9 w-9 items-center justify-center rounded-full border border-border-stroke-default bg-transparent hover:bg-[var(--color-background-brand-secondary-hover)] transition-colors"
+        >
+          <span class="text-[14px] font-bold uppercase">SR</span>
+        </button>
+      </${Tooltip}>
+
+      <${Tooltip}
+        content="Always visible (preview)"
+        variant="hint"
+        position="bottom"
+        tooltipClassName="!opacity-100 !visible"
+      >
+        <button
+          type="button"
+          aria-label="Preview"
+          class="inline-flex h-9 w-9 items-center justify-center rounded-full border border-border-stroke-default"
+        >
+          ★
+        </button>
+      </${Tooltip}>
+    </div>
   </div>
 `;
 

@@ -16,6 +16,23 @@ function isMobileViewport() {
 }
 
 /**
+ * Resolve transversal horizontal padding from global CSS var.
+ * Uses 16px as a safe minimum fallback.
+ * @returns {number} Padding in pixels
+ */
+function getTransversalLateralPadding() {
+  const rootStyles = window.getComputedStyle(document.documentElement);
+  const cssVarValue = rootStyles.getPropertyValue('--main-section-div-padding').trim();
+  const parsed = Number.parseFloat(cssVarValue);
+
+  if (Number.isFinite(parsed)) {
+    return Math.max(parsed, 16);
+  }
+
+  return 16;
+}
+
+/**
  * Create carousel structure for mobile view
  * @param {Array} allCards - Array of all card data from all mosaics
  * @param {string} groupId - Carousel group identifier
@@ -38,12 +55,25 @@ async function createMobileCarousel(allCards, groupId, config = {}) {
   carouselContainer.setAttribute('data-group-id', groupId);
   carouselContainer.setAttribute('role', 'region');
   carouselContainer.setAttribute('aria-label', 'Mosaic cards carousel');
+  const lateralPadding = getTransversalLateralPadding();
+
+  // In autoplay, keep the side gutters on the outer container so the moving
+  // track does not visually consume internal wrapper padding while scrolling.
+  if (autoplay) {
+    carouselContainer.style.paddingLeft = `${lateralPadding}px`;
+    carouselContainer.style.paddingRight = `${lateralPadding}px`;
+  }
 
   // Create carousel wrapper with horizontal scroll and touch support
   const carouselWrapper = document.createElement('div');
   // Disable snap when autoplay is active to allow smooth continuous scroll
   const snapClasses = autoplay ? '' : 'snap-x snap-mandatory';
-  carouselWrapper.className = `carousel-wrapper overflow-x-auto ${snapClasses} scrollbar-hide flex gap-4 p-4 pb-0 scroll-pl-4 scroll-pr-4`;
+  carouselWrapper.className = `carousel-wrapper overflow-x-auto ${snapClasses} scrollbar-hide flex items-start gap-4 pt-4 pb-0`;
+  const wrapperLateralPadding = autoplay ? 0 : lateralPadding;
+  carouselWrapper.style.paddingLeft = `${wrapperLateralPadding}px`;
+  carouselWrapper.style.paddingRight = `${wrapperLateralPadding}px`;
+  carouselWrapper.style.scrollPaddingLeft = `${lateralPadding}px`;
+  carouselWrapper.style.scrollPaddingRight = `${lateralPadding}px`;
   // Set scroll behavior based on autoplay: 'auto' for autoplay (no animation), 'smooth' for manual scroll
   carouselWrapper.style.scrollBehavior = autoplay ? 'auto' : 'smooth';
   // Prevent iOS momentum scrolling from overshooting the loop boundary,
@@ -65,7 +95,7 @@ async function createMobileCarousel(allCards, groupId, config = {}) {
     // Tablet (480-767px): 2 cards = 50% width minus half gap, snap-start to align from left
     // Disable snap when autoplay is active
     const snapClasses = autoplay ? '' : 'snap-center snap-always max-[479px]:snap-center min-[480px]:snap-start';
-    cardSlide.className = `carousel-slide flex-shrink-0 w-full min-[480px]:w-[calc(50%-8px)] ${snapClasses}`;
+    cardSlide.className = `carousel-slide self-start h-auto flex-shrink-0 w-full min-[480px]:w-[calc(50%-8px)] ${snapClasses}`;
     cardSlide.setAttribute('data-card-index', index);
     cardSlide.setAttribute('data-original-index', index % originalCardsCount);
     cardSlide.setAttribute('role', 'listitem');

@@ -23,6 +23,10 @@ indices:
       - '/es/**'
     exclude:
       - '/**.json'
+      - '/es/nav'
+      - '/es/footer'
+      - '/es/index/**'
+      - '/es/componentesmvp2'
     target: /es/query-index.json
     properties:
       lastModified:
@@ -40,6 +44,10 @@ indices:
       - '/en/**'
     exclude:
       - '/**.json'
+      - '/en/nav'
+      - '/en/footer'
+      - '/en/index/**'
+      - '/en/componentesmvp2'
     target: /en/query-index.json
     properties:
       lastModified:
@@ -57,6 +65,10 @@ indices:
       - '/pt/**'
     exclude:
       - '/**.json'
+      - '/pt/nav'
+      - '/pt/footer'
+      - '/pt/index/**'
+      - '/pt/componentesmvp2'
     target: /pt/query-index.json
     properties:
       lastModified:
@@ -74,6 +86,10 @@ indices:
       - '/fr/**'
     exclude:
       - '/**.json'
+      - '/fr/nav'
+      - '/fr/footer'
+      - '/fr/index/**'
+      - '/fr/componentesmvp2'
     target: /fr/query-index.json
     properties:
       lastModified:

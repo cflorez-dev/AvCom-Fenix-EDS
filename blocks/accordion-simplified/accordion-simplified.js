@@ -35,6 +35,7 @@ function parseConfig(block) {
     defaultOpen: configValues[3] || 'none',
     visibilityStartDate: configValues[4] || '',
     visibilityEndDate: configValues[5] || '',
+    itemSpacing: configValues[6] || 'default',
   };
 }
 
@@ -227,7 +228,9 @@ const AccordionItem = ({
  * @param {'exclusive'|'multiple'} props.openMode
  * @param {'none'|'first'|'all'}   props.defaultOpen
  */
-const AccordionSimplifiedGroup = ({ items, openMode, defaultOpen }) => {
+const AccordionSimplifiedGroup = ({
+  items, openMode, defaultOpen, itemSpacing,
+}) => {
   // Lazy initializer: compute initial Set once on first render
   const [openSet, setOpenSet] = useState(() => {
     const set = new Set();
@@ -264,9 +267,11 @@ const AccordionSimplifiedGroup = ({ items, openMode, defaultOpen }) => {
     });
   };
 
+  const gapClass = itemSpacing === 'none' ? 'gap-0' : 'gap-3';
+
   return html`
     <div
-      class="accordion-simplified-group flex flex-col gap-3 w-full"
+      class=${`accordion-simplified-group flex flex-col ${gapClass} w-full ${itemSpacing === 'none' ? 'accordion-simplified-group--no-gap' : ''}`}
       data-name="accordionSimplifiedGroup"
     >
       ${items.map((item, i) => html`
@@ -348,6 +353,7 @@ export default function decorate(block) {
         items=${items}
         openMode=${config.openMode}
         defaultOpen=${config.defaultOpen}
+        itemSpacing=${config.itemSpacing}
       />
     `,
     container,

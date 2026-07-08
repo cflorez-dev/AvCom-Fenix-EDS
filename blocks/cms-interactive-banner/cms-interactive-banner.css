@@ -15,7 +15,7 @@
   margin: 0;
 }
 
-@media (width <= 1023px) {
+@media (width <= 767px) {
     .section.cms-interactive-banner-container {
         padding-inline: 16px;
     }

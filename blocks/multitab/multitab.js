@@ -636,8 +636,11 @@ export default async function decorate(block) {
     // Transfer grid-layout classes from the section to the contentWrapper so
     // the tab panel renders full-width while internal content respects the grid
     // preset configured via Section Metadata → Styles.
-    // Also transfer multitab-item-pill so pill sections can apply custom layout styles.
-    const CONTENT_WRAPPER_CLASSES = ['grid-', 'multitab-item-pill'];
+    // Also transfer multitab-item-pill so pill sections can apply custom layout styles,
+    // and multitab-card / multitab-no-card so the rich-text card styling (which targets
+    // .multitab-content.multitab-card) reaches the visible content wrapper instead of
+    // staying on the hidden original section.
+    const CONTENT_WRAPPER_CLASSES = ['grid-', 'multitab-item-pill', 'multitab-card', 'multitab-no-card'];
     const transferClasses = [...tabData.section.classList].filter((cls) => CONTENT_WRAPPER_CLASSES.some((prefix) => cls.startsWith(prefix)));
     transferClasses.forEach((cls) => {
       tabData.section.classList.remove(cls);

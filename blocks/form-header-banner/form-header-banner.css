@@ -2,7 +2,7 @@
     max-width: 100%;
 }
 
-@media (width <= 1023px) {
+@media (width <= 767px) {
     .section.form-header-banner-container {
         padding: 0 16px;
     }

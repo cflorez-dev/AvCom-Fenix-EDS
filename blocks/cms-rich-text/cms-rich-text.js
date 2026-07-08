@@ -15,12 +15,16 @@ function processLinkElements(container) {
   if (!container) return;
 
   // Get LinkButton styles for informative variant
+  // `underline: true` because this is a rich-text context (por diseño los links
+  // dentro de cms-rich-text sí van subrayados). El atomo `LinkButton` por defecto
+  // ya no aplica underline — solo se activa con este opt-in.
   const linkButtonClasses = getLinkButtonStyles({
     variant: 'link',
     size: 'default',
     colorVariant: 'informative',
     iconOnly: false,
     disabled: false,
+    underline: true,
     customClassName: '',
   });
 

@@ -63,9 +63,13 @@
 }
 
 /* override first paragraph and ul margin inside accordion */
-.section.accordion-item .accordion-group-content p:first-child,
 .section.accordion-item .accordion-group-content .columns-text-col ul {
     margin: 0;
+}
+
+/* Bug 6: first paragraph flush to top; inter-paragraph spacing kept below */
+.section.accordion-item .accordion-group-content p:first-child {
+    margin-top: 0;
 }
 
 /* override ul styles inside accordion */
@@ -75,17 +79,33 @@
 
 /* text styles inside accordion */
 .section.accordion-item .accordion-group-content .columns-text-col li,
-.section.accordion-item .accordion-group-content .columns-text-col p {
+.section.accordion-item .accordion-group-content .columns-text-col p,
+.section.accordion-item .accordion-group-content > .default-content-wrapper li,
+.section.accordion-item .accordion-group-content > .default-content-wrapper p {
     font-style: normal;
     font-weight: 400;
     line-height: 150%; /* 24px */
-    margin: 0;
+    margin: 0 0 var(--spacing-medium, 16px); /* Bug 6: inter-paragraph spacing */
+}
+
+/* Bug 6: tighter spacing between list items than between paragraphs */
+.section.accordion-item .accordion-group-content .columns-text-col li,
+.section.accordion-item .accordion-group-content > .default-content-wrapper li {
+    margin-bottom: var(--spacing-x-small, 8px);
+}
+
+/* Bug 6: no trailing gap after the last block */
+.section.accordion-item .accordion-group-content .columns-text-col li:last-child,
+.section.accordion-item .accordion-group-content .columns-text-col p:last-child,
+.section.accordion-item .accordion-group-content > .default-content-wrapper li:last-child,
+.section.accordion-item .accordion-group-content > .default-content-wrapper p:last-child {
+    margin-bottom: 0;
 }
 
 /* link styles inside accordion */
 .section.accordion-item .accordion-group-content .columns-text-col a:any-link,
 .section.accordion-item .accordion-group-content > .default-content-wrapper a:any-link {
-    color: var(--link-color-secondary);
+    color: var(--color-text-link-informative-default, #177f8c);
     font-weight: 400;
     line-height: 150%;
     text-decoration-line: underline;
@@ -101,7 +121,7 @@
 /* hover/focus: match design system link behavior (fw 700 + active color) */
 .section.accordion-item .accordion-group-content .columns-text-col a:any-link:hover,
 .section.accordion-item .accordion-group-content > .default-content-wrapper a:any-link:hover {
-    color: var(--text-link-active, #0e4c54);
+    color: var(--color-text-link-informative-active, #0e4c54);
     font-weight: 700;
 }
 
@@ -173,12 +193,21 @@
     background: var(--color-background-brand-primary-lighter, #fff);
     border: 1px solid var(--color-border-brand-secondary-disable);
     box-sizing: border-box;
+
+    /* Bug 7: establish stacking context so a hovered item's shadow paints
+       above adjacent opaque item boxes (they overlap with no spacing). */
+    position: relative;
+    z-index: 0;
 }
 
 @media (width >= 900px) {
     .section.accordion-group-item .accordion-group-item-inner:hover,
     .section.accordion-group-item .accordion-group-item-inner:has(.accordion-group-trigger:hover) {
         box-shadow: 0 2px 20px 2px rgb(73 73 73 / 25%);
+
+        /* Bug 7: raise hovered item above siblings so the full shadow is
+           visible consistently on every item, not clipped by the next box. */
+        z-index: 1;
     }
 }
 
@@ -481,4 +510,63 @@
     .accordion-group-icon {
         display: none;
     }
+}
+
+/* ─── No-gap variant (item-spacing: none) ──────────────────────────────────────
+ * When authors select "None" spacing, items stack flush together into a
+ * single grouped card. Intermediate borders and rounded corners are removed
+ * so only the first item has top radius and the last has bottom radius.
+ * Restaurado: el JS agrega .accordion-group-item--no-gap (item-spacing 'none')
+ * pero el CSS se había perdido en el auto-merge Phase 2 (VSTS accordion agrupado).
+ * ────────────────────────────────────────────────────────────────────────────── */
+
+/* Remove section padding between items */
+.section.accordion-group-item.accordion-group-item--no-gap {
+    padding-top: 0;
+    padding-bottom: 0;
+}
+
+/* Remove border-radius on intermediate items */
+.section.accordion-group-item--no-gap .accordion-group-item-inner {
+    border-radius: 0;
+}
+
+/* First item: top radius only */
+.section.accordion-group-item--no-gap.accordion-group-item--first .accordion-group-item-inner {
+    border-radius: var(--border-radius-medium, 12px) var(--border-radius-medium, 12px) 0 0;
+}
+
+/* Last item: bottom radius only */
+.section.accordion-group-item--no-gap.accordion-group-item--last .accordion-group-item-inner {
+    border-radius: 0 0 var(--border-radius-medium, 12px) var(--border-radius-medium, 12px);
+}
+
+/* Single item (first AND last): full radius */
+.section.accordion-group-item--no-gap.accordion-group-item--first.accordion-group-item--last .accordion-group-item-inner {
+    border-radius: var(--border-radius-medium, 12px);
+}
+
+/* Collapse duplicate borders between stacked items.
+   Non-first items remove their top border; the previous item's bottom
+   border is replaced by an inset centered divider (24px inset each side)
+   so the separator does not span the full width. */
+.section.accordion-group-item--no-gap:not(.accordion-group-item--first) .accordion-group-item-inner {
+    border-top: none;
+}
+
+.section.accordion-group-item--no-gap:not(.accordion-group-item--last) .accordion-group-item-inner {
+    border-bottom: 0;
+    position: relative;
+}
+
+.section.accordion-group-item--no-gap:not(.accordion-group-item--last) .accordion-group-item-inner::after {
+    content: '';
+    position: absolute;
+    left: 50%;
+    bottom: 0;
+    transform: translateX(-50%);
+    width: calc(100% - 48px);
+    height: 1px;
+    background-color: var(--color-border-brand-secondary-disable, #e5e5e5);
+    pointer-events: none;
 }

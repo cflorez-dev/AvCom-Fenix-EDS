@@ -1,11 +1,13 @@
 /**
  * Extracts props from CMS Sticky Countdown Banner block.
  *
- * @param {Element} block - Block element with 13 rows:
+ * @param {Element} block - Block element with up to 14 rows:
  *  0-title, 1-subtitle, 2-startDateTime, 3-endDateTime, 4-dismissible,
  *  5-backgroundColor, 6-textColor, 7-counterTextColor,
  *  8-counterBackgroundColor, 9-buttonColor, 10-ariaRole,
- *  11-targetCountries, 12-targetLanguages
+ *  11-targetCountries, 12-targetLanguages,
+ *  13-dismissStrategy (CU-214: optional — 'session' | 'none' | 'permanent';
+ *      defaults to 'session' for legacy 13-row content)
  * @returns {Object} Mapped properties object
  */
 export function extractCmsStickyCountdownBannerProps(block) {
@@ -27,6 +29,7 @@ export function extractCmsStickyCountdownBannerProps(block) {
     'ariaRole',
     'targetCountries',
     'targetLanguages',
+    'dismissStrategy',
   ];
 
   rows.forEach((row, index) => {

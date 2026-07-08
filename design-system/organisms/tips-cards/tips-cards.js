@@ -1,5 +1,6 @@
 import { h } from '@dropins/tools/preact.js';
 import htm from 'htm';
+import { processContentHTML } from '../../helpers/process-content-html.js';
 
 const html = htm.bind(h);
 
@@ -52,9 +53,14 @@ const TipsCards = ({
                 </div>
               `}
               ${card.description && html`
-                <div class="self-stretch justify-start text-text-normal-primary text-sm font-normal leading-normal">
-                  ${card.description}
-                </div>
+                <div
+                  class="tips-card-description self-stretch justify-start text-text-normal-primary text-sm font-normal leading-normal"
+                  dangerouslySetInnerHTML=${{
+    __html: processContentHTML(card.description || '', 'informative', {
+      pClassName: 'text-sm font-normal leading-normal !m-0',
+    }),
+  }}
+                ></div>
               `}
             </div>
           </div>

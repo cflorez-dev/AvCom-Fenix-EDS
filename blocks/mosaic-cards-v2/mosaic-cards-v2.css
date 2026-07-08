@@ -237,10 +237,6 @@
    nav arrows positioned at left:0/right:0 (width 32px), this puts arrow
    centers exactly at the wrapper edge — half of each arrow over the
    cards, half over the empty section background. */
-.mosaic-v2-container.has-nav-padding {
-    padding-inline: 16px !important;
-}
-
 .mosaic-v2-container.has-nav-padding .mosaic-v2-clip {
     /* Clip horizontally to hide marquee slides peeking at the edges, but allow
        vertical overflow so card hover shadows (which extend ~22px above/below
@@ -330,19 +326,9 @@
 
 /* Desktop 1248px screen */
 @media (min-width: 1248px) {
-    main > .section.is-autoplay {
-        --main-section-div-padding: 16px;
-    }
     /* Slide gap during marquee autoplay */
     .mosaic-v2-container.is-autoplay .mosaic-v2-track {
         gap: 16px !important;
-    }
-
-    /* Pre-existing rule: 16px grid padding for non-autoplay carousels.
-       Only applies when our `.has-nav-padding` (with its own container padding)
-       is NOT present, to avoid double-padding the content. */
-    .mosaic-v2-container:not(.is-autoplay):not(.has-nav-padding) .parent-cms-mosaic {
-        padding-inline: 16px;
     }
 
     /* Transparent mask — content insetting handled by .has-nav-padding rule above */
@@ -357,4 +343,88 @@
         pointer-events: none;
         background: transparent;
     }
+}
+
+/* CU-208: richtext support in link-card description (mosaic-cards-v2 container).
+   Inherit base typography from .link-card-description and only restore browser
+   defaults for lists, bold, and link visual states. */
+.link-card-description p {
+    margin: 0;
+}
+
+.link-card-description p + p {
+    margin-top: 8px;
+}
+
+.link-card-description ul,
+.link-card-description ol {
+    margin: 8px 0;
+    padding-left: 20px;
+}
+
+.link-card-description ul {
+    list-style: disc;
+}
+
+.link-card-description ol {
+    list-style: decimal;
+}
+
+.link-card-description li {
+    margin: 0;
+}
+
+.link-card-description strong,
+.link-card-description b {
+    font-weight: 700;
+}
+
+.link-card-description em,
+.link-card-description i {
+    font-style: italic;
+}
+
+/* `.rich-text-link` mirrors the LinkButton atom (variant=link, size=default,
+   colorVariant=informative). Anchor tags inside link-card descriptions get this
+   class via scripts/utils/link-card-richtext.js so the visual styling is
+   guaranteed even if Tailwind utility resolution differs across pages. */
+.rich-text-link {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 2px;
+    font-family: 'Red Hat Display', sans-serif;
+    font-size: 16px;
+    line-height: 21px;
+    font-weight: 400;
+    letter-spacing: 0;
+    text-align: center;
+    color: var(--color-text-link-informative-default, #177f8c);
+    text-decoration: underline;
+    text-decoration-style: solid;
+    text-decoration-skip-ink: none;
+    text-underline-position: from-font;
+    cursor: pointer;
+    transition: color 200ms ease;
+}
+
+.rich-text-link:hover,
+.rich-text-link:active {
+    color: var(--color-text-link-informative-active, #0e4c54);
+    font-weight: 700;
+}
+
+.rich-text-link:focus-visible {
+    position: relative;
+    outline: none;
+}
+
+.rich-text-link:focus-visible::after {
+    content: '';
+    position: absolute;
+    inset: -2px;
+    border: 2px solid var(--color-border-stroke-focus, #1d9bf0);
+    border-radius: 4px;
+    pointer-events: none;
 }

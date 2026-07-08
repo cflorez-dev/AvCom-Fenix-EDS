@@ -74,7 +74,7 @@ export const Button = ({
           hover:bg-background-brand-secondary-hover
           hover:border-border-brand-secondary-hover
           active:bg-background-brand-secondary-active
-          active:!border-border-brand-secondary-active
+          active:!border-background-brand-secondary-active
         `}
       `,
       basesClasesChild: `${disabled ? 'text-text-brand-disable' : 'text-text-brand-secondary'}`,

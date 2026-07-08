@@ -52,6 +52,19 @@
   --color-background-mail-background-default-light: #FAFAFA;
   --color-text-cyan-600: #0190A0;
 
+  /* Members Tier Colors (Figma 40:6320 - login button).
+     Restaurado: se perdió en el commit ebd73fb9; login-button.js las usa sin fallback. */
+  --color-tier-logged-out: #d9d9d9;
+  --color-tier-lifemiles: #b50080;
+  --color-tier-red-plus: #7c0005;
+  --color-tier-silver: #393838;
+  --color-tier-gold: #c37d1d;
+  --color-tier-diamond: #232021;
+  --color-tier-magno: #000000;
+
+  /* Accent / status colors (restaurado: ebd73fb9). Usado por header-button.js y nav-item.js. */
+  --color-icon-accent-positive: #1EA93C;
+
   /* Banner mode text colors */
   --color-text-banner-light: #1B1B1B;
   --color-text-banner-dark: #FFFFFF;
