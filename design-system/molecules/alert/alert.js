@@ -367,6 +367,7 @@ export const Alert = ({
         size: 'inline',
         customClassName: normalizedVariant === 'informative' ? '!text-text-link-informative-active' : '',
         linkTarget,
+        underline: true
       },
     });
 

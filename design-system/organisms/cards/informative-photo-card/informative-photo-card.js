@@ -108,7 +108,7 @@ export const InformativePhotoCard = ({
 
   return html`
     <div 
-      class="${widthClass} min-h-[325px] rounded-2xl outline-1 outline-border-stroke-default inline-flex flex-col items-center transition-shadow duration-300 ${buttonText ? '' : 'cursor-pointer'} ${focusClasses} ${customClassName}"
+      class="${widthClass} min-h-[325px] rounded-2xl outline-1 outline-border-stroke-default inline-flex flex-col items-center transition-shadow duration-300 ${focusClasses} ${customClassName}"
       onClick=${isCardClickable ? handleCardClick : null}
       tabIndex=${isCardClickable ? '0' : null}
       role=${isCardClickable ? 'button' : null}

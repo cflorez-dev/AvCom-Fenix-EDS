@@ -1,9 +1,5 @@
 /* Override main > .section styles to allow full width (single banner) */
 main > .section.cms-secondary-banner-container {
-  max-width: 100% !important;
-  width: 100% !important;
-  margin: 0 !important;
-  padding: 0 !important;
   overflow: hidden;
   display: flex;
   flex-direction: column;
@@ -80,19 +76,7 @@ main > .section.cms-secondary-banner-container[class*="grid-"] .cms-secondary-ba
   max-width: 100%;
 }
 
-/* Fix: component uses w-full (width:100%) + mx margins, which causes overflow.
-   width:auto lets the block element fill parent minus margins naturally.
-   margin-inline:auto centers the banner when max-width (1248px) kicks in.
-   Parent padding provides the minimum edge spacing instead of component margins. */
-.cms-secondary-banner .cms-secondary-banner-content {
-  padding-inline: 16px;
-}
 
-@media (min-width: 1024px) {
-  .cms-secondary-banner .cms-secondary-banner-content {
-    padding-inline: 32px;
-  }
-}
 
 .cms-secondary-banner .cms-secondary-banner-content > div:first-child {
   width: auto;
