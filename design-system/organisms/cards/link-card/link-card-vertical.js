@@ -94,8 +94,10 @@ export const LinkCardVertical = ({
     + 'overflow-hidden transition-all bg-[var(--bg-card-lighter)] '
     + `${borderClasses} `
     + 'flex flex-col items-start justify-start '
-    + `${!isPhotographicCard ? 'hover:shadow-[0_2px_20px_2px_rgba(73,73,73,0.25)] ' : ''}`
-    + `${focusBorderClasses} ${!isPhotographicCard ? 'focus-visible:shadow-[0_2px_20px_2px_rgba(73,73,73,0.25)] ' : ''}`
+    // El hover/focus shadow solo aplica si hay enlace de CTA (href): sin CTA la card
+    // no es interactiva (no muestra pointer), así que tampoco debe mostrar hover.
+    + `${!isPhotographicCard && href ? 'hover:shadow-[0_2px_20px_2px_rgba(73,73,73,0.25)] ' : ''}`
+    + `${focusBorderClasses} ${!isPhotographicCard && href ? 'focus-visible:shadow-[0_2px_20px_2px_rgba(73,73,73,0.25)] ' : ''}`
     + 'focus-visible:outline focus-visible:outline-2 focus-visible:outline-[var(--focus-primary)] focus-visible:outline-offset-2 '
     + '';
 
