@@ -307,7 +307,7 @@ export const CarouselDestinations = ({
       ...${rest}
     >
       <!-- Header: title + count badge + navigation -->
-      <div class="max-w-[1248px] min-[1248px]:p-0 min-[1024px]:px-[32px] min-[768px]:px-[24px] px-[16px] self-center flex items-center gap-[var(--spacing-medium,16px)] w-full ${screenWidth < 768 ? 'justify-between' : ''}">
+      <div class="px-0 flex items-center gap-[var(--spacing-medium,16px)] w-full ${screenWidth < 768 ? 'justify-between' : ''}">
         <!-- Title -->
         <h2
           class="!text-text-normal-primary !text-xl !m-0"
@@ -344,7 +344,7 @@ export const CarouselDestinations = ({
       </div>
 
       <!-- Carousel or Grid container -->
-      <div ref=${carouselWrapperRef} class="relative w-full max-w-[1248px] mx-auto flex overflow-x-hidden">
+      <div ref=${carouselWrapperRef} class="relative w-full flex overflow-x-hidden">
         ${isCarousel ? html`
           <!-- Carousel View -->
           <${Carousel}
@@ -354,7 +354,7 @@ export const CarouselDestinations = ({
             showPagination=${false}
             loop=${loop}
             infiniteMobile=${false}
-            customScrollContainerClassName="pl-[16px] pr-[16px] min-[768px]:pl-[24px] min-[768px]:pr-[24px] min-[1024px]:pl-[32px] min-[1024px]:pr-[32px] min-[1248px]:pl-[calc(50%-624px)] min-[1248px]:pr-[calc(50%-624px)]"
+            customScrollContainerClassName="min-[1024px]:mx-0"
           >
             ${destinations.map((dest) => html`
               <${DestinationCard}
@@ -371,7 +371,7 @@ export const CarouselDestinations = ({
           </${Carousel}>
         ` : html`
           <!-- Grid View -->
-          <div class="flex flex-wrap gap-[16px] px-[16px] min-[768px]:px-[24px] min-[1024px]:px-[32px] min-[1248px]:px-[calc(50%-624px)]">
+          <div class="flex flex-wrap gap-[16px]">
             ${destinations.map((dest) => html`
               <${DestinationCard}
                 key=${dest.destinationName}

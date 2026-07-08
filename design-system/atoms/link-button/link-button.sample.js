@@ -119,6 +119,46 @@ export const LinkButtonSample = () => html`
       </p>
     </section>
 
+    <!--
+      Members variant (sin subrayado)
+      ─────────────────────────────────────────────────────────────────────────
+      Usar variant="members" en el bloque de navegación Members (header / modal).
+      Figma: node 104-10337 — Entregable OMNI Members 01062026
+      Estados: Default → Hover → Pressed · Focus ring activo con teclado · Disabled
+    -->
+    <section class="mb-12">
+      <h2 class="text-2xl font-bold mb-6">Members variant (sin subrayado)</h2>
+      <p class="text-sm text-gray-500 mb-4">
+        Figma node 104-10337 — usar en bloques de navegación Members.
+        Focus ring se mantiene para navegación por teclado (Tab / Enter).
+      </p>
+      <!-- Estados: Default / Hover / Disabled -->
+      <div class="flex gap-6 items-center flex-wrap mb-4">
+        <div class="flex flex-col items-start gap-1">
+          <span class="text-[11px] text-gray-400 font-mono">default</span>
+          <${LinkButton} variant="members" size="compact">Cerrar</${LinkButton}>
+        </div>
+        <div class="flex flex-col items-start gap-1">
+          <span class="text-[11px] text-gray-400 font-mono">disabled</span>
+          <${LinkButton} variant="members" size="compact" disabled=${true}>Cerrar</${LinkButton}>
+        </div>
+        <div class="flex flex-col items-start gap-1">
+          <span class="text-[11px] text-gray-400 font-mono">default (16px)</span>
+          <${LinkButton} variant="members" size="default">Ver todos los destinos</${LinkButton}>
+        </div>
+        <div class="flex flex-col items-start gap-1">
+          <span class="text-[11px] text-gray-400 font-mono">default (20px)</span>
+          <${LinkButton} variant="members" size="medium">Ver todos los destinos</${LinkButton}>
+        </div>
+      </div>
+      <!-- colorVariants disponibles -->
+      <div class="flex gap-6 items-center flex-wrap">
+        <${LinkButton} variant="members" size="default" colorVariant="informative">Informative</${LinkButton}>
+        <${LinkButton} variant="members" size="default" colorVariant="promotional">Promotional</${LinkButton}>
+        <${LinkButton} variant="members" size="default" colorVariant="caution">Caution</${LinkButton}>
+      </div>
+    </section>
+
     <!-- As link (href) -->
     <section class="mb-12">
       <h2 class="text-2xl font-bold mb-6">As link (href)</h2>

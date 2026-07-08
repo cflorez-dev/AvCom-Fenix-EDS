@@ -4,6 +4,8 @@
  */
 
 import { getStoredCountry, getStoredLanguage } from '../services/header/language-country-selector.js';
+import { getSession } from '../services/members/session.store.js';
+import { normalizeTierKey } from '../../design-system/helpers/members-tier-theme.js';
 
 /**
  * Country code mapper: converts 3-letter cookie codes to 2-letter ISO codes
@@ -153,14 +155,31 @@ function getCurrentLanguage() {
 }
 
 /**
- * Check if content should be shown based on targeting rules
+ * Get current member's tier (kebab key) from the session signal (sync).
+ * Returns '' for anonymous / no tier (so tier-targeted content is not filtered out
+ * for users without a tier — same fail-soft as country with no cookie).
+ * @returns {string} normalized tier key (e.g. 'gold', 'silver') or '' if none
+ */
+function getCurrentTier() {
+  try {
+    const tier = getSession()?.user?.tier;
+    return tier ? normalizeTierKey(tier) : '';
+  } catch (error) {
+    return '';
+  }
+}
+
+/**
+ * Check if content should be shown based on targeting rules.
  * @param {string|Array<string>} targetCountries - Target countries
  *   (comma-separated string or array)
  * @param {string|Array<string>} targetLanguages - Target languages
  *   (comma-separated string or array)
+ * @param {string|Array<string>} [targetTiers] - Target member tiers (1263924, Sub B).
+ *   Optional/back-compatible: callers passing only 2 args are unaffected.
  * @returns {boolean} True if content should be shown, false if hidden
  */
-export function shouldShowByTargeting(targetCountries, targetLanguages) {
+export function shouldShowByTargeting(targetCountries, targetLanguages, targetTiers) {
   // In author mode, always show content so editors can manage all components
   if (isAuthorEnvironment()) {
     return true;
@@ -168,14 +187,16 @@ export function shouldShowByTargeting(targetCountries, targetLanguages) {
 
   const countries = parseTargetValues(targetCountries);
   const languages = parseTargetValues(targetLanguages);
+  const tiers = parseTargetValues(targetTiers);
 
   // If no targeting is configured, show to everyone
-  if (countries.length === 0 && languages.length === 0) {
+  if (countries.length === 0 && languages.length === 0 && tiers.length === 0) {
     return true;
   }
 
   const currentCountry = getCurrentCountry();
   const currentLanguage = getCurrentLanguage();
+  const currentTier = getCurrentTier();
 
   // Country filtering: only validate if both config AND cookie exist
   if (countries.length > 0 && currentCountry) {
@@ -191,6 +212,14 @@ export function shouldShowByTargeting(targetCountries, targetLanguages) {
     }
   }
 
+  // Tier filtering (1263924): only validate if both config AND a current tier exist.
+  // Anonymous / no-tier users are not filtered (fail-soft, mirrors country).
+  if (tiers.length > 0 && currentTier) {
+    if (!tiers.includes(currentTier)) {
+      return false;
+    }
+  }
+
   return true;
 }
 
@@ -199,12 +228,14 @@ export function shouldShowByTargeting(targetCountries, targetLanguages) {
  * @param {Array<Object>} items - Array of items to filter
  * @param {string} countryField - Name of the country targeting field
  * @param {string} langField - Name of the language targeting field
+ * @param {string} [tierField] - Name of the tier targeting field (1263924, Sub B)
  * @returns {Array<Object>} Filtered array with only items that should be shown
  */
 export function filterItemsByTargeting(
   items,
   countryField = 'targetCountries',
   langField = 'targetLanguages',
+  tierField = 'targetTiers',
 ) {
   if (!Array.isArray(items)) {
     return [];
@@ -218,7 +249,8 @@ export function filterItemsByTargeting(
   return items.filter((item) => {
     const targetCountries = item[countryField];
     const targetLanguages = item[langField];
-    return shouldShowByTargeting(targetCountries, targetLanguages);
+    const targetTiers = item[tierField];
+    return shouldShowByTargeting(targetCountries, targetLanguages, targetTiers);
   });
 }
 

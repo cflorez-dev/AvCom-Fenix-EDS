@@ -3,6 +3,12 @@
   border-color: var(--button-border-active, inherit) !important;
 }
 
+/* VSTS 1282590: keep the active/success border while a disclosure button's
+   dropdown stays open, even after focus moves to inputs inside the panel. */
+[data-button][data-open="true"] {
+  border-color: var(--button-border-active, inherit) !important;
+}
+
 [data-button]:focus:not(:focus-visible) {
   border-color: var(--button-border-focus, inherit) !important;
 }

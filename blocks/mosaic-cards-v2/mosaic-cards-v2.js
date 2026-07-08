@@ -5,6 +5,7 @@ import { getStoredCountry, getStoredLanguage } from '../../scripts/services/head
 import { loadBlock } from '../../scripts/aem.js';
 import { registerMosaicGroup, getMosaicStore } from './mosaic-cards-v2.store.js';
 import { shouldShowByTargeting } from '../../scripts/utils/target-filter.js';
+import { applyLinkButtonStylesToLinks } from '../../scripts/utils/link-card-richtext.js';
 
 const html = htm.bind(h);
 let mobileViewHelperModulePromise;
@@ -404,9 +405,11 @@ export default async function decorate(block) {
             cellIndex += 1;
           }
 
-          // Cell 3: description
+          // Cell 3: description (richtext — preserve HTML markup so bold/lists/links render)
           if (cells[cellIndex]) {
-            cardData.description = cells[cellIndex].textContent.trim();
+            // Decorate <a> tags with LinkButton (informative) styles before extracting innerHTML
+            applyLinkButtonStylesToLinks(cells[cellIndex]);
+            cardData.description = cells[cellIndex].innerHTML.trim();
             cellIndex += 1;
           }
 
@@ -640,13 +643,13 @@ export default async function decorate(block) {
             direction="left"
             onClick=${() => prevButton.click()}
             absolute=${true}
-            customClassName="mosaic-v2-nav-left !shadow-none hover:!shadow-none active:!shadow-none focus-visible:!shadow-none"
+            customClassName="mosaic-v2-nav-left md:left-[10px] lg:left-[16px] !shadow-none hover:!shadow-none active:!shadow-none focus-visible:!shadow-none"
           />
           <${CarouselNavigationButton}
             direction="right"
             onClick=${() => nextButton.click()}
             absolute=${true}
-            customClassName="mosaic-v2-nav-right !shadow-none hover:!shadow-none active:!shadow-none focus-visible:!shadow-none"
+            customClassName="mosaic-v2-nav-right md:right-[10px] lg:right-[16px] !shadow-none hover:!shadow-none active:!shadow-none focus-visible:!shadow-none"
           />
         `,
         navWrapper,

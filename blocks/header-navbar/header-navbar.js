@@ -5,10 +5,13 @@ import {
   validateHeaderNavbarData,
   convertToNavbarSections,
   parseMegamenuSection,
+  isLifemilesNavItem,
 } from './header-navbar-helper.js';
 import { Navbar } from '../../design-system/organisms/header/navbar/navbar.js';
 import { readBlockConfig, loadBlock } from '../../scripts/aem.js';
 import { shouldShowByTargeting } from '../../scripts/utils/target-filter.js';
+import { isPortalPage } from '../../scripts/services/members/page-type.js';
+import { getMembersConfigSync } from '../../scripts/services/members/members-config.js';
 
 const html = htm.bind(h);
 
@@ -141,6 +144,16 @@ export default async function decorate(block) {
       anchor: section.megamenu.anchor, columns, cmsBlock, formType, formLabel,
     };
   }));
+
+  // Highlight "Lifemiles" (1263924, Sub C · Bloque 8): marcar el item del Portal como
+  // seleccionado cuando la ruta actual es de Members. Usa `isPortalPage` (verdad única,
+  // portalRoutes del CF con default ['/members']). ADDITIVE: fuera de rutas Portal
+  // `selected` queda false → el navbar se comporta idéntico al actual.
+  const onPortalRoute = isPortalPage(window.location.pathname, getMembersConfigSync());
+  sections.forEach((section) => {
+    // eslint-disable-next-line no-param-reassign
+    section.selected = onPortalRoute && isLifemilesNavItem(section);
+  });
 
   // Variables para tracking de contenedores y listeners
   let mobileContainer = null;

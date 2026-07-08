@@ -172,6 +172,9 @@ const addClassToTag = (htmlString, tagName, classNames) => {
  * @param {boolean} [linkButtonOptions.iconOnly=false] - Icon-only mode
  * @param {boolean} [linkButtonOptions.disabled=false] - Disabled state
  * @param {string} [linkButtonOptions.customClassName=''] - Additional CSS classes
+ * @param {boolean} [linkButtonOptions.underline=false] - Opt-in underline for `variant='link'`.
+ *   Defaults to `false` (links inside cards / CTAs render without underline). Set to `true`
+ *   when this helper is used in rich-text contexts where underline is expected.
  * @param {string} [linkButtonOptions.alertVariant] - Alert variant for rel processing
  * @param {boolean} [linkButtonOptions.processRelAttributes=false] - Process rel attributes
  * @param {'self'|'blank'} [linkButtonOptions.linkTarget='self'] - Target for links
@@ -187,6 +190,7 @@ const processLinkTags = (htmlString, linkButtonOptions = {}) => {
     colorVariant: linkButtonOptions.colorVariant || 'informative',
     iconOnly: linkButtonOptions.iconOnly || false,
     disabled: linkButtonOptions.disabled || false,
+    underline: linkButtonOptions.underline || false,
     customClassName: linkButtonOptions.customClassName || '',
     customColor: linkButtonOptions.customLinkColor || null,
   });

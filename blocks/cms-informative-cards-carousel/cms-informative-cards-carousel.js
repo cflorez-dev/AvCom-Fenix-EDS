@@ -27,11 +27,12 @@ function renderCardsGrid(cards, loadingMode) {
     : 'flex-1 min-w-[300px]';
   // Both branches share `overflow-x-auto` so the rail scrolls horizontally on narrow
   // viewports where the cards would otherwise overflow the container.
-  // Horizontal padding: 16px on phones (<480px), 32px on tablets (480px–1247px),
-  // 0 on desktop (≥1248px where max-width contains the layout).
+  // `min-[480px]:px-[32px]` preserves the horizontal padding from the previous
+  // carousel layout (pixel-perfect spec); on viewports <480px we drop the padding
+  // to maximize horizontal space for the cards on very small phones.
   const containerClass = totalCards >= 4
-    ? 'flex gap-4 w-full overflow-x-auto scrollbar-hide px-[16px] min-[480px]:px-[32px] xl:px-0'
-    : 'flex gap-4 w-full overflow-x-auto xl:overflow-visible scrollbar-hide px-[16px] min-[480px]:px-[32px] xl:px-0';
+    ? 'flex gap-4 w-full overflow-x-auto scrollbar-hide'
+    : 'flex gap-4 w-full overflow-x-auto xl:overflow-visible scrollbar-hide';
 
   return html`
     <div class="${containerClass}">
@@ -89,7 +90,7 @@ function renderFourCardsCarousel(cards, loadingMode) {
       loop=${false}
       infiniteMobile=${true}
       paginateByGroup=${true}
-      customScrollContainerClassName="gap-4 px-[16px] min-[480px]:px-[32px] xl:px-0 !items-stretch"
+      customScrollContainerClassName="gap-4 !items-stretch"
       itemContainerClassName="flex"
     >
       ${cardElements}
@@ -109,7 +110,7 @@ function renderFourCardsCarousel(cards, loadingMode) {
 function renderMultiCardsCarousel(cards, loadingMode) {
   const cardClassName = 'w-[300px] min-w-[300px] max-w-[300px]';
   const itemContainerClassName = 'w-[300px] flex';
-  const scrollContainerClassName = 'gap-4 px-[16px] min-[480px]:px-[32px] xl:px-0 !items-stretch';
+  const scrollContainerClassName = 'gap-4 !items-stretch';
   return html`
     <${Carousel}
       itemsPerView=${1}
@@ -155,21 +156,11 @@ export default function decorate(block) {
 
   // Country/Language filtering
   if (!shouldShowByTargeting(props.targetCountries, props.targetLanguages)) {
-    // Add p-0 class to parent section container
-    const sectionContainer = block.closest('.section.cms-informative-cards-carousel-container');
-    if (sectionContainer) {
-      sectionContainer.classList.add('!p-0');
-    }
     hideBlockWithSection(block);
     return;
   }
 
   if (totalCards === 0) {
-    // Add p-0 class to parent section container
-    const sectionContainer = block.closest('.section.cms-informative-cards-carousel-container');
-    if (sectionContainer) {
-      sectionContainer.classList.add('!p-0');
-    }
     // Hide the block if there are no cards
     block.style.display = 'none';
     return;
@@ -221,6 +212,6 @@ export default function decorate(block) {
   // Apply styles to the section container using Tailwind
   const sectionContainer = block.closest('.section.cms-informative-cards-carousel-container');
   if (sectionContainer) {
-    sectionContainer.classList.add('!p-0', '!my-0', '!mx-auto', 'w-full');
+    sectionContainer.classList.add('!my-0', '!mx-auto', 'w-full');
   }
 }

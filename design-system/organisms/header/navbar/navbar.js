@@ -18,6 +18,7 @@ const html = htm.bind(h);
 export const Navbar = ({
   mode = 'mobile',
   sections = [],
+  accentColor = '',
   customClassName = '',
   ...rest
 }) => {
@@ -28,7 +29,7 @@ export const Navbar = ({
   }
 
   return html`
-    <${NavbarDesktop} sections=${sections} customClassName=${customClassName} ...${rest} />
+    <${NavbarDesktop} sections=${sections} accentColor=${accentColor} customClassName=${customClassName} ...${rest} />
   `;
 };
 

@@ -1,3 +1,15 @@
 div.section.origin-dropdown-selector-container {
     z-index: 9;
 }
+
+/* Desktop: keep the dropdown within the standard 1248px content column +
+   auto lateral margins, matching main > .section. Needed because this block
+   can share a section with a full-bleed hero (whose max-width:100%/margin:0
+   !important neutralizes the section centering), and at >=1248px
+   --main-section-div-padding is 0, so there's no fallback inset. */
+@media (width >= 1248px) {
+  .origin-dropdown-selector-wrapper {
+    max-width: var(--container-xl);
+    margin-inline: auto;
+  }
+}

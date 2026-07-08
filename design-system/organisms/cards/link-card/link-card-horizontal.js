@@ -2,6 +2,7 @@ import { h } from '@dropins/tools/preact.js';
 import { useState, useEffect, useRef } from '@dropins/tools/preact-hooks.js';
 import htm from 'htm';
 import { LinkButton } from '../../../atoms/link-button/link-button.js';
+import { processContentHTML } from '../../../helpers/process-content-html.js';
 
 const html = htm.bind(h);
 
@@ -131,6 +132,13 @@ export const LinkCardHorizontal = ({
     + 'tracking-[var(--paragraph-p300-letter-spacing)] '
     + 'text-[var(--text-normal-primary)] !text-[16px] w-full min-w-0 max-w-full relative shrink-0 break-words';
 
+  // VSTS: la descripción es rich text (puede traer <p>, <strong>, listas, enlaces).
+  // Se procesa y se inyecta como HTML — antes se renderizaba como texto y mostraba
+  // las etiquetas literales (p.ej. "<p>...</p>") en las mosaic cards.
+  const processedDescription = processContentHTML(description || '', 'informative', {
+    pClassName: descriptionClasses,
+  });
+
   // Handler for card click
   const handleCardClick = (e) => {
     if (isClickable && onClick) {
@@ -216,9 +224,10 @@ export const LinkCardHorizontal = ({
         <p class=${titleClasses}>
           ${title}
         </p>
-        <p class=${descriptionClasses}>
-          ${description}
-        </p>
+        <div
+          class="w-full min-w-0 max-w-full"
+          dangerouslySetInnerHTML=${{ __html: processedDescription }}
+        ></div>
       </div>
 
       <!-- Link button container -->

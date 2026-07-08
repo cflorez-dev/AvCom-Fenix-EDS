@@ -98,6 +98,7 @@ export const PassengerSelector = ({
   onChange,
   onError,
   showCabinClass = true,
+  cabinOptions = [],
   onBack,
   onClose,
   stepTitle = '¿Quiénes vuelan?',
@@ -491,7 +492,7 @@ export const PassengerSelector = ({
               >
                <${Icon} icon="navigation/arrow-back" size="sm" />
               </button>
-              <h2 class="font-bold text-[var(--color-text-normal-primary)]">${i18n['bookingBox.labels.whoFlies'] || stepTitle}</h2>
+              <h2 class="font-bold !text-[18px] text-[var(--color-text-normal-primary)] min-h-[24px]">${i18n['bookingBox.labels.whoFlies'] || stepTitle}</h2>
               <button
                 type="button"
                 class="hover:opacity-60"
@@ -605,19 +606,17 @@ export const PassengerSelector = ({
 
             ${showCabinClass && html`
               <!-- Cabin Class -->
-              <div class="self-stretch py-4 border-t border-[var(--border-stroke-default)] inline-flex flex-col justify-start items-start gap-4">
-                <div class="self-stretch justify-start text-[var(--text-normal-primary)] text-base font-semibold">${i18n['bookingBox.labels.cabin'] || 'Cabina'}</div>
-                <div class="self-stretch inline-flex justify-start items-center gap-6">
-                  <${RadioButton}
-                    label=${i18n['bookingBox.labels.economy'] || 'Economy'}
-                    checked=${passengers.cabinClass === 'economy'}
-                    onClick=${() => handleCabinClassChange('economy')}
-                  />
-                  <${RadioButton}
-                    label=${i18n['bookingBox.labels.businessClass'] || 'Business Class'}
-                    checked=${passengers.cabinClass === 'business'}
-                    onClick=${() => handleCabinClassChange('business')}
-                  />
+              <div class="self-stretch py-4 border-t border-[var(--border-stroke-default)] inline-flex flex-col justify-start items-start gap-6">
+                <span class="self-stretch justify-start text-[var(--text-normal-primary)] text-base font-semibold leading-[21px]">${i18n['bookingBox.labels.cabin'] || 'Cabina'}</span>
+                <div class="self-stretch inline-flex justify-start items-center gap-x-6 gap-y-6 flex-wrap">
+                  ${cabinOptions.map((option) => html`
+                    <${RadioButton}
+                      key=${option.id}
+                      label=${option.label}
+                      checked=${passengers.cabinClass === option.id}
+                      onClick=${() => handleCabinClassChange(option.id)}
+                    />
+                  `)}
                 </div>
               </div>
             `}
@@ -733,19 +732,17 @@ export const PassengerSelector = ({
 
           ${showCabinClass && html`
             <!-- Cabin Class -->
-            <div class="self-stretch py-4 border-t border-[var(--border-stroke-default)] inline-flex flex-col justify-start items-start gap-4">
-              <div class="self-stretch justify-start text-[var(--text-normal-primary)] text-base font-semibold h-[21px]">${i18n['bookingBox.labels.cabin'] || 'Cabina'}</div>
-              <div class="self-stretch inline-flex justify-start items-center gap-6">
-                <${RadioButton}
-                  label=${i18n['bookingBox.labels.economy'] || 'Economy'}
-                  checked=${passengers.cabinClass === 'economy'}
-                  onClick=${() => handleCabinClassChange('economy')}
-                />
-                <${RadioButton}
-                  label=${i18n['bookingBox.labels.businessClass'] || 'Business Class'}
-                  checked=${passengers.cabinClass === 'business'}
-                  onClick=${() => handleCabinClassChange('business')}
-                />
+            <div class="self-stretch py-4 border-t border-[var(--border-stroke-default)] inline-flex flex-col justify-start items-start gap-6">
+              <span class="self-stretch justify-start text-[var(--text-normal-primary)] text-base font-semibold leading-[21px]">${i18n['bookingBox.labels.cabin'] || 'Cabina'}</span>
+              <div class="self-stretch inline-flex justify-start items-center gap-x-6 gap-y-6 flex-wrap">
+                ${cabinOptions.map((option) => html`
+                  <${RadioButton}
+                    key=${option.id}
+                    label=${option.label}
+                    checked=${passengers.cabinClass === option.id}
+                    onClick=${() => handleCabinClassChange(option.id)}
+                  />
+                `)}
               </div>
             </div>
           `}

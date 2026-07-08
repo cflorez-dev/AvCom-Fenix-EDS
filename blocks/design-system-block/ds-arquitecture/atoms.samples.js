@@ -1,6 +1,9 @@
 import { h } from '@dropins/tools/preact.js';
 import htm from 'htm';
 import { ButtonSample } from '../../../design-system/atoms/button/button.sample.js';
+import { LoginButtonSample } from '../../../design-system/atoms/login-button/login-button.sample.js';
+import { NavItemSample } from '../../../design-system/atoms/nav-item/nav-item.sample.js';
+import { HeaderButtonSample } from '../../../design-system/atoms/header-button/header-button.sample.js';
 import { LinkButtonSample } from '../../../design-system/atoms/link-button/link-button.sample.js';
 import { LogoSample } from '../../../design-system/atoms/logo/logo.sample.js';
 import { ChipSample } from '../../../design-system/atoms/chip/chip.sample.js';
@@ -19,9 +22,13 @@ import { DayCellSample } from '../../../design-system/atoms/day-cell/day-cell.sa
 import { WeekdayHeaderSample } from '../../../design-system/atoms/weekday-header/weekday-header.sample.js';
 import { DestinationCardSample } from '../../../design-system/atoms/destination-card/destination-card.sample.js';
 import { TooltipSample } from '../../../design-system/atoms/tooltip/tooltip.sample.js';
+import { MemberStatusButtonSample } from '../../../design-system/atoms/member-status-button/member-status-button.sample.js';
+import { MembersCopyMembershipSample } from '../../../design-system/atoms/members-copy-membership/members-copy-membership.sample.js';
+import { MembersDataPairSample } from '../../../design-system/atoms/members-data-pair/members-data-pair.sample.js';
+import { MembersProgressBarSample } from '../../../design-system/atoms/members-progress-bar/members-progress-bar.sample.js';
+import { MembersQuickActionSample } from '../../../design-system/atoms/members-quick-action/members-quick-action.sample.js';
 import { CarouselDestinationsSample } from '../../../design-system/organisms/carousel-destinations/carousel-destinations.sample.js';
 import { HubDestinationsSample } from '../../../design-system/templates/hub-destinations/hub-destinations.sample.js';
-
 
 const html = htm.bind(h);
 
@@ -34,6 +41,9 @@ export const AtomsSamples = () => html`
         <${ChipSample} />
         
         <${ButtonSample} />
+        <${LoginButtonSample} />
+        <${NavItemSample} />
+        <${HeaderButtonSample} />
         <${InputSample} />
         <${SelectSample} />
         <${LogoSample} />
@@ -48,7 +58,14 @@ export const AtomsSamples = () => html`
         <${DayCellSample} />
         <${WeekdayHeaderSample} />
         <${TooltipSample} />
-        
+        <${MemberStatusButtonSample} />
+
+        <!-- Members hero (1263924, Sub A) -->
+        <${MembersCopyMembershipSample} />
+        <${MembersDataPairSample} />
+        <${MembersProgressBarSample} />
+        <${MembersQuickActionSample} />
+
         <!-- Icon Samples -->
         <div class="mt-[var(--spacing-xx-large)]">
           <h2 class="text-[var(--heading-h400-size)] font-[var(--heading-h400-weight)] mb-[var(--spacing-large)]">

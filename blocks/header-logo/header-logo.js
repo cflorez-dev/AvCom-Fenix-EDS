@@ -2,7 +2,12 @@ import { extractHeaderLogoData } from './header-logo.helper.js';
 import { readBlockConfig } from '../../scripts/aem.js';
 import { shouldShowByTargeting } from '../../scripts/utils/target-filter.js';
 
-const isDesktop = window.matchMedia('(min-width: 769px)');
+// Match desktop logo (full wordmark) from 768px onwards, consistent with the
+// header CSS breakpoint `@media (width >= 768px)` in header-logo.css that
+// locks the img box to 120×29 px. Using 769px here previously caused the
+// mobile "A" icon to render at exactly 768px while the CSS stretched it to
+// the desktop dimensions — showing a distorted mobile asset.
+const isDesktop = window.matchMedia('(min-width: 768px)');
 
 /**
  * Creates a picture element with sources and img
@@ -148,7 +153,6 @@ export default function decorate(block) {
   // 3. Function to render logo in the correct container
   let resizeHandler = null;
   let headerResizeHandler = null;
-  let scrollHandler = null;
 
   const renderLogoInContainer = (targetContainer) => {
     if (!targetContainer) return;
@@ -156,28 +160,13 @@ export default function decorate(block) {
     // Render initial logo using data extracted from helper
     renderLogo(targetContainer, logoData);
 
-    const updateLogoSize = () => {
-      const img = targetContainer.querySelector('img');
-      // Hysteresis: diferentes thresholds para activar vs desactivar
-      // Esto evita el flickering cuando el scroll está cerca del threshold
-      const scrollThresholdActivate = 10; // Activar modo compacto cuando scroll > 10px
-      const scrollThresholdDeactivate = 0; // Desactivar cuando scroll <= 0px
-      const compactLogoClasses = ['h-[28px]', 'w-auto'];
-      if (!img) return;
-
-      // Verificar estado actual para evitar cambios innecesarios
-      const isCurrentlyCompact = img.classList.contains('h-[28px]');
-      const currentScroll = window.scrollY;
-
-      // Solo cambiar si es necesario (evita cambios innecesarios)
-      if (!isCurrentlyCompact && currentScroll > scrollThresholdActivate) {
-        // Activar modo compacto
-        img.classList.add(...compactLogoClasses);
-      } else if (isCurrentlyCompact && currentScroll <= scrollThresholdDeactivate) {
-        // Desactivar modo compacto
-        img.classList.remove(...compactLogoClasses);
-      }
-    };
+    // Per Figma spec (nodes 9:16618 / 9:17410 / 9:16822 / 9:17532), the logo
+    // keeps a constant 29×120px size across the initial (76px) and sticky
+    // (50px) header variants. Previously we shrunk it to h-[28px] w-auto on
+    // scroll, which changed the left-cluster width and — via the header's
+    // flex justify-between layout — visually shifted the nav horizontally
+    // when the header transitioned to its compact state. Removing the scroll
+    // handler keeps both the logo and the nav's horizontal position stable.
 
     // Remove existing listeners if any
     if (resizeHandler) {
@@ -185,9 +174,6 @@ export default function decorate(block) {
     }
     if (headerResizeHandler) {
       window.removeEventListener('header-resize', headerResizeHandler);
-    }
-    if (scrollHandler) {
-      window.removeEventListener('scroll', scrollHandler);
     }
 
     // Create new handlers
@@ -197,19 +183,12 @@ export default function decorate(block) {
     headerResizeHandler = () => {
       renderLogo(targetContainer, logoData);
     };
-    scrollHandler = () => {
-      updateLogoSize();
-    };
 
     // Listen for window size changes using MediaQueryList
     isDesktop.addEventListener('change', resizeHandler);
 
     // Also listen for custom header-resize event
     window.addEventListener('header-resize', headerResizeHandler);
-    window.addEventListener('scroll', scrollHandler, { passive: true });
-
-    // Apply initial size based on current scroll
-    updateLogoSize();
   };
 
   // 4. Find the .header-logo container in the DOM (created by the header block)

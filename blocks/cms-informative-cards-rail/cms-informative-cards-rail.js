@@ -7,23 +7,28 @@ import { shouldShowByTargeting, hideBlockWithSection } from '../../scripts/utils
 const html = htm.bind(h);
 
 /**
- * Get grid column classes based on card count for desktop
+ * Get grid classes based on card count and variant.
+ * Returns FULL literal class string (Tailwind JIT needs literals).
+ * - Horizontal variant caps at 3 cols (image-left cards need width).
+ * - Vertical variant fits up to 3 cols at md; 4 cols only at mdlg+
+ *   (4 cards × 220px min-width don't fit at 768-991, keep horizontal scroll).
  * @param {number} cardCount - Total number of cards
- * @returns {string} Tailwind grid-cols classes for desktop
+ * @param {string} variant - 'horizontal' | 'vertical'
+ * @returns {string} Tailwind classes activating grid + columns at the right breakpoint
  */
 function getDesktopGridColumns(cardCount, variant) {
   if (variant === 'horizontal') {
-    if (cardCount === 1) return 'md:grid-cols-1';
-    if (cardCount === 2) return 'md:grid-cols-2';
-    return 'md:grid-cols-3';
+    if (cardCount === 1) return 'md:p-0 md:grid md:w-full md:overflow-visible md:grid-cols-1';
+    if (cardCount === 2) return 'md:p-0 md:grid md:w-full md:overflow-visible md:grid-cols-2';
+    return 'md:p-0 md:grid md:w-full md:overflow-visible md:grid-cols-3';
   }
   if (variant === 'vertical') {
-    if (cardCount === 1) return 'md:grid-cols-1';
-    if (cardCount === 2) return 'md:grid-cols-2';
-    if (cardCount === 3) return 'md:grid-cols-3';
-    return 'md:grid-cols-4';
+    if (cardCount === 1) return 'md:p-0 md:grid md:w-full md:overflow-visible md:grid-cols-1';
+    if (cardCount === 2) return 'md:p-0 md:grid md:w-full md:overflow-visible md:grid-cols-2';
+    if (cardCount === 3) return 'md:p-0 md:grid md:w-full md:overflow-visible md:grid-cols-3';
+    return 'mdlg:p-0 mdlg:grid mdlg:w-full mdlg:overflow-visible mdlg:grid-cols-4';
   }
-  return 'md:grid-cols-4';
+  return 'md:p-0 md:grid md:w-full md:overflow-visible md:grid-cols-4';
 }
 
 /**
@@ -36,10 +41,6 @@ export default function decorate(block) {
 
   // 2. Country/Language filtering
   if (!shouldShowByTargeting(props.targetCountries, props.targetLanguages)) {
-    const sectionContainer = block.closest('.section.cms-informative-cards-rail-container');
-    if (sectionContainer) {
-      sectionContainer.classList.add('!p-0');
-    }
     hideBlockWithSection(block);
     return;
   }
@@ -61,10 +62,6 @@ export default function decorate(block) {
   // 4. Validate props
   const validation = validateCmsInformativeCardsRailProps(props);
   if (!validation.isValid) {
-    const sectionContainer = block.closest('.section.cms-informative-cards-rail-container');
-    if (sectionContainer) {
-      sectionContainer.classList.add('!p-0');
-    }
     block.style.display = 'none';
     return;
   }
@@ -83,7 +80,7 @@ export default function decorate(block) {
   // 6. Render Preact component inside the block
   const RailComponent = () => html`
     <div
-      class="self-stretch inline-flex justify-start items-start gap-4 overflow-hidden pt-[4px] pb-[4px] pl-[4px] pr-[4px] mdlg:p-0 mdlg:grid mdlg:w-full mdlg:overflow-visible ${getDesktopGridColumns(props.cards?.length || 0, props.variant)}"
+      class="self-stretch inline-flex justify-start items-start gap-4 overflow-hidden pt-[4px] pb-[4px] ${getDesktopGridColumns(props.cards?.length || 0, props.variant)}"
       data-variant=${props.variant}
     >
       ${props.cards.map((card, index) => {
@@ -108,6 +105,7 @@ export default function decorate(block) {
             loading=${props.loading}
             ActionType=${card.actionType}
             buttonText=${card.buttonText}
+            buttonVariant=${card.buttonVariant}
             showChevron=${card.showChevron}
             onClick=${handleCardClick}
           />

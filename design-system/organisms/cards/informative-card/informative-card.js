@@ -1,6 +1,7 @@
 import { h } from '@dropins/tools/preact.js';
 import htm from 'htm';
 import { Button } from '../../../atoms/button/button.js';
+import { LinkButton } from '../../../atoms/link-button/link-button.js';
 import { Icon } from '../../../atoms/icon/icon.js';
 import { processContentHTML } from '../../../helpers/process-content-html.js';
 
@@ -30,6 +31,7 @@ export const InformativeCard = ({
   loading = 'lazy',
   ActionType = 'none', // 'button', 'chevron', 'none', 'both' (only for dev)
   buttonText = null,
+  buttonVariant = 'link', // Bug 12: author-selectable CTA style (link | secondary)
   onClick,
 }) => {
   const hasInteractiveAction = typeof onClick === 'function';
@@ -47,7 +49,10 @@ export const InformativeCard = ({
 
   // Process details content with shared rich text mapper (LinkButton styles, lists, etc.)
   const processedDetails = processContentHTML(details, 'informative', {
-    pClassName: 'text-base',
+    pClassName: 'text-sm mdlg:text-base',
+    // Los enlaces inline del rich-text deben ir subrayados (el LinkButton no aplica
+    // underline por defecto; sin esto quedarían sin underline tras el fix del CTA).
+    linkButtonOptions: { underline: true },
   });
 
   return html`
@@ -56,13 +61,13 @@ export const InformativeCard = ({
         data-button="${ActionType === 'button' ? 'true' : ''}" 
         data-chevronicon="${ActionType === 'chevron' ? 'true' : ''}" 
         data-direction="${ActionType === 'horizontal' ? 'horizontal' : 'vertical'}" 
-        class="w-80 min-w-72 h-full bg-background-card-lighter rounded-2xl outline outline-1 outline-offset-[-1px] outline-border-brand-primary-disable inline-flex justify-start items-center overflow-hidden mdlg:w-full mdlg:min-w-0 ${hoverClasses} ${focusClasses} ${cursorClass}"
+        class="w-[240px] min-w-[240px] md:w-auto md:min-w-[220px] md:max-w-none h-auto bg-background-card-lighter rounded-2xl outline outline-1 outline-offset-[-1px] outline-border-brand-primary-disable flex flex-col mdlg:inline-flex mdlg:flex-row justify-start items-stretch mdlg:items-center gap-4 mdlg:gap-0 overflow-hidden md:overflow-visible mdlg:overflow-hidden mdlg:w-full mdlg:min-w-[220px] ${hoverClasses} ${focusClasses} ${cursorClass}"
         tabIndex=${isCardClickable ? 0 : undefined}
         onClick=${isCardClickable ? onClick : undefined}
       >
-        <div class="self-stretch max-w-48 px-6 rounded-tl-2xl rounded-bl-2xl flex justify-center items-center">
+        <div class="self-stretch w-full pt-4 px-4 mdlg:w-auto mdlg:max-w-[92px] mdlg:p-4 mdlg:rounded-tl-2xl mdlg:rounded-bl-2xl flex justify-start mdlg:justify-center items-center mdlg:items-start">
           <img
-            class="w-20 h-20 relative"
+            class="w-[60px] h-[60px] relative"
             src=${image}
             alt=${imageAlt}
             loading=${loadingMode}
@@ -70,29 +75,42 @@ export const InformativeCard = ({
             fetchpriority=${imageFetchPriority}
           />
         </div>
-        <div class="flex-1 pr-5 rounded-tr-2xl rounded-br-2xl flex justify-start items-center gap-3">
-          <div class="flex-1 min-h-40 py-5 inline-flex flex-col justify-center items-start gap-3">
+        <div class="w-full px-4 pb-4 mdlg:flex-1 mdlg:w-auto mdlg:pl-0 mdlg:pr-4 mdlg:pb-0 mdlg:rounded-tr-2xl mdlg:rounded-br-2xl mdlg:self-stretch flex justify-start items-center mdlg:items-start gap-3">
+          <div class="flex-1 mdlg:py-4 inline-flex flex-col justify-start items-start gap-3 mdlg:gap-6">
             <div class="flex-1 flex flex-col justify-center items-start gap-2">
-              <div class="justify-start text-text-normal-primary text-xl font-bold">${title}</div>
+              <div class="justify-start text-text-normal-primary text-base mdlg:text-xl font-bold">${title}</div>
               <div
-                class="self-stretch justify-start text-text-normal-primary text-base font-normal leading-6"
+                class="self-stretch justify-start text-text-normal-primary text-sm mdlg:text-base font-normal leading-normal"
                 dangerouslySetInnerHTML=${{ __html: processedDetails }}
               />
             </div>
             ${(ActionType === 'button' || ActionType === 'both') && buttonText ? html`
-              <div class="self-stretch inline-flex justify-end items-center gap-2">
-                <${Button}
-                  variant="secondary"
-                  size="xs"
-                  onClick=${onClick}
-                >
-                  ${buttonText}
-                </${Button}>
+              <div class="self-stretch flex w-full mdlg:inline-flex mdlg:w-auto ${buttonVariant === 'secondary' ? 'justify-end' : 'justify-start mdlg:justify-end'} items-center gap-2">
+                ${buttonVariant === 'secondary' ? html`
+                  <${Button}
+                    variant="secondary"
+                    size="xs"
+                    onClick=${onClick}
+                    customClassName="w-full mdlg:w-auto"
+                  >
+                    ${buttonText}
+                  </${Button}>
+                ` : html`
+                  <${LinkButton}
+                    variant="link"
+                    size="default"
+                    colorVariant="informative"
+                    onClick=${onClick}
+                    customClassName="w-auto"
+                  >
+                    ${buttonText}
+                  </${LinkButton}>
+                `}
               </div>
             ` : ''}
           </div>
           ${(ActionType === 'chevron' || ActionType === 'both') ? html`
-            <div data-direction="right" data-state="default" class="w-6 h-6 flex justify-center items-center">
+            <div data-direction="right" data-state="default" class="w-6 h-6 flex justify-center items-center self-center">
               <${Icon} icon="navigation/chevron-right" size="m" customSize=${true}/>
             </div>
           ` : ''}
@@ -100,7 +118,7 @@ export const InformativeCard = ({
       </div>
     ` : html`
       <div 
-        class="w-80 min-w-80 h-full bg-background-card-lighter rounded-2xl outline outline-1 outline-offset-[-1px] outline-border-brand-primary-disable inline-flex flex-col justify-center items-center overflow-hidden mdlg:w-full mdlg:min-w-0 ${hoverClasses} ${focusClasses} ${cursorClass}"
+        class="w-[240px] min-w-[240px] h-auto bg-background-card-lighter rounded-2xl outline outline-1 outline-offset-[-1px] outline-border-brand-primary-disable inline-flex flex-col justify-center items-center overflow-hidden md:w-auto md:min-w-[220px] mdlg:w-full mdlg:min-w-[220px] ${hoverClasses} ${focusClasses} ${cursorClass}"
         tabIndex=${isCardClickable ? 0 : undefined}
         onClick=${isCardClickable ? onClick : undefined}
       >
@@ -124,11 +142,12 @@ export const InformativeCard = ({
                     />
                 </div>
                 ${(ActionType === 'button' || ActionType === 'both') && buttonText ? html`
-                  <div class="self-stretch inline-flex justify-center items-center gap-2">
+                  <div class="self-stretch flex w-full mdlg:inline-flex mdlg:w-auto justify-center items-center gap-2">
                       <${Button}
                         variant="secondary"
                         size="xs"
                         onClick=${onClick}
+                        customClassName="w-full mdlg:w-auto"
                       >
                         ${buttonText}
                       </${Button}>

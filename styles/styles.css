@@ -65,6 +65,15 @@
 
 html {
   overflow-x: clip;
+
+  /* Reserve scrollbar column always so viewport width stays constant across
+     scroll-driven layout changes. Without this, on Windows/Linux (classic
+     scrollbars that occupy layout space) the header + megamenu jitter
+     horizontally when the header transitions from 76px → 50px on scroll and
+     content briefly slips under the vertical-overflow threshold, toggling the
+     scrollbar and shifting viewport width. macOS (overlay scrollbars) is not
+     affected which is why the bug only reproduces on Windows. */
+  scrollbar-gutter: stable;
 }
 
 body {
@@ -217,7 +226,9 @@ a:any-link {
 }
 
 main > .section {
-  max-width: var(--container-xl);
+  /* 1248px is the max CONTENT width; +64px leaves room for the 32px external
+     lateral margin on each side (VSTS 1282504). */
+  max-width: calc(var(--container-xl) + 64px);
   margin: auto;
   padding: 32px var(--main-section-div-padding, 16px);
 }
@@ -228,6 +239,13 @@ main > .section:first-of-type {
 
 main.has-custom-bg:not(.has-background-image) {
   background: var(--page-bg);
+}
+
+/* Page background coexists with CMS Background Image (CA3): the author's
+   solid color goes to background-color (visible around/under transparent
+   image areas) and a gradient goes as a layer below the image. */
+main.has-custom-bg.has-background-image {
+  background-color: var(--page-bg-color, var(--bg-fallback-color, transparent));
 }
 
 main > .section.has-custom-bg,
@@ -376,8 +394,55 @@ main div.section.padding-title {
     }
 }
 
+/* 1248px is a max-CONTENT width, not a breakpoint: keep the 32px external
+   lateral margin for all viewports >= 1024px (VSTS 1282504). */
 @media (width >= 1248px) {
     :root {
-        --main-section-div-padding: 0;
+        --main-section-div-padding: 32px;
     }
+
+    main > .section > div {
+        box-sizing: content-box;
+    }
+}
+
+/* Gate de zona privada Members (1263924): cortina SYNC mientras se resuelve/redirige la
+   sesión de un anónimo en una ruta del Portal. La activa gateMembersPortalEarly()
+   (scripts.js) añadiendo `members-gate-pending` a <html>, ANTES de pintar, para que el
+   contenido del perfil no sea visible. El redirect al login lo hace session.service;
+   si no puede arrancar, el guard cae al home. Va en CSS eager para aplicar al 1er frame.
+   Restaurado: se perdió en el commit ebd73fb9; el JS sigue agregando la clase. */
+html.members-gate-pending main {
+  visibility: hidden;
+}
+
+html.members-gate-pending body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  background-color: var(--background-color);
+}
+
+html.members-gate-pending body::after {
+  content: "";
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  width: 32px;
+  height: 32px;
+  margin: -16px 0 0 -16px;
+  z-index: 10001;
+  border: 3px solid var(--light-color);
+  border-top-color: var(--text-color-secondary);
+  border-radius: 50%;
+  animation: members-gate-spin 0.8s linear infinite;
+}
+
+@keyframes members-gate-spin {
+  to { transform: rotate(360deg); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html.members-gate-pending body::after { animation: none; }
 }
