@@ -105,13 +105,19 @@ export const NavbarDesktop = ({
   // the overlay div (z-index 999) leaks into mobile/tablet because it lives in
   // <main> and isn't tied to the .header-navbar-desktop visibility CSS, leaving
   // a dark scrim over the page until the user clicks somewhere.
+  //
+  // Usamos `matchMedia` con el MISMO query que header.js (`(max-width: 1023.98px)`)
+  // para evitar off-by-one en Windows con DPR fraccional: `window.innerWidth`
+  // redondea distinto al motor de media queries y podía dejar el scrim visible
+  // 1px de rango justo cuando header.js ya había cambiado a modo desktop.
   useEffect(() => {
     if (openDropdownIndex === null) return undefined;
-    const handleResize = () => {
-      if (window.innerWidth < 1024) setOpenDropdownIndex(null);
+    const mq = window.matchMedia('(max-width: 1023.98px)');
+    const handleChange = () => {
+      if (mq.matches) setOpenDropdownIndex(null);
     };
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
+    mq.addEventListener('change', handleChange);
+    return () => mq.removeEventListener('change', handleChange);
   }, [openDropdownIndex]);
 
   // Allow transition after open
@@ -199,7 +205,7 @@ export const NavbarDesktop = ({
     >
     <nav
       ref=${navRef}
-      class="relative z-[10] flex items-center justify-center gap-0 max-h-[69px] h-full"
+      class="relative z-[10] flex items-center justify-center gap-0 min-[1150px]:gap-2 max-h-[76px] h-full"
       role="navigation"
       aria-label="Navegación principal desktop"
     >
@@ -209,32 +215,63 @@ export const NavbarDesktop = ({
     );
     const hasSubItems = section.subItems && section.subItems.length > 0;
     const isOpen = openDropdownIndex === index;
+    // Estado seleccionado (1263924, Sub C): el item del Portal ("Lifemiles") queda
+    // destacado (underline persistente + bold + aria-current) en rutas /members.
+    // Verde FIJO del Figma (icon/accent/positive #1ea93c) para el seleccionado; el
+    // accent configurable (--header-offers) para hover/open. Clases literales porque
+    // Tailwind no detecta colores interpolados.
+    const isSelected = !!section.selected;
+    // Underline SOLO en el item current active (selected verde) o mientras el
+    // megamenu está desplegado (open, accent). En hover NO se pinta underline —
+    // el hover se resuelve visualmente con el bg gris del NavItem (Figma 5:3092).
+    // Focus-visible sí mantiene el accent para a11y (navegación por teclado).
+    let megamenuUnderline;
+    if (isSelected) megamenuUnderline = 'after:border-b-[4px] after:border-[#1ea93c]';
+    else if (isOpen) megamenuUnderline = 'after:border-b-[4px] after:border-[var(--header-offers)]';
+    else megamenuUnderline = 'after:border-b-[4px] after:border-transparent';
+    const linkUnderline = isSelected
+      ? 'after:border-[#1ea93c]'
+      : 'after:border-transparent';
+    // Hover bg (Figma 9:17732): el estado active NO debe pintar el bg gris del hover,
+    // solo el underline. Aplica el hover:bg-* únicamente cuando el item está en
+    // estado default (no selected y no open).
+    const megamenuHoverBg = (isSelected || isOpen) ? '' : 'hover:bg-background-brand-secondary-hover';
+    const linkHoverBg = isSelected ? '' : 'hover:bg-background-brand-secondary-hover';
 
     if (hasMegamenu) {
       return html`
         <div
           key=${section.url || index}
           class=${`
-            group relative px-5 py-6 flex items-center justify-center h-full
-            cursor-pointer transition-colors after:absolute ${isScrolled ? 'after:bottom-0' : 'after:bottom-[-4px]'} after:z-[20]
+            group relative w-auto px-3 py-6 min-[1150px]:py-0 flex items-center justify-center h-full
+            cursor-pointer transition-colors ${megamenuHoverBg}
+            after:absolute after:bottom-0 after:z-[20]
             after:left-0 after:right-0 after:h-0 after:transition-colors
-            ${isOpen ? 'after:border-b-[4px] after:border-[var(--header-offers)]' : 'after:border-b-[4px] after:border-transparent hover:after:border-[var(--header-offers)]'}
-            focus-visible:after:border-[var(--header-offers)] focus-visible:outline-none
+            ${megamenuUnderline}
+            focus-visible:outline-none
           `}
           data-navbar-megamenu="true"
           role="button"
           tabIndex="0"
           aria-expanded=${isOpen}
           aria-haspopup="true"
+          aria-current=${isSelected ? 'page' : undefined}
           onClick=${() => handleMegamenuToggle(index)}
           onKeyDown=${(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handleMegamenuToggle(index); } }}
         >
-          <div class="absolute transition-all ${isScrolled ? 'top-0 h-full' : 'top-[-3px] h-[calc(100%+8px)]'} left-0 right-0 w-full border-2 border-transparent group-focus-visible:border-[var(--color-border-stroke-focus)] hidden group-focus-visible:block pointer-events-none z-1"></div>
+          <div class=${`
+            absolute pointer-events-none z-[30]
+            hidden group-focus-visible:block
+            border-2 border-solid rounded-[4px]
+            border-[var(--color-border-stroke-focus)]
+            top-[2px] left-[-2px] right-[-2px]
+            ${(isSelected || isOpen) ? 'bottom-[-6px]' : 'bottom-[-2px]'}
+          `}></div>
           <span class=${`
             h-[21px] flex items-center justify-center
             font-sans leading-none text-[var(--logo-avianca-secondary)] text-center whitespace-nowrap
             transition-colors
-            ${isOpen ? 'font-bold text-[0.95rem]' : 'font-normal text-base group-hover:font-bold group-hover:text-[0.95rem]'}
+            ${isOpen || isSelected ? 'font-bold text-[0.95rem]' : 'font-normal text-base'}
           `}>
             ${section.itemLabel}
           </span>
@@ -249,7 +286,7 @@ export const NavbarDesktop = ({
           key=${section.url || index}
           label=${section.itemLabel}
           subItems=${section.subItems}
-          isActive=${false}
+          isActive=${isSelected}
           isOpen=${isOpen}
           onToggle=${(isOpenState) => handleDropdownToggle(index, isOpenState)}
           onSubItemClick=${handleSubItemClick}
@@ -262,23 +299,27 @@ export const NavbarDesktop = ({
       <a
         key=${section.url || index}
         href=${section.url || '#'}
+        aria-current=${isSelected ? 'page' : undefined}
         class=${`
-          group !decoration-none relative flex items-end justify-center px-5 py-6 items-center
-          cursor-pointer transition-colors no-underline self-stretch h-full 
-          after:absolute ${isScrolled ? 'after:bottom-0' : 'after:bottom-[-4px]'} after:left-0 after:right-0 after:h-0 after:border-b-[4px] after:border-transparent after:z-[20]
-          hover:after:border-[var(--header-offers)] 
-          focus-visible:after:border-[var(--header-offers)]
-          after:transition-colors 
+          group !decoration-none relative flex items-end justify-center w-auto px-3 py-6 min-[1150px]:py-0 items-center
+          cursor-pointer transition-colors ${linkHoverBg} no-underline self-stretch h-full
+          after:absolute after:bottom-0 after:left-0 after:right-0 after:h-0 after:border-b-[4px] ${linkUnderline} after:z-[20]
+          after:transition-colors
           focus-visible:outline-none
           `}
       >
-        <div class="absolute transition-all ${isScrolled ? 'top-0 h-full' : 'top-[-3px] h-[calc(100%+8px)]'} left-0 right-0 w-full border-2 border-transparent group-focus-visible:border-[var(--color-border-stroke-focus)] hidden group-focus-visible:block pointer-events-none z-1"></div>
+        <div class=${`
+          absolute pointer-events-none z-[30]
+          hidden group-focus-visible:block
+          border-2 border-solid rounded-[4px]
+          border-[var(--color-border-stroke-focus)]
+          top-[2px] left-[-2px] right-[-2px]
+          ${isSelected ? 'bottom-[-6px]' : 'bottom-[-2px]'}
+        `}></div>
         <span class=${`
           self-center
-            h-[21px] flex items-center justify-center font-sans font-normal 
-            group-focus-visible:font-bold
-            group-hover:font-bold text-base leading-none text-[var(--logo-avianca-secondary)] text-center whitespace-nowrap transition-colors
-            group-hover:text-[0.95rem]
+            h-[21px] flex items-center justify-center font-sans ${isSelected ? 'font-bold' : 'font-normal'}
+            text-base leading-none text-[var(--logo-avianca-secondary)] text-center whitespace-nowrap transition-colors
           `}>
           ${section.itemLabel}
         </span>

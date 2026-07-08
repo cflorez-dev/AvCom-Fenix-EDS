@@ -66,10 +66,12 @@
 /* CMS Rich Text blocks paired with images inside multitab grid (migration content) */
 .section.multitab-container .multitab-content > .default-content-wrapper + .cms-rich-text-wrapper,
 .section.multitab-container .multitab-content > .cms-rich-text-wrapper:has(+ .default-content-wrapper) {
-    padding: var(--spacing-large);
+    padding: var(--spacing-large) !important;
     border-radius: var(--border-radius-large);
     background: var(--bg-page-lighter);
-    box-shadow: 0 0.125rem 0.75rem rgb(27 27 27 / 15%);
+    /* CU-212 / VSTS 1282391: stroke only — no elevation (avoids fake "clickable" affordance) */
+    border: 1px solid var(--color-border-stroke-default, #d9d9d9);
+    box-shadow: none;
 }
 
 /* Restore inter-block spacing when the padding shorthand above overrides the
@@ -500,4 +502,30 @@
         width: 32px;
         height: 32px;
     }
+}
+
+/* ─── VSTS 1282391: card del rich-text en multitab, controlable por el autor ──────
+ * El card (border) del rich-text dentro del multitab depende de una adyacencia
+ * rich-text + imagen que no siempre existe, por lo que "no se renderiza". Estas
+ * clases de sección (Section Metadata → Style) dan control explícito al autor,
+ * siguiendo el patrón de las clases de migración (styles/migration-cards.css):
+ *   - "multitab-card"     → aplica el estilo card (border, sin sombra) al rich-text.
+ *   - "multitab-no-card"  → oculta el card (border/padding), aunque la adyacencia lo aplicara.
+ * El autor las agrega en el Style de la sección del tab (donde caen grid-3-9, etc.).
+ * ──────────────────────────────────────────────────────────────────────────────── */
+.section.multitab-container .multitab-content.multitab-card > .cms-rich-text-wrapper:not(:has(img)) {
+    /* Valores del ejemplo autorado por el cliente (Tab 2 de la página de referencia):
+       card blanca, border 1px #e4e4e4, radio 16px, padding 24px, sin sombra (stroke only). */
+    padding: 1.5rem !important;
+    border-radius: 1rem;
+    background: #ffffff;
+    border: 1px solid #e4e4e4;
+    box-shadow: none;
+}
+
+.section.multitab-container .multitab-content.multitab-no-card > .cms-rich-text-wrapper:not(:has(img)) {
+    padding: 0 !important;
+    border: none !important;
+    background: transparent !important;
+    box-shadow: none !important;
 }

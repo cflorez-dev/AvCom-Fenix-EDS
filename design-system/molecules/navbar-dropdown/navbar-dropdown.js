@@ -207,13 +207,20 @@ export const NavbarDropdown = ({
 
   // Styles
   const activeLabelSizeClass = 'text-[0.95rem]';
+  // Underline SOLO en el item current active (isActive) o mientras el dropdown
+  // está desplegado (isOpen). En hover NO se pinta underline — el hover se
+  // resuelve visualmente con el bg gris del NavItem (Figma 5:3092).
+  // Focus-visible sí mantiene el accent para a11y (navegación por teclado).
   const navItemOutlineStyle = (isActive || isOpen)
     ? 'after:border-b-[4px] after:border-[var(--header-offers)]'
-    : 'after:border-b-[4px] after:border-transparent hover:after:border-[var(--header-offers)]';
+    : 'after:border-b-[4px] after:border-transparent';
+  // Hover bg (Figma 9:17732): el estado active NO debe pintar el bg gris del hover,
+  // solo el underline. Aplica el hover:bg-* únicamente en estado default.
+  const hoverBgClass = (isActive || isOpen) ? '' : 'hover:bg-background-brand-secondary-hover';
 
   const navItemTextWeight = (isActive || isOpen)
     ? `font-bold ${activeLabelSizeClass}`
-    : `font-normal hover:font-bold ${activeLabelSizeClass}`;
+    : 'font-normal';
 
   // dropdownStyles migrated to Tailwind classes
 
@@ -230,10 +237,11 @@ export const NavbarDropdown = ({
   return html`
     <div
       class=${`
-        group relative px-5 py-6 flex items-center justify-center h-full 
-        cursor-pointer transition-colors after:absolute ${isScrolled ? 'after:bottom-0' : 'after:bottom-[-4px]'} after:z-[20]
+        group relative w-auto px-3 py-6 min-[1150px]:py-0 flex items-center justify-center h-full 
+        cursor-pointer transition-colors ${hoverBgClass}
+        after:absolute after:bottom-0 after:z-[20]
         after:left-0 after:right-0 after:h-0 after:transition-colors ${navItemOutlineStyle} 
-        focus-visible:after:border-[var(--header-offers)] focus-visible:outline-none ${customClassName}`}
+        focus-visible:outline-none ${customClassName}`}
       onClick=${handleToggle}
       onKeyDown=${handleKeyDown}
       ref=${dropdownRef}
@@ -241,7 +249,14 @@ export const NavbarDropdown = ({
       tabindex="0"
       ...${rest}
     >
-    <div class="absolute transition-all ${isScrolled ? 'top-0 h-full' : 'top-[-3px] h-[calc(100%+8px)]'} left-0 right-0 w-full border-2 border-transparent group-focus-visible:border-[var(--color-border-stroke-focus)] hidden group-focus-visible:block pointer-events-none z-1"></div>
+    <div class=${`
+      absolute pointer-events-none z-[30]
+      hidden group-focus-visible:block
+      border-2 border-solid rounded-[4px]
+      border-[var(--color-border-stroke-focus)]
+      top-[2px] left-[-2px] right-[-2px]
+      ${(isActive || isOpen) ? 'bottom-[-6px]' : 'bottom-[-2px]'}
+    `}></div>
       <button
         class="bg-transparent border-none p-0 cursor-pointer w-full"
         type="button"
@@ -252,7 +267,7 @@ export const NavbarDropdown = ({
       >
         <span
           ref=${textRef}
-          class="${navItemTextWeight} group-hover:font-bold group-focus-visible:font-bold text-center whitespace-nowrap transition-colors leading-[var(--line-height-100)] text-[var(--logo-avianca-secondary)] group-hover:${activeLabelSizeClass} group-focus-visible:${activeLabelSizeClass} ${isActive || isOpen ? activeLabelSizeClass : 'text-[16px]'}"
+          class="${navItemTextWeight} text-center whitespace-nowrap transition-colors leading-[var(--line-height-100)] text-[var(--logo-avianca-secondary)] ${isActive || isOpen ? activeLabelSizeClass : 'text-[16px]'}"
         >
           ${label}
         </span>

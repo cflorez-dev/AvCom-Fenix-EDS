@@ -1,5 +1,15 @@
-/* Hero Destination Section */
-div.section[data-section-type='hero-destinations'], div.section[data-section-type='hero-destinations-detail'] {
+/*
+ * Hero Destination Section — preemptive FOUC prevention.
+ * Matches the DOM structure directly, so the flex-row layout applies on the
+ * first paint (before decorateSections adds `data-section-type` via JS).
+ * Requires :has() support (Chrome 105+, Safari 16.4+, Firefox 121+) — same
+ * baseline as the rest of the site (see cross-browser matrix in PBI 1216373).
+ * El selector :has() se perdió en ebd73fb9; sin él el hero rompe el grid de dos
+ * columnas hasta que corre el JS (VSTS 1282508).
+ */
+div.section:has(> .cms-rich-text-wrapper):has(> .default-content-wrapper picture),
+div.section[data-section-type='hero-destinations'],
+div.section[data-section-type='hero-destinations-detail'] {
   display: flex;
   flex-direction: row;
   gap: 28px;
@@ -54,7 +64,9 @@ div.section[data-section-type='hero-destinations'] div.default-content-wrapper{
 }
 
 @media (max-width: 1023px) {
-  div.section[data-section-type='hero-destinations'], div.section[data-section-type='hero-destinations-detail'] {
+  div.section:has(> .cms-rich-text-wrapper):has(> .default-content-wrapper picture),
+  div.section[data-section-type='hero-destinations'],
+  div.section[data-section-type='hero-destinations-detail'] {
     flex-direction: column;
     width: 100%;
 

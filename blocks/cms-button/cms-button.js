@@ -417,10 +417,17 @@ export default function decorate(block) {
   // 7. Render component according to variant
   const ButtonComponent = isTertiary ? LinkButton : Button;
 
+  // IMPORTANTE: al pasar `customClassName` en el elemento se sobreescribe el que
+  // viene en `...buttonProps` (las props explícitas ganan al spread). Por eso
+  // combinamos ambos aquí: conservamos `cms-button-element w-full` del
+  // `buttonProps`, y añadimos `group/cms-button` que es lo que los icons
+  // hover-response del renderer necesitan.
+  const finalCustomClassName = `group/cms-button ${buttonProps.customClassName || ''}`.trim();
+
   render(
     html`
     <div class="cms-button-container w-full">
-      <${ButtonComponent} ...${buttonProps} customClassName="group/cms-button ">
+      <${ButtonComponent} ...${buttonProps} customClassName=${finalCustomClassName}>
         <div class="flex items-center justify-center gap-[12px]">
           ${renderChildren()}
         </div>

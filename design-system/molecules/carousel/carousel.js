@@ -508,17 +508,14 @@ export const Carousel = ({
 
   // Infinite mobile mode: adjust padding for mobile and tablet
   // Container padding only applies when showNavigation is true (to make space for arrows)
-  let containerPadding = showNavigation ? 'px-3' : 'px-0';
+  let containerPadding = showNavigation ? '' : 'px-0';
   let scrollPadding = '';
 
   if (infiniteMobile) {
-    if (isMobile) {
-      containerPadding = 'px-0';
-      scrollPadding = 'px-4';
-    } else if (isTablet) {
-      containerPadding = 'px-0';
-      scrollPadding = 'px-8';
-    }
+    containerPadding = 'px-0';
+    // Use only pl- (left side): right side is handled by a trailing spacer div
+    // because overflow-x:auto clips padding-right in WebKit/Chrome.
+    scrollPadding = '';
   }
 
   // Apply scroll snap only on mobile and tablet (< 1024px)
@@ -540,6 +537,7 @@ export const Carousel = ({
           onScroll=${handleScroll}
         >
           ${itemsToRender}
+          ${infiniteMobile && html`<div class="shrink-0 w-4 md:w-6 lg:w-0" aria-hidden="true"></div>`}
         </div>
 
         ${shouldShowNavigation ? html`

@@ -99,12 +99,14 @@ export function extractTipsCards(block) {
       // Legacy format: icon, title, description
       iconAlt = ''; // Not available in legacy format
       title = cells[1]?.textContent?.trim() || '';
-      description = cells[2]?.textContent?.trim() || '';
+      // CU-213: description is richtext \u2014 preserve inner HTML (links, lists, bold, etc.)
+      description = cells[2]?.innerHTML?.trim() || '';
     } else {
       // New format: icon, iconAlt, title, description
       iconAlt = cells[1]?.textContent?.trim() || '';
       title = cells[2]?.textContent?.trim() || '';
-      description = cells[3]?.textContent?.trim() || '';
+      // CU-213: description is richtext \u2014 preserve inner HTML
+      description = cells[3]?.innerHTML?.trim() || '';
     }
 
     // Extract targeting fields from last 2 cells when present

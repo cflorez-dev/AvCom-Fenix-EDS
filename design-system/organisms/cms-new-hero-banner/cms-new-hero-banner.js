@@ -89,11 +89,25 @@ export const CmsNewHeroBanner = ({
   customClassName = '',
   ...rest
 }) => {
+  const [sanitizedTitle, setSanitizedTitle] = useState('');
   const [sanitizedDescription, setSanitizedDescription] = useState('');
 
   // El overlap del BookingBox (qué tanto sobresale debajo de la imagen) ya está
   // definido como tokens fijos por breakpoint en el CSS: 84/200/208 px
   // (desktop/tablet/mobile) según Figma HOME-13052026. No se calcula dinámicamente.
+
+  // Sanitize title (rich text from CMS) on mount/update. Strip the wrapping <p>
+  // first so the heading tag doesn't nest a block element, then sanitize.
+  useEffect(() => {
+    let cancelled = false;
+    sanitizeHTMLAsync(stripOuterParagraph(title), {
+      USE_PROFILES: { html: true },
+      ADD_ATTR: ['style', 'target', 'rel', 'title'],
+    }).then((clean) => {
+      if (!cancelled) setSanitizedTitle(clean);
+    });
+    return () => { cancelled = true; };
+  }, [title]);
 
   // Sanitize description (rich text from CMS) on mount/update
   useEffect(() => {
@@ -136,7 +150,7 @@ export const CmsNewHeroBanner = ({
 
       <div class="cms-new-hero-banner__content w-full max-w-[1312px] px-4 md:px-6 lg:px-8">
         <div class="cms-new-hero-banner__text flex flex-col gap-0 md:gap-[4px] ${alignClass}" style=${combinedStyle}>
-          <${titleLevel} class="cms-new-hero-banner__title !m-0" dangerouslySetInnerHTML=${{ __html: stripOuterParagraph(title) }} />
+          <${titleLevel} class="cms-new-hero-banner__title !m-0" dangerouslySetInnerHTML=${{ __html: sanitizedTitle }} />
           ${sanitizedDescription && html`
             <div class="cms-new-hero-banner__description" dangerouslySetInnerHTML=${{ __html: sanitizedDescription }} />
           `}

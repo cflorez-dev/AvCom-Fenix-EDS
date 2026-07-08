@@ -1,0 +1,102 @@
+/* Members Cards block (1263921, "Bloque 4"). Grid de cards de navegación del
+ * Dashboard, debajo del hero. EDS auto-carga este .css. La card individual
+ * (superficie, ícono+título+descripción+chevron) la estiliza el molecule
+ * `members-card` vía Tailwind; acá sólo el layout columnar del grid.
+ *
+ * Layout responsivo (mobile-first):
+ *  - **<768px**  → 1 columna apilada (Figma 518:25323).
+ *  - **768–1023**→ 2 columnas; Actividad full-width debajo con ≤5 cards
+ *    (Figma 518:25334) o como celda regular con 6 cards (518:25343 — CA11).
+ *  - **≥1024px** → 3 columnas; Actividad ocupa la columna 3 vertical-extendida
+ *    (rows 1-2) con ≤5 cards (Figma 518:25357 — CA5) o degrada a celda
+ *    regular en col 3 row 1 con 6 cards (518:25367) — en ese caso el organism
+ *    la renderiza como `<MembersCard>` simple en vez del accordion.
+ *
+ * El switch ≤5/6 cards lo hace CSS puro con `:has(:nth-child(6))` — la 6ª card
+ * (Multiplica/Triplica, CA11) entra sin tocar JS apenas el CF la traiga visible. */
+
+.members-cards-container {
+  width: 100%;
+}
+
+/* Mobile (<768): 1 columna, cards full-width apiladas. */
+.members-cards-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+  align-items: stretch;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* Tablet (768–1023): 2 columnas que llenan el ancho disponible.
+ *
+ * Comportamiento de la card "Actividad de millas" (data-key="activity") según
+ * cantidad total de cards:
+ *  - **≤5 cards** (Figma 518:25334): rompe el grid y ocupa el ancho completo
+ *    debajo de las regulares (4 cards en 2×2 + activity full-width).
+ *  - **6 cards** (Figma 518:25343 — CA11, 6ª card "Multiplica/Triplica"):
+ *    activity entra en el flujo normal como celda regular → grid 2×3.
+ *
+ * El override usa `:has(:nth-child(6))` para detectar la 6ª card sin tocar JS:
+ * cuando existe, `:not(:has(...))` es falso y la regla de full-width no
+ * aplica; cuando no, sí aplica. Soporte: Chrome 105+, Safari 15.4+, FF 121+
+ * (cubre el target). */
+@media (width >= 768px) {
+  .members-cards-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 20px;
+  }
+}
+
+@media (width >= 768px) and (width < 1024px) {
+  .members-cards-grid:not(:has(.members-cards-item:nth-child(6)))
+    .members-cards-item[data-key="activity"] {
+    grid-column: 1 / -1;
+  }
+}
+
+/* Desktop (≥1024px): 3 columnas equitativas con gap 24px — Figma 518:25357
+ * (≤5 cards, "Balance Container") + 518:25367 (6 cards). CA5 + CA11.
+ *
+ * La card "Actividad de millas" está **siempre fija en columna 3** (orden
+ * visual del Figma en ambos casos), pero su altura cambia según la cantidad
+ * total de cards:
+ *  - **≤5 cards** (Figma 518:25357): vertical-extendida (rows 1-2). Las 4
+ *    regulares fluyen en col 1-2 (2×2) saltando col 3 row 1 (reservada).
+ *  - **6 cards** (Figma 518:25367): celda regular row 1 → grid 3×2 normal.
+ *    El organism también degrada Activity a `<MembersCard>` simple en este
+ *    caso (no cabe la lista de transacciones) — ver members-cards.js. */
+@media (width >= 1024px) {
+  .members-cards-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 24px;
+  }
+
+  .members-cards-item[data-key="activity"] {
+    grid-column: 3;
+    grid-row: 1;
+  }
+
+  .members-cards-grid:not(:has(.members-cards-item:nth-child(6)))
+    .members-cards-item[data-key="activity"] {
+    grid-row: 1 / span 2;
+  }
+}
+
+/* El item estira a la altura de la fila para igualar el alto de las cards de
+ * la misma fila (el `<a>` del molecule es `h-full`). */
+.members-cards-item {
+  display: flex;
+}
+
+/* Modo autor (UE): indicador visible, sin montar el organism (igual que el hero). */
+.members-cards-author-indicator {
+  margin-bottom: 8px;
+  padding: 8px;
+  border: 1px dashed #06c;
+  background: #f0f0f0;
+  color: #666;
+  font-size: 12px;
+}

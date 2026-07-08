@@ -114,15 +114,13 @@ export default async function decorate(block) {
       `;
     }
 
-    // Render Preact component
+    // Render Preact component. `position` is applied as inline style by the
+    // atom, so the values authored here take precedence over any CSS/Tailwind.
     render(
       html`
         <${BackToTopButton}
           threshold=${config.threshold}
-          position=${{
-    bottom: config.bottomPosition,
-    right: config.rightPosition,
-  }}
+          position=${{ bottom: config.bottomPosition, right: config.rightPosition }}
           icon=${iconElement}
           ariaLabel=${config.ariaLabel}
         />

@@ -14,7 +14,6 @@ export const PassengerSelectorSample = () => {
     youth: 0,
     children: 0,
     infants: 0,
-    cabinClass: false,
   });
 
   const [error, setError] = useState(null);
@@ -242,6 +241,46 @@ ${JSON.stringify(passengers, null, 2)}
         </div>
       </section>
 
+      <!-- Custom Cabin Options -->
+      <section>
+        <h2 class="text-[var(--heading-h400-size)] font-[var(--heading-h400-weight)] mb-[var(--spacing-medium)] text-[var(--text-normal-primary)]">
+          Opciones de Cabina Personalizadas
+        </h2>
+        <div class="flex flex-col gap-[var(--spacing-large)]">
+
+          <!-- Tres opciones: economy, premium economy, business -->
+          <div class="border-2 border-[var(--border-stroke-default)] rounded-lg p-[var(--spacing-medium)]">
+            <h3 class="text-[var(--paragraph-p300-size)] font-bold mb-[var(--spacing-small)]">
+              Tres clases (economy, premium economy, business)
+            </h3>
+            <${PassengerSelector}
+              value=${{ adults: 1, youth: 0, children: 0, infants: 0 }}
+              onChange=${() => {}}
+              cabinOptions=${[
+                { id: 'economy', label: 'Economy', default: true },
+                { id: 'premium', label: 'Premium Economy', default: false },
+                { id: 'business', label: 'Business', default: false },
+              ]}
+            />
+          </div>
+
+          <!-- Solo business como default -->
+          <div class="border-2 border-[var(--border-stroke-default)] rounded-lg p-[var(--spacing-medium)]">
+            <h3 class="text-[var(--paragraph-p300-size)] font-bold mb-[var(--spacing-small)]">
+              Business como opción por defecto
+            </h3>
+            <${PassengerSelector}
+              value=${{ adults: 2, youth: 0, children: 0, infants: 0 }}
+              onChange=${() => {}}
+              cabinOptions=${[
+                { id: 'economy', label: 'Economy', default: false },
+                { id: 'business', label: 'Business Class', default: true },
+              ]}
+            />
+          </div>
+        </div>
+      </section>
+
       <!-- Usage Instructions -->
       <section class="border-t pt-[var(--spacing-x-large)]">
         <h2 class="text-[var(--heading-h400-size)] font-[var(--heading-h400-weight)] mb-[var(--spacing-medium)] text-[var(--text-normal-primary)]">
@@ -253,7 +292,8 @@ ${JSON.stringify(passengers, null, 2)}
             <li><code>value</code>: Objeto con conteo { adults, youth, children, infants, cabinClass }</li>
             <li><code>onChange</code>: Callback al cambiar (passengerData) => void</li>
             <li><code>onError</code>: Callback de validación (errorMessage) => void</li>
-            <li><code>showCabinClass</code>: Mostrar checkbox de clase cabin (default: true)</li>
+            <li><code>showCabinClass</code>: Mostrar selector de clase cabina (default: true)</li>
+            <li><code>cabinOptions</code>: Array de opciones <code>[&#123; id, label, default &#125;]</code> — define las clases de cabina disponibles y cuál viene pre-seleccionada</li>
           </ul>
           
           <h3 class="font-bold mt-[var(--spacing-medium)] mb-[var(--spacing-small)]">Reglas de Validación:</h3>

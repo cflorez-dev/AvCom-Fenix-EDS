@@ -1,0 +1,15 @@
+/* Travel Documents Block (Smartvel widget) */
+
+.travel-documents .travel-documents-container {
+  width: 100%;
+}
+
+.travel-documents smt-gcovwidget {
+  display: block;
+  width: 100%;
+}
+
+/* Collapse cleanly when hidden by POS targeting */
+.travel-documents.hidden {
+  display: none;
+}

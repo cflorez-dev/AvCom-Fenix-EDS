@@ -1,0 +1,15 @@
+/* Searchbar Embed Block (AirMarketing avianca-searchbar) */
+
+.searchbar-embed .searchbar-embed-container {
+  width: 100%;
+}
+
+.searchbar-embed avianca-searchbar {
+  display: block;
+  width: 100%;
+  min-height: 600px;
+}
+
+.searchbar-embed.hidden {
+  display: none;
+}

@@ -25,6 +25,73 @@ export const ButtonSample = () => html`
         </div>
       </section>
 
+      <!-- Dark mode variants (for dark backgrounds / images) -->
+      <section class="mb-12">
+        <h2 class="text-2xl font-bold mb-6">Dark mode variants</h2>
+        <p class="mb-4 text-sm text-gray-600">
+          Variantes <code>primary-dark</code> y <code>secondary-dark</code> diseñadas
+          para usarse sobre fondos OSCUROS o imágenes. El <code>secondary-dark</code>
+          tiene background con 60% de opacidad para legibilidad sobre fondos dinámicos
+          (Figma nodes <code>9195:17636</code> / <code>9195:17881</code>).
+          Probá TAB para ver cómo el <code>secondary-dark</code> invierte el bg a
+          sólido cuando recibe focus por teclado (<code>:focus-visible</code>).
+        </p>
+
+        <!-- Sobre fondo oscuro sólido -->
+        <div class="mb-6 p-8 rounded-lg bg-[#1b1b1b]">
+          <h3 class="text-sm font-medium mb-4 text-white">Sobre fondo oscuro sólido (#1b1b1b)</h3>
+          <div class="flex gap-4 flex-wrap items-center">
+            <${Button} variant="primary-dark" size="md">Primary dark</${Button}>
+            <${Button} variant="secondary-dark" size="md">Secondary dark</${Button}>
+            <${Button} variant="primary-dark" size="md" disabled=${true}>Disabled</${Button}>
+            <${Button} variant="secondary-dark" size="md" disabled=${true}>Disabled</${Button}>
+          </div>
+        </div>
+
+        <!-- Sobre imagen (simula image-background banner) -->
+        <div
+          class="mb-6 p-8 rounded-lg bg-cover bg-center"
+          style="background-image: linear-gradient(rgba(0,0,0,0.4), rgba(0,0,0,0.4)), url('https://placehold.co/1248x300/3a4d2c/ffffff?text=Image+background');"
+        >
+          <h3 class="text-sm font-medium mb-4 text-white">Sobre imagen (caso image-background banner)</h3>
+          <div class="flex gap-4 flex-wrap items-center">
+            <${Button} variant="primary-dark" size="md">Reservar ahora</${Button}>
+            <${Button} variant="secondary-dark" size="md">Más info</${Button}>
+          </div>
+        </div>
+
+        <!-- Sizes for the 2 new dark variants -->
+        <div class="mb-6 p-6 rounded-lg bg-[#1b1b1b]">
+          <h3 class="text-sm font-medium mb-4 text-white">Primary dark — todos los tamaños</h3>
+          <div class="flex gap-4 items-center flex-wrap">
+            <${Button} variant="primary-dark" size="xxs">XXS</${Button}>
+            <${Button} variant="primary-dark" size="xs">XS</${Button}>
+            <${Button} variant="primary-dark" size="sm">SM</${Button}>
+            <${Button} variant="primary-dark" size="md">MD</${Button}>
+            <${Button} variant="primary-dark" size="lg">LG</${Button}>
+          </div>
+        </div>
+        <div class="mb-6 p-6 rounded-lg bg-[#1b1b1b]">
+          <h3 class="text-sm font-medium mb-4 text-white">Secondary dark — todos los tamaños</h3>
+          <div class="flex gap-4 items-center flex-wrap">
+            <${Button} variant="secondary-dark" size="xxs">XXS</${Button}>
+            <${Button} variant="secondary-dark" size="xs">XS</${Button}>
+            <${Button} variant="secondary-dark" size="sm">SM</${Button}>
+            <${Button} variant="secondary-dark" size="md">MD</${Button}>
+            <${Button} variant="secondary-dark" size="lg">LG</${Button}>
+          </div>
+        </div>
+
+        <!-- Loading state for dark variants -->
+        <div class="p-6 rounded-lg bg-[#1b1b1b]">
+          <h3 class="text-sm font-medium mb-4 text-white">Loading state</h3>
+          <div class="flex gap-4 flex-wrap items-center">
+            <${Button} variant="primary-dark" size="md" loading=${true}>Loading</${Button}>
+            <${Button} variant="secondary-dark" size="md" loading=${true}>Loading</${Button}>
+          </div>
+        </div>
+      </section>
+
       <!-- Sizes -->
       <section class="mb-12">
         <h2 class="text-2xl font-bold mb-6">Sizes</h2>

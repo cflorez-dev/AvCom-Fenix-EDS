@@ -1,0 +1,33 @@
+/* Members Hero block (1263924). EDS auto-carga el .css del bloque; acá importamos
+ * la animación/skeleton del organism (el design-system no auto-carga sus .css) y
+ * dejamos el layout externo a la página (nota Figma: los márgenes dependen del
+ * layout general, no del componente). */
+@import url("../../design-system/organisms/members-hero/members-hero.css");
+
+/* Contenedor base: sin padding horizontal ni ancho m\u00e1ximo (la superficie del
+ * hero es full-bleed). El padding VERTICAL depende de la superficie (atributo
+ * `data-surface` seteado por el bloque). */
+.members-hero-container {
+  width: 100%;
+  max-width: none !important;
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+}
+
+/* Superficie `profile` (`/members/profile`, Cuenta Lifemiles, CU-321):
+ * el hero se pega arriba del layout, sin padding propio. */
+.members-hero-container[data-surface="profile"] {
+  padding-top: 0 !important;
+  padding-bottom: 0 !important;
+}
+
+
+
+.members-hero-author-indicator {
+  margin-bottom: 8px;
+  padding: 8px;
+  border: 1px dashed #06c;
+  background: #f0f0f0;
+  color: #666;
+  font-size: 12px;
+}

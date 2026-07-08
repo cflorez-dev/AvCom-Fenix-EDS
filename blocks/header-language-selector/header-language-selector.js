@@ -51,7 +51,10 @@ async function loadLanguageCountrySelectorService() {
   }
 }
 
-const isDesktop = window.matchMedia('(min-width: 769px)');
+// Breakpoint Members spec: visible desde 768px (mismo `md` de Tailwind que
+// usa `.header-language-selector` en el header). Antes era 769px y dejaba un
+// hueco a 768 exactos donde el contenedor era flex pero no había contenido.
+const isDesktop = window.matchMedia('(min-width: 768px)');
 
 const html = htm.bind(h);
 

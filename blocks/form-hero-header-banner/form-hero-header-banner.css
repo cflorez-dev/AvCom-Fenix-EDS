@@ -3,7 +3,6 @@ main > .section.form-hero-header-banner-container {
     max-width: 100% !important;
     width: 100% !important;
     margin: 0 !important;
-    padding: var(--main-section-div-padding-form-hero-banner, 32px 16px);
 }
 
 /* Ensure block fills the wrapper */
@@ -32,8 +31,10 @@ main > .section.form-hero-header-banner-container {
     }
 }
 
+/* VSTS 1282504/1282526: 1248px es max-width de contenido, NO un breakpoint —
+   mantener el margen lateral de 32px también en >=1248px (antes horizontal 0). */
 @media (width >= 1248px) {
     :root {
-        --main-section-div-padding-form-hero-banner: 32px 0;
+        --main-section-div-padding-form-hero-banner: 32px 32px;
     }
 }
