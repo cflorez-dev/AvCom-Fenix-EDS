@@ -137,6 +137,9 @@ export const LinkCardHorizontal = ({
   // las etiquetas literales (p.ej. "<p>...</p>") en las mosaic cards.
   const processedDescription = processContentHTML(description || '', 'informative', {
     pClassName: descriptionClasses,
+    // Los enlaces inline del rich-text deben ir subrayados (sin esto quedan
+    // no-underline tras el fix del CTA #1020). VSTS 1282235.
+    linkButtonOptions: { underline: true },
   });
 
   // Handler for card click

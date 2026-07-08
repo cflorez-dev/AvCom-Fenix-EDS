@@ -50,15 +50,16 @@ export const getLinkButtonStyles = ({
   customColor = null,
 } = {}) => {
   // Underline applies only to `variant='link'` (not `outlined`). Icon-only links
-  // never get underline. When `underline=true` (opt-in, p.ej. enlaces dentro de
+  // never get underline. When `underline=true` (opt-in, p.ej. enlaces inline de
   // rich-text) el underline es permanente. When `underline=false` (default) el
-  // CTA / botón terciario (variante "Link button") NO lleva underline en ningún
-  // estado — el feedback de hover es el cambio de color informative-active
-  // (VSTS 1282389 / 1282253; ver JSDoc de process-content-html).
+  // CTA / botón terciario (variante "Link button") NO lleva underline en default,
+  // pero SÍ en hover/active (VSTS 1282389 / 1282253 — confirmado contra Figma).
   const underlineModifiers = 'decoration-solid [text-decoration-skip-ink:none] [text-underline-position:from-font]';
   let linkDecoration = '';
   if (!iconOnly) {
-    linkDecoration = underline ? `underline ${underlineModifiers}` : 'no-underline';
+    linkDecoration = underline
+      ? `underline ${underlineModifiers}`
+      : `hover:underline active:underline ${underlineModifiers}`;
   }
   // Base classes - layout and typography
   const baseClasses = 'inline-flex items-center justify-center '

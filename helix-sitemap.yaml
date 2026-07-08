@@ -1,23 +1,29 @@
 sitemaps:
   default:
+    # origin: sin esto helix-sitemap genera <loc> con host "https://undefined/" (VSTS 1281551)
+    origin: https://www.avianca.com
     default: es
     lastmod: YYYY-MM-DD
     languages:
       es:
+        origin: https://www.avianca.com
         source: /es/query-index.json
         destination: /sitemap-es.xml
         hreflang: es
       en:
+        origin: https://www.avianca.com
         source: /en/query-index.json
         destination: /sitemap-en.xml
         hreflang: en
         alternate: /en/{path}
       pt:
+        origin: https://www.avianca.com
         source: /pt/query-index.json
         destination: /sitemap-pt.xml
         hreflang: pt
         alternate: /pt/{path}
       fr:
+        origin: https://www.avianca.com
         source: /fr/query-index.json
         destination: /sitemap-fr.xml
         hreflang: fr
