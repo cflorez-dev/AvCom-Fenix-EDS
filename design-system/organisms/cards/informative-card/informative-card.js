@@ -36,6 +36,7 @@ export const InformativeCard = ({
 }) => {
   const hasInteractiveAction = typeof onClick === 'function';
   const isCardClickable = (ActionType === 'chevron' || ActionType === 'none') && hasInteractiveAction;
+  const hasChevron = ActionType === 'chevron' || ActionType === 'both';
   const focusClasses = isCardClickable
     ? 'focus-visible:!outline focus-visible:!outline-2 focus-visible:!outline-border-stroke-focus focus-visible:!outline-offset-2'
     : '';
@@ -61,7 +62,7 @@ export const InformativeCard = ({
         data-button="${ActionType === 'button' ? 'true' : ''}" 
         data-chevronicon="${ActionType === 'chevron' ? 'true' : ''}" 
         data-direction="${ActionType === 'horizontal' ? 'horizontal' : 'vertical'}" 
-        class="w-[240px] min-w-[240px] md:w-auto md:min-w-[220px] md:max-w-none h-auto bg-background-card-lighter rounded-2xl outline outline-1 outline-offset-[-1px] outline-border-brand-primary-disable flex flex-col mdlg:inline-flex mdlg:flex-row justify-start items-stretch mdlg:items-center gap-4 mdlg:gap-0 overflow-hidden md:overflow-visible mdlg:overflow-hidden mdlg:w-full mdlg:min-w-[220px] ${hoverClasses} ${focusClasses} ${cursorClass}"
+        class="w-[240px] min-w-[240px] md:w-auto md:min-w-[220px] md:max-w-none h-auto relative bg-background-card-lighter rounded-2xl outline outline-1 outline-offset-[-1px] outline-border-brand-primary-disable flex flex-col mdlg:inline-flex mdlg:flex-row justify-start items-stretch mdlg:items-center gap-4 mdlg:gap-0 overflow-hidden md:overflow-visible mdlg:overflow-hidden mdlg:w-full mdlg:min-w-[220px] ${hoverClasses} ${focusClasses} ${cursorClass}"
         tabIndex=${isCardClickable ? 0 : undefined}
         onClick=${isCardClickable ? onClick : undefined}
       >
@@ -75,7 +76,7 @@ export const InformativeCard = ({
             fetchpriority=${imageFetchPriority}
           />
         </div>
-        <div class="w-full px-4 pb-4 mdlg:flex-1 mdlg:w-auto mdlg:pl-0 mdlg:pr-4 mdlg:pb-0 mdlg:rounded-tr-2xl mdlg:rounded-br-2xl mdlg:self-stretch flex justify-start items-center mdlg:items-start gap-3">
+        <div class="w-full pl-4 ${hasChevron ? 'pr-12' : 'pr-4'} pb-4 mdlg:flex-1 mdlg:w-auto mdlg:pl-0 mdlg:pr-4 mdlg:pb-0 mdlg:rounded-tr-2xl mdlg:rounded-br-2xl mdlg:self-stretch flex justify-start items-center mdlg:items-start gap-3">
           <div class="flex-1 mdlg:py-4 inline-flex flex-col justify-start items-start gap-3 mdlg:gap-6">
             <div class="flex-1 flex flex-col justify-center items-start gap-2">
               <div class="justify-start text-text-normal-primary text-base mdlg:text-xl font-bold">${title}</div>
@@ -101,7 +102,7 @@ export const InformativeCard = ({
                     size="default"
                     colorVariant="informative"
                     onClick=${onClick}
-                    customClassName="w-auto"
+                    customClassName="w-auto hover:font-bold active:font-bold"
                   >
                     ${buttonText}
                   </${LinkButton}>
@@ -110,7 +111,7 @@ export const InformativeCard = ({
             ` : ''}
           </div>
           ${(ActionType === 'chevron' || ActionType === 'both') ? html`
-            <div data-direction="right" data-state="default" class="w-6 h-6 flex justify-center items-center self-center">
+            <div data-direction="right" data-state="default" class="w-6 h-6 flex justify-center items-center self-center absolute right-4 top-1/2 -translate-y-1/2 mdlg:static mdlg:translate-y-0">
               <${Icon} icon="navigation/chevron-right" size="m" customSize=${true}/>
             </div>
           ` : ''}
