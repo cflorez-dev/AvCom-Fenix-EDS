@@ -253,10 +253,18 @@ export default function decorate(block) {
   const hasText = text && text.trim() !== '';
   const isIconOnly = hasIcon && !hasText;
 
+  // Tertiary (LinkButton variant="link") requiere font-weight 700 en hover/active
+  // y 400 en default (VSTS — spec del terciario). El size `medium` del LinkButton
+  // ya aplica `font-normal` (400) en default; añadimos aquí los modificadores para
+  // que ganen por specificity (`:hover`/`:active`). Scope: solo cms-button
+  // tertiary — el atom LinkButton se usa en otros contextos y no debe cambiar.
+  const tertiaryWeightClasses = isTertiary ? 'hover:font-bold active:font-bold' : '';
+  const baseCustomClassName = isIconOnly ? 'cms-button-element' : 'cms-button-element w-full';
+
   const buttonProps = {
     variant: isTertiary ? 'link' : variant, // tertiary uses LinkButton variant="link"
     size: isTertiary ? 'medium' : 'md', // LinkButton uses "medium", Button uses "md"
-    customClassName: isIconOnly ? 'cms-button-element' : 'cms-button-element w-full', // No w-full for icon-only
+    customClassName: `${baseCustomClassName} ${tertiaryWeightClasses}`.trim(),
     title: title || text, // Fallback to text if no title
     iconOnly: isIconOnly, // Enable icon-only mode when no text present
     ...customAttrs, // Spread custom attributes (aria-*, data-*, etc)

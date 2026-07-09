@@ -371,9 +371,14 @@ main div.section.padding-title {
   }
 }
 
-/* Responsive padding-inline breakpoints */
-/* Tablet: 768px – 1023px → 24px */
-@media (width >= 768px) and (width <= 1023px) {
+/* Responsive padding-inline breakpoints — mobile-first (solo min-width)
+   para evitar huecos en Windows con DPR fraccional (125/150/175%) o con
+   scrollbar-gutter reservado, donde el innerWidth queda en valores tipo
+   1023.2px y max-width:1023px + min-width:1024px dejan un rango sin match.
+   La cascada de min-width se encarga del override; ya no hay gaps posibles. */
+
+/* Tablet: >= 768px → 24px */
+@media (min-width: 768px) {
     :root {
         --main-section-div-padding: 24px;
     }
@@ -383,26 +388,12 @@ main div.section.padding-title {
     }
 }
 
-/* Desktop: 1024px – 1247px → 32px */
-@media (width >= 1024px) and (width <= 1247px) {
+/* Desktop: >= 1024px → 32px
+   1248px es un max-CONTENT width, no un breakpoint (VSTS 1282504): el
+   margen lateral externo se mantiene en 32px para todo viewport >= 1024px. */
+@media (min-width: 1024px) {
     :root {
         --main-section-div-padding: 32px;
-    }
-
-    main > .section > div {
-        box-sizing: content-box;
-    }
-}
-
-/* 1248px is a max-CONTENT width, not a breakpoint: keep the 32px external
-   lateral margin for all viewports >= 1024px (VSTS 1282504). */
-@media (width >= 1248px) {
-    :root {
-        --main-section-div-padding: 32px;
-    }
-
-    main > .section > div {
-        box-sizing: content-box;
     }
 }
 
