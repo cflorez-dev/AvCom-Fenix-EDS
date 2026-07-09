@@ -8,6 +8,15 @@ import { processContentHTML } from '../../helpers/process-content-html.js';
 const html = htm.bind(h);
 
 /**
+ * Estados de peso del enlace de rich-text dentro del Alert. `group/link` es el ancla
+ * que usan los `<u>` anidados (`group-hover/link:font-[700]`) para engordar junto con
+ * el enlace; sin ella, un tramo subrayado se quedaría en 400 mientras el resto pasa a
+ * 700. El LinkButton no aporta ninguna de estas clases: solo cambia el color.
+ */
+const LINK_STATE_CLASSES = 'group/link hover:font-bold active:font-bold '
+  + 'focus:font-bold focus-visible:font-bold';
+
+/**
  * Alert - Base flexible atom for notifications and alerts
  * Prepared for multiple placements and contexts
  *
@@ -365,7 +374,14 @@ export const Alert = ({
         // Use the `inline` size so links inherit the surrounding <p> font-size
         // (avoids the 14px text vs 16px link mismatch).
         size: 'inline',
-        customClassName: normalizedVariant === 'informative' ? '!text-text-link-informative-active' : '',
+        // El color del enlace se mantiene fijo (decisión de producto): en informative
+        // se fuerza el tono active en todos los estados. Lo que sí cambia es el
+        // font-weight, que el LinkButton no aporta por sí mismo (sus
+        // interactionClasses solo alteran el color), así que lo añade el consumidor.
+        // Las clases replican exactamente las de producción (www.avianca.com/es).
+        customClassName: normalizedVariant === 'informative'
+          ? `!text-text-link-informative-active ${LINK_STATE_CLASSES}`
+          : LINK_STATE_CLASSES,
         linkTarget,
         underline: true
       },
