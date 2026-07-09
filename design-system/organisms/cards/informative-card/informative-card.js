@@ -40,10 +40,18 @@ export const InformativeCard = ({
   const focusClasses = isCardClickable
     ? 'focus-visible:!outline focus-visible:!outline-2 focus-visible:!outline-border-stroke-focus focus-visible:!outline-offset-2'
     : '';
-  const hoverClasses = hasInteractiveAction
+  // El hover de TODA la card es afordancia de "la card entera es clicable", así que
+  // se gatea con isCardClickable. Con ActionType==='button' la única interacción es
+  // el botón terciario interno: la card no debe reaccionar, el botón da su feedback.
+  const hoverClasses = isCardClickable
     ? 'hover:shadow-[0px_2px_20px_2px_rgba(73,73,73,0.25)] transition-shadow'
     : '';
   const cursorClass = isCardClickable ? 'cursor-pointer' : '';
+  // Sin href el LinkButton renderiza un <button>, y styles.css aplica
+  // `input, textarea, select, button { font: inherit }` fuera de toda capa; una regla
+  // sin capa gana a cualquier utilidad de @layer utilities, así que `hover:font-bold`
+  // no llega a aplicarse. El `!` es lo que iguala este CTA al resto de enlaces.
+  const ctaClasses = 'w-auto hover:!font-bold active:!font-bold';
   const loadingMode = loading === 'eager' ? 'eager' : 'lazy';
   const imageDecoding = loadingMode === 'eager' ? 'sync' : 'async';
   const imageFetchPriority = loadingMode === 'eager' ? 'high' : 'low';
@@ -102,7 +110,7 @@ export const InformativeCard = ({
                     size="default"
                     colorVariant="informative"
                     onClick=${onClick}
-                    customClassName="w-auto hover:font-bold active:font-bold"
+                    customClassName=${ctaClasses}
                   >
                     ${buttonText}
                   </${LinkButton}>
