@@ -9,7 +9,11 @@
   border-color: var(--button-border-active, inherit) !important;
 }
 
-[data-button]:focus:not(:focus-visible) {
+/* `:not(:focus-visible)` scores one class-level higher than the `:active` rule
+   above, so while the mouse is held down on a button (which is both :active and
+   :focus) this used to win and paint the focus border over the pressed one.
+   `:not(:active)` yields the pressed state back to the rule that owns it. */
+[data-button]:focus:not(:focus-visible):not(:active) {
   border-color: var(--button-border-focus, inherit) !important;
 }
 

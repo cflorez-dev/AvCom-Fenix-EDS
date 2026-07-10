@@ -729,7 +729,7 @@ export const DateSelector = ({
                date was by re-selecting it in the calendar. -->
           <div class="flex my-6 px-[var(--spacing-x-x-large)]">
             ${(mode === 'departure' || mode === 'return') && html`
-              <div class="flex flex-1 items-center outline outline-offset-[-1px] outline-neutral-400 rounded-lg bg-background-input-default overflow-hidden">
+              <div class="flex flex-1 items-center outline outline-offset-[-1px] outline-neutral-400 rounded-[8px] bg-background-input-default overflow-hidden">
                 <${DateInput}
                   label=${i18n['bookingBox.labels.departure'] || 'Salida'}
                   value=${formatDate(departureDate, 'numeric')}
