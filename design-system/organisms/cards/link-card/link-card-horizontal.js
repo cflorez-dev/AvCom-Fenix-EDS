@@ -3,6 +3,7 @@ import { useState, useEffect, useRef } from '@dropins/tools/preact-hooks.js';
 import htm from 'htm';
 import { LinkButton } from '../../../atoms/link-button/link-button.js';
 import { processContentHTML } from '../../../helpers/process-content-html.js';
+import { sanitizeHTML } from '../../../../scripts/utils/sanitize.js';
 
 const html = htm.bind(h);
 
@@ -234,7 +235,7 @@ export const LinkCardHorizontal = ({
         </p>
         <div
           class="w-full min-w-0 max-w-full"
-          dangerouslySetInnerHTML=${{ __html: processedDescription }}
+          dangerouslySetInnerHTML=${{ __html: sanitizeHTML(processedDescription) }}
         ></div>
       </div>
 

@@ -3,6 +3,7 @@ import { useState, useRef } from '@dropins/tools/preact-hooks.js';
 import htm from 'htm';
 import { Icon } from '../../../atoms/icon/icon.js';
 import { Button } from '../../../atoms/button/button.js';
+import { sanitizeHTML } from '../../../../scripts/utils/sanitize.js';
 
 const html = htm.bind(h);
 
@@ -203,7 +204,7 @@ const InteractiveBanner = ({
               ${panelData.interactiveDescription && html`
                 <div
                   class="self-stretch text-text-normal-lighter text-sm font-normal leading-[1.5] min-[1024px]:max-[1247px]:text-left lg:flex-1 lg:text-left"
-                  dangerouslySetInnerHTML=${{ __html: panelData.interactiveDescription }}
+                  dangerouslySetInnerHTML=${{ __html: sanitizeHTML(panelData.interactiveDescription) }}
                 ></div>
               `}
               ${(panelData.interactiveButtonText && panelData.interactiveButtonUrl) && html`

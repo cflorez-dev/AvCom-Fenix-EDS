@@ -6,6 +6,7 @@ import htm from 'htm';
 import { loadBlock } from '../../scripts/aem.js';
 import { Icon } from '../../design-system/atoms/icon/icon.js';
 import { shouldShowByTargeting, hideBlockWithSection, applySectionTargeting } from '../../scripts/utils/target-filter.js';
+import { sanitizeHTML } from '../../scripts/utils/sanitize.js';
 
 const html = htm.bind(h);
 
@@ -121,7 +122,7 @@ export default async function decorate(block) {
     const preview = document.createElement('div');
     preview.className = 'multitab-author-preview bg-[var(--bg-informative-light)] border-l-[3px] border-[var(--border-accent-informative)] rounded-[var(--border-radius-small)]';
     preview.style.cssText = 'padding: 12px 16px;';
-    preview.innerHTML = `
+    preview.innerHTML = sanitizeHTML(`
       <div class="font-semibold mb-2 text-[var(--text-link-informative-default)]">MultiTab Controller</div>
       <div class="text-xs leading-relaxed text-[var(--text-normal-secondary)]">
         <strong>Group ID:</strong> ${groupId}<br>
@@ -133,7 +134,7 @@ export default async function decorate(block) {
         💡 Add Section blocks below with <strong>multitab-group="${groupId}"</strong> metadata.<br>
         Each section becomes a tab and can contain any CMS blocks.
       </div>
-    `;
+    `);
     block.innerHTML = '';
     block.appendChild(preview);
     return;

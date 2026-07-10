@@ -1,5 +1,6 @@
 import { h } from '@dropins/tools/preact.js';
 import htm from 'htm';
+import { sanitizeHTML } from '../../../scripts/utils/sanitize.js';
 
 const html = htm.bind(h);
 
@@ -58,7 +59,7 @@ export const ContactPromoBlock = ({
           <div
             id="cpb-contact-title"
             class=${`cpb-contact-title m-0 ${tokenColor}`}
-            dangerouslySetInnerHTML=${{ __html: leftTitle }}
+            dangerouslySetInnerHTML=${{ __html: sanitizeHTML(leftTitle) }}
           ></div>
 
           <div class="flex flex-col flex-1 justify-between min-h-0">
@@ -147,14 +148,14 @@ export const ContactPromoBlock = ({
                 <div
                   id="cpb-app-title"
                   class="cpb-app-title text-center min-[513px]:text-left"
-                  dangerouslySetInnerHTML=${{ __html: rightTitle }}
+                  dangerouslySetInnerHTML=${{ __html: sanitizeHTML(rightTitle) }}
                 ></div>
               `}
 
               ${rightDescription && html`
                 <div
                   class="cpb-app-desc self-stretch"
-                  dangerouslySetInnerHTML=${{ __html: rightDescription }}
+                  dangerouslySetInnerHTML=${{ __html: sanitizeHTML(rightDescription) }}
                 ></div>
               `}
             </div>
