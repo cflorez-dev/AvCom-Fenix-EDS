@@ -7,6 +7,7 @@ import {
 import htm from 'htm';
 import { Button } from '../../../atoms/button/button.js';
 import loadSVGIcon from '../../../../scripts/utils/svg.helper.js';
+import { sanitizeSVG } from '../../../../scripts/utils/sanitize.js';
 
 const html = htm.bind(h);
 
@@ -213,7 +214,7 @@ export const SecondaryBanner = ({
     if (!svgElement) return null;
     return html`
       <span
-        dangerouslySetInnerHTML=${{ __html: svgElement.outerHTML }}
+        dangerouslySetInnerHTML=${{ __html: sanitizeSVG(svgElement.outerHTML) }}
         class="block right-0 overflow-hidden"
         style=${{ lineHeight: 0 }}
       />

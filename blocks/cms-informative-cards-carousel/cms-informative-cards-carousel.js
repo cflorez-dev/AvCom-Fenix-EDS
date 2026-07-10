@@ -4,6 +4,7 @@ import { extractCmsInformativeCardsCarouselProps, extractCarouselCards } from '.
 import { InformativePhotoCard } from '../../design-system/organisms/cards/informative-photo-card/informative-photo-card.js';
 import { Carousel } from '../../design-system/molecules/carousel/carousel.js';
 import { shouldShowByTargeting, hideBlockWithSection } from '../../scripts/utils/target-filter.js';
+import { isSafeUrl } from '../../scripts/utils/sanitize.js';
 
 const html = htm.bind(h);
 
@@ -40,7 +41,7 @@ function renderCardsGrid(cards, loadingMode) {
         <${InformativePhotoCard}
           title=${cardData.title}
           details=${cardData.details}
-          image=${cardData.image}
+          image=${isSafeUrl(cardData.image) ? cardData.image : ''}
           imageAlt=${cardData.imageAlt}
           buttonText=${cardData.ctaText || ''}
           buttonURL=${cardData.ctaLink || ''}
@@ -68,7 +69,7 @@ function renderFourCardsCarousel(cards, loadingMode) {
     <${InformativePhotoCard}
       title=${cardData.title}
       details=${cardData.details}
-      image=${cardData.image}
+      image=${isSafeUrl(cardData.image) ? cardData.image : ''}
       imageAlt=${cardData.imageAlt}
       buttonText=${cardData.ctaText || ''}
       buttonURL=${cardData.ctaLink || ''}
@@ -129,7 +130,7 @@ function renderMultiCardsCarousel(cards, loadingMode) {
         <${InformativePhotoCard}
           title=${cardData.title}
           details=${cardData.details}
-          image=${cardData.image}
+          image=${isSafeUrl(cardData.image) ? cardData.image : ''}
           imageAlt=${cardData.imageAlt}
           buttonText=${cardData.ctaText || ''}
           buttonURL=${cardData.ctaLink || ''}
