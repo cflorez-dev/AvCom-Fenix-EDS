@@ -148,11 +148,15 @@ export const DateInput = ({
   const containerClasses = useMemo(() => {
     // Border radius: solo esquinas SUPERIORES para grouped
     // (la línea verde al fondo maneja su propio border-radius)
+    // Radio fijo en 8px (Figma bradius-8px-m). NO usar `rounded-*-lg`: el tema
+    // del proyecto redefine --radius-lg a 0.8rem (12.8px), así que las esquinas
+    // agrupadas salían más grandes que el standalone y el input cambiaba de radio
+    // al pasar de RT (grouped) a OW (standalone). Fijar 8px las empareja.
     let borderRadiusClass = 'rounded-[8px]';
     if (variant === 'grouped-left') {
-      borderRadiusClass = 'rounded-tl-lg';
+      borderRadiusClass = 'rounded-tl-[8px]';
     } else if (variant === 'grouped-right') {
-      borderRadiusClass = 'rounded-tr-lg';
+      borderRadiusClass = 'rounded-tr-[8px]';
     }
 
     // Outline only for standalone
@@ -180,9 +184,9 @@ export const DateInput = ({
   const greenLineClasses = useMemo(() => {
     switch (variant) {
       case 'grouped-left':
-        return 'w-[calc(100%-4px)] self-center rounded-bl-lg';
+        return 'w-[calc(100%-4px)] self-center rounded-bl-[8px]';
       case 'grouped-right':
-        return 'w-[calc(100%-4px)] self-center rounded-br-lg';
+        return 'w-[calc(100%-4px)] self-center rounded-br-[8px]';
       default:
         return 'w-full';
     }

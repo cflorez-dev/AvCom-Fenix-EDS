@@ -10,6 +10,7 @@ import { Button } from '../../../atoms/button/button.js';
 import { PosForm } from '../pos-form/pos-form.js';
 import loadSVGIcon from '../../../../scripts/utils/svg.helper.js';
 import { Icon } from '../../../atoms/icon/icon.js';
+import { sanitizeSVG } from '../../../../scripts/utils/sanitize.js';
 
 const html = htm.bind(h);
 
@@ -456,7 +457,7 @@ export const LanguageSearch = ({
     if (!iconElement) return null;
     return html`
       <span
-        dangerouslySetInnerHTML=${{ __html: iconElement.outerHTML }}
+        dangerouslySetInnerHTML=${{ __html: sanitizeSVG(iconElement.outerHTML) }}
         class="inline-flex items-center"
       />
     `;

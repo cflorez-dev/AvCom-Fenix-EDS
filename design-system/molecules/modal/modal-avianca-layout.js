@@ -4,6 +4,7 @@ import { Modal } from './modal.js';
 import { Button } from '../../atoms/button/button.js';
 import { LinkButton } from '../../atoms/link-button/link-button.js';
 import { Icon } from '../../atoms/icon/icon.js';
+import { sanitizeHTML } from '../../../scripts/utils/sanitize.js';
 
 const html = htm.bind(h);
 
@@ -127,7 +128,7 @@ export const ModalAviancaLayout = ({
           <div class="">
             <div
               class="text-text-normal-secondary !text-lg text-center leading-[27px] break-words font-normal ${descriptionClassName}">
-              <span dangerouslySetInnerHTML=${{ __html: description }}></span>
+              <span dangerouslySetInnerHTML=${{ __html: sanitizeHTML(description) }}></span>
             </div>
           </div>
         `}

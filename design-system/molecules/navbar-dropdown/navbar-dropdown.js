@@ -2,6 +2,7 @@ import { h } from '@dropins/tools/preact.js';
 import { useState, useRef, useEffect } from '@dropins/tools/preact-hooks.js';
 import htm from 'htm';
 import loadSVGIcon from '../../../scripts/utils/svg.helper.js';
+import { sanitizeSVG } from '../../../scripts/utils/sanitize.js';
 import { Icon } from '../../atoms/icon/icon.js';
 
 const html = htm.bind(h);
@@ -200,7 +201,7 @@ export const NavbarDropdown = ({
     return html`
       <span
         class="inline-flex items-center justify-center"
-        dangerouslySetInnerHTML=${{ __html: clonedSvg.outerHTML }}
+        dangerouslySetInnerHTML=${{ __html: sanitizeSVG(clonedSvg.outerHTML) }}
       />
     `;
   };

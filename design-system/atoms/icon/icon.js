@@ -2,6 +2,7 @@
 import { h } from '@dropins/tools/preact.js';
 import { useState, useEffect } from '@dropins/tools/preact-hooks.js';
 import htm from 'htm';
+import { sanitizeSVG } from '../../../scripts/utils/sanitize.js';
 
 const html = htm.bind(h);
 
@@ -200,7 +201,7 @@ export const Icon = ({
     <span
       class="${classes}"
       style=${sizeStyle}
-      dangerouslySetInnerHTML=${{ __html: svgContent }}
+      dangerouslySetInnerHTML=${{ __html: sanitizeSVG(svgContent) }}
       data-name="icon"
       data-icon-name=${icon}
       ...${accessibilityProps}

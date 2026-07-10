@@ -4,6 +4,7 @@ import { Button } from '../../../atoms/button/button.js';
 import { LinkButton } from '../../../atoms/link-button/link-button.js';
 import { Icon } from '../../../atoms/icon/icon.js';
 import { processContentHTML } from '../../../helpers/process-content-html.js';
+import { sanitizeHTML } from '../../../../scripts/utils/sanitize.js';
 
 const html = htm.bind(h);
 
@@ -90,7 +91,7 @@ export const InformativeCard = ({
               <div class="justify-start text-text-normal-primary text-base mdlg:text-xl font-bold">${title}</div>
               <div
                 class="self-stretch justify-start text-text-normal-primary text-sm mdlg:text-base font-normal leading-normal"
-                dangerouslySetInnerHTML=${{ __html: processedDetails }}
+                dangerouslySetInnerHTML=${{ __html: sanitizeHTML(processedDetails) }}
               />
             </div>
             ${(ActionType === 'button' || ActionType === 'both') && buttonText ? html`
@@ -147,7 +148,7 @@ export const InformativeCard = ({
                     <div class="text-center justify-start text-text-normal-primary text-xl font-bold">${title}</div>
                     <div
                       class="self-stretch text-center justify-start text-text-normal-primary text-base font-normal leading-6"
-                      dangerouslySetInnerHTML=${{ __html: processedDetails }}
+                      dangerouslySetInnerHTML=${{ __html: sanitizeHTML(processedDetails) }}
                     />
                 </div>
                 ${(ActionType === 'button' || ActionType === 'both') && buttonText ? html`
