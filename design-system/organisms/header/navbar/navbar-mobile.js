@@ -6,6 +6,7 @@ import { Logo } from '../../../atoms/logo/logo.js';
 import { LanguageSelectorButton } from '../language-selector-button/language-selector-button.js';
 import { PosForm } from '../pos-form/pos-form.js';
 import loadSVGIcon from '../../../../scripts/utils/svg.helper.js';
+import { sanitizeSVG } from '../../../../scripts/utils/sanitize.js';
 import { waitForHlxCodeBasePath, buildIconPath } from '../../../../scripts/utils/hlx.helper.js';
 import { Icon } from '../../../atoms/icon/icon.js';
 import { MegamenuItem } from '../../../molecules/megamenu/megamenu.js';
@@ -217,7 +218,7 @@ export const NavbarMobile = ({
     return html`
       <span
         class="inline-flex items-center justify-center"
-        dangerouslySetInnerHTML=${{ __html: clonedSvg.outerHTML }}
+        dangerouslySetInnerHTML=${{ __html: sanitizeSVG(clonedSvg.outerHTML) }}
       />
     `;
   };

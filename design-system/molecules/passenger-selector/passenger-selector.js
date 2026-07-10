@@ -12,6 +12,7 @@ import { Icon } from '../../atoms/icon/icon.js';
 import { Button } from '../../atoms/button/button.js';
 import { Alert } from '../alert/alert.js';
 import { processContentHTML } from '../../helpers/process-content-html.js';
+import { sanitizeHTML } from '../../../scripts/utils/sanitize.js';
 
 const html = htm.bind(h);
 
@@ -545,7 +546,7 @@ export const PassengerSelector = ({
               ${totalPassengers === MAX_TOTAL_PASSENGERS && html`
                 <p 
                   class="text-[var(--color-text-brand-disable)] leading-[1.5] link-container !m-0"
-                  dangerouslySetInnerHTML=${{ __html: groupTravelLinkProcessed }}
+                  dangerouslySetInnerHTML=${{ __html: sanitizeHTML(groupTravelLinkProcessed) }}
                 />
               `}
 
@@ -669,7 +670,7 @@ export const PassengerSelector = ({
             ${totalPassengers === MAX_TOTAL_PASSENGERS && html`
               <p 
                 class="text-[var(--color-text-brand-disable)] leading-[1.5] link-container !m-0"
-                dangerouslySetInnerHTML=${{ __html: groupTravelLinkProcessed }}
+                dangerouslySetInnerHTML=${{ __html: sanitizeHTML(groupTravelLinkProcessed) }}
               />
             `}
 

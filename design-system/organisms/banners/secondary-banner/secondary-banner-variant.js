@@ -6,6 +6,7 @@ import {
 } from '@dropins/tools/preact-hooks.js';
 import htm from 'htm';
 import loadSVGIcon from '../../../../scripts/utils/svg.helper.js';
+import { sanitizeSVG } from '../../../../scripts/utils/sanitize.js';
 
 const html = htm.bind(h);
 
@@ -384,7 +385,7 @@ export const SecondaryBannerLeft = ({
     if (!svgElement) return null;
     return html`
       <span
-        dangerouslySetInnerHTML=${{ __html: svgElement.outerHTML }}
+        dangerouslySetInnerHTML=${{ __html: sanitizeSVG(svgElement.outerHTML) }}
         class=${wrapperClass}
         style=${{ lineHeight: 0 }}
       />

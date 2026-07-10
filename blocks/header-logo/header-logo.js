@@ -1,6 +1,7 @@
 import { extractHeaderLogoData } from './header-logo.helper.js';
 import { readBlockConfig } from '../../scripts/aem.js';
 import { shouldShowByTargeting } from '../../scripts/utils/target-filter.js';
+import { isSafeUrl } from '../../scripts/utils/sanitize.js';
 
 // Match desktop logo (full wordmark) from 768px onwards, consistent with the
 // header CSS breakpoint `@media (width >= 768px)` in header-logo.css that
@@ -40,7 +41,7 @@ function createPictureElement(logoData) {
   img.setAttribute('loading', 'eager');
   img.setAttribute('fetchpriority', 'high');
   img.setAttribute('decoding', 'async');
-  if (logoData.src) img.setAttribute('src', logoData.src);
+  if (logoData.src && isSafeUrl(logoData.src)) img.setAttribute('src', logoData.src);
   if (logoData.alt) img.setAttribute('alt', logoData.alt);
   if (logoData.width) img.setAttribute('width', logoData.width);
   if (logoData.height) img.setAttribute('height', logoData.height);

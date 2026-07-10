@@ -5,6 +5,7 @@ import { Button } from '../../../atoms/button/button.js';
 import { HeaderButton } from '../../../atoms/header-button/header-button.js';
 import { UserSession } from '../../user-session/user-session.js';
 import loadSVGIcon from '../../../../scripts/utils/svg.helper.js';
+import { sanitizeSVG } from '../../../../scripts/utils/sanitize.js';
 
 const html = htm.bind(h);
 
@@ -90,7 +91,7 @@ export const Actions = ({
     if (!iconElement) return null;
     return html`
       <span 
-        dangerouslySetInnerHTML=${{ __html: iconElement.outerHTML }}
+        dangerouslySetInnerHTML=${{ __html: sanitizeSVG(iconElement.outerHTML) }}
         style=${{ display: 'inline-flex', alignItems: 'center' }}
       />
     `;
@@ -134,7 +135,7 @@ export const Actions = ({
       ${cart.show && html`
         <div class="flex items-center justify-center">
           <${HeaderButton}
-            icon=${cartIcon ? html`<span class="inline-flex items-center justify-center w-full h-full" dangerouslySetInnerHTML=${{ __html: cartIcon.outerHTML }} />` : null}
+            icon=${cartIcon ? html`<span class="inline-flex items-center justify-center w-full h-full" dangerouslySetInnerHTML=${{ __html: sanitizeSVG(cartIcon.outerHTML) }} />` : null}
             label=""
             chevron=${true}
             state=${cartIsOpen ? 'open' : 'default'}

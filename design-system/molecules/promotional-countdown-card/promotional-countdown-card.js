@@ -2,6 +2,7 @@ import { h } from '@dropins/tools/preact.js';
 import { useState, useEffect } from '@dropins/tools/preact-hooks.js';
 import htm from 'htm';
 import { Button } from '../../atoms/button/button.js';
+import { sanitizeHTML } from '../../../scripts/utils/sanitize.js';
 
 const html = htm.bind(h);
 
@@ -228,11 +229,11 @@ export const PromotionalCountdownCard = ({
         <div class="self-stretch min-[769px]:flex-1 min-[1248px]:self-stretch flex flex-col justify-start items-start gap-2">
           <div 
             class="promotional-countdown-card-title self-stretch justify-start text-text-normal-lighter text-2xl min-[1248px]:text-4xl font-bold antialiased"
-            dangerouslySetInnerHTML=${{ __html: title }}
+            dangerouslySetInnerHTML=${{ __html: sanitizeHTML(title) }}
           />
           <div 
             class="promotional-countdown-card-subtitle self-stretch justify-start text-text-normal-lighter text-sm min-[1248px]:text-lg font-normal leading-[21px] min-[1248px]:leading-[27px] antialiased"
-            dangerouslySetInnerHTML=${{ __html: subtitle }}
+            dangerouslySetInnerHTML=${{ __html: sanitizeHTML(subtitle) }}
           />
         </div>
 
