@@ -259,7 +259,9 @@ export default function decorate(block) {
   // que ganen por specificity (`:hover`/`:active`). Scope: solo cms-button
   // tertiary — el atom LinkButton se usa en otros contextos y no debe cambiar.
   const tertiaryWeightClasses = isTertiary ? 'hover:font-bold active:font-bold' : '';
-  const baseCustomClassName = isIconOnly ? 'cms-button-element' : 'cms-button-element w-full';
+  // El ancho lo controla cms-button.css (auto en desktop, 100% en mobile).
+  // No forzamos `w-full` aquí para que el botón se ajuste a su contenido.
+  const baseCustomClassName = 'cms-button-element';
 
   const buttonProps = {
     variant: isTertiary ? 'link' : variant, // tertiary uses LinkButton variant="link"
@@ -434,7 +436,7 @@ export default function decorate(block) {
 
   render(
     html`
-    <div class="cms-button-container w-full">
+    <div class="cms-button-container">
       <${ButtonComponent} ...${buttonProps} customClassName=${finalCustomClassName}>
         <div class="flex items-center justify-center gap-[12px]">
           ${renderChildren()}

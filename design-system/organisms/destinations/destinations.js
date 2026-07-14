@@ -5,7 +5,7 @@ import { resolveLocale } from '../../../scripts/utils/locale.js';
 import { fetchAEMData } from '../../../scripts/utils/aem-data.js';
 import { BookingBox } from '../booking-box/booking-box.js';
 import { fetchCities } from '../../molecules/origin-destination-selector/origin-destination-selector.service.js';
-import { sanitizeHTML } from '../../../scripts/utils/sanitize.js';
+import { sanitizeHTML, sanitizeSpreadProps } from '../../../scripts/utils/sanitize.js';
 
 const html = htm.bind(h);
 
@@ -561,7 +561,7 @@ export const Destinations = ({
 
   if (loading) {
     return html`
-      <div class=${`${baseClasses} ${customClassName}`} data-name="destinations" ...${rest}>
+      <div class=${`${baseClasses} ${customClassName}`} data-name="destinations" ...${sanitizeSpreadProps(rest)}>
         <div class="p-6 text-center text-gray-500">
           ${i18n['hubDestinations.destination.loading'] || 'Loading...'}
         </div>
@@ -582,7 +582,7 @@ export const Destinations = ({
   const bannerImageUrl = destination?.heroImage?.['_publishUrl'];
 
   return html`
-    <div class=${`${baseClasses} ${customClassName}`} data-name="destinations" ...${rest}>
+    <div class=${`${baseClasses} ${customClassName}`} data-name="destinations" ...${sanitizeSpreadProps(rest)}>
       <!-- Hero Section -->
       <section 
         class="section cms-rich-text-container hero-destinations-detail mb-6 md:mb-8" 

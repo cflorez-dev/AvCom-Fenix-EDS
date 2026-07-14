@@ -5,6 +5,7 @@ import { Input } from '../../../atoms/inputs/input/input.js';
 import { Button } from '../../../atoms/button/button.js';
 import { fetchAEMData } from '../../../../scripts/utils/aem-data.js';
 import { getStoredLanguage } from '../../../../scripts/services/header/language-country-selector.js';
+import { sanitizeSpreadProps } from '../../../../scripts/utils/sanitize.js';
 
 const html = htm.bind(h);
 
@@ -241,7 +242,7 @@ export const MMBForm = ({
       data-name="mmbForm"
       aria-label=${labels.title || 'MMB form'}
       novalidate
-      ...${rest}
+      ...${sanitizeSpreadProps(rest)}
     >
       ${context === 'megamenu' && labels.megamenuLabel && html`
         <p class="font-bold leading-[100%] tracking-normal text-[#2B3C46] !mt-0 !mb-6">

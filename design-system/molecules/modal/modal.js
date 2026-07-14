@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from '@dropins/tools/preact-hooks.js';
 import htm from 'htm';
 import { Button } from '../../atoms/button/button.js';
 import { Icon } from '../../atoms/icon/icon.js';
+import { sanitizeSpreadProps } from '../../../scripts/utils/sanitize.js';
 
 const html = htm.bind(h);
 
@@ -228,7 +229,7 @@ export const Modal = ({
       role=${role}
       aria-modal="true"
       aria-labelledby="modal-title"
-      ...${rest}
+      ...${sanitizeSpreadProps(rest)}
     >
       <div
         ref=${contentRef}

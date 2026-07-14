@@ -18,6 +18,7 @@ import {
 import { CarouselNavigationButton } from '../../atoms/carousel-navigation-button/carousel-navigation-button.js';
 import { WeekdayHeader } from '../../atoms/weekday-header/weekday-header.js';
 import { TripTypeToggle } from '../../atoms/trip-type-toggle/trip-type-toggle.js';
+import { sanitizeSpreadProps } from '../../../scripts/utils/sanitize.js';
 
 const html = htm.bind(h);
 
@@ -577,7 +578,7 @@ export const DateSelector = ({
       class=${`${containerRelative ? 'relative' : ''} flex ${customClassName}  group-container`}
       data-name="dateSelector"
       ref=${containerRef}
-      ...${rest}
+      ...${sanitizeSpreadProps(rest)}
     >
       <!-- DateInput (Trigger) -->
       <${DateInput}

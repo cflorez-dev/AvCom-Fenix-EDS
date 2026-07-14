@@ -2,6 +2,7 @@ import { h } from '@dropins/tools/preact.js';
 import htm from 'htm';
 import { Alert } from '../../../molecules/alert/alert.js';
 import { MMBForm } from '../../forms/mmb-form/mmb-form.js';
+import { SSCIForm } from '../../forms/ssci-form/ssci-form.js';
 
 const html = htm.bind(h);
 
@@ -21,8 +22,9 @@ const html = htm.bind(h);
  * @param {'info'|'success'|'warning'|'error'} [props.alertType='info'] - Alert type
  * @param {boolean} [props.alertDismissible=true] - Allow closing the alert
  * @param {string} [props.alertContent=''] - Alert HTML content (rich text)
- * @param {'none'|'mmb'} [props.formType='none'] - Optional form to render inside the panel
- * @param {boolean} [props.openInNewTab=true] - MMB form: open deeplink in new tab
+ * @param {'none'|'mmb'|'ssci'} [props.formType='none'] - Optional form to render inside the panel
+ * @param {boolean} [props.openInNewTab=true] - MMB/SSCI form: open deeplink in new tab
+ *   (the SSCI organism reads this flag from the `ssciForm.openInNewTab` i18n key)
  * @param {string} [props.customClassName=''] - Additional CSS classes
  * @param {Object} [props.rest] - Additional properties
  * @returns {import('preact').VNode} FormHeaderBanner component
@@ -95,6 +97,11 @@ export const FormHeroHeaderBanner = ({
               ${formType === 'mmb' ? html`
                 <div class="mt-6">
                   <${MMBForm} simplified=${true} buttonBelow=${true} context="heroBanner" />
+                </div>
+              ` : null}
+              ${formType === 'ssci' ? html`
+                <div class="mt-6">
+                  <${SSCIForm} simplified=${true} buttonBelow=${true} context="heroBanner" />
                 </div>
               ` : null}
               <div class="mt-6">

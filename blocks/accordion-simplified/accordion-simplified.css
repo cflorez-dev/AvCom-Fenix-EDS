@@ -82,6 +82,24 @@
     list-style: none !important;
 }
 
+/* ol styles — el preflight de Tailwind resetea `ol { list-style: none }`, así que
+   las listas numeradas del rich text perdían la numeración (solo `ul` se
+   restauraba). Restauramos `list-style: decimal` para que se vean los números. */
+.accordion-simplified-content ol {
+    line-height: var(--line-height-auto);
+}
+
+.accordion-simplified-content ol:not(.list-none) {
+    padding-left: 28px;
+    margin: 0;
+    list-style: decimal;
+}
+
+.accordion-simplified-content ol.list-style-none,
+.accordion-simplified-content ol.list-none {
+    list-style: none !important;
+}
+
 /* paragraph & list item spacing */
 .accordion-simplified-content p:first-child {
     margin-top: 0; /* Bug 6: flush to top, keep inter-paragraph spacing below */

@@ -4,6 +4,7 @@ import htm from 'htm';
 import { Alert } from '../../molecules/alert/alert.js';
 import { CabinUpgradeForm } from '../../organisms/forms/cabin-upgrade-form/cabin-upgrade-form.js';
 import { MMBForm } from '../../organisms/forms/mmb-form/mmb-form.js';
+import { SSCIForm } from '../../organisms/forms/ssci-form/ssci-form.js';
 
 const html = htm.bind(h);
 
@@ -20,7 +21,7 @@ const html = htm.bind(h);
  * @param {string} [props.subtitleText=''] - Subtitle text
  * @param {'h2'|'h3'|'h4'|'h5'|'h6'|'p'} [props.subtitleLevel='p'] - Semantic level of the subtitle
  * @param {'left'|'center'|'right'} [props.contentAlignment='left'] - Content alignment
- * @param {'cabin-upgrade'|'mmb'|'none'} [props.formType='cabin-upgrade'] - Type of form to display
+ * @param {'cabin-upgrade'|'mmb'|'ssci'|'none'} [props.formType='cabin-upgrade'] - Type of form to display
  * @param {boolean} [props.openInNewTab=true] - MMB form: open deeplink in new tab
  * @param {boolean} [props.showAlert=false] - Show alert
  * @param {'info'|'success'|'warning'|'error'} [props.alertType='info'] - Alert type
@@ -84,6 +85,14 @@ export const FormHeaderBanner = ({
       // context="headerBanner" → the organism reads mmbForm.showHelperText.headerBanner from i18n.
       // openInNewTab is read from i18n (`mmbForm.openInNewTab`) inside the organism.
       return html`<${MMBForm}
+      simplified=${true}
+      context="headerBanner"
+      onSubmit=${onFormSubmit} />`;
+    }
+    if (formType === 'ssci') {
+      // Check-in (SSCI) form. simplified=true: el banner ya pinta su título/subtítulo.
+      // context="headerBanner" para tomar los textos/helpers de i18n del banner ancho.
+      return html`<${SSCIForm}
       simplified=${true}
       context="headerBanner"
       onSubmit=${onFormSubmit} />`;
