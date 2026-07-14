@@ -77,6 +77,27 @@
     list-style: none !important; /* override default ul styles */
 }
 
+/* ol styles inside accordion — el preflight de Tailwind resetea
+   `ol { list-style: none }`; sin esto las listas numeradas del rich text
+   pierden la numeración (solo `ul` estaba restaurado). */
+.section.accordion-item .accordion-group-content ol {
+    line-height: var(--line-height-auto);
+}
+
+.section.accordion-item .accordion-group-content ol:not(.list-none) {
+    padding-left: 28px;
+    margin: 0;
+    list-style: decimal;
+}
+
+.section.accordion-item .accordion-group-content .columns-text-col ol {
+    margin: 0;
+}
+
+.section.accordion-item .accordion-group-content ol.list-style-none {
+    list-style: none !important;
+}
+
 /* text styles inside accordion */
 .section.accordion-item .accordion-group-content .columns-text-col li,
 .section.accordion-item .accordion-group-content .columns-text-col p,

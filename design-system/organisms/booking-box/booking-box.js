@@ -8,6 +8,7 @@ import {
   useMemo,
 } from '@dropins/tools/preact-hooks.js';
 import htm from 'htm';
+import { sanitizeSpreadProps } from '../../../scripts/utils/sanitize.js';
 
 // Design System Components
 import { Button } from '../../atoms/button/button.js';
@@ -656,7 +657,7 @@ export const BookingBox = ({
     <div
       class="w-full ${showConfirmModal && isMobile ? 'fixed inset-0 bg-white z-[800] overflow-auto' : ''}"
       data-name="bookingBox"
-      ...${rest}
+      ...${sanitizeSpreadProps(rest)}
     >
       <!-- Sentinel for IntersectionObserver -->
       <div ref=${sentinelRef} class="h-px w-full" aria-hidden="true"></div>

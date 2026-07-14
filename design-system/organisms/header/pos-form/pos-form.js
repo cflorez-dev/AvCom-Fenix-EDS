@@ -4,6 +4,7 @@ import htm from 'htm';
 import { Select } from '../../../atoms/inputs/select/select.js';
 import { Button } from '../../../atoms/button/button.js';
 import { Icon } from '../../../atoms/icon/icon.js';
+import { sanitizeSpreadProps } from '../../../../scripts/utils/sanitize.js';
 
 const html = htm.bind(h);
 
@@ -180,7 +181,7 @@ export const PosForm = ({
     <div
       class=${`w-full flex flex-col gap-[24px] ${isDropdown ? '!border-[1px] !border-[solid] !border-[black]' : ''} ${customClassName}`}
       data-name="posForm"
-      ...${rest}
+      ...${sanitizeSpreadProps(rest)}
     >
       <!-- Header with Title and Close Button -->
       <div class="flex items-center justify-between">

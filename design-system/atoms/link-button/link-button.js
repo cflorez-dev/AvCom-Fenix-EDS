@@ -1,5 +1,6 @@
 import { h } from '@dropins/tools/preact.js';
 import htm from 'htm';
+import { sanitizeSpreadProps } from '../../../scripts/utils/sanitize.js';
 
 const html = htm.bind(h);
 
@@ -345,8 +346,8 @@ export const LinkButton = ({
   return html`
     <${Tag}
       class="${finalClasses}"
-      ...${elementProps}
-      ...${a11yProps}
+      ...${sanitizeSpreadProps(elementProps)}
+      ...${sanitizeSpreadProps(a11yProps)}
       data-name="linkButton"
       data-variant=${variant}
       data-size=${size}

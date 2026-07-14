@@ -8,6 +8,7 @@ import {
   isInRange as checkIsInRange,
   isDateDisabled,
 } from '../date-range-picker/date-range-picker.service.js';
+import { sanitizeSpreadProps } from '../../../scripts/utils/sanitize.js';
 
 const html = htm.bind(h);
 
@@ -164,7 +165,7 @@ export const MonthGrid = ({
       class=${gridClasses}
       data-name="monthGrid"
       role="grid"
-      ...${rest}
+      ...${sanitizeSpreadProps(rest)}
     >
   ${days.map((date, index) => {
     // Empty day

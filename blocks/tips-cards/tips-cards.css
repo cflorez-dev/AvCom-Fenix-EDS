@@ -5,6 +5,17 @@
 }
 
 /* CU-213: rich text inside tips card description */
+
+/* Evitar desbordes horizontales de la tarjeta: envolver contenido ancho
+   (palabras largas o bloques de código <pre>, que con white-space:pre no
+   envuelven y forzaban el min-content de la tarjeta, sacando la última del
+   contenedor). Junto con min-w-0 en los flex items del organism. */
+.tips-card-description { overflow-wrap: anywhere; }
+.tips-card-description pre {
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+}
+
 .tips-card-description p { margin: 0; }
 .tips-card-description p + p { margin-top: 8px; }
 .tips-card-description ul,

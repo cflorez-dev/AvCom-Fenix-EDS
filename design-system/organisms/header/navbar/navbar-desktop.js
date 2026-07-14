@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from '@dropins/tools/preact-hooks.js';
 import htm from 'htm';
 import { NavbarDropdown } from '../../../molecules/navbar-dropdown/navbar-dropdown.js';
 import { Megamenu } from '../../../molecules/megamenu/megamenu.js';
+import { sanitizeSpreadProps } from '../../../../scripts/utils/sanitize.js';
 
 const html = htm.bind(h);
 
@@ -201,7 +202,7 @@ export const NavbarDesktop = ({
     <div
       class="relative h-full flex items-center ${customClassName}"
       style=${accentColor ? { '--header-offers': accentColor } : undefined}
-      ...${rest}
+      ...${sanitizeSpreadProps(rest)}
     >
     <nav
       ref=${navRef}
