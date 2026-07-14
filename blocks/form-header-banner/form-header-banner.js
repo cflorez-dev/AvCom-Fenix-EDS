@@ -17,7 +17,7 @@ const html = htm.bind(h);
  * 6. titleLevel (text: h1-h6)
  * 7. subtitleText (text)
  * 8. subtitleLevel (text: h2-h6, p)
- * 9. formType (text: cabin-upgrade/none)
+ * 9. formType (text: cabin-upgrade/mmb/ssci/none)
  * 10. showAlert (text: true/false)
  * 11. alertType (text: info/success/warning/error)
  * 12. alertDismissible (text: true/false)
@@ -134,8 +134,8 @@ function mapBlockOptions(block) {
           return;
         }
 
-        // 9. formType (cabin-upgrade/mmb/none)
-        if (currentIndex === 8 && ['cabin-upgrade', 'mmb', 'none'].includes(textContent.toLowerCase())) {
+        // 9. formType (cabin-upgrade/mmb/ssci/none)
+        if (currentIndex === 8 && ['cabin-upgrade', 'mmb', 'ssci', 'none'].includes(textContent.toLowerCase())) {
           mappedOptions.formType = textContent.toLowerCase();
           currentIndex += 1;
           return;

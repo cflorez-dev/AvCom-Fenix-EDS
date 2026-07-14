@@ -115,3 +115,34 @@ export function sanitizeSVG(dirty) {
   console.warn('[sanitizeSVG] DOMPurify not loaded yet; returning empty string.');
   return '';
 }
+
+/**
+ * Filters an object of spread props, removing attributes that could introduce
+ * XSS when spread onto a DOM element: inline event handlers (`on*`),
+ * `dangerouslySetInnerHTML`, and `href`/`src` values with unsafe schemes.
+ * Use with `...${sanitizeSpreadProps(rest)}` when spreading caller-supplied
+ * props onto an element, so a compromised or buggy caller cannot inject an
+ * event handler or raw HTML through the spread.
+ *
+ * @param {Object} props - The props object to spread (e.g. `rest`)
+ * @returns {Object} A shallow copy with dangerous keys removed
+ */
+export function sanitizeSpreadProps(props) {
+  if (!props || typeof props !== 'object') return {};
+  const safe = {};
+  Object.keys(props).forEach((key) => {
+    const k = key.toLowerCase();
+    const value = props[key];
+    // Strip inline event handlers passed as STRINGS (e.g. onclick="alert(1)"),
+    // which is the injection vector. Function-valued handlers (onClick={fn}) are
+    // legitimate Preact listeners and are preserved so interactive components
+    // keep working when their handler arrives through the spread.
+    if (k.startsWith('on') && typeof value === 'string') return;
+    // Strip raw-HTML injection
+    if (k === 'dangerouslysetinnerhtml') return;
+    // Drop URL attributes that carry an unsafe scheme
+    if ((k === 'href' || k === 'src') && typeof value === 'string' && !isSafeUrl(value)) return;
+    safe[key] = value;
+  });
+  return safe;
+}
