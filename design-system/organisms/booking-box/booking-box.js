@@ -622,7 +622,7 @@ export const BookingBox = ({
   // ========== TAILWIND CLASSES ==========
   const stickyClasses = useMemo(
     () => (isSticky
-      ? 'md:fixed md:top-[calc(var(--marquee-height,0px)+50px)] md:left-0 md:right-0 md:shadow-lg md:rounded-none shadow-[0px_2px_20px_2px_rgba(73,73,73,0.25)] py-5 px-8'
+      ? 'md:fixed md:top-[calc(var(--marquee-height,0px)+50px)] md:left-0 md:right-0 md:shadow-lg md:rounded-none shadow-[0px_2px_20px_2px_rgba(73,73,73,0.25)] py-5 px-4 md:px-6 lg:px-8'
       : 'py-4 px-4 lg2:px-6 lg2:pt-5 lg2:pb-6 md:relative'),
     [isSticky],
   );

@@ -10,9 +10,14 @@ import { Icon } from '../icon/icon.js';
 const html = htm.bind(h);
 
 // Constants for state-based styling (defined outside component for performance)
+// `outline-offset-[-1px]` mantiene el borde consistente entre el input standalone
+// (OW / solo ida) y el contenedor agrupado del rango (RT / ida y vuelta), que ya usa
+// ese offset; sin el, el outline del standalone se dibujaba 1px por fuera y el borde
+// "cambiaba" al pasar de RT a OW (bug 1286625). Es el mismo patron que city-selector,
+// origin-destination-selector y el input atom.
 const STATE_CLASSES = {
-  normal: 'outline outline-1  outline-neutral-400',
-  disabled: 'outline outline-1  outline-border-input-disabled',
+  normal: 'outline outline-1 outline-offset-[-1px] outline-neutral-400',
+  disabled: 'outline outline-1 outline-offset-[-1px] outline-border-input-disabled',
 };
 
 const LABEL_STATE_CLASSES = {

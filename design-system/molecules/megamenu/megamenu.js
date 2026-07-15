@@ -444,7 +444,7 @@ export const Megamenu = ({
           `}
 
           ${hasBanner && html`
-            <div class=${`megamenu-banner ${formType ? 'overflow-visible' : 'overflow-hidden'} min-h-[160px] max-h-[220px] xl:max-h-[222px] h-full max-w-[460px]${formType ? ' bg-white' : ''}`}>
+            <div class=${`megamenu-banner ${formType ? 'overflow-visible' : 'overflow-hidden'} min-h-[160px] lg:max-h-[220px] xl:max-h-[222px] lg:h-full max-w-[460px]${formType ? ' bg-white' : ''}`}>
               ${renderBannerContent()}
             </div>
           `}

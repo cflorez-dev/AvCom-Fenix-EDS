@@ -154,9 +154,6 @@ export default async function decorate(block) {
   if (!shouldShowByTargeting(props.targetCountries, props.targetLanguages)) {
     // Add p-0 class to parent section container
     const sectionContainer = block.closest('.section.cms-promotional-card-carrousel-container');
-    if (sectionContainer) {
-      sectionContainer.classList.add('!p-0');
-    }
     hideBlockWithSection(block);
     return;
   }
@@ -168,9 +165,6 @@ export default async function decorate(block) {
   if (totalCards === 0) {
     // Add p-0 class to parent section container
     const sectionContainer = block.closest('.section.cms-promotional-card-carrousel-container');
-    if (sectionContainer) {
-      sectionContainer.classList.add('!p-0');
-    }
     // Hide the block if there are no cards
     block.style.display = 'none';
     return;
@@ -243,6 +237,6 @@ export default async function decorate(block) {
   // Apply styles to the section container using Tailwind
   const sectionContainer = block.closest('.section.cms-promotional-card-carrousel-container');
   if (sectionContainer) {
-    sectionContainer.classList.add('!p-0', 'w-full');
+    sectionContainer.classList.add('w-full');
   }
 }
