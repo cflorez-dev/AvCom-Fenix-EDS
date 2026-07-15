@@ -10,6 +10,7 @@ import { Button } from '../../../atoms/button/button.js';
 import { PosForm } from '../pos-form/pos-form.js';
 import loadSVGIcon from '../../../../scripts/utils/svg.helper.js';
 import { Icon } from '../../../atoms/icon/icon.js';
+import { sanitizeSVG } from '../../../../scripts/utils/sanitize.js';
 
 const html = htm.bind(h);
 
@@ -456,7 +457,7 @@ export const LanguageSearch = ({
     if (!iconElement) return null;
     return html`
       <span
-        dangerouslySetInnerHTML=${{ __html: iconElement.outerHTML }}
+        dangerouslySetInnerHTML=${{ __html: sanitizeSVG(iconElement.outerHTML) }}
         class="inline-flex items-center"
       />
     `;
@@ -496,6 +497,7 @@ export const LanguageSearch = ({
             ? `Seleccionar país e idioma: ${formatPosDisplay(selectedPos)}, idioma ${currentLanguage.toUpperCase()}`
             : 'Seleccionar país e idioma'}
           aria-expanded=${isDropdownOpen}
+          data-open=${isDropdownOpen ? 'true' : 'false'}
           customClassName="px-[12px]"
           borderActiveColor="alert-success-border"
           borderFocusColor="alert-success-border"
@@ -521,10 +523,15 @@ export const LanguageSearch = ({
               height="16"
               viewBox="0 0 16 16"
               fill="none"
-              class=${`transition-transform duration-200 flex-shrink-0 ${isDropdownOpen ? 'rotate-0' : 'rotate-180'}`}
+              class=${`transition-transform duration-200 flex-shrink-0 ${isDropdownOpen ? 'rotate-180' : 'rotate-0'}`}
               aria-hidden="true"
             >
-              <path fill-rule="evenodd" clip-rule="evenodd" d="M8 5.33301L4 9.33301L4.94 10.273L8 7.21967L11.06 10.273L12 9.33301L8 5.33301Z" fill="#1B1B1B"/>
+              <path
+                fill-rule="evenodd"
+                clip-rule="evenodd"
+                d="M11.06 5.72656L8 8.7799L4.94 5.72656L4 6.66656L8 10.6666L12 6.66656L11.06 5.72656Z"
+                fill="currentColor"
+              />
             </svg>
           </div>
         </${Button}>

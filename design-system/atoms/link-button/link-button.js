@@ -1,5 +1,6 @@
 import { h } from '@dropins/tools/preact.js';
 import htm from 'htm';
+import { sanitizeSpreadProps } from '../../../scripts/utils/sanitize.js';
 
 const html = htm.bind(h);
 
@@ -15,6 +16,10 @@ const html = htm.bind(h);
  *   (default: "informative")
  * @param {boolean} options.iconOnly - Icon-only mode (default: false)
  * @param {boolean} options.disabled - Disabled state (default: false)
+ * @param {boolean} options.underline - Opt-in underline for `variant='link'`. Defaults to `false`
+ *   so links look like buttons/CTAs by default (as required inside cards, headers, etc.).
+ *   Set to `true` when the link lives inside rich-text contexts (cms-rich-text, marquesina)
+ *   where a visible underline is expected. Ignored for `variant='outlined'` and when `iconOnly`.
  * @param {string} options.customClassName - Additional CSS classes
  *   (default: "")
  * @param {string|null} options.customColor - Optional inline color (hex/rgba). When provided,
@@ -41,9 +46,22 @@ export const getLinkButtonStyles = ({
   colorVariant = 'informative',
   iconOnly = false,
   disabled = false,
+  underline = false,
   customClassName = '',
   customColor = null,
 } = {}) => {
+  // Underline applies only to `variant='link'` (not `outlined`). Icon-only links
+  // never get underline. When `underline=true` (opt-in, p.ej. enlaces inline de
+  // rich-text) el underline es permanente. When `underline=false` (default) el
+  // CTA / botón terciario (variante "Link button") NO lleva underline en default,
+  // pero SÍ en hover/active (VSTS 1282389 / 1282253 — confirmado contra Figma).
+  const underlineModifiers = 'decoration-solid [text-decoration-skip-ink:none] [text-underline-position:from-font]';
+  let linkDecoration = '';
+  if (!iconOnly) {
+    linkDecoration = underline
+      ? `underline ${underlineModifiers}`
+      : `hover:underline active:underline ${underlineModifiers}`;
+  }
   // Base classes - layout and typography
   const baseClasses = 'inline-flex items-center justify-center '
     + 'font-[\'Red_Hat_Display\'] '
@@ -63,9 +81,7 @@ export const getLinkButtonStyles = ({
         interactionClasses: disabled
           ? ''
           : 'hover:text-text-link-informative-active active:text-text-link-informative-active',
-        decoration: !iconOnly
-          ? 'underline decoration-solid [text-decoration-skip-ink:none] [text-underline-position:from-font]'
-          : '',
+        decoration: linkDecoration,
       },
       outlined: {
         baseClasses: disabled
@@ -76,6 +92,18 @@ export const getLinkButtonStyles = ({
           : 'hover:text-text-link-informative-active hover:border-text-link-informative-active active:text-text-link-informative-active active:border-text-link-informative-active',
         decoration: 'rounded-[5px]',
       },
+      // members: igual que link pero SIN subrayado.
+      // Usar en el bloque de navegación Members. El focus ring se mantiene para teclado.
+      // Figma: node 104-10337 (Entregable OMNI Members 01062026)
+      members: {
+        baseClasses: disabled
+          ? 'text-text-brand-disable'
+          : 'text-text-link-informative-default',
+        interactionClasses: disabled
+          ? ''
+          : 'hover:text-text-link-informative-active active:text-text-link-informative-active',
+        decoration: '',
+      },
     },
     promotional: {
       link: {
@@ -85,9 +113,7 @@ export const getLinkButtonStyles = ({
         interactionClasses: disabled
           ? ''
           : 'hover:text-text-link-promotional-active active:text-text-link-promotional-active',
-        decoration: !iconOnly
-          ? 'underline decoration-solid [text-decoration-skip-ink:none] [text-underline-position:from-font]'
-          : '',
+        decoration: linkDecoration,
       },
       outlined: {
         baseClasses: disabled
@@ -98,6 +124,16 @@ export const getLinkButtonStyles = ({
           : 'hover:text-text-link-promotional-active hover:border-text-link-promotional-active active:text-text-link-promotional-active active:border-text-link-promotional-active',
         decoration: 'rounded-[5px]',
       },
+      // members: igual que link pero SIN subrayado (ver informative.members para referencia)
+      members: {
+        baseClasses: disabled
+          ? 'text-text-brand-disable'
+          : 'text-text-link-promotional-default',
+        interactionClasses: disabled
+          ? ''
+          : 'hover:text-text-link-promotional-active active:text-text-link-promotional-active',
+        decoration: '',
+      },
     },
     caution: {
       link: {
@@ -107,9 +143,7 @@ export const getLinkButtonStyles = ({
         interactionClasses: disabled
           ? ''
           : 'hover:text-text-link-caution-active active:text-text-link-caution-active',
-        decoration: !iconOnly
-          ? 'underline decoration-solid [text-decoration-skip-ink:none] [text-underline-position:from-font]'
-          : '',
+        decoration: linkDecoration,
       },
       outlined: {
         baseClasses: disabled
@@ -119,6 +153,16 @@ export const getLinkButtonStyles = ({
           ? ''
           : 'hover:text-text-link-caution-active hover:border-text-link-caution-active active:text-text-link-caution-active active:border-text-link-caution-active',
         decoration: 'rounded-[5px]',
+      },
+      // members: igual que link pero SIN subrayado (ver informative.members para referencia)
+      members: {
+        baseClasses: disabled
+          ? 'text-text-brand-disable'
+          : 'text-text-link-caution-default',
+        interactionClasses: disabled
+          ? ''
+          : 'hover:text-text-link-caution-active active:text-text-link-caution-active',
+        decoration: '',
       },
     },
   };
@@ -226,6 +270,9 @@ export const getLinkButtonStyles = ({
  * - `colorVariant`: `"informative" | "promotional" | "caution"` – Color variant
  *   (default: `"informative"`).
  * - `iconOnly`: `boolean` – Icon-only mode (default: `false`).
+ * - `underline`: `boolean` – Opt-in underline for `variant='link'` (default: `false`).
+ *   Enable only inside rich-text contexts (cms-rich-text, marquesina). Cards, CTAs and
+ *   button-like links should keep the default (no underline).
  * - `customClassName`: Additional CSS classes.
  * - `children`: Inner content (text or icon elements).
  * - `href`: Link URL (renders as `<a>`, otherwise `<button>`).
@@ -233,7 +280,8 @@ export const getLinkButtonStyles = ({
  * - `...rest`: Other valid attributes such as `onClick`, `target`, etc.
  *
  * ## Variants:
- * - `link`: Default with underline decoration
+ * - `link`: Text-like link. No underline by default — pass `underline={true}` when used
+ *   inside rich text (cms-rich-text, marquesina).
  * - `outlined`: Border style without underline
  *
  * ## Color Variants:
@@ -264,6 +312,7 @@ export const LinkButton = ({
   size = 'default',
   colorVariant = 'informative',
   iconOnly = false,
+  underline = false,
   href,
   children,
   disabled = false,
@@ -276,6 +325,7 @@ export const LinkButton = ({
     colorVariant,
     iconOnly,
     disabled,
+    underline,
     customClassName,
   });
 
@@ -296,8 +346,8 @@ export const LinkButton = ({
   return html`
     <${Tag}
       class="${finalClasses}"
-      ...${elementProps}
-      ...${a11yProps}
+      ...${sanitizeSpreadProps(elementProps)}
+      ...${sanitizeSpreadProps(a11yProps)}
       data-name="linkButton"
       data-variant=${variant}
       data-size=${size}

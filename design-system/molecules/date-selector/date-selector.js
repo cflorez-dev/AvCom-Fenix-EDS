@@ -18,6 +18,7 @@ import {
 import { CarouselNavigationButton } from '../../atoms/carousel-navigation-button/carousel-navigation-button.js';
 import { WeekdayHeader } from '../../atoms/weekday-header/weekday-header.js';
 import { TripTypeToggle } from '../../atoms/trip-type-toggle/trip-type-toggle.js';
+import { sanitizeSpreadProps } from '../../../scripts/utils/sanitize.js';
 
 const html = htm.bind(h);
 
@@ -524,8 +525,14 @@ export const DateSelector = ({
     [currentYear, limitYear, currentMonth, limitMonth],
   );
 
+  // Disable "next" once the LAST visible month reaches the max booking month. The
+  // desktop calendar shows two months (current + current+1) and navigates in steps of
+  // MONTHS_TO_NAVIGATE (2), so we cap on `currentMonth + 1` (the right/last month) and
+  // use a >= comparison, NOT exact equality: an exact `=== maxDate.getMonth()` check
+  // could be skipped by the 2-month step (e.g. May -> July, skipping June), never
+  // disabling navigation and letting the user scroll years past the 355-day limit.
   const isMaxMonth = useMemo(
-    () => currentYear === maxDate.getFullYear() && currentMonth === maxDate.getMonth(),
+    () => (currentYear * 12 + currentMonth + 1) >= (maxDate.getFullYear() * 12 + maxDate.getMonth()),
     [currentYear, maxDate, currentMonth],
   );
 
@@ -571,7 +578,7 @@ export const DateSelector = ({
       class=${`${containerRelative ? 'relative' : ''} flex ${customClassName}  group-container`}
       data-name="dateSelector"
       ref=${containerRef}
-      ...${rest}
+      ...${sanitizeSpreadProps(rest)}
     >
       <!-- DateInput (Trigger) -->
       <${DateInput}
@@ -723,7 +730,7 @@ export const DateSelector = ({
                date was by re-selecting it in the calendar. -->
           <div class="flex my-6 px-[var(--spacing-x-x-large)]">
             ${(mode === 'departure' || mode === 'return') && html`
-              <div class="flex flex-1 items-center outline outline-offset-[-1px] outline-neutral-400 rounded-lg bg-background-input-default overflow-hidden">
+              <div class="flex flex-1 items-center outline outline-offset-[-1px] outline-neutral-400 rounded-[8px] bg-background-input-default overflow-hidden">
                 <${DateInput}
                   label=${i18n['bookingBox.labels.departure'] || 'Salida'}
                   value=${formatDate(departureDate, 'numeric')}

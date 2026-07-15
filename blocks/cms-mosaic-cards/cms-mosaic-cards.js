@@ -14,6 +14,7 @@
 
 import { getMosaicStore } from '../mosaic-cards-v2/mosaic-cards-v2.store.js';
 import { shouldShowByTargeting, hideBlockWithSection, filterItemsByTargeting } from '../../scripts/utils/target-filter.js';
+import { applyLinkButtonStylesToLinks } from '../../scripts/utils/link-card-richtext.js';
 
 function getCardClasses(template, cardIndex, totalCards) {
   // Desktop classes (≥768px) - grid 3x3
@@ -336,9 +337,11 @@ function parseCardDataFromItem(item) {
     cellIndex += 1;
   }
 
-  // Cell 3: description
+  // Cell 3: description (richtext — preserve HTML markup so bold/lists/links render)
   if (cells[cellIndex]) {
-    cardData.description = cells[cellIndex].textContent.trim();
+    // Decorate <a> tags with LinkButton (informative) styles before extracting innerHTML
+    applyLinkButtonStylesToLinks(cells[cellIndex]);
+    cardData.description = cells[cellIndex].innerHTML.trim();
     cellIndex += 1;
   }
 
@@ -508,6 +511,15 @@ export default async function decorate(block) {
           const rows = [...card.querySelectorAll(':scope > div > div')];
           if (rows.length === 0) return;
           const val = (idx) => rows[idx]?.textContent?.trim() || '';
+          // Preserve HTML for richtext fields (description) so bold/lists/links render.
+          // Mutates rows[idx] in place to inject LinkButton styles on <a> tags before
+          // serializing innerHTML, so the rendered description matches cms-rich-text.
+          const valHtml = (idx) => {
+            const row = rows[idx];
+            if (!row) return '';
+            applyLinkButtonStylesToLinks(row);
+            return row.innerHTML?.trim() || '';
+          };
           const imgAt = (idx) => {
             if (!rows[idx]) return { src: '', alt: '' };
             const img = rows[idx].querySelector('img');
@@ -530,7 +542,7 @@ export default async function decorate(block) {
             imageMobile: mobile.src,
             imageMobileAlt: val(3) || mobile.alt,
             title: val(4),
-            description: val(5),
+            description: valHtml(5),
             ctaLabel: val(6),
             supportIcon: '',
             linkUrl: val(7),
@@ -556,13 +568,12 @@ export default async function decorate(block) {
     const visibleItems = filteredItems.slice(0, maxTemplateCards);
 
     if (visibleItems.length === 0) {
-      console.warn('No link-card children found after filtering in cms-mosaic-cards block');
       hideBlockWithSection(block);
       return;
     }
 
     if (filteredItems.length > visibleItems.length) {
-      console.warn(`cms-mosaic-cards: template "${template}" supports max ${maxTemplateCards} cards. Ignoring ${filteredItems.length - visibleItems.length} extra card(s).`);
+      // Extra cards beyond template's max are silently ignored.
     }
 
     // Hide original block content but keep it in DOM for Universal Editor
@@ -646,7 +657,6 @@ export default async function decorate(block) {
       }
     }, 100);
   } catch (error) {
-    console.error('Error loading cms-mosaic-cards dependencies:', error);
     block.innerHTML = `<div style="padding: 20px; background: #ffebee; border: 1px solid #f44336; border-radius: 4px;"><strong>❌ Error loading content</strong><br>${error.message}</div>`;
   }
 }

@@ -1,5 +1,35 @@
-@media (width <= 1023px) {
+@media (width <= 767px) {
     .section.tips-cards-container {
         padding-inline: 16px;
     }
 }
+
+/* CU-213: rich text inside tips card description */
+
+/* Evitar desbordes horizontales de la tarjeta: envolver contenido ancho
+   (palabras largas o bloques de código <pre>, que con white-space:pre no
+   envuelven y forzaban el min-content de la tarjeta, sacando la última del
+   contenedor). Junto con min-w-0 en los flex items del organism. */
+.tips-card-description { overflow-wrap: anywhere; }
+.tips-card-description pre {
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+}
+
+.tips-card-description p { margin: 0; }
+.tips-card-description p + p { margin-top: 8px; }
+.tips-card-description ul,
+.tips-card-description ol { padding-left: 20px; margin: 4px 0; }
+.tips-card-description ul { list-style: disc; }
+.tips-card-description ol { list-style: decimal; }
+.tips-card-description strong,
+.tips-card-description b { font-weight: 700; }
+.tips-card-description em,
+.tips-card-description i { font-style: italic; }
+.tips-card-description a {
+    color: var(--color-text-link-informative-default, #177f8c);
+    text-decoration: underline;
+    transition: color var(--transition-fast, 0.2s) var(--ease-in-out, ease-in-out);
+}
+.tips-card-description a:hover,
+.tips-card-description a:active { font-weight: 700; }

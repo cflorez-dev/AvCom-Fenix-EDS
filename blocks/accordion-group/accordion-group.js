@@ -34,6 +34,7 @@ const DEFAULT_CONFIG = {
   targetLanguages: '',
   visibilityStartDate: '',
   visibilityEndDate: '',
+  itemSpacing: 'default', // 'default' | 'none'
 };
 
 /**
@@ -399,6 +400,7 @@ function parseConfig(block) {
   if (blockConfig['target-languages']) config.targetLanguages = blockConfig['target-languages'];
   if (blockConfig['visibility-start-date']) config.visibilityStartDate = blockConfig['visibility-start-date'];
   if (blockConfig['visibility-end-date']) config.visibilityEndDate = blockConfig['visibility-end-date'];
+  if (blockConfig['item-spacing']) config.itemSpacing = blockConfig['item-spacing'];
 
   // Fallback: Read by position if readBlockConfig didn't find values
   // AEM Universal Editor generates single-column rows (value only, no key)
@@ -421,6 +423,7 @@ function parseConfig(block) {
     const targetLanguages = getValue(5);
     const visibilityStartDate = getValue(6);
     const visibilityEndDate = getValue(7);
+    const itemSpacing = getValue(8);
 
     if (groupId) config.groupId = groupId;
     if (openMode) config.openMode = openMode;
@@ -430,6 +433,7 @@ function parseConfig(block) {
     if (targetLanguages) config.targetLanguages = targetLanguages;
     if (visibilityStartDate) config.visibilityStartDate = visibilityStartDate;
     if (visibilityEndDate) config.visibilityEndDate = visibilityEndDate;
+    if (itemSpacing) config.itemSpacing = itemSpacing;
   }
 
   // Generate groupId if still not provided
@@ -495,7 +499,8 @@ export default function decorate(block) {
       <div class="accordion-group-author-config">
         <strong>Group ID:</strong> ${config.groupId}<br>
         <strong>Mode:</strong> ${config.openMode}<br>
-        <strong>Default Open:</strong> ${config.defaultOpen}
+        <strong>Default Open:</strong> ${config.defaultOpen}<br>
+        <strong>Item Spacing:</strong> ${config.itemSpacing}
       </div>
       <div class="accordion-group-author-hint">
         Add Sections below with style "accordion-item" and matching Accordion Group ID
@@ -528,6 +533,120 @@ export default function decorate(block) {
   accordionItems.forEach((section, index) => {
     transformSectionToAccordionItem(section, index, config, openItems);
   });
+
+  // Apply no-gap styling when item-spacing is 'none'.
+  // The `--first` / `--last` markers (which control top/bottom border-radius
+  // in the stacked-card visual) MUST be assigned across the VISIBLE items
+  // only — sections hidden by per-section POS/language targeting
+  // (`.hidden-by-targeting`, `display: none`) must not consume those
+  // markers, otherwise the visually first/last visible item is left
+  // without rounded corners. See applySectionTargeting() in
+  // scripts/utils/target-filter.js.
+  //
+  // Note: applySectionTargeting() is invoked via a lazy `import()` in
+  // aem.js → decorateSections(), which resolves asynchronously AFTER this
+  // block's decorate() has already run. So we (1) assign first/last
+  // synchronously based on what we know now, and (2) re-evaluate via a
+  // MutationObserver that watches `hidden-by-targeting`/`style` changes
+  // on the items — that way, whenever targeting flips an item to hidden
+  // (or visible), the markers are correctly reassigned.
+  if (config.itemSpacing === 'none') {
+    accordionItems.forEach((section) => {
+      section.classList.add('accordion-group-item--no-gap');
+    });
+
+    const reassignFirstLast = () => {
+      // Build the list of visible items, in DOM order, then split into
+      // "runs" of visually-contiguous items. Two items are in the same
+      // run only if they are adjacent siblings in the DOM. This handles
+      // two real-world scenarios:
+      //   1. Items hidden by per-section POS/language targeting
+      //      (`hidden-by-targeting`, `display: none`) → skipped.
+      //   2. Authors placing sections with the same accordionGroupId in
+      //      non-contiguous positions of the page (e.g. "Términos" and
+      //      "Beneficios" under one heading, and "Item 3/4/5" under a
+      //      different heading further down). Each visual cluster becomes
+      //      its own stack and gets its own rounded first/last corners.
+      const visibleItems = accordionItems.filter(
+        (section) => !section.classList.contains('hidden-by-targeting')
+          && section.style.display !== 'none',
+      );
+
+      const firsts = new Set();
+      const lasts = new Set();
+      let runStart = null;
+      let runPrev = null;
+      visibleItems.forEach((section) => {
+        // Detect whether this section is the immediate next sibling of the
+        // previous visible item, ignoring any items that are currently
+        // hidden (display: none) between them.
+        let isContiguous = false;
+        if (runPrev) {
+          let cursor = runPrev.nextElementSibling;
+          while (cursor && cursor !== section) {
+            const skipHidden = cursor.classList?.contains('hidden-by-targeting')
+              || cursor.style?.display === 'none';
+            if (!skipHidden) break;
+            cursor = cursor.nextElementSibling;
+          }
+          isContiguous = cursor === section;
+        }
+
+        if (!runPrev || !isContiguous) {
+          // Close previous run
+          if (runStart && runPrev) lasts.add(runPrev);
+          runStart = section;
+          firsts.add(section);
+        }
+        runPrev = section;
+      });
+      // Close the final run
+      if (runPrev) lasts.add(runPrev);
+
+      accordionItems.forEach((section) => {
+        const shouldBeFirst = firsts.has(section);
+        const shouldBeLast = lasts.has(section);
+        const isFirst = section.classList.contains('accordion-group-item--first');
+        const isLast = section.classList.contains('accordion-group-item--last');
+
+        if (shouldBeFirst !== isFirst) {
+          section.classList.toggle('accordion-group-item--first', shouldBeFirst);
+        }
+        if (shouldBeLast !== isLast) {
+          section.classList.toggle('accordion-group-item--last', shouldBeLast);
+        }
+      });
+    };
+
+    // Initial sync pass
+    reassignFirstLast();
+
+    // Re-evaluate after async section targeting resolves. The observer only
+    // reacts to *external* class/style changes (e.g. applySectionTargeting
+    // adding `hidden-by-targeting` + `display: none` after its async import
+    // resolves). Our own toggles are guarded by the equality checks above
+    // and only mutate when the visible-set actually changed, so the observer
+    // self-stabilises in at most one extra cycle and does not loop.
+    let scheduled = false;
+    const observer = new MutationObserver(() => {
+      if (scheduled) return;
+      scheduled = true;
+      requestAnimationFrame(() => {
+        scheduled = false;
+        reassignFirstLast();
+      });
+    });
+    accordionItems.forEach((section) => {
+      observer.observe(section, {
+        attributes: true,
+        attributeFilter: ['class', 'style'],
+      });
+    });
+    // Also schedule a deferred pass to cover the common case where
+    // `applySectionTargeting`'s dynamic import resolves after this tick.
+    Promise.resolve().then(reassignFirstLast);
+    requestAnimationFrame(reassignFirstLast);
+  }
 
   // Add event listeners
   accordionItems.forEach((section) => {

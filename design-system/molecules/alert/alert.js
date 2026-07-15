@@ -4,8 +4,18 @@ import htm from 'htm';
 import { Button } from '../../atoms/button/button.js';
 import { Icon } from '../../atoms/icon/icon.js';
 import { processContentHTML } from '../../helpers/process-content-html.js';
+import { sanitizeHTML, sanitizeSVG } from '../../../scripts/utils/sanitize.js';
 
 const html = htm.bind(h);
+
+/**
+ * Estados de peso del enlace de rich-text dentro del Alert. `group/link` es el ancla
+ * que usan los `<u>` anidados (`group-hover/link:font-[700]`) para engordar junto con
+ * el enlace; sin ella, un tramo subrayado se quedaría en 400 mientras el resto pasa a
+ * 700. El LinkButton no aporta ninguna de estas clases: solo cambia el color.
+ */
+const LINK_STATE_CLASSES = 'group/link hover:font-bold active:font-bold '
+  + 'focus:font-bold focus-visible:font-bold';
 
 /**
  * Alert - Base flexible atom for notifications and alerts
@@ -365,8 +375,16 @@ export const Alert = ({
         // Use the `inline` size so links inherit the surrounding <p> font-size
         // (avoids the 14px text vs 16px link mismatch).
         size: 'inline',
-        customClassName: normalizedVariant === 'informative' ? '!text-text-link-informative-active' : '',
+        // El color del enlace se mantiene fijo (decisión de producto): en informative
+        // se fuerza el tono active en todos los estados. Lo que sí cambia es el
+        // font-weight, que el LinkButton no aporta por sí mismo (sus
+        // interactionClasses solo alteran el color), así que lo añade el consumidor.
+        // Las clases replican exactamente las de producción (www.avianca.com/es).
+        customClassName: normalizedVariant === 'informative'
+          ? `!text-text-link-informative-active ${LINK_STATE_CLASSES}`
+          : LINK_STATE_CLASSES,
         linkTarget,
+        underline: true
       },
     });
 
@@ -388,13 +406,13 @@ export const Alert = ({
         <div ref=${contentRef} class="${contentClasses}">
           ${marqueeMode && shouldMarquee ? html`
             <div class="${marqueeAnimationClass}">
-              <span class="inline-block ml-[var(--spacing-x-large)]" dangerouslySetInnerHTML=${{ __html: processedContentHTML }} />
-              <span class="inline-block ml-[var(--spacing-x-large)]" dangerouslySetInnerHTML=${{ __html: processedContentHTML }} />
-              <span class="inline-block ml-[var(--spacing-x-large)]" dangerouslySetInnerHTML=${{ __html: processedContentHTML }} />
-              <span class="inline-block ml-[var(--spacing-x-large)]" dangerouslySetInnerHTML=${{ __html: processedContentHTML }} />
+              <span class="inline-block ml-[var(--spacing-x-large)]" dangerouslySetInnerHTML=${{ __html: sanitizeHTML(processedContentHTML) }} />
+              <span class="inline-block ml-[var(--spacing-x-large)]" dangerouslySetInnerHTML=${{ __html: sanitizeHTML(processedContentHTML) }} />
+              <span class="inline-block ml-[var(--spacing-x-large)]" dangerouslySetInnerHTML=${{ __html: sanitizeHTML(processedContentHTML) }} />
+              <span class="inline-block ml-[var(--spacing-x-large)]" dangerouslySetInnerHTML=${{ __html: sanitizeHTML(processedContentHTML) }} />
             </div>
           ` : html`
-            <div dangerouslySetInnerHTML=${{ __html: processedContentHTML }} />
+            <div dangerouslySetInnerHTML=${{ __html: sanitizeHTML(processedContentHTML) }} />
           `}
         </div>
         ${dismissible && html`
@@ -406,7 +424,7 @@ export const Alert = ({
             aria-label=${resolvedDismissButtonAriaLabel}
             customClassName="${marqueeMode ? 'self-center' : ''} !h-5 !w-5 !min-h-5 !min-w-5 !p-0 !gap-0 !rounded-full flex items-center justify-center hover:!bg-alert-dismiss-hover active:!bg-alert-dismiss-active ${dismissButtonClassName}"
           >
-            ${dismissIconHTML ? html`<span dangerouslySetInnerHTML=${{ __html: dismissIconHTML }} />` : html`
+            ${dismissIconHTML ? html`<span dangerouslySetInnerHTML=${{ __html: sanitizeSVG(dismissIconHTML) }} />` : html`
               <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" fill="none" class="block">
                 <path fill-rule="evenodd" clip-rule="evenodd" d="M12.6663 4.27398L11.7263 3.33398L7.99967 7.06065L4.27301 3.33398L3.33301 4.27398L7.05967 8.00065L3.33301 11.7273L4.27301 12.6673L7.99967 8.94065L11.7263 12.6673L12.6663 11.7273L8.93967 8.00065L12.6663 4.27398Z" fill="currentColor"/>
               </svg>

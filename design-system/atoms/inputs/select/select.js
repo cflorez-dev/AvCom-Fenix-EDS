@@ -409,11 +409,12 @@ export const Select = ({
           ref=${dropdownRef}
           style=${dropdownMaxHeightValue ? { maxHeight: dropdownMaxHeightValue } : undefined}
           class=${`
-            py-2
             absolute z-50 w-full
             ${!dropdownMaxHeightValue ? 'max-h-64' : ''}
             bg-white
             rounded-[var(--border-radius-large)]
+            overflow-hidden
+            py-2
             shadow-[0_2px_20px_2px_rgba(73,73,73,0.25)]
             ${customDropdownClassName}
           `}
@@ -503,6 +504,7 @@ export const Select = ({
             };
 
             const isPressed = pressedIndex === index;
+            const isLast = index === options.length - 1;
 
             return html`
               <div
@@ -523,6 +525,7 @@ export const Select = ({
                   px-[var(--padding-16)] py-[var(--spacing-small)]
                   cursor-pointer transition-colors duration-150
                   font-['Red_Hat_Display'] text-base leading-normal tracking-[0px]
+                  ${isLast ? 'rounded-bl-[8px] rounded-br-[8px]' : ''}
                   ${selectedValue === option.value ? 'font-bold' : 'font-normal'}
                   border-2 border-transparent focus-visible:border-[var(--color-border-stroke-focus)]
                   focus-visible:outline-none

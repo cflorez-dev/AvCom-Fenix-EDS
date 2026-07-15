@@ -222,21 +222,43 @@ export const FlexibleContentBanner = ({
   ].join(' ');
   // Bug 1261582: styles/components/component.css forces the :active / :focus
   // border to `var(--button-border-active|focus, inherit) !important`. The
-  // bordered secondary variants don't set that custom property, so the
-  // `inherit` fallback turns the outline dark on press/focus and it disappears
-  // (most visibly secondary-dark's white border). Pin the correct token through
-  // the atom's borderActiveColor/borderFocusColor props so the outline keeps its
-  // color in every state. (No change to the shared atom.)
+  // bordered variants don't set that custom property, so the `inherit` fallback
+  // turns the outline dark on press/focus and it disappears (most visibly
+  // secondary-dark's white border). Pin the correct token through the atom's
+  // borderActiveColor/borderFocusColor props so the outline keeps its color in
+  // every state. (No change to the shared atom.)
+  //
+  // `primary-dark` is the filled-white CTA. Figma HOME-26052026 "Dark mode":
+  // default fill #fff + #fff border (9195:17636), hover #e9e9e9 (9195:17664),
+  // active fill #d9d9d9 with NO visible border (9195:17692 — the pressed pill
+  // binds no border variable, unlike default/focused which bind
+  // border/brand/primary/light). So the pressed border tracks the pressed fill,
+  // and focus falls back to the resting white border.
   const BORDER_STATE_TOKEN = {
-    secondary: 'color-border-brand-secondary-default', // #1b1b1b
-    'secondary-dark': 'color-white', // #fff — white outline kept on active/focus
+    secondary: {
+      active: 'color-border-brand-secondary-default', // #1b1b1b
+      focus: 'color-border-brand-secondary-default',
+    },
+    'secondary-dark': {
+      active: 'color-white', // #fff — white outline kept on active/focus
+      focus: 'color-white',
+    },
+    'primary-dark': {
+      active: 'color-background-brand-secondary-active', // #d9d9d9 — matches the pressed fill
+      focus: 'color-white', // resting border restored on mouse focus
+    },
   };
   const resolveCtaVisuals = (authorVariant) => {
     const aliased = LEGACY_ALIAS[authorVariant] || authorVariant;
     const variant = VALID_VARIANTS.has(aliased) ? aliased : 'primary';
     const customClassName = variant === 'secondary' ? SECONDARY_OVERLAY_CLASS : '';
-    const borderStateToken = BORDER_STATE_TOKEN[variant] || null;
-    return { buttonVariant: variant, customClassName, borderStateToken };
+    const borderTokens = BORDER_STATE_TOKEN[variant] || {};
+    return {
+      buttonVariant: variant,
+      customClassName,
+      borderActiveToken: borderTokens.active || null,
+      borderFocusToken: borderTokens.focus || null,
+    };
   };
 
   // CTA resolution. PBI criterio 5: "Si se configura uno solo debe ser primary;
@@ -322,8 +344,8 @@ export const FlexibleContentBanner = ({
         variant=${cta.buttonVariant}
         size=${ctaSize}
         customClassName=${ctaClassName}
-        borderActiveColor=${cta.borderStateToken}
-        borderFocusColor=${cta.borderStateToken}
+        borderActiveColor=${cta.borderActiveToken}
+        borderFocusColor=${cta.borderFocusToken}
         data-cta-kind=${cta.kind}
         aria-label=${cta.text}
       >

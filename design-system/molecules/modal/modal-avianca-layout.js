@@ -4,6 +4,7 @@ import { Modal } from './modal.js';
 import { Button } from '../../atoms/button/button.js';
 import { LinkButton } from '../../atoms/link-button/link-button.js';
 import { Icon } from '../../atoms/icon/icon.js';
+import { sanitizeHTML } from '../../../scripts/utils/sanitize.js';
 
 const html = htm.bind(h);
 
@@ -32,6 +33,13 @@ export const ModalAviancaLayout = ({
   escapeToClose = true,
   customClassName = '',
   contentClassName = '',
+  // Overrides opcionales (default = comportamiento actual → consumidores existentes sin cambios).
+  // Members (1255601) los usa para pixel-perfect: título 24px y descripción sin cap/gutter.
+  // `titleStyle` va inline porque el `h2` global del sitio (styles.css, SIN @layer) vence a las
+  // utilities de Tailwind en la cascada; solo lo superan !important o un estilo inline.
+  titleClassName = '',
+  titleStyle = '',
+  descriptionClassName = 'max-h-[81px] overflow-y-auto pr-[20px]',
   ...rest
 }) => {
   const hasButtons = !!(primaryButtonLabel || secondaryButtonLabel);
@@ -108,8 +116,9 @@ export const ModalAviancaLayout = ({
       <!-- Content section -->
       <section class="flex flex-col !m-0 gap-4">
         ${title && html`
-          <h2 
-            class="text-center !text-text-normal-primary !m-0"
+          <h2
+            class="text-center !text-text-normal-primary !m-0 ${titleClassName}"
+            style=${titleStyle}
           >
             ${title}
           </h2>
@@ -118,8 +127,8 @@ export const ModalAviancaLayout = ({
         ${description && html`
           <div class="">
             <div
-              class="text-text-normal-secondary !text-lg text-center leading-[27px] break-words font-normal max-h-[81px] overflow-y-auto pr-[20px]">
-              <span dangerouslySetInnerHTML=${{ __html: description }}></span>
+              class="text-text-normal-secondary !text-lg text-center leading-[27px] break-words font-normal ${descriptionClassName}">
+              <span dangerouslySetInnerHTML=${{ __html: sanitizeHTML(description) }}></span>
             </div>
           </div>
         `}

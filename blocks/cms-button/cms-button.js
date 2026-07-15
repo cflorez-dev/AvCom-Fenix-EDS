@@ -253,10 +253,20 @@ export default function decorate(block) {
   const hasText = text && text.trim() !== '';
   const isIconOnly = hasIcon && !hasText;
 
+  // Tertiary (LinkButton variant="link") requiere font-weight 700 en hover/active
+  // y 400 en default (VSTS — spec del terciario). El size `medium` del LinkButton
+  // ya aplica `font-normal` (400) en default; añadimos aquí los modificadores para
+  // que ganen por specificity (`:hover`/`:active`). Scope: solo cms-button
+  // tertiary — el atom LinkButton se usa en otros contextos y no debe cambiar.
+  const tertiaryWeightClasses = isTertiary ? 'hover:font-bold active:font-bold' : '';
+  // El ancho lo controla cms-button.css (auto en desktop, 100% en mobile).
+  // No forzamos `w-full` aquí para que el botón se ajuste a su contenido.
+  const baseCustomClassName = 'cms-button-element';
+
   const buttonProps = {
     variant: isTertiary ? 'link' : variant, // tertiary uses LinkButton variant="link"
     size: isTertiary ? 'medium' : 'md', // LinkButton uses "medium", Button uses "md"
-    customClassName: isIconOnly ? 'cms-button-element' : 'cms-button-element w-full', // No w-full for icon-only
+    customClassName: `${baseCustomClassName} ${tertiaryWeightClasses}`.trim(),
     title: title || text, // Fallback to text if no title
     iconOnly: isIconOnly, // Enable icon-only mode when no text present
     ...customAttrs, // Spread custom attributes (aria-*, data-*, etc)
@@ -417,10 +427,17 @@ export default function decorate(block) {
   // 7. Render component according to variant
   const ButtonComponent = isTertiary ? LinkButton : Button;
 
+  // IMPORTANTE: al pasar `customClassName` en el elemento se sobreescribe el que
+  // viene en `...buttonProps` (las props explícitas ganan al spread). Por eso
+  // combinamos ambos aquí: conservamos `cms-button-element w-full` del
+  // `buttonProps`, y añadimos `group/cms-button` que es lo que los icons
+  // hover-response del renderer necesitan.
+  const finalCustomClassName = `group/cms-button ${buttonProps.customClassName || ''}`.trim();
+
   render(
     html`
-    <div class="cms-button-container w-full">
-      <${ButtonComponent} ...${buttonProps} customClassName="group/cms-button ">
+    <div class="cms-button-container">
+      <${ButtonComponent} ...${buttonProps} customClassName=${finalCustomClassName}>
         <div class="flex items-center justify-center gap-[12px]">
           ${renderChildren()}
         </div>

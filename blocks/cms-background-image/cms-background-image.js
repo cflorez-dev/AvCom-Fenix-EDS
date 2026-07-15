@@ -30,6 +30,30 @@ function optimizeBgUrl(url) {
 }
 
 /**
+ * Strip the `width` (and `optimize`) query params from an AEM image URL so the
+ * server returns the asset at its original, intrinsic dimensions. Used when
+ * the author selects `size: auto` and expects the original image size.
+ * @param {string} url
+ * @returns {string}
+ */
+function stripWidthFromBgUrl(url) {
+  if (!url) return url;
+  try {
+    const u = new URL(url, window.location.href);
+    u.searchParams.delete('width');
+    u.searchParams.delete('optimize');
+    // Preserve `format=webply` (or whatever was set) so we still get WebP.
+    return u.pathname + (u.search ? u.search : '') + u.hash;
+  } catch (e) {
+    // Fallback: regex-strip if URL parsing fails.
+    return url
+      .replace(/([?&])width=\d+&?/i, '$1')
+      .replace(/([?&])optimize=[^&]+&?/i, '$1')
+      .replace(/[?&]$/, '');
+  }
+}
+
+/**
  * Check if the feature is enabled via feature flag
  * @returns {boolean} True if feature is enabled
  */
@@ -185,16 +209,24 @@ export default function decorate(block) {
 
   /**
    * Select image URL based on current viewport.
+   * Breakpoints (in sync with the page-level bootstrap):
+   *   mobile  : <  768px
+   *   tablet  : >= 768px and < 1024px
+   *   desktop : >= 1024px
+   * When `size: auto` is requested, return the URL without the AEM `width`
+   * param so the asset is served at its original, intrinsic dimensions.
    * @returns {string}
    */
   function getImageForViewport() {
-    if (window.matchMedia('(min-width: 1248px)').matches) {
-      return config.desktopImage;
+    let url;
+    if (window.matchMedia('(min-width: 1024px)').matches) {
+      url = config.desktopImage;
+    } else if (window.matchMedia('(min-width: 768px)').matches) {
+      url = config.tabletImage;
+    } else {
+      url = config.mobileImage;
     }
-    if (window.matchMedia('(min-width: 768px)').matches) {
-      return config.tabletImage;
-    }
-    return config.mobileImage;
+    return config.size === 'auto' ? stripWidthFromBgUrl(url) : url;
   }
 
   /**
@@ -202,7 +234,7 @@ export default function decorate(block) {
    * @returns {'mobile'|'tablet'|'desktop'}
    */
   function getViewportTier() {
-    if (window.matchMedia('(min-width: 1248px)').matches) return 'desktop';
+    if (window.matchMedia('(min-width: 1024px)').matches) return 'desktop';
     if (window.matchMedia('(min-width: 768px)').matches) return 'tablet';
     return 'mobile';
   }
@@ -226,6 +258,10 @@ export default function decorate(block) {
     preloadBackgroundImage(imageUrl);
     // Apply immediately so browser can start fetching as soon as possible.
     main.style.setProperty('--bg-current', `url('${imageUrl}')`);
+    // Also overwrite the inline `background-image` set by the page-level
+    // bootstrap. Otherwise the CSS-var update is shadowed by the inline
+    // style and the swap on resize becomes invisible until reload.
+    main.style.backgroundImage = `url('${imageUrl}'), var(--page-bg-image, none)`;
     main.classList.add('loaded');
   }
 
@@ -238,7 +274,7 @@ export default function decorate(block) {
     clearTimeout(resizeTimeout);
     resizeTimeout = setTimeout(() => {
       loadBackgroundImage();
-    }, 250);
+    }, 150);
   });
 
   // In production: clear the block and collapse section (no visual output needed)

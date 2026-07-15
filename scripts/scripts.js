@@ -6,6 +6,7 @@ import {
   decorateSections,
   decorateBlocks,
   decorateTemplateAndTheme,
+  getMetadata,
   waitForFirstImage,
   loadSection,
   loadSections,
@@ -135,6 +136,22 @@ function bootstrapCriticalBackgroundImage(main) {
     // Use WebP format for smaller payload as CSS background-image
     return absUrl.replace(/([?&])format=(png|jpg|jpeg)/i, '$1format=webply');
   };
+  // When `size: auto` is requested, drop the AEM `width`/`optimize` query
+  // params so the asset is delivered at its original intrinsic dimensions.
+  const stripWidth = (url) => {
+    if (!url) return url;
+    try {
+      const u = new URL(url, window.location.href);
+      u.searchParams.delete('width');
+      u.searchParams.delete('optimize');
+      return u.pathname + (u.search || '') + u.hash;
+    } catch (e) {
+      return url
+        .replace(/([?&])width=\d+&?/i, '$1')
+        .replace(/([?&])optimize=[^&]+&?/i, '$1')
+        .replace(/[?&]$/, '');
+    }
+  };
   const getCellValue = (index) => {
     const cell = getCell(index);
     if (!cell) return '';
@@ -162,10 +179,13 @@ function bootstrapCriticalBackgroundImage(main) {
   if (!config.desktopImage) config.desktopImage = config.tabletImage || config.mobileImage;
 
   let imageUrl = config.mobileImage;
-  if (window.matchMedia('(min-width: 1248px)').matches) {
+  if (window.matchMedia('(min-width: 1024px)').matches) {
     imageUrl = config.desktopImage;
   } else if (window.matchMedia('(min-width: 768px)').matches) {
     imageUrl = config.tabletImage;
+  }
+  if (config.size === 'auto') {
+    imageUrl = stripWidth(imageUrl);
   }
 
   if (imageUrl) {
@@ -176,9 +196,12 @@ function bootstrapCriticalBackgroundImage(main) {
       preload.rel = 'preload';
       preload.as = 'image';
       preload.fetchPriority = 'high';
+      // Set href BEFORE appending. A <link rel=preload> inserted into the DOM
+      // without an href makes the browser log "invalid href value" and delays
+      // the fetch until href is assigned; setting it first closes that window.
+      preload.setAttribute('href', imageUrl);
       document.head.appendChild(preload);
-    }
-    if (preload.getAttribute('href') !== imageUrl) {
+    } else if (preload.getAttribute('href') !== imageUrl) {
       preload.setAttribute('href', imageUrl);
     }
   }
@@ -189,9 +212,14 @@ function bootstrapCriticalBackgroundImage(main) {
   main.style.setProperty('--bg-size', config.size);
   if (imageUrl) {
     main.style.setProperty('--bg-current', `url('${imageUrl}')`);
-    main.style.backgroundImage = `url('${imageUrl}')`;
+    // Layer order (top -> bottom): CMS image  ->  page gradient (if any).
+    // A solid `--page-bg-color` is applied via background-color below so it
+    // also fills the empty area when the image doesn't cover the viewport.
+    main.style.backgroundImage = `url('${imageUrl}'), var(--page-bg-image, none)`;
   }
-  main.style.backgroundColor = config.fallbackColor;
+  // Honor author's solid bg color (CA3); fall back to the block's own
+  // fallback color while the image is still loading.
+  main.style.backgroundColor = `var(--page-bg-color, ${config.fallbackColor})`;
   main.style.backgroundRepeat = 'no-repeat';
   main.style.backgroundSize = config.size;
   main.style.backgroundPosition = config.position;
@@ -342,6 +370,134 @@ function buildAutoBlocks(main) {
   }
 }
 
+const BG_COLOR_RE = /^(#[0-9a-fA-F]{3,8}|rgba?\([\d\s,.%]+\)|transparent)$/;
+const BG_DIR_RE = /^\d+$/;
+const BG_VALID_TYPES = new Set(['solid', 'linear', 'radial']);
+const BG_RADIAL_POSITION_TO_CSS = {
+  'top-left': 'top left',
+  top: 'top',
+  'top-right': 'top right',
+  left: 'left',
+  center: 'center',
+  right: 'right',
+  'bottom-left': 'bottom left',
+  bottom: 'bottom',
+  'bottom-right': 'bottom right',
+};
+
+// AEM Universal Editor prepends the page URL when the value starts with '#'
+// e.g. "https://example.com/page#00FF00" -> "#00FF00"
+function extractBackgroundColor(val) {
+  if (!val) return '';
+  const trimmed = val.trim();
+  try {
+    const url = new URL(trimmed);
+    if (url.hash) return url.hash;
+  } catch { /* not a URL - use as-is */ }
+  return trimmed;
+}
+
+function computeBackgroundValue({
+  color1,
+  color2,
+  gradientDirection,
+  gradientType,
+  radialPosition,
+}) {
+  const c1 = extractBackgroundColor(color1);
+  const c2 = extractBackgroundColor(color2);
+  const dir = gradientDirection?.trim() || '180';
+  const rawType = gradientType?.trim() || 'solid';
+  const type = BG_VALID_TYPES.has(rawType) ? rawType : 'solid';
+  const rawPos = radialPosition?.trim() || 'center';
+  const pos = BG_RADIAL_POSITION_TO_CSS[rawPos] || 'center';
+
+  const c1Valid = c1 && BG_COLOR_RE.test(c1);
+  const c2Valid = c2 && BG_COLOR_RE.test(c2);
+  const dirValid = BG_DIR_RE.test(dir);
+
+  if (type === 'solid') {
+    if (c1Valid && c1 !== 'transparent') return c1;
+    return null;
+  }
+
+  if (type === 'linear') {
+    if (c1Valid && c2Valid && c1 !== c2 && dirValid
+        && !(c1 === 'transparent' && c2 === 'transparent')) {
+      return `linear-gradient(${dir}deg, ${c1}, ${c2})`;
+    }
+    if (c1Valid && c1 !== 'transparent') return c1;
+    return null;
+  }
+
+  if (c1Valid && c2Valid
+      && !(c1 === 'transparent' && c2 === 'transparent')) {
+    return `radial-gradient(circle at ${pos}, ${c1}, ${c2})`;
+  }
+  if (c1Valid && c1 !== 'transparent') return c1;
+  return null;
+}
+
+function applyPageBackground(main) {
+  const bg = computeBackgroundValue({
+    color1: getMetadata('bg-color-1'),
+    color2: getMetadata('bg-color-2'),
+    gradientDirection: getMetadata('gradient-direction'),
+    gradientType: getMetadata('gradient-type'),
+    radialPosition: getMetadata('radial-position'),
+  });
+
+  if (!bg) {
+    main.style.removeProperty('--page-bg');
+    main.style.removeProperty('--page-bg-color');
+    main.style.removeProperty('--page-bg-image');
+    main.classList.remove('has-custom-bg');
+    return;
+  }
+
+  // Split --page-bg into a color slot and an image (gradient) slot so the
+  // value can coexist with cms-background-image (CA3): a solid color goes to
+  // background-color, a gradient goes to background-image as a layer below
+  // the CMS image. Keep --page-bg for backward compatibility.
+  const isGradient = /^(linear|radial)-gradient\(/i.test(bg);
+  main.style.setProperty('--page-bg', bg);
+  if (isGradient) {
+    main.style.setProperty('--page-bg-image', bg);
+    main.style.removeProperty('--page-bg-color');
+  } else {
+    main.style.setProperty('--page-bg-color', bg);
+    main.style.removeProperty('--page-bg-image');
+  }
+  main.classList.add('has-custom-bg');
+}
+
+function observePageBackground(main) {
+  const isRelevantMeta = (node) => node?.nodeType === 1 && node.matches?.(
+    'meta[name="bg-color-1"],meta[name="bg-color-2"],meta[name="gradient-type"],meta[name="gradient-direction"],meta[name="radial-position"]',
+  );
+
+  new MutationObserver((mutations) => {
+    const shouldApply = mutations.some((mutation) => {
+      if (mutation.type === 'attributes' && isRelevantMeta(mutation.target)) {
+        return true;
+      }
+
+      const addedRelevant = Array.from(mutation.addedNodes || []).some(isRelevantMeta);
+      if (addedRelevant) return true;
+
+      const removedRelevant = Array.from(mutation.removedNodes || []).some(isRelevantMeta);
+      return removedRelevant;
+    });
+
+    if (shouldApply) applyPageBackground(main);
+  }).observe(document.head, {
+    childList: true,
+    subtree: true,
+    attributes: true,
+    attributeFilter: ['content'],
+  });
+}
+
 /**
  * Apply per-section background customization (solid, linear or radial gradient)
  * from section-metadata. Reads data-bg-color-1, data-bg-color-2,
@@ -363,33 +519,6 @@ function buildAutoBlocks(main) {
  * @param {Element} main The main element containing .section nodes
  */
 function applySectionBackgrounds(main) {
-  const COLOR_RE = /^(#[0-9a-fA-F]{3,8}|rgba?\([\d\s,.%]+\)|transparent)$/;
-  const DIR_RE = /^\d+$/;
-  const VALID_TYPES = new Set(['solid', 'linear', 'radial']);
-  const RADIAL_POSITION_TO_CSS = {
-    'top-left': 'top left',
-    top: 'top',
-    'top-right': 'top right',
-    left: 'left',
-    center: 'center',
-    right: 'right',
-    'bottom-left': 'bottom left',
-    bottom: 'bottom',
-    'bottom-right': 'bottom right',
-  };
-
-  // AEM Universal Editor prepends the page URL when the value starts with '#'
-  // e.g. "https://example.com/page#00FF00" → "#00FF00"
-  const extractColor = (val) => {
-    if (!val) return '';
-    const trimmed = val.trim();
-    try {
-      const url = new URL(trimmed);
-      if (url.hash) return url.hash;
-    } catch { /* not a URL — use as-is */ }
-    return trimmed;
-  };
-
   // mosaic-cards-v2 hides its desktop carousel section on mobile and renders into
   // a sibling div.mosaic-v2-mobile-container (not a .section). Mirror the bg
   // onto that sibling so the gradient still shows in mobile view.
@@ -412,40 +541,13 @@ function applySectionBackgrounds(main) {
   };
 
   const applyToSection = (section) => {
-    const c1 = extractColor(section.dataset['bgColor-1']);
-    const c2 = extractColor(section.dataset['bgColor-2']);
-    const dir = section.dataset.gradientDirection?.trim() || '180';
-    const rawType = section.dataset.gradientType?.trim() || 'solid';
-    const type = VALID_TYPES.has(rawType) ? rawType : 'solid';
-    const rawPos = section.dataset.radialPosition?.trim() || 'center';
-    const pos = RADIAL_POSITION_TO_CSS[rawPos] || 'center';
-
-    const c1Valid = c1 && COLOR_RE.test(c1);
-    const c2Valid = c2 && COLOR_RE.test(c2);
-    const dirValid = DIR_RE.test(dir);
-
-    let bg = null;
-
-    if (type === 'solid') {
-      // transparent in solid is treated as empty (no background applied).
-      if (c1Valid && c1 !== 'transparent') bg = c1;
-    } else if (type === 'linear') {
-      if (c1Valid && c2Valid && c1 !== c2 && dirValid
-          && !(c1 === 'transparent' && c2 === 'transparent')) {
-        bg = `linear-gradient(${dir}deg, ${c1}, ${c2})`;
-      } else if (c1Valid && c1 !== 'transparent') {
-        // Retro-compat fallback: linear chosen but color2 missing/invalid → apply color1 solid.
-        bg = c1;
-      }
-    } else if (type === 'radial') {
-      if (c1Valid && c2Valid
-          && !(c1 === 'transparent' && c2 === 'transparent')) {
-        bg = `radial-gradient(circle at ${pos}, ${c1}, ${c2})`;
-      } else if (c1Valid && c1 !== 'transparent') {
-        // Retro-compat fallback similar to linear.
-        bg = c1;
-      }
-    }
+    const bg = computeBackgroundValue({
+      color1: section.dataset['bgColor-1'],
+      color2: section.dataset['bgColor-2'],
+      gradientDirection: section.dataset.gradientDirection,
+      gradientType: section.dataset.gradientType,
+      radialPosition: section.dataset.radialPosition,
+    });
 
     if (!bg) {
       clearBg(section);
@@ -504,6 +606,8 @@ export function decorateMain(main) {
   decorateButtons(main);
   decorateIcons(main);
   buildAutoBlocks(main);
+  applyPageBackground(main);
+  observePageBackground(main);
   decorateSections(main);
   applySectionBackgrounds(main);
   decorateBlocks(main);
@@ -776,6 +880,8 @@ async function loadEager(doc) {
   // the preloaded resource (otherwise it warns "credentials mode does not match").
   loadScript('https://cdn.jsdelivr.net/npm/dompurify@3.4.0/dist/purify.min.js', { crossorigin: 'anonymous' });
 
+  // Kick off the languages catalog load in parallel with geolocation.
+  // (sections.css is preloaded in head.html and awaited at the top of loadLazy.)
   // Synchronous consumers (header, language selector) read the snapshot on first
   // render — this await ensures they see real data instead of the hardcoded
   // seeds. Race against a 400ms budget so a slow AEM endpoint never blocks paint.
@@ -793,7 +899,12 @@ async function loadEager(doc) {
   ]);
 
   // Pre-warm the country catalog in the language-country-selector before
-  // resolvePOS runs. Bounded to 400ms so a slow AEM never blocks paint.
+  // resolvePOS runs. Its reduced 5-row seed (col/us/bra/fra/oth) does not
+  // cover every POS the Accept-Language fallback can return — e.g. if the PO
+  // changes the `acceptLanguage` column so 'es' maps to EC, `setStoredCountry('ec')`
+  // would reject the write because 'ec' is not in the seed yet. This await
+  // ensures the full spreadsheet-derived catalog is in the snapshot before any
+  // setStoredCountry call. Bounded to 400ms so a slow AEM never blocks paint.
   const countriesReady = Promise.race([
     (async () => {
       try {
@@ -907,18 +1018,24 @@ async function loadEager(doc) {
     }
   }
 
-  // Safety net: scripts injected late by GTM (e.g. Zendesk chat) assign
-  // window.onload after the load event has already fired, so the handler
-  // never runs. Intercept the assignment and execute immediately when late.
+  // Safety net: scripts injected late (e.g. the Centribal/Zendesk chat loaded
+  // from delayed.js) assign window.onload after the load event has already
+  // fired, so the handler never runs. Intercept the assignment and execute it
+  // immediately when late.
+  // NOTE: this block can itself install AFTER the load event (loadEager does
+  // async section work, so on heavy pages it reaches here past loadEventEnd).
+  // We therefore seed pageFullyLoaded from document.readyState and also check
+  // readyState in the setter — relying only on the 'load' listener would leave
+  // the net inert whenever it installs late (the very case it must cover).
   {
-    let pageFullyLoaded = false;
+    let pageFullyLoaded = document.readyState === 'complete';
     let currentOnloadHandler = window.onload;
     window.addEventListener('load', () => { pageFullyLoaded = true; });
     Object.defineProperty(window, 'onload', {
       get() { return currentOnloadHandler; },
       set(fn) {
         currentOnloadHandler = fn;
-        if (pageFullyLoaded && typeof fn === 'function') {
+        if ((pageFullyLoaded || document.readyState === 'complete') && typeof fn === 'function') {
           setTimeout(fn, 0);
         }
       },
@@ -1002,7 +1119,12 @@ async function loadLazy(doc) {
     // Don't wait for header/footer — their space is already reserved
     // via CSS (--nav-height, --marquee-height) so no CLS.
     // This dramatically improves Speed Index by showing content earlier.
-    showLoader(false);
+    // EXCEPCIÓN: en las páginas-puente /members/auth/* la cortina cms-loader debe
+    // permanecer hasta que el handler redirija (la espera a Lifemiles ocurre DESPUÉS
+    // de que las secciones están listas). El handler de auth la gestiona.
+    if (!window.location.pathname.includes('/members/auth/')) {
+      showLoader(false);
+    }
   }
 
   // Load header and footer without blocking content visibility.
@@ -1080,7 +1202,8 @@ async function loadLazy(doc) {
 
   // Show geo POS conflict modal if `resolvePOS()` tagged one during loadEager.
   // Runs post-render so it doesn't block LCP. Also wires the manual-POS-change
-  // listener so the modal reappears when the user picks a different country.
+  // listener so the modal reappears when the user picks a different country
+  // from the header selector (PBI rule: "Al cambiar POS: nuevo ciclo completo").
   try {
     const { maybeShowGeoConflictModal, registerManualPosChangeListener } = await import(
       './services/geolocation/geo-conflict-modal.service.js'
@@ -1092,12 +1215,16 @@ async function loadLazy(doc) {
     console.warn('[scripts] geo conflict modal failed:', error);
   }
 
-  // Lazy phase: request geolocation permission now that LCP is complete.
+  // Lazy phase: request geolocation permission from the user (shows native
+  // browser prompt) now that LCP is complete. If they allow, runs the full
+  // geo triangulation and may show the conflict modal.
   try {
     const { lazyGeolocationRequest } = await import(
       './services/geolocation/geolocation.service.js'
     );
     const result = await lazyGeolocationRequest();
+    // If the lazy phase resolved to W3C geo and detected a conflict with the
+    // existing cookie, re-show the modal with the new tag.
     if (result?.source === 'w3c-geo' && result?.hasConflict) {
       const { maybeShowGeoConflictModal } = await import(
         './services/geolocation/geo-conflict-modal.service.js'
@@ -1109,8 +1236,10 @@ async function loadLazy(doc) {
     console.warn('[scripts] lazy geolocation request failed:', error);
   }
 
-  // Re-emit the origin-dropdown event after all blocks are decorated (race fix:
-  // cms-promotional-cards-rail may decorate before origin-dropdown-selector).
+  // Re-emit the origin-dropdown event after all blocks are decorated.
+  // Fixes race condition where cms-promotional-cards-rail may decorate before
+  // origin-dropdown-selector, rendering with the fallback origin (BOG) instead
+  // of the geo-nearest (PPN). Re-dispatching ensures cards re-render.
   if (window.lastOriginDropdownCity) {
     const { dispatchCityFromOriginDropdownEvent } = await import(
       './utils/event-constants.js'
@@ -1137,9 +1266,71 @@ async function loadDelayed() {
   // eslint-disable-next-line import/no-cycle
   window.setTimeout(() => import('./delayed.js'), 3000);
   // load anything that can be postponed to the latest here
+
+  // Members (P5): precargar el script de Lifemiles eager-ish pero fuera del critical
+  // path (loadDelayed) para el silent-check futuro de 1255354. Dynamic import → no entra
+  // al bundle eager. El botón sign-in lo carga on-demand igual si esto falla.
+  import('./services/members/lm-script.loader.js')
+    .then(({ loadLmScript }) => loadLmScript())
+    .catch(() => { /* no-op: carga on-demand desde login.service */ });
+
+  // Members (P2 / CU-282): Google One Tap. El gate de ruta (Home + páginas corporativas) lo
+  // resuelve `initOneTap` desde el CF (`config.oneTap.corporatePaths`; default solo Home si el
+  // CF cae), junto con `enabled`, frecuencia y el guard de sesión anónima. Import incondicional:
+  // el servicio corta temprano (sesión/ruta/frecuencia) sin trabajo extra.
+  import('./services/members/google-one-tap.service.js')
+    .then(({ initOneTap }) => initOneTap())
+    .catch(() => { /* no-op */ });
+}
+
+/**
+ * Gate de zona privada Members (1263924) — capa SÍNCRONA y temprana. En rutas del
+ * Portal (`/{lang}/members`, NO las páginas-puente `/members/auth/*`), si no hay
+ * cookie de sesión (`access_token`), oculta el contenido de inmediato (clase en
+ * `<html>` + cortina CSS de styles.css) ANTES de pintar, para que un anónimo nunca
+ * vea el perfil. El redirect real al login lo dispara `session.service`
+ * (guardPortalSession); acá solo evitamos el flash. Matcher GENÉRICO (cubre los 4
+ * idiomas, inmune a `portalRoutes` mal autoreada en el CF). El dev-mock local
+ * (localhost + ?mockMembers=1) se excluye para poder previsualizar. El check de cookie
+ * espeja `isLoggedIn()` de session.service (access_token NO es httpOnly). Fail-open
+ * total: cualquier error NO rompe la carga de la página.
+ */
+function gateMembersPortalEarly() {
+  try {
+    const { pathname, hostname, search } = window.location;
+    const isPortal = /(^|\/)members(\/|$)/.test(pathname) && !pathname.includes('/members/auth');
+    if (!isPortal) return;
+    const isLocalhost = hostname === 'localhost' || hostname === '127.0.0.1';
+    if (isLocalhost && new URLSearchParams(search).get('mockMembers') === '1') return;
+    const hasToken = document.cookie.split('; ').some((c) => c.startsWith('access_token='));
+    if (!hasToken) document.documentElement.classList.add('members-gate-pending');
+  } catch (e) { /* fail-open: nunca bloquear la carga de la página */ }
 }
 
 async function loadPage() {
+  // Gate Portal Members (capa sync temprana): oculta el contenido a anónimos ANTES de
+  // pintar; el redirect al login lo hace session.service. Ver gateMembersPortalEarly.
+  gateMembersPortalEarly();
+
+  // Members: páginas-puente members/auth/* (callback / redirect-login / redirect-logout).
+  // Servicio por ruta (reemplaza al bloque): muestra loader + corre la lógica del modo.
+  if (window.location.pathname.includes('/members/auth/')) {
+    import('./services/members/members-auth.route.js')
+      .then(({ handleAuthRoute }) => handleAuthRoute())
+      .catch(() => { /* no-op */ });
+  }
+
+  // Members (1255354): re-hidratar la sesión desde cookies en cada page load (MPA).
+  // Singleton por página: setea el estado + perfil (sessionStorage) + gancho multi-tab.
+  import('./services/members/session.service.js')
+    .then(({ initSession }) => initSession())
+    .catch(() => { /* no-op */ });
+
+  // Members: mostrar pending auth-error modal si existe (guardado por callback fallido).
+  import('./services/members/members-auth.route.js')
+    .then(({ showPendingErrorModal }) => showPendingErrorModal())
+    .catch(() => { /* no-op */ });
+
   await loadEager(document);
   await loadLazy(document);
   loadDelayed();

@@ -6,8 +6,168 @@ import {
 } from '@dropins/tools/preact-hooks.js';
 import htm from 'htm';
 import loadSVGIcon from '../../../../scripts/utils/svg.helper.js';
+import { sanitizeSVG } from '../../../../scripts/utils/sanitize.js';
 
 const html = htm.bind(h);
+
+// Inject scoping overrides for SecondaryBannerLeft.
+//
+// Componente default = uso STANDALONE (ej. dashboard Members):
+//   - Banner height lg+: 240px
+//   - Image container max-w xl: 540px
+//   - Condor bgSVG: height + min-height 220px md (768–1023) / 240px ≥1024 (override de Tailwind md:min-h-[229px]), aspect-ratio 107/120, stroke-width 1.5, width 71.5% ≥1248
+//   - Condor vector (nested <svg>): width 214px
+//   - CTAs: display:flex, h:52px, min-w:100px, padding 0 16px (24px ≥1024),
+//           font 14/19 mobile, 20/26 ≥1024
+//   - Heading: <h3> visible / <h4> oculto; line-height 24 mobile / 37 ≥1024
+//   - Content padding: 16px mobile / 24px ≥1024
+//   - Content gap: 16px mobile / 24px ≥1024
+//   - Image desktop md (768–1023): object-fit cover (rellena el alto; lg+ ya usaba cover)
+//
+// Cuando vive dentro de `.megamenu-banner` se revierte a los valores históricos
+// del slot del megamenu:
+//   - Banner height ≥1024: 220px
+//   - Image container max-w ≥1280: 338px
+//   - bgSVG: h-full + aspect-ratio auto (sin restricción), width 80% ≥1248 (Tailwind default)
+//   - bgSVG paths: stroke-width 2
+//   - Condor vector: width 206px (valor original del atributo SVG)
+//   - CTAs: inline-flex, h:32px, padding 0 16px (px-4), sin min-width, font 14/19
+//   - Heading: <h4> visible / <h3> oculto (preserva jerarquía semántica del megamenu)
+//   - Content padding: 16px (igual a Tailwind default p-[16px])
+//   - Content gap: 16px (igual a Tailwind default gap-[16px])
+//   - Image desktop md (768–1023): object-fit contain (Tailwind default, letterbox preservado)
+//
+// IMPORTANTE: las reglas viven dentro de `@layer utilities` (el mismo layer
+// donde Tailwind emite las utilities con `!important`). Si fuesen unlayered,
+// las utilities `lg:!h-[240px] xl:!h-[240px]` de Tailwind las ganarían — el
+// algoritmo de cascade layers da prioridad al layer DEFINIDO MÁS TEMPRANO
+// cuando ambas declaraciones son `!important`. Estando en el mismo layer,
+// gana la especificidad:
+//   - Standalone defaults: `(0,3,0)` (1 attr + 1 attr + 1 class) > Tailwind `(0,1,0)`
+//   - Megamenu overrides:  `(0,4,0)` (.megamenu-banner + standalone) > standalone `(0,3,0)`
+// Inyectado una sola vez por documento.
+const SECONDARY_BANNER_LEFT_STYLE_ID = 'secondary-banner-left-megamenu-overrides';
+if (typeof document !== 'undefined' && !document.getElementById(SECONDARY_BANNER_LEFT_STYLE_ID)) {
+  const styleEl = document.createElement('style');
+  styleEl.id = SECONDARY_BANNER_LEFT_STYLE_ID;
+  styleEl.textContent = [
+    '@layer utilities {',
+    // === STANDALONE defaults (outside .megamenu-banner) ===
+    '[data-name="secondary-banner"][data-image-position="left"] .megamenu-svg-image{',
+    'height:220px!important;',
+    'min-height:220px!important;',
+    'top: 0px!important;',
+    'aspect-ratio:107/120!important;}',
+    // Standalone bgSVG height bump al alcanzar lg (≥1024): banner pasa de 220 → 240px
+    '@media(min-width:1024px){',
+    '[data-name="secondary-banner"][data-image-position="left"] .megamenu-svg-image{',
+    'height:240px!important;',
+    'min-height:240px!important;}',
+    '}',
+    '[data-name="secondary-banner"][data-image-position="left"] .megamenu-svg-image path{',
+    'stroke-width:1.5!important;}',
+    '[data-name="secondary-banner"][data-image-position="left"] .megamenu-svg-image>svg{',
+    'width:214px!important;}',
+    // Standalone bgSVG width override at xl (1248px+): 71.5% en lugar del 80% que pone Tailwind
+    '@media(min-width:1248px){',
+    '[data-name="secondary-banner"][data-image-position="left"] .megamenu-svg-image{',
+    'width:71.5%!important;}',
+    '}',
+    // Standalone CTAs (los <a> dentro de .secondary-banner-content)
+    '[data-name="secondary-banner"][data-image-position="left"] .secondary-banner-content a{',
+    'display:flex!important;',
+    'height:52px!important;',
+    'min-width:100px!important;',
+    'padding:0 var(--x-large, 16px)!important;',
+    'font-size:14px!important;',
+    'line-height:19px!important;}',
+    '@media(min-width:1024px){',
+    '[data-name="secondary-banner"][data-image-position="left"] .secondary-banner-content a{',
+    'padding:0 var(--x-large, 24px)!important;',
+    'font-size:20px!important;',
+    'line-height:26px!important;}',
+    '}',
+    // Standalone <h3> heading line-height (mobile 24, ≥1024 37)
+    '[data-name="secondary-banner"][data-image-position="left"] .secondary-banner-heading-standalone{',
+    'line-height:24px!important;}',
+    '@media(min-width:1024px){',
+    '[data-name="secondary-banner"][data-image-position="left"] .secondary-banner-heading-standalone{',
+    'line-height:37px!important;}',
+    '}',
+    // Standalone .secondary-banner-content padding (16px mobile, 24px ≥1024)
+    '[data-name="secondary-banner"][data-image-position="left"] .secondary-banner-content{',
+    'padding:16px!important;}',
+    '@media(min-width:1024px){',
+    '[data-name="secondary-banner"][data-image-position="left"] .secondary-banner-content{',
+    'padding:24px!important;}',
+    '}',
+    // Standalone .secondary-banner-content gap (24px ≥1024; mobile = Tailwind default 16px)
+    '@media(min-width:1024px){',
+    '[data-name="secondary-banner"][data-image-position="left"] .secondary-banner-content{',
+    'gap:24px!important;}',
+    '}',
+    // Standalone img desktop a md (768–1023): object-fit:cover en lugar de Tailwind
+    // `object-contain` para que llene toda la altura del contenedor (sin letterbox).
+    // ≥1024 ya usa Tailwind `lg:object-cover`, así que no necesita override.
+    '@media(min-width:768px) and (max-width:1023.98px){',
+    '[data-name="secondary-banner"][data-image-position="left"] .megamenu-container-image img{',
+    'object-fit:cover!important;}',
+    '}',
+    // === MEGAMENU overrides (revert to historical sizing) ===
+    '@media(min-width:1024px){',
+    '.megamenu-banner [data-name="secondary-banner"][data-image-position="left"]{',
+    'height:220px!important;}',
+    '}',
+    '@media(min-width:1280px){',
+    '.megamenu-banner [data-name="secondary-banner"][data-image-position="left"] .megamenu-container-image{',
+    'max-width:338px!important;}',
+    '}',
+    '.megamenu-banner [data-name="secondary-banner"][data-image-position="left"] .megamenu-svg-image{',
+    'height:100%!important;',
+    'aspect-ratio:auto!important;}',
+    '.megamenu-banner [data-name="secondary-banner"][data-image-position="left"] .megamenu-svg-image path{',
+    'stroke-width:2!important;}',
+    '.megamenu-banner [data-name="secondary-banner"][data-image-position="left"] .megamenu-svg-image>svg{',
+    'width:206px!important;}',
+    // Revert bgSVG width al xl:w-[80%] original dentro del megamenu
+    '@media(min-width:1248px){',
+    '.megamenu-banner [data-name="secondary-banner"][data-image-position="left"] .megamenu-svg-image{',
+    'width:80%!important;}',
+    '}',
+    // Revert CTAs to megamenu sizing (h-[32px] px-4 inline-flex, text-sm 14/19)
+    '.megamenu-banner [data-name="secondary-banner"][data-image-position="left"] .secondary-banner-content a{',
+    'display:inline-flex!important;',
+    'height:32px!important;',
+    'min-width:auto!important;',
+    'padding:0 16px!important;',
+    'font-size:14px!important;',
+    'line-height:19px!important;}',
+    // Revert .secondary-banner-content padding to megamenu sizing (16px en todos los breakpoints)
+    '.megamenu-banner [data-name="secondary-banner"][data-image-position="left"] .secondary-banner-content{',
+    'padding:16px!important;}',
+    // Revert .secondary-banner-content gap al Tailwind default (16px) dentro del megamenu ≥1024
+    '@media(min-width:1024px){',
+    '.megamenu-banner [data-name="secondary-banner"][data-image-position="left"] .secondary-banner-content{',
+    'gap:16px!important;}',
+    '}',
+    // Revert img desktop a md dentro del megamenu: mantener `object-contain` original
+    '@media(min-width:768px) and (max-width:1023.98px){',
+    '.megamenu-banner [data-name="secondary-banner"][data-image-position="left"] .megamenu-container-image img{',
+    'object-fit:contain!important;}',
+    '}',
+    // Dual-heading visibility: standalone shows <h3>, megamenu shows <h4>.
+    // Default (standalone): hide the megamenu <h4>.
+    '[data-name="secondary-banner"][data-image-position="left"] .secondary-banner-heading-megamenu{',
+    'display:none!important;}',
+    // Inside .megamenu-banner: hide the standalone <h3>, show <h4>.
+    '.megamenu-banner [data-name="secondary-banner"][data-image-position="left"] .secondary-banner-heading-standalone{',
+    'display:none!important;}',
+    '.megamenu-banner [data-name="secondary-banner"][data-image-position="left"] .secondary-banner-heading-megamenu{',
+    'display:block!important;}',
+    '}',
+  ].join('');
+  document.head.appendChild(styleEl);
+}
 
 /**
  * SecondaryBannerLeft - Variante left del banner secundario de Avianca.
@@ -73,6 +233,7 @@ export const SecondaryBannerLeft = ({
 }) => {
   const [condorBgSVG, setCondorBgSVG] = useState(null);
   const [condorVectorSVG, setCondorVectorSVG] = useState(null);
+
 
   // Initialize breakpoint state synchronously to avoid SVG-fetch race during megamenu cloning.
   // Desktop layout (image left, condor right) starts at md (768px) — uniforme hasta 1248px+.
@@ -224,7 +385,7 @@ export const SecondaryBannerLeft = ({
     if (!svgElement) return null;
     return html`
       <span
-        dangerouslySetInnerHTML=${{ __html: svgElement.outerHTML }}
+        dangerouslySetInnerHTML=${{ __html: sanitizeSVG(svgElement.outerHTML) }}
         class=${wrapperClass}
         style=${{ lineHeight: 0 }}
       />
@@ -357,7 +518,7 @@ export const SecondaryBannerLeft = ({
 
   return html`
     <div
-      class="secondary-banner-card max-w-[1248px] w-full relative rounded-[16px] shadow-[0px_2px_20px_2px_rgba(73,73,73,0.25)] my-[32px] mx-[16px] md:mx-[32px] overflow-hidden md:!h-[220px] lg:!h-[220px] xl:!h-[222px]"
+      class="max-w-xl w-full relative rounded-[16px] shadow-[0px_2px_20px_2px_rgba(73,73,73,0.25)] my-[32px] mx-[16px] md:mx-[32px] overflow-hidden md:!h-fit lg:!h-fit xl:!h-fit"
       style=${bannerBackground}
       data-name="secondary-banner"
       data-image-position="left"
@@ -374,8 +535,10 @@ export const SecondaryBannerLeft = ({
         </div>
       ` : ''}
       <div class="flex flex-col md:flex-row md:h-full">
-        <!-- Image section: full-width top on mobile (170px), left column on desktop (44%) -->
-        <div class="megamenu-container-image relative md:absolute w-full h-[170px] md:h-full md:w-[50%] md:min-w-[515px] lg:min-w-[350px] xl:w-[55%] xl:max-w-[338px] shrink-0 overflow-hidden">
+        <!-- Image section: full-width top on mobile (170px), left column on desktop (44%).
+             xl:max-w default 540px (standalone, ej. dashboard Members). Override a 338px
+             scopeado a .megamenu-banner via <style> inyectado al top de este módulo. -->
+        <div class="megamenu-container-image relative md:absolute w-full h-[170px] md:h-full md:w-[50%] md:min-w-[515px] lg:min-w-[350px] xl:w-[55%] xl:max-w-[540px] shrink-0 overflow-hidden">
           <div class="md:hidden w-full h-[170px] overflow-hidden">
             ${buildMobilePicture()}
           </div>
@@ -384,9 +547,17 @@ export const SecondaryBannerLeft = ({
           </div>
         </div>
         <!-- Content section: below image on mobile, right column on desktop -->
-        <div class="secondary-banner-content flex-1 flex flex-col gap-[16px] items-start justify-center md:items-end p-[16px] relative w-auto z-11" data-banner-mode=${mode}>
+        <div class="secondary-banner-content flex-1 flex flex-col gap-[24px] items-start justify-center md:items-end p-[16px] relative w-auto z-11" data-banner-mode=${mode}>
           <div class="megamenu-content-container flex flex-col gap-[4px] w-full lg:relative lg:right-[2px]">
-            <h4 class=${`w-full ${textColorClasses} !m-0 font-bold font-['Red_Hat_Display'] !leading-[26px] md:!leading-[32px] antialiased`}>
+            <!-- Dual heading: <h3> visible standalone / <h4> visible inside .megamenu-banner.
+                 Ambas se renderizan; CSS oculta la que no aplica al contexto. Este patrón
+                 es clone-safe (el megamenu hace cloneNode del DOM y por eso un swap dinámico
+                 vía useEffect no funciona). "display:none" también remueve del accessibility
+                 tree, evitando duplicación para lectores de pantalla. -->
+            <h3 class=${`secondary-banner-heading-standalone w-full ${textColorClasses} !m-0 font-bold font-['Red_Hat_Display'] !leading-[26px] md:!leading-[32px] antialiased`}>
+              ${title}
+            </h3>
+            <h4 class=${`secondary-banner-heading-megamenu w-full ${textColorClasses} !m-0 font-bold font-['Red_Hat_Display'] !leading-[26px] md:!leading-[32px] antialiased`}>
               ${title}
             </h4>
             ${firstLabel ? html`

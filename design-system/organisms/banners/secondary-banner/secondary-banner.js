@@ -7,6 +7,7 @@ import {
 import htm from 'htm';
 import { Button } from '../../../atoms/button/button.js';
 import loadSVGIcon from '../../../../scripts/utils/svg.helper.js';
+import { sanitizeSVG } from '../../../../scripts/utils/sanitize.js';
 
 const html = htm.bind(h);
 
@@ -39,6 +40,7 @@ const html = htm.bind(h);
 export const SecondaryBanner = ({
   title = '',
   firstLabel = '',
+  // eslint-disable-next-line no-unused-vars -- CU-207 CA5: model field kept, not rendered
   secondaryLabel = '',
   imageDesktop = '',
   imageMobile = '',
@@ -62,10 +64,12 @@ export const SecondaryBanner = ({
 
   // State for button size based on screen width
   const initialWidth = typeof window !== 'undefined' ? window.innerWidth : 0;
-  const [buttonSize, setButtonSize] = useState(initialWidth < 1024 ? 'xs' : 'md');
+  // Bug 2: tablet (>=768px) uses the large button ('md'); only mobile stays compact ('xs')
+  const [buttonSize, setButtonSize] = useState(initialWidth < 768 ? 'xs' : 'md');
 
-  // State for detecting desktop viewport (>= 1024px)
-  const [isDesktop, setIsDesktop] = useState(initialWidth >= 1024);
+  // State for detecting desktop viewport (>= 768px)
+  // Non-fullCover variant applies the desktop layout (and desktop SVGs) from tablet up.
+  const [isDesktop, setIsDesktop] = useState(initialWidth >= 768);
   const loadingMode = loading === 'eager' ? 'eager' : 'lazy';
   const imageDecoding = loadingMode === 'eager' ? 'sync' : 'async';
   const imageFetchPriority = loadingMode === 'eager' ? 'high' : 'low';
@@ -80,8 +84,8 @@ export const SecondaryBanner = ({
   useEffect(() => {
     const updateScreenSize = () => {
       const width = window.innerWidth;
-      setButtonSize(width < 1024 ? 'xs' : 'md');
-      setIsDesktop(width >= 1024);
+      setButtonSize(width < 768 ? 'xs' : 'md'); // Bug 2: large button from tablet up
+      setIsDesktop(width >= 768);
     };
 
     updateScreenSize();
@@ -169,7 +173,9 @@ export const SecondaryBanner = ({
             path.setAttribute('style', `fill: ${solidColor};`);
           });
         }
-        bgSVG.setAttribute('class', 'absolute top-0 right-0 min-[1024px]:right-[87px] min-[1024px]:h-[243px] min-[1024px]:w-auto');
+        // Right-anchored at all md+ breakpoints so SVGs stay aligned with the second column
+        // (image) regardless of viewport width. 87px offset keeps BG behind the condor.
+        bgSVG.setAttribute('class', 'absolute top-0 md:right-[87px] md:h-[243px] md:w-auto');
 
         const strokeColor = condorStrokeColor || 'white';
         const vectorPaths = vectorSVG.querySelectorAll('path');
@@ -178,7 +184,9 @@ export const SecondaryBanner = ({
           path.setAttribute('stroke', strokeColor);
           path.setAttribute('style', `fill: none; stroke: ${strokeColor}; stroke-width: ${strokeWidth};`);
         });
-        vectorSVG.setAttribute('class', 'absolute top-0 right-[1px] min-[1024px]:h-[243px] min-[1024px]:w-auto');
+        // Right-anchored at all md+ breakpoints so the condor follows the second column
+        // (image) start as viewport shrinks, keeping engranaje with BG at any width.
+        vectorSVG.setAttribute('class', 'absolute top-0 md:right-[1px] md:h-[243px] md:w-auto');
 
         // Set both SVGs atomically to prevent partial render
         setCondorBgSVG(bgSVG);
@@ -206,7 +214,7 @@ export const SecondaryBanner = ({
     if (!svgElement) return null;
     return html`
       <span
-        dangerouslySetInnerHTML=${{ __html: svgElement.outerHTML }}
+        dangerouslySetInnerHTML=${{ __html: sanitizeSVG(svgElement.outerHTML) }}
         class="block right-0 overflow-hidden"
         style=${{ lineHeight: 0 }}
       />
@@ -233,7 +241,7 @@ export const SecondaryBanner = ({
           loading=${loadingMode}
           decoding=${imageDecoding}
           fetchpriority=${imageFetchPriority}
-          class=" w-full h-full object-cover object-[right_top]"
+          class="w-full h-full object-cover object-[right_top]"
         />
       </picture>
     `;
@@ -284,33 +292,85 @@ export const SecondaryBanner = ({
     ? `background: linear-gradient(to bottom, ${gradientColorStart}, ${gradientColorEnd});`
     : `background: ${backgroundColor || '#1b1b1b'};`;
 
+  // Pre-compute CTA link attributes (shared by mobile + desktop layouts)
+  const isInternalCtaLink = ctaUrl.startsWith('/') || ctaUrl.startsWith('#');
+  const ctaTarget = isInternalCtaLink ? '_self' : '_blank';
+  let ctaRel;
+  if (isInternalCtaLink) {
+    ctaRel = ctaLinkType !== 'dofollow' ? ctaLinkType : undefined;
+  } else {
+    ctaRel = `noopener noreferrer${ctaLinkType !== 'dofollow' ? ` ${ctaLinkType}` : ''}`;
+  }
+
   return html`
-    <!-- Desktop Version -->
-    <div 
-      class="secondary-banner-card max-w-[1248px] w-full h-[216px] min-[1024px]:h-[243px] relative rounded-[24px] shadow-[0px_2px_20px_2px_rgba(73,73,73,0.25)] my-[32px] mx-[16px] min-[1024px]:mx-[32px] overflow-hidden pb-[18px]"
+    <div
+      class=${`max-w-xl w-full ${fullCoverImage ? 'h-[216px]' : 'h-auto md:min-h-[243px]'} min-[1024px]:h-[243px] relative rounded-[16px] shadow-[0px_2px_25px_2px_rgba(120,124,130,0.15)] my-[32px] mx-[16px] min-[1024px]:mx-[32px] overflow-hidden lg:pb-[18px]`}
       style=${bannerBackground}
+      data-name="secondary-banner"
     >
+      <!-- Mobile Version (< 768): vertical stack — image top, content below (Figma 9012-160538) -->
+      ${fullCoverImage ? '' : html`
+      <div class="md:hidden flex flex-col w-full">
+        <!-- Image top (full width, 170px) -->
+        <div class="relative w-full h-[170px] overflow-hidden">
+          ${buildMobilePicture()}
+          ${showCondor ? html`
+            <div class="absolute top-0 right-0 w-[140px] h-[140px] pointer-events-none z-10 overflow-hidden [&_svg]:absolute [&_svg]:top-0 [&_svg]:right-0 [&_svg]:h-full [&_svg]:w-auto">
+              ${renderSVG(condorVectorSVG)}
+            </div>
+          ` : ''}
+        </div>
+        <!-- Content below image -->
+        <div data-banner-mode=${mode} class="relative z-20 flex flex-col gap-[16px] items-start justify-center p-[16px]">
+          <div class="self-stretch flex flex-col justify-center items-start gap-[4px]">
+            <h2 class=${`self-stretch justify-start ${textColorClasses} font-bold font-['Red_Hat_Display'] !text-[18px] !leading-none`}>
+              ${title}
+            </h2>
+            <div class="self-stretch justify-start ${textColorClasses} text-[14px] leading-[21px] font-normal font-['Red_Hat_Display']">
+              ${firstLabel}
+            </div>
+          </div>
+          ${ctaText && ctaUrl ? html`
+            <div data-appearance="secondary" data-iconafter="false" data-iconbefore="false" data-icononly="false" data-size="default" data-state="default">
+              <a
+                href=${ctaUrl}
+                target=${ctaTarget}
+                rel=${ctaRel}
+                class="inline-block"
+              >
+                <${Button}
+                  variant=${mode === 'dark' ? 'primary' : 'secondary'}
+                  size=${buttonSize}
+                >
+                  ${ctaText}
+                </${Button}>
+              </a>
+            </div>
+          ` : ''}
+        </div>
+      </div>
+      `}
+
+      <!-- Desktop / Tablet Version (>= 768): layout avalado, sin cambios -->
+      <div class=${fullCoverImage ? 'w-full h-full' : 'hidden md:block w-full h-full'}>
        <!-- Left content section -->
-        <div class="w-full h-[216px] md:h-[230px] lg:h-[243px] p-0 absolute left-0 top-0 inline-flex flex-col justify-between items-start z-2">
+        <div class=${`w-full ${fullCoverImage ? 'h-[216px] lg:h-[243px]' : 'h-[216px] md:h-[243px]'} p-0 absolute left-0 top-0 inline-flex flex-col justify-between items-start z-2`}>
           <div data-banner-mode=${mode} class=${` relative w-full ${fullCoverImage ? '' : 'min-[1024px]:w-[873px]'} flex flex-col justify-start items-start gap-10`}>
           <!-- Background condor pattern -->
-            <div class="absolute top-0 w-[100%] pointer-events-none h-[216px] md:h-[230px] lg:h-[243px] z-10">
+            <div class=${`absolute top-0 w-[100%] pointer-events-none ${fullCoverImage ? 'h-[216px] lg:h-[243px]' : 'h-[216px] md:h-[243px]'} z-10`}>
               ${renderSVG(condorBgSVG)}
               ${renderSVG(condorVectorSVG)}
               
             </div>
           <!-- Background condor pattern -->
-          <div class="w-full h-full relative z-20 flex flex-row gap-[8px] min-[769px]:gap-0">
-              <div class=${`min-w-0 h-[216px] min-[1024px]:h-[243px] flex flex-col justify-between z-10 p-[16px] min-[1024px]:p-[24px] ${fullCoverImage ? 'w-full min-[1024px]:max-w-[510px]' : 'flex-1'}`}>
+          <div class=${`w-full h-full relative z-20 flex flex-row gap-[8px] md:gap-0 ${fullCoverImage ? 'md:min-h-[216px]' : 'md:min-h-[243px]'} lg:min-h-0`}>
+              <div class=${`min-w-0 h-fit md:h-[243px] lg:h-fit flex flex-col gap-[24px] justify-center md:justify-between lg:justify-center z-10 p-[16px] min-[1024px]:p-[24px] ${fullCoverImage ? 'w-full min-[1024px]:max-w-[510px]' : 'flex-1 md:max-w-[61%] lg:max-w-none'}`}>
                 <div class="z-10 self-stretch flex flex-col justify-center items-start gap-[4px]">
-                  <h2 class=${`${ctaText && ctaUrl ? 'line-clamp-2' : 'line-clamp-4'} self-stretch justify-start ${textColorClasses} font-bold font-['Red_Hat_Display'] ${fullCoverImage ? 'banner-title-scaled' : ''}`}>
+                  <h2 class=${`line-clamp-none md:line-clamp-3 self-stretch justify-start ${textColorClasses} font-bold font-['Red_Hat_Display'] ${fullCoverImage ? 'banner-title-scaled' : '!text-[18px] md:!text-[24px] lg:!text-[28px] !leading-none'}`}>
                     ${title}
                   </h2>
-                  <div class="${ctaText && ctaUrl ? 'line-clamp-2' : 'line-clamp-4'} self-stretch justify-start ${textColorClasses} leading-[21px] min-[769px]:!leading-[32px] text-[16px] min-[1024px]:text-[24px] font-normal font-['Red_Hat_Display']">
+                  <div class="line-clamp-none md:line-clamp-3 self-stretch justify-start ${textColorClasses} text-[14px] leading-[21px] md:text-[18px] md:leading-[27px] font-normal font-['Red_Hat_Display']">
                     ${firstLabel}
-                  </div>
-                  <div class="${ctaText && ctaUrl ? 'line-clamp-2' : 'line-clamp-4'} self-stretch justify-start ${textColorClasses} leading-[16px] min-[769px]:!leading-[21px] text-[12px] min-[1024px]:text-[16px] font-normal font-['Red_Hat_Display'] opacity-90">
-                    ${secondaryLabel}
                   </div>
                 </div>
                 ${ctaText && ctaUrl ? html`
@@ -334,7 +394,7 @@ export const SecondaryBanner = ({
                   </div>
                 ` : ''}
               </div>
-              ${fullCoverImage ? '' : html`<div class="spacer w-[181px] lg:w-[271px] shrink-0"></div>`}
+              ${fullCoverImage ? '' : html`<div class="spacer w-[181px] md:w-[300px] lg:w-[271px] shrink-0"></div>`}
           </div>
       </div>
 
@@ -342,26 +402,23 @@ export const SecondaryBanner = ({
         </div>
           
 
-        <!-- Right image section - Mobile (< 1024px) -->
-      <div class=${`absolute right-0 top-0 h-[216px] md:h-[230px] lg:hidden z-1 overflow-hidden ${fullCoverImage ? 'w-full max-w-full max-h-full' : 'max-w-[216px] max-h-[216px] w-full min-[480px]:w-[50%]'}`}>
+        <!-- Right image section - Mobile picture (fullCover: < 1024px; non-full: < 1024px so tablet 768-1023 also uses mobile image) -->
+      <div class=${`absolute right-0 top-0 h-[216px] md:h-[243px] lg:hidden z-1 overflow-hidden ${fullCoverImage ? 'w-full max-w-full max-h-full' : 'max-w-[216px] max-h-[216px] w-full min-[480px]:w-[50%] md:max-w-[300px] md:max-h-none md:w-[300px]'}`}>
         <div class="w-full h-full relative">
           ${buildMobilePicture()}
         </div>
       </div>
 
-        <!-- Right image section - Desktop (>= 1024px) -->
+        <!-- Right image section - Desktop picture (>= 1024px only) -->
       <div class=${`hidden lg:block absolute top-0 h-[243px] z-1 overflow-hidden ${fullCoverImage ? 'left-0 w-full max-w-full' : 'left-0 ml-[597px] max-w-[651px] w-[651px]'}`}>
         <div class="w-full h-full relative">
           ${buildDesktopPicture()}
         </div>
       </div>
 
-   
-
-      
+      </div>
+      <!-- /Desktop / Tablet Version -->
     </div>
-
-   
   `;
 };
 

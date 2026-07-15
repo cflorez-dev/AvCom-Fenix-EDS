@@ -2,6 +2,7 @@ import { h } from '@dropins/tools/preact.js';
 import htm from 'htm';
 import { Button } from '../../../atoms/button/button.js';
 import { processContentHTML } from '../../../helpers/process-content-html.js';
+import { sanitizeHTML } from '../../../../scripts/utils/sanitize.js';
 
 const html = htm.bind(h);
 
@@ -108,7 +109,7 @@ export const InformativePhotoCard = ({
 
   return html`
     <div 
-      class="${widthClass} min-h-[325px] rounded-2xl outline-1 outline-border-stroke-default inline-flex flex-col items-center transition-shadow duration-300 ${buttonText ? '' : 'cursor-pointer'} ${focusClasses} ${customClassName}"
+      class="${widthClass} min-h-[325px] rounded-2xl outline-1 outline-border-stroke-default inline-flex flex-col items-center transition-shadow duration-300 ${focusClasses} ${customClassName}"
       onClick=${isCardClickable ? handleCardClick : null}
       tabIndex=${isCardClickable ? '0' : null}
       role=${isCardClickable ? 'button' : null}
@@ -129,7 +130,7 @@ export const InformativePhotoCard = ({
                         <div class="text-center justify-start text-text-normal-primary text-xl font-bold leading-[26px]">${title}</div>
                         <div 
                           class="self-stretch text-center justify-start text-text-normal-primary text-base font-normal leading-6"
-                          dangerouslySetInnerHTML=${{ __html: processedDetails }}
+                          dangerouslySetInnerHTML=${{ __html: sanitizeHTML(processedDetails) }}
                         />
                     </div>
                 </div>

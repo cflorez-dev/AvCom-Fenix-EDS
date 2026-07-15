@@ -8,6 +8,7 @@ import {
   useMemo,
 } from '@dropins/tools/preact-hooks.js';
 import htm from 'htm';
+import { sanitizeSpreadProps } from '../../../scripts/utils/sanitize.js';
 
 // Design System Components
 import { Button } from '../../atoms/button/button.js';
@@ -64,6 +65,8 @@ const getFlightType = (origin, destination) => {
 export const BookingBox = ({
   // CMS Configuration
   actionButtons = [],
+  cabinTabsEnabled = false,
+  cabinOptions = [],
 
   // Default Values
   defaultTripType = 'round-trip',
@@ -107,6 +110,25 @@ export const BookingBox = ({
     typeof window !== 'undefined' ? window.innerWidth < 768 : false,
   );
   const [showConfirmModal, setShowConfirmModal] = useState(false);
+
+  // ========== CABIN TABS (derived) ==========
+  const mappedCabinOptions = useMemo(
+    () => cabinOptions.map((opt, i) => ({
+      id: opt.id,
+      label: opt.value,
+      default: i === 0,
+    })),
+    [cabinOptions],
+  );
+  const showCabin = cabinTabsEnabled && mappedCabinOptions.length > 0;
+
+  // Sync initial cabinClass when service options arrive (state starts at 'economy',
+  // which does not match the service ids like ECO/BUS).
+  useEffect(() => {
+    if (!mappedCabinOptions.length) return;
+    const def = mappedCabinOptions.find((o) => o.default)?.id || mappedCabinOptions[0].id;
+    setCabinClass(def);
+  }, [mappedCabinOptions]);
 
   // ========== REFS ==========
   const bookingBoxRef = useRef(null);
@@ -365,6 +387,7 @@ export const BookingBox = ({
       Pais: getAmadeusPosForIsoCode(getStoredCountry()),
       SistemaOrigen: 'AH',
       Device: 'Web',
+      ...(showCabin && cabinClass ? { selectedCabin: cabinClass } : {}),
     };
 
     const CONTROLLER_URL = await getEndpointUrl();
@@ -417,6 +440,8 @@ export const BookingBox = ({
     formatDateToDdMMM,
     formatDateToYYYYMMDD,
     calculateDaysInAdvance,
+    showCabin,
+    cabinClass,
   ]);
 
   // ========== DESKTOP STICKY INTEGRATION ==========
@@ -632,7 +657,7 @@ export const BookingBox = ({
     <div
       class="w-full ${showConfirmModal && isMobile ? 'fixed inset-0 bg-white z-[800] overflow-auto' : ''}"
       data-name="bookingBox"
-      ...${rest}
+      ...${sanitizeSpreadProps(rest)}
     >
       <!-- Sentinel for IntersectionObserver -->
       <div ref=${sentinelRef} class="h-px w-full" aria-hidden="true"></div>
@@ -663,7 +688,7 @@ export const BookingBox = ({
             >
               <${Icon} icon="navigation/arrow-back" size="sm" />
             </button>
-            <h2 class="font-bold text-[var(--color-text-normal-primary)]">${i18n['bookingBox.labels.confirmSearch'] || 'Confirma tu búsqueda'}</h2>
+            <h2 class="font-bold !text-[18px] text-[var(--color-text-normal-primary)]">${i18n['bookingBox.labels.confirmSearch'] || 'Confirma tu búsqueda'}</h2>
             <button
               type="button"
               class="hover:opacity-60"
@@ -766,7 +791,8 @@ export const BookingBox = ({
                 onBack=${handleBack}
                 dropdownPositionStyles="${isSticky ? 'top-[calc(100%+28px)]' : 'top-[calc(100%+8px)]'} right-0"
                 containerRelative=${false}
-                showCabinClass=${false}
+                showCabinClass=${showCabin}
+                cabinOptions=${mappedCabinOptions}
                 noTransition=${showConfirmModal && isMobile}
                 i18n=${i18n}
                 />

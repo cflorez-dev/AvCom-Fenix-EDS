@@ -245,7 +245,8 @@ export default async function decorate(block) {
   }
 
   // Sanitize richtext fields before injecting into the DOM via dangerouslySetInnerHTML.
-  const [safeTitle, safeDescription] = await Promise.all([
+  const [safeLeftTitle, safeTitle, safeDescription] = await Promise.all([
+    sanitizeHTMLAsync(props.leftTitle),
     sanitizeHTMLAsync(props.rightTitle),
     sanitizeHTMLAsync(props.rightDescription),
   ]);
@@ -260,7 +261,7 @@ export default async function decorate(block) {
   render(
     html`
       <${ContactPromoBlock}
-        leftTitle=${props.leftTitle}
+        leftTitle=${safeLeftTitle}
         rightTitle=${safeTitle}
         rightDescription=${safeDescription}
         rightImage=${props.rightImage}

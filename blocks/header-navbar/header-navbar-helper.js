@@ -540,3 +540,17 @@ export function convertToNavbarSections(navbarData) {
     return section;
   });
 }
+
+/**
+ * ¿Este item del navbar es el del Portal Members ("Lifemiles")? (1263924, Sub C · Bloque 8).
+ * El item se autorea de formas distintas (megamenú anclado, link plano `lifemiles`,
+ * o URL al portal), así que matcheamos por cualquiera de: anchor del megamenú con
+ * `lifemiles`, label "Lifemiles" (marca, sin traducir), URL con segmento `lifemiles`,
+ * o URL al portal (`/members`). Pura → el block la usa para marcar el item seleccionado.
+ * @param {Object} section item del navbar (`{ itemLabel?, url?, megamenu?: { anchor } }`)
+ * @returns {boolean}
+ */
+export const isLifemilesNavItem = (section) => /lifemiles/i.test(section?.megamenu?.anchor || '')
+  || /lifemiles/i.test(section?.itemLabel || '')
+  || /(^|\/)lifemiles($|\/|#|\?)/i.test(section?.url || '')
+  || /\/members(\/|$|#|\?)/.test(section?.url || '');

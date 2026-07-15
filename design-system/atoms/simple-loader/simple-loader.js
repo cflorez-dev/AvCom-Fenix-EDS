@@ -25,9 +25,15 @@ export const SimpleLoader = ({
     medium: 'w-5 h-5',
   };
 
+  // Anillo limpio (fix de los "quiebres" a tamaños chicos):
+  //  - conic-gradient = fade SUAVE sólido → transparente del MISMO color (solo baja el alpha →
+  //    sin bandas/escalones como tenían los stops 0/25/50/75%).
+  //  - la máscara de abajo usa `circle closest-side` para que el 100% del gradiente sea el BORDE
+  //    real del círculo (no la esquina, que es el default `farthest-corner` y dejaba el anillo
+  //    grueso con borde interno cortado) → anillo fino de 2px y circular por dentro y por fuera.
   const colorClasses = onDark
-    ? 'bg-[conic-gradient(from_0deg,#FFFFFF_0%,#FFFFFFCC_25%,#FFFFFF99_50%,#FFFFFF66_75%,transparent_100%)]'
-    : 'bg-[conic-gradient(from_0deg,#1B1B1B_0%,#1B1B1BCC_25%,#1B1B1B99_50%,#1B1B1B66_75%,transparent_100%)]';
+    ? 'bg-[conic-gradient(from_0deg,#FFFFFF,rgba(255,255,255,0))]'
+    : 'bg-[conic-gradient(from_0deg,#1B1B1B,rgba(27,27,27,0))]';
 
   return html`
     <div
@@ -42,8 +48,8 @@ export const SimpleLoader = ({
         animate-spin
         ${sizeClasses[size] || sizeClasses.medium}
         ${colorClasses}
-        mask-[radial-gradient(circle,transparent_calc(50%_-_1px),black_calc(50%_-_1px))]
-        [-webkit-mask:radial-gradient(circle,transparent_calc(50%_-_1px),black_calc(50%_-_1px))]
+        mask-[radial-gradient(circle_closest-side,transparent_calc(100%_-_2px),black_calc(100%_-_2px))]
+        [-webkit-mask:radial-gradient(circle_closest-side,transparent_calc(100%_-_2px),black_calc(100%_-_2px))]
         ${customClassName}
       "
       ...${rest}
