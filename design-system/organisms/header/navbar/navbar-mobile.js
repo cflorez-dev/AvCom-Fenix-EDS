@@ -71,6 +71,26 @@ const MegaBannerSlot = ({ cmsBlock, formType, formLabel }) => {
         const clone = cmsBlock.cloneNode(true);
         clone.style.display = '';
         slot.appendChild(clone);
+
+        // El card de la variante izquierda usa `!h-fit` (fit-content, correcto para el
+        // banner standalone del CMS). Pero en el slot del menu mobile debe LLENAR los
+        // 220px del slot en tablet (como en produccion y en el megamenu desktop); si no,
+        // queda ~160px y el contenido/CTA se recorta. El `!h-fit` (Tailwind v4) no cede a
+        // CSS externo, asi que se fuerza inline. En mobile (<768) se deja fit-content
+        // (layout apilado, mas alto).
+        const leftCard = clone.querySelector(
+          '[data-name="secondary-banner"][data-image-position="left"]',
+        );
+        if (leftCard) {
+          // OJO: hay que usar priority 'important' — el card trae `md:!h-fit`
+          // (height:fit-content !important de Tailwind v4) y un inline sin important
+          // NO lo gana. En mobile (<768) se quita para dejar el fit-content apilado.
+          if (window.innerWidth >= 768) {
+            leftCard.style.setProperty('height', '220px', 'important');
+          } else {
+            leftCard.style.removeProperty('height');
+          }
+        }
       });
     };
 
@@ -84,8 +104,13 @@ const MegaBannerSlot = ({ cmsBlock, formType, formLabel }) => {
     const observer = new MutationObserver(scheduleSync);
     observer.observe(cmsBlock, { childList: true, subtree: true });
 
+    // Re-aplica la altura del card (fija en tablet, fit-content en mobile) al cruzar
+    // el breakpoint de 768px sin que la fuente mute.
+    window.addEventListener('resize', scheduleSync, { passive: true });
+
     return () => {
       observer.disconnect();
+      window.removeEventListener('resize', scheduleSync);
       if (rafId !== null) cancelAnimationFrame(rafId);
     };
   }, [cmsBlock, formType]);
