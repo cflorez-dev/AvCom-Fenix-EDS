@@ -14,7 +14,7 @@ div.footer-columns-wrapper{
 }
 
 div.footer-partner-logos-wrapper{
-  padding: 16px 24px;
+  padding: 16px;
 }
 
 div.footer-bottom-wrapper{
@@ -67,21 +67,22 @@ footer .footer p {
   }
 }
 
+@media (width <= 767px) {
+  div.footer-columns-wrapper{
+    padding: var(--x-huge, 48px) var(--spacing-x-medium, 16px);
+  }
+}
+
+@media (width >= 768px) {
+  div.footer-partner-logos-wrapper{
+    padding: 16px 24px;
+  }
+}
+
 @media (width >= 1024px) {
   div.footer-partner-logos-wrapper{
     height: 68px;
     align-items: center;
-  }
-}
-
-@media (width >= 1024px) and (width <= 1439px) {
-  div.footer-partner-logos-wrapper{
     padding: 16px 32px;
-  }
-}
-
-@media (width >= 1440px) {
-  div.footer-partner-logos-wrapper{
-    padding: 16px 96px;
   }
 }
