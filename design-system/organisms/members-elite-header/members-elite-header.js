@@ -170,8 +170,8 @@ export const MembersEliteHeader = ({
         El cóndor (`EliteHeaderCondor`, <img> del vector 117×131) se ancla al
         CONTENIDO vía styles.css: desktop abajo-izquierda de la balance box
         (bottom:0, right:368px medido en Figma). */ ''}
-    <header
-      class="members-elite-header relative p-4 md:p-6 lg:p-8 min-h-fit lg:min-h-[190px]"
+    <div
+      class="members-elite-header relative z-0 p-4 pb-8 md:p-6 lg:p-8 min-h-fit lg:min-h-[190px]"
       style=${{ '--elite-header-bg': bgGradient, color: tokens.text }}
       data-name="members-elite-header"
       data-tier=${tokens.key}
@@ -205,7 +205,7 @@ export const MembersEliteHeader = ({
           ${balanceBox}
         </div>
       </div>
-    </header>
+    </div>
   `;
 };
 

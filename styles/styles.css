@@ -349,10 +349,16 @@ main > .section.members-elite-container {
 .members-elite-sheet::before {
   content: '';
   position: absolute;
-  top: 0;
+  top: -8px;
   bottom: 0;
+
+  /* Full-bleed vía left+right = calc(50% - 50vw) (NO `width: 100vw`): con ambos
+     seteados el ancho es el del viewport EXACTO. `width: 100vw` sobrepasaba el
+     ancho visible (por `scrollbar-gutter: stable` + `overflow-x: clip` en html),
+     dejando las esquinas superiores redondeadas FUERA de lo visible → se veían
+     cuadradas. Así los corners caen justo en el borde del viewport y se ven. */
   left: calc(50% - 50vw);
-  width: 100vw;
+  right: calc(50% - 50vw);
   background: #dfdfdf;
   z-index: -1;
   pointer-events: none;
