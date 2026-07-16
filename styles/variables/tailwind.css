@@ -131,7 +131,20 @@
   --color-alert-neutral-bg: #E9E9E9;
   --color-alert-neutral-text: #1B1B1B;
   --color-alert-neutral-border: #E9E9E9;
-  
+
+  /* Alert - Darksite theme (Figma 9611:7929) */
+  --color-alert-darksite-bg: #1b1b1b;
+  --color-alert-darksite-text: #FFFFFF;
+  --color-alert-darksite-border: transparent;
+  --color-alert-darksite-dismiss-hover: rgba(255, 255, 255, 0.1);
+  --color-alert-darksite-dismiss-active: rgba(255, 255, 255, 0.2);
+
+  /* Darksite chrome/overlay background (Figma spec).
+     Fuente única de verdad para el fondo del interstitial, HeaderDarksite,
+     FooterBottom variante darksite-dark y samples. Genera la clase
+     `bg-darksite-bg` y la variable `var(--color-darksite-bg)`. */
+  --color-darksite-bg: #3F4448;
+
   --color-alert-dismiss-bg-hover: rgba(0, 0, 0, 0.05);
   --color-alert-dismiss-bg-active: rgba(0, 0, 0, 0.1);
   --color-alert-dismiss-icon: currentColor;
@@ -156,6 +169,19 @@
   --color-text-link-active: #0e4c54;
   --color-text-brand-disable: #5a5a5a;
   --color-border-stroke-focus: #1d9bf0;
+
+  /* Language Selector - Darksite theme (Figma spec) */
+  --color-language-dark-button-border: #E9E9E9;
+  --color-language-dark-panel-bg: #1B1B1B;
+  --color-language-dark-panel-shadow: rgba(73, 73, 73, 0.25);
+  --color-language-dark-item-bg: #1B1B1B;
+  --color-language-dark-item-hover-bg: #494949;
+  --color-language-dark-item-active-bg: #D9D9D9;
+  --color-language-dark-text: #FAFAFA;
+  --color-language-dark-text-active: #1B1B1B;
+  --color-language-dark-accent: #56F378;
+  --color-language-dark-icon-active: #1B1B1B;
+  --color-language-dark-focus-border: #80CAFF;
 
   /* Input/Select Colors - From Figma */
   --color-border-default: #969696;

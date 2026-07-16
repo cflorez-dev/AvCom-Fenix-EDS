@@ -150,6 +150,20 @@ export function normalizeMembersCF(item) {
         logoSecondary: t.logoSecondary,
         logoSecondaryAlt: t.logoSecondaryAlt,
         sortOrder: t.sortOrder,
+        // Tokens de color de "Progreso Elite y beneficios" (1271692, Bloque 2).
+        // Pass-through de los 10 campos del AC (el CF puede no tenerlos aún →
+        // undefined → `getEliteTierTokens` cae a legacy/preset). Namespace propio:
+        // NO pisan los campos legacy (colorStart/End, balanceCardBg, textColor)
+        // que consume el hero de Mi Lifemiles.
+        colorGradientStrongStart: t.colorGradientStrongStart,
+        colorGradientStrongEnd: t.colorGradientStrongEnd,
+        colorGradientSubtleStart: t.colorGradientSubtleStart,
+        colorGradientSubtleEnd: t.colorGradientSubtleEnd,
+        colorGradientDecorStart: t.colorGradientDecorStart,
+        colorGradientDecorEnd: t.colorGradientDecorEnd,
+        colorOverlay: t.colorOverlay,
+        colorText: t.colorText,
+        colorBorderAccent: t.colorBorderAccent,
       };
     }
     return acc;
@@ -316,22 +330,155 @@ export function normalizeMembersCF(item) {
     };
   }
 
-  // eliteGoals (1263924): metas del progreso elite POR TIER (umbrales + mapeo de qué
-  // métrica de `qualified` alimenta cada barra). El API NO las trae → son del CF/PO.
-  // Dict por `tierKey` (lowercase) para lookup O(1) desde session.service.
-  const eliteGoalsArr = Array.isArray(item.eliteGoals) ? item.eliteGoals : [];
-  const eliteGoals = eliteGoalsArr.reduce((acc, g) => {
-    if (g && g.tierKey) {
-      acc[String(g.tierKey).toLowerCase()] = {
-        metaTotal: Number(g.metaTotal) || 0,
-        metaAvianca: Number(g.metaAvianca) || 0,
-        metricTotal: g.metricTotal,
-        metricAvianca: g.metricAvianca,
-      };
-    }
+  // eliteGoals v1 (1263924): ELIMINADO (T18, 2026-07-08). El hero de Mi Lifemiles
+  // migró a `eliteGoalsV2` (región-aware, metas reales de Avianca). No queda ningún
+  // consumidor de v1. La proyección de metas vive ahora en `eliteGoalsV2` (abajo).
+
+  // --- Tab Progreso elite (1271699, paso 3). ⚠️ SCHEMA DEL CF PENDIENTE (espec
+  // CF del lote para el TL) — mapeo DEFENSIVO estilo `hero`/`dashboardCards`:
+  // cada clave se emite SOLO si el CF trae el dato; ausente → defaults de código
+  // (members-config.js, tabla del AC). Número inválido/vacío se OMITE para que
+  // el merge campo-a-campo deje ver el default.
+  const toNum = (v) => {
+    if (v === null || v === undefined || v === '') return undefined;
+    const n = Number(v);
+    return Number.isFinite(n) ? n : undefined;
+  };
+
+  // eliteGoalsV2[]: metas por tier DESTINO con dimensión de región (T16).
+  // Campos por entrada (espec P3 confirmada): tierKey + metaTotalCol/metaTotalRow
+  // + metaAviancaCol/metaAviancaRow → {totales:{col,row}, avianca:{col,row}}.
+  const goalsV2Arr = Array.isArray(item.eliteGoalsV2) ? item.eliteGoalsV2 : [];
+  const eliteGoalsV2 = goalsV2Arr.reduce((acc, g) => {
+    if (!g || !g.tierKey) return acc;
+    const pair = (col, row) => {
+      const o = {};
+      if (toNum(col) !== undefined) o.col = toNum(col);
+      if (toNum(row) !== undefined) o.row = toNum(row);
+      return Object.keys(o).length ? o : undefined;
+    };
+    const entry = {};
+    const totales = pair(g.metaTotalCol, g.metaTotalRow);
+    const avianca = pair(g.metaAviancaCol, g.metaAviancaRow);
+    if (totales) entry.totales = totales;
+    if (avianca) entry.avianca = avianca;
+    if (Object.keys(entry).length) acc[String(g.tierKey).toLowerCase()] = entry;
     return acc;
   }, {});
-  if (Object.keys(eliteGoals).length) out.eliteGoals = eliteGoals;
+  if (Object.keys(eliteGoalsV2).length) out.eliteGoalsV2 = eliteGoalsV2;
+
+  // cenitConfig: umbrales del panel Cenit (AC bloque 7). Acepta objeto anidado
+  // (`item.cenitConfig` {visibleFrom,oneGoal,twoGoal}) o campos planos
+  // (`cenitVisibleFrom`/`cenitOneGoal`/`cenitTwoGoal`, nombres de la sección 5).
+  const cc = item.cenitConfig || {};
+  const cenitConfig = {};
+  const ccVisibleFrom = toNum(cc.visibleFrom ?? item.cenitVisibleFrom);
+  if (ccVisibleFrom !== undefined) cenitConfig.visibleFrom = ccVisibleFrom;
+  const ccOneGoal = toNum(cc.oneGoal ?? item.cenitOneGoal);
+  if (ccOneGoal !== undefined) cenitConfig.oneGoal = ccOneGoal;
+  const ccTwoGoal = toNum(cc.twoGoal ?? item.cenitTwoGoal);
+  if (ccTwoGoal !== undefined) cenitConfig.twoGoal = ccTwoGoal;
+  if (Object.keys(cenitConfig).length) out.cenitConfig = cenitConfig;
+
+  // eliteMetrics: qué métrica de `qualified[]` alimenta cada contador del panel.
+  const em = item.eliteMetrics || {};
+  const eliteMetrics = {};
+  const emTotal = em.total || em.metricTotal || item.eliteMetricTotal;
+  if (typeof emTotal === 'string' && emTotal) eliteMetrics.total = emTotal;
+  const emAvianca = em.avianca || em.metricAvianca || item.eliteMetricAvianca;
+  if (typeof emAvianca === 'string' && emAvianca) eliteMetrics.avianca = emAvianca;
+  const emLifetime = em.lifetime || em.metricLifetime || item.eliteMetricLifetime;
+  if (typeof emLifetime === 'string' && emLifetime) eliteMetrics.lifetime = emLifetime;
+  if (Object.keys(eliteMetrics).length) out.eliteMetrics = eliteMetrics;
+
+  // countryRegionMap[]: código de `countryOfResidence` (numérico interno LM) →
+  // región de metas ('COL'/'EXCOL') (T16). Dict para lookup O(1).
+  const crmArr = Array.isArray(item.countryRegionMap) ? item.countryRegionMap : [];
+  const countryRegionMap = crmArr.reduce((acc, r) => {
+    const code = r?.code ?? r?.countryCode ?? r?.key;
+    const region = r?.region ?? r?.value;
+    if (code != null && code !== '' && region) acc[String(code)] = String(region).toUpperCase();
+    return acc;
+  }, {});
+  if (Object.keys(countryRegionMap).length) out.countryRegionMap = countryRegionMap;
+
+  // Flags del tab Progreso (T10 dismiss configurable + toggle subtítulo + AC A5).
+  // Acepta objeto `item.eliteProgress` o campos planos equivalentes.
+  const ep = item.eliteProgress || {};
+  const eliteProgress = {};
+  const epPersist = ep.alertsPersistDismiss ?? item.alertsPersistDismiss;
+  if (typeof epPersist === 'boolean') eliteProgress.alertsPersistDismiss = epPersist;
+  const epSubtitle = ep.progressDescriptionVisible ?? item.progressDescriptionVisible;
+  if (typeof epSubtitle === 'boolean') eliteProgress.progressDescriptionVisible = epSubtitle;
+  // FAB gamification (1271694): flag de visibilidad; default false en el repo.
+  const epFab = ep.fabEnabled ?? item.fabEnabled;
+  if (typeof epFab === 'boolean') eliteProgress.fabEnabled = epFab;
+  const epMaxTier = ep.howToEarnSections23MaxTier ?? item.howToEarnSections23MaxTier;
+  if (typeof epMaxTier === 'string' && epMaxTier) {
+    eliteProgress.howToEarnSections23MaxTier = epMaxTier;
+  }
+  // Íconos ilustrativos de las barras (CU-346): DAM ref → _publishUrl, o string
+  // (key del átomo Icon). Mismo helper que hero.quickActions.
+  // Íconos configurables (CU-346 barras + CU-349 secciones "Cómo ganar millas").
+  // Fuente preferida: sub-CF `eliteIcons` (imagen-referencia DAM → _publishUrl);
+  // fallback a campo en `eliteProgress` o plano, y a los defaults del repo en el
+  // front. Se escriben en `eliteProgress` para no cambiar el shape del organism.
+  const eiCF = item.eliteIcons || {};
+  ['progressBarIconTotal', 'progressBarIconAvianca', 'howToEarnIconS1', 'howToEarnIconS2', 'howToEarnIconS3'].forEach((k) => {
+    const raw = eiCF[k] ?? ep[k] ?? item[k];
+    // eslint-disable-next-line no-underscore-dangle
+    const resolved = raw?._publishUrl || (typeof raw === 'string' ? raw : '');
+    if (resolved) eliteProgress[k] = resolved;
+  });
+  if (Object.keys(eliteProgress).length) out.eliteProgress = eliteProgress;
+
+  // --- FAB Gamification + flags Beneficios (1271694, paso 1). ⚠️ SCHEMA CF
+  // PENDIENTE (espec del lote) — mapeo DEFENSIVO estilo `cenitConfig`.
+
+  // fabConfig[]: entradas por POS y barra. `pos` acepta string CSV ("CO,PE"),
+  // array o 'all' → se normaliza a 'all' | array de códigos UPPERCASE. Textos
+  // literales autorados (title/body/ctaLabel) + ctaUrl + action ('buy'|'multiply').
+  const fabArr = Array.isArray(item.fabConfig) ? item.fabConfig : [];
+  const fabConfig = fabArr.reduce((acc, f) => {
+    if (!f || !f.bar) return acc;
+    const bar = String(f.bar).toLowerCase();
+    if (!['total', 'avianca', 'cenit'].includes(bar)) return acc;
+    let pos = 'all';
+    if (Array.isArray(f.pos)) {
+      pos = f.pos.map((p) => String(p).trim().toUpperCase()).filter(Boolean);
+    } else if (typeof f.pos === 'string' && f.pos.trim() && f.pos.trim().toLowerCase() !== 'all') {
+      pos = f.pos.split(',').map((p) => p.trim().toUpperCase()).filter(Boolean);
+    }
+    const entry = { pos, bar };
+    if (typeof f.title === 'string' && f.title) entry.title = f.title;
+    if (typeof f.body === 'string' && f.body) entry.body = f.body;
+    if (typeof f.ctaLabel === 'string' && f.ctaLabel) entry.ctaLabel = f.ctaLabel;
+    if (typeof f.ctaUrl === 'string' && f.ctaUrl) entry.ctaUrl = f.ctaUrl;
+    entry.action = (String(f.action || '').toLowerCase() === 'buy') ? 'buy' : 'multiply';
+    acc.push(entry);
+    return acc;
+  }, []);
+  if (fabConfig.length) out.fabConfig = fabConfig;
+
+  // benefitsFlags: apagado por autoría de cobrand/LM+ (anidado u objeto plano).
+  const bf = item.benefitsFlags || {};
+  const benefitsFlags = {};
+  const bfCobrand = bf.cobrandEnabled ?? item.cobrandEnabled;
+  if (typeof bfCobrand === 'boolean') benefitsFlags.cobrandEnabled = bfCobrand;
+  const bfLmPlus = bf.lmPlusEnabled ?? item.lmPlusEnabled;
+  if (typeof bfLmPlus === 'boolean') benefitsFlags.lmPlusEnabled = bfLmPlus;
+  if (Object.keys(benefitsFlags).length) out.benefitsFlags = benefitsFlags;
+
+  // newYearModal (1271694, A3): flag de visibilidad + URL del link terciario.
+  // Anidado (`item.newYearModal` {enabled,tertiaryUrl}) o campos planos
+  // (`newYearModalEnabled`/`newYearTertiaryUrl`).
+  const nym = item.newYearModal || {};
+  const newYearModal = {};
+  const nymEnabled = nym.enabled ?? item.newYearModalEnabled;
+  if (typeof nymEnabled === 'boolean') newYearModal.enabled = nymEnabled;
+  const nymUrl = nym.tertiaryUrl ?? item.newYearTertiaryUrl;
+  if (typeof nymUrl === 'string') newYearModal.tertiaryUrl = nymUrl;
+  if (Object.keys(newYearModal).length) out.newYearModal = newYearModal;
 
   return out;
 }

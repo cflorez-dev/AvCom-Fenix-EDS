@@ -529,3 +529,172 @@
     background: transparent !important;
     box-shadow: none !important;
 }
+
+/* ─── Content Tab Light: card blanco con outline para darksite ──────────────
+ * Estilo basado en Figma: card blanco con border-radius 12px, outline 1px,
+ * padding 24px, gap 20px interno. Título 24px bold, texto 16px line-height 24px.
+ * Se aplica cuando la sección del tab tiene la clase `content-tab-light`
+ * (Section Metadata → Style).
+ * ──────────────────────────────────────────────────────────────────────────── */
+.section.multitab-container .multitab-content.content-tab-light {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    max-width: 1248px;
+    margin: 0 auto;
+}
+
+.section.multitab-container .multitab-content.content-tab-light > .cms-rich-text-wrapper,
+.section.multitab-container .multitab-content.content-tab-light > .default-content-wrapper {
+    width: 100%;
+    max-width: 1248px;
+    padding: 24px;
+    background: var(--background-card-lighter, #FFFFFF);
+    border-radius: 12px;
+    outline: 1px solid var(--border-stroke-default, #D9D9D9);
+    outline-offset: -1px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    box-shadow: none;
+    border: none;
+}
+
+/* Reset inherited card styles from other multitab rules */
+.section.multitab-container .multitab-content.content-tab-light > .cms-rich-text-wrapper:not(:has(img)) {
+    padding: 24px !important;
+    border-radius: 12px !important;
+    background: var(--background-card-lighter, #FFFFFF) !important;
+    border: none !important;
+    outline: 1px solid var(--border-stroke-default, #D9D9D9) !important;
+    outline-offset: -1px;
+    box-shadow: none !important;
+}
+
+/* Title (h1) inside content-tab-light: 24px bold */
+.section.multitab-container .multitab-content.content-tab-light h1 {
+    font-size: 24px;
+    font-family: 'Red Hat Display', sans-serif;
+    font-weight: 700;
+    color: var(--text-normal-primary, #1B1B1B);
+    margin: 0;
+    line-height: normal;
+}
+
+/* Paragraphs: 16px, line-height 24px */
+.section.multitab-container .multitab-content.content-tab-light p {
+    font-size: 16px;
+    font-family: 'Red Hat Display', sans-serif;
+    font-weight: 400;
+    line-height: 24px;
+    color: var(--text-normal-primary, #1B1B1B);
+    margin: 0;
+}
+
+/* Bold text inside paragraphs: font-weight 700 */
+.section.multitab-container .multitab-content.content-tab-light strong {
+    font-weight: 700;
+    color: var(--text-normal-primary, #1B1B1B);
+}
+
+/* Lists inside content-tab-light */
+.section.multitab-container .multitab-content.content-tab-light ul {
+    font-size: 16px;
+    font-family: 'Red Hat Display', sans-serif;
+    font-weight: 400;
+    line-height: 24px;
+    color: var(--text-normal-primary, #1B1B1B);
+    padding-left: 20px;
+    margin: 0;
+    list-style: disc;
+}
+
+.section.multitab-container .multitab-content.content-tab-light li {
+    font-size: 16px;
+    font-family: 'Red Hat Display', sans-serif;
+    font-weight: 400;
+    line-height: 24px;
+    color: var(--text-normal-primary, #1B1B1B);
+}
+
+/* Links inside content-tab-light */
+.section.multitab-container .multitab-content.content-tab-light a:any-link {
+    color: var(--text-normal-primary, #1B1B1B);
+    font-weight: 400;
+    text-decoration: underline;
+}
+
+/* Remove inter-block spacing for content-tab-light (single card flow) */
+.section.multitab-container .multitab-content.content-tab-light > div:not(:last-child) {
+    padding-bottom: 0;
+}
+
+/* Margin between consecutive rich-text wrappers inside content-tab-light */
+.section.multitab-container .multitab-content.content-tab-light > .cms-rich-text-wrapper:not(:last-child) {
+    margin-bottom: 0;
+}
+
+/* ─── Content Tab Light: botón "Descargar comunicado" en header row ──────────
+ * Posiciona el cms-button-wrapper en la esquina superior derecha del card,
+ * alineado con el h1. Botón compact: 32px height, 14px font, radius 32px.
+ * Basado en Figma: data-appearance="primary" data-size="compact".
+ * ──────────────────────────────────────────────────────────────────────────── */
+
+/* Make the rich-text card position relative so button can be absolute */
+.section.multitab-container .multitab-content.content-tab-light > .cms-rich-text-wrapper {
+    position: relative;
+}
+
+/* Position button wrapper at top-right of card, aligned with h1 */
+.section.multitab-container .multitab-content.content-tab-light .cms-rich-text-wrapper .cms-button-wrapper {
+    position: absolute;
+    top: 24px;
+    right: 24px;
+    z-index: 2;
+    width: auto;
+}
+
+/* Remove w-full from container */
+.section.multitab-container .multitab-content.content-tab-light .cms-button-wrapper .cms-button-container {
+    width: auto !important;
+}
+
+/* Compact button: 32px height, auto width, 32px radius */
+.section.multitab-container .multitab-content.content-tab-light .cms-button-wrapper .cms-button-element {
+    height: 32px !important;
+    width: auto !important;
+    padding: 0 16px !important;
+    border-radius: 32px !important;
+    gap: 8px !important;
+    outline: 2px solid var(--border-brand-primary-default, #1B1B1B) !important;
+    outline-offset: -2px !important;
+}
+
+/* Button text: 14px, bold, white */
+.section.multitab-container .multitab-content.content-tab-light .cms-button-wrapper .cms-button-element span {
+    font-size: 14px !important;
+    font-family: 'Red Hat Display', sans-serif !important;
+    font-weight: 700 !important;
+    color: var(--text-brand-primary, #FFFFFF) !important;
+}
+
+/* Button inner gap: 8px between icon and text */
+.section.multitab-container .multitab-content.content-tab-light .cms-button-wrapper .cms-button-element span > div {
+    gap: 8px !important;
+}
+
+/* Button icon: 16x16px */
+.section.multitab-container .multitab-content.content-tab-light .cms-button-wrapper .cms-button-element [data-name="icon"] {
+    width: 16px !important;
+    height: 16px !important;
+}
+
+/* Add right padding to h1 to prevent overlap with button */
+.section.multitab-container .multitab-content.content-tab-light .cms-rich-text-wrapper:has(.cms-button-wrapper) h1 {
+    padding-right: 180px;
+}
+
+/* Hide the plain custom-pdf button inside rich text (replaced by cms-button) */
+.section.multitab-container .multitab-content.content-tab-light .custom-pdf {
+    display: none;
+}

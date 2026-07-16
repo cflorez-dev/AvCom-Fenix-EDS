@@ -7,6 +7,7 @@ const servicePath = '../../../scripts/services/members/google-one-tap.service.js
 const aemPath = '../../../scripts/aem.js';
 const configPath = '../../../scripts/services/members/members-config.js';
 const storePath = '../../../scripts/services/members/session.store.js';
+const flagPath = '../../../scripts/services/members/members-flag.js';
 
 const setupDom = ({ cookie = '', pathname = '/' } = {}) => {
   const assign = vi.fn();
@@ -32,11 +33,15 @@ const setupDom = ({ cookie = '', pathname = '/' } = {}) => {
   return { assign, getInitOptions: () => initOptions, store };
 };
 
-const mockDeps = ({ status = 'anonymous', env = 'uat', oneTap } = {}) => {
+const mockDeps = ({
+  status = 'anonymous', env = 'uat', oneTap, membersEnabled = true,
+} = {}) => {
   const loadScript = vi.fn().mockResolvedValue(undefined);
   vi.doMock(aemPath, () => ({ loadScript }));
   vi.doMock(configPath, () => ({ loadMembersConfig: vi.fn().mockResolvedValue({ env, oneTap }) }));
   vi.doMock(storePath, () => ({ getSession: () => ({ status }) }));
+  // Kill-switch maestro ON por default; el caso OFF pasa membersEnabled:false.
+  vi.doMock(flagPath, () => ({ isMembersEnabled: vi.fn().mockResolvedValue(membersEnabled) }));
   return { loadScript };
 };
 
@@ -52,6 +57,14 @@ describe('members/google-one-tap.service', () => {
   it('NO inicializa si el usuario no es anónimo', async () => {
     setupDom();
     const { loadScript } = mockDeps({ status: 'authenticated' });
+    const { initOneTap } = await import(servicePath);
+    await initOneTap();
+    expect(loadScript).not.toHaveBeenCalled();
+  });
+
+  it('kill-switch OFF (AV_MEMBERS_ENABLED) → NO inyecta el SDK GSI de Google', async () => {
+    setupDom();
+    const { loadScript } = mockDeps({ membersEnabled: false });
     const { initOneTap } = await import(servicePath);
     await initOneTap();
     expect(loadScript).not.toHaveBeenCalled();

@@ -1,0 +1,616 @@
+{
+  "memberProfile": {
+    "memberProfileDetails": {
+      "memberAccount": {
+        "companyCode": "LM",
+        "programCode": "LMS",
+        "accountStatus": "A",
+        "creationDate": "19-Jun-2026 00:00:00",
+        "tier": "Diamond Cenit One Million",
+        "tierReasonCode": "IAV05",
+        "tierFromDate": "22-Jun-2026",
+        "elapsedAccountTime": "0",
+        "memberProfile": {
+          "membershipNumber": "95939493904",
+          "membershipType": "I",
+          "membershipStatus": "A",
+          "enrollmentSource": "W",
+          "pin": false,
+          "individualInfo": {
+            "memberNationality": "8010",
+            "preferredLanguage": "ES",
+            "preferredAddress": "H",
+            "preferredEmailAddress": "H",
+            "preferredPhoneNumber": "HP",
+            "title": "U",
+            "givenName": "Enrique",
+            "secondName": "",
+            "familyName": "Castellanos",
+            "secondLastName": "",
+            "displayName": "",
+            "userName": null,
+            "gender": "U",
+            "dateOfBirth": "27-Mar-2000",
+            "age": 26,
+            "countryOfResidence": "8010",
+            "memberContactInfos": [
+              {
+                "addressType": "H",
+                "addressLine1": null,
+                "addressLine2": null,
+                "city": null,
+                "state": null,
+                "country": null,
+                "zipCode": "0",
+                "addressInvalid": "false",
+                "emailAddress": "pruebas.diamond0626@yopmail.com",
+                "phoneNumber": null
+              }
+            ]
+          },
+          "emergencyContact": [],
+          "redressInformation": [],
+          "document": [
+            {
+              "documentType": "I",
+              "documentNumber": "959394939422",
+              "issuedCountryCode": "8010",
+              "givenName": "",
+              "familyName": "Castellanos",
+              "sequenceNumber": "1",
+              "securedFlag": null,
+              "updatedDate": "22-Jun-2026",
+              "operationFlag": null
+            }
+          ],
+          "termsConditions": [
+            {
+              "code": "TCPLM",
+              "acceptanceDate": "19-Jun-2026 09:00:00",
+              "acceptedValue": true,
+              "acceptedValueIndicator": "Y",
+              "dynAttrTermsId": "1",
+              "dynAttrAcceptanceDateId": "37"
+            },
+            {
+              "code": "TCCIT",
+              "acceptanceDate": null,
+              "acceptedValue": false,
+              "acceptedValueIndicator": null,
+              "dynAttrTermsId": null,
+              "dynAttrAcceptanceDateId": null
+            },
+            {
+              "code": "TCTDD",
+              "acceptanceDate": "19-Jun-2026 09:00:00",
+              "acceptedValue": true,
+              "acceptedValueIndicator": "B",
+              "dynAttrTermsId": "2",
+              "dynAttrAcceptanceDateId": "41"
+            },
+            {
+              "code": "TCPTP",
+              "acceptanceDate": null,
+              "acceptedValue": false,
+              "acceptedValueIndicator": null,
+              "dynAttrTermsId": null,
+              "dynAttrAcceptanceDateId": null
+            },
+            {
+              "code": "TCEDCAV",
+              "acceptanceDate": null,
+              "acceptedValue": false,
+              "acceptedValueIndicator": null,
+              "dynAttrTermsId": null,
+              "dynAttrAcceptanceDateId": null
+            },
+            {
+              "code": "TCEDCLM",
+              "acceptanceDate": null,
+              "acceptedValue": false,
+              "acceptedValueIndicator": null,
+              "dynAttrTermsId": null,
+              "dynAttrAcceptanceDateId": null
+            },
+            {
+              "code": "TCEDCST",
+              "acceptanceDate": null,
+              "acceptedValue": false,
+              "acceptedValueIndicator": null,
+              "dynAttrTermsId": null,
+              "dynAttrAcceptanceDateId": null
+            },
+            {
+              "code": "TCEDCOP",
+              "acceptanceDate": null,
+              "acceptedValue": false,
+              "acceptedValueIndicator": null,
+              "dynAttrTermsId": null,
+              "dynAttrAcceptanceDateId": null
+            },
+            {
+              "code": "TCEDCMR",
+              "acceptanceDate": null,
+              "acceptedValue": false,
+              "acceptedValueIndicator": null,
+              "dynAttrTermsId": null,
+              "dynAttrAcceptanceDateId": null
+            },
+            {
+              "code": "DTFIP",
+              "acceptanceDate": null,
+              "acceptedValue": false,
+              "acceptedValueIndicator": null,
+              "dynAttrTermsId": null,
+              "dynAttrAcceptanceDateId": null
+            },
+            {
+              "code": "DTHCE",
+              "acceptanceDate": null,
+              "acceptedValue": false,
+              "acceptedValueIndicator": null,
+              "dynAttrTermsId": null,
+              "dynAttrAcceptanceDateId": null
+            },
+            {
+              "code": "DTAOS",
+              "acceptanceDate": null,
+              "acceptedValue": false,
+              "acceptedValueIndicator": null,
+              "dynAttrTermsId": null,
+              "dynAttrAcceptanceDateId": null
+            },
+            {
+              "code": "DTASH",
+              "acceptanceDate": null,
+              "acceptedValue": false,
+              "acceptedValueIndicator": null,
+              "dynAttrTermsId": null,
+              "dynAttrAcceptanceDateId": null
+            },
+            {
+              "code": "DTAPO",
+              "acceptanceDate": null,
+              "acceptedValue": false,
+              "acceptedValueIndicator": null,
+              "dynAttrTermsId": null,
+              "dynAttrAcceptanceDateId": null
+            },
+            {
+              "code": "SHOPTC",
+              "acceptanceDate": null,
+              "acceptedValue": false,
+              "acceptedValueIndicator": null,
+              "dynAttrTermsId": null,
+              "dynAttrAcceptanceDateId": null
+            }
+          ]
+        }
+      },
+      "vipAccess": {
+        "access": "NO"
+      },
+      "applicableRegion": {
+        "value": "COL"
+      },
+      "cobrandInfo": [],
+      "concierge": {
+        "miles": {},
+        "tier": "N"
+      }
+    }
+  },
+  "eliteProgram": {
+    "qualified": [
+      {
+        "type": "av-miles",
+        "amount": 15000
+      },
+      {
+        "type": "avstar",
+        "amount": 45000
+      },
+      {
+        "type": "segments",
+        "amount": 0
+      },
+      {
+        "type": "dollars",
+        "amount": 0
+      },
+      {
+        "type": "historic",
+        "amount": 15000
+      }
+    ],
+    "status": {
+      "current": "diamondone",
+      "expiryDate": "2029-02-28",
+      "cenitStatus": "Diamond Cenit One Million"
+    },
+    "tier": "Diamond Cenit One Million",
+    "summary": [
+      {
+        "id": "CARRENQM",
+        "type": "DECARRENQM",
+        "totalAccuredpoints": 0,
+        "totalRedeemedpoints": 0,
+        "points": 0,
+        "description": "Car Rentals QM"
+      },
+      {
+        "id": "HOTELBQM",
+        "type": "DEHOTELBQM",
+        "totalAccuredpoints": 0,
+        "totalRedeemedpoints": 0,
+        "points": 0,
+        "description": "Hotel bookings QM"
+      },
+      {
+        "id": "AVLMCOBQM",
+        "type": "DEAVLMCOBQM",
+        "totalAccuredpoints": 0,
+        "totalRedeemedpoints": 0,
+        "points": 0,
+        "description": "Avianca LM CreditCard QM"
+      },
+      {
+        "id": "LMEMOQM",
+        "type": "DELMEMOQM",
+        "totalAccuredpoints": 0,
+        "totalRedeemedpoints": 0,
+        "points": 0,
+        "description": "Qualifying commercial miles"
+      },
+      {
+        "id": "LMPMOQM",
+        "type": "DELMPMOQM",
+        "totalAccuredpoints": 0,
+        "totalRedeemedpoints": 0,
+        "points": 0,
+        "description": "LifeMiles Plus Money QM"
+      },
+      {
+        "id": "LMTURQM",
+        "type": "DELMTURQM",
+        "totalAccuredpoints": 0,
+        "totalRedeemedpoints": 0,
+        "points": 0,
+        "description": "Qualifying commercial miles"
+      },
+      {
+        "id": "MYMQM",
+        "type": "DEMYMQM",
+        "totalAccuredpoints": 0,
+        "totalRedeemedpoints": 0,
+        "points": 0,
+        "description": "Multiply Your Miles QM"
+      },
+      {
+        "id": "AVANCQM",
+        "type": "DEAVANCQM",
+        "totalAccuredpoints": 0,
+        "totalRedeemedpoints": 0,
+        "points": 0,
+        "description": "Avianca Ancillaries QM"
+      },
+      {
+        "id": "STARAQM",
+        "type": "DESTARAQM",
+        "totalAccuredpoints": 0,
+        "totalRedeemedpoints": 0,
+        "points": 0,
+        "description": "StarAlliance QM"
+      },
+      {
+        "id": "MILPURQM",
+        "type": "DEMILPURQM",
+        "totalAccuredpoints": 0,
+        "totalRedeemedpoints": 0,
+        "points": 0,
+        "description": "Miles Purchase QM"
+      },
+      {
+        "id": "COMPARQM",
+        "type": "DECOMPARQM",
+        "totalAccuredpoints": 0,
+        "totalRedeemedpoints": 0,
+        "points": 0,
+        "description": "Commercial Partners QM"
+      },
+      {
+        "id": "UBERQM",
+        "type": "DEUBERQM",
+        "totalAccuredpoints": 0,
+        "totalRedeemedpoints": 0,
+        "points": 0,
+        "description": "Uber QM"
+      },
+      {
+        "id": "AVFLIQM",
+        "type": "DEAVFLIQM",
+        "totalAccuredpoints": 15000,
+        "totalRedeemedpoints": 0,
+        "points": 0,
+        "description": "Avianca Flights QM"
+      },
+      {
+        "id": "LMPAYQM",
+        "type": "DELMPAYQM",
+        "totalAccuredpoints": 0,
+        "totalRedeemedpoints": 0,
+        "points": 0,
+        "description": "LM Pay QM"
+      },
+      {
+        "id": "P2MAQM",
+        "type": "DEP2MAQM",
+        "totalAccuredpoints": 0,
+        "totalRedeemedpoints": 0,
+        "points": 0,
+        "description": "Points to Miles All QM"
+      },
+      {
+        "id": "BONUSQM",
+        "type": "DEBONUSQM",
+        "totalAccuredpoints": 0,
+        "totalRedeemedpoints": 0,
+        "points": 0,
+        "description": "DBonus Miles QM"
+      },
+      {
+        "id": "PAYAGOQM",
+        "type": "DEPAYAGOQM",
+        "totalAccuredpoints": 0,
+        "totalRedeemedpoints": 0,
+        "points": 0,
+        "description": "Pay and Go QM"
+      },
+      {
+        "id": "MILTRAQM",
+        "type": "DEMILTRAQM",
+        "totalAccuredpoints": 30000,
+        "totalRedeemedpoints": 0,
+        "points": 0,
+        "description": "Miles Transfer QM"
+      },
+      {
+        "id": "OTPAQM",
+        "type": "DEOTPAQM",
+        "totalAccuredpoints": 0,
+        "totalRedeemedpoints": 0,
+        "points": 0,
+        "description": "Other Partners QM"
+      },
+      {
+        "id": "CLUBLMQM",
+        "type": "DECLUBLMQM",
+        "totalAccuredpoints": 0,
+        "totalRedeemedpoints": 0,
+        "points": 0,
+        "description": "Miles Purchase QM"
+      }
+    ]
+  },
+  "lmBalance": {
+    "member": {
+      "memshpnum": "95939493904",
+      "lastUpd": "2026-07-03T20:52:56.659886Z"
+    },
+    "summarization": [
+      {
+        "type": "CR",
+        "amount": 0,
+        "totalAccrual": 0,
+        "detail": null
+      },
+      {
+        "type": "LM",
+        "amount": 30120,
+        "totalAccrual": 50000,
+        "detail": [
+          {
+            "grpId": "PNTGRP1",
+            "grpNam": "Redeemable Miles",
+            "grpDes": "Redeemable Miles in Member Account",
+            "amount": 30120,
+            "expDate": "2027-06-18T00:00:00Z",
+            "totalAccrual": 50000
+          }
+        ]
+      }
+    ]
+  },
+  "lmClubSubscription": {
+    "activeSuscriptions": [],
+    "plans": [
+      {
+        "idPlan": "29",
+        "name": "Plan 1",
+        "planOrder": 1,
+        "monthlyMiles": 600,
+        "anualMiles": 7200,
+        "pricePerMonth": 43238,
+        "promotion": {
+          "discount": 0,
+          "type": "",
+          "priceWithDiscount": 43238
+        },
+        "subscribed": false,
+        "id": 29
+      },
+      {
+        "idPlan": "38",
+        "name": "Plan 2",
+        "planOrder": 2,
+        "monthlyMiles": 1250,
+        "anualMiles": 15000,
+        "pricePerMonth": 82873,
+        "promotion": {
+          "discount": 0,
+          "type": "",
+          "priceWithDiscount": 82873
+        },
+        "subscribed": false,
+        "id": 38
+      },
+      {
+        "idPlan": "39",
+        "name": "Plan 3",
+        "planOrder": 3,
+        "monthlyMiles": 3000,
+        "anualMiles": 36000,
+        "pricePerMonth": 180160,
+        "promotion": {
+          "discount": 0,
+          "type": "",
+          "priceWithDiscount": 180160
+        },
+        "subscribed": false,
+        "id": 39
+      },
+      {
+        "idPlan": "40",
+        "name": "Plan 4",
+        "planOrder": 4,
+        "monthlyMiles": 6000,
+        "anualMiles": 72000,
+        "pricePerMonth": 356716,
+        "promotion": {
+          "discount": 0,
+          "type": "",
+          "priceWithDiscount": 356716
+        },
+        "subscribed": false,
+        "id": 40
+      }
+    ]
+  },
+  "lmBenefits": {
+    "member": {
+      "memshpnum": "95939493904",
+      "lastUpd": "2026-07-03T20:52:56.659886Z"
+    },
+    "summarization": [
+      {
+        "type": "EP",
+        "amount": 1052,
+        "totalAccrual": 1052,
+        "detail": [
+          {
+            "grpId": "PNTGRP59",
+            "grpNam": "Elite Benefits Sala VIP",
+            "grpDes": "Elite Benefits Sala VIP",
+            "amount": 1002,
+            "expDate": "2028-06-18T00:00:00Z",
+            "totalAccrual": 1002
+          },
+          {
+            "grpId": "PNTGRP60",
+            "grpNam": "Elite Benefits Upgrade",
+            "grpDes": "Elite Benefits Upgrade \r\n",
+            "amount": 2,
+            "expDate": "2028-06-18T00:00:00Z",
+            "totalAccrual": 2
+          },
+          {
+            "grpId": "PNTGRP61",
+            "grpNam": "EB upgrade WL America",
+            "grpDes": "Elite Benefits Seat Flatbed",
+            "amount": 12,
+            "expDate": "2028-06-18T00:00:00Z",
+            "totalAccrual": 12
+          },
+          {
+            "grpId": "PNTGRP62",
+            "grpNam": "EB Upgrade WL Doméstico",
+            "grpDes": "EB Upgrade WL Doméstico",
+            "amount": 12,
+            "expDate": "2028-06-18T00:00:00Z",
+            "totalAccrual": 12
+          },
+          {
+            "grpId": "PNTGRP69",
+            "grpNam": "Salas VIP Gol",
+            "grpDes": "Salas VIP Gol",
+            "amount": 8,
+            "expDate": "2028-06-18T00:00:00Z",
+            "totalAccrual": 8
+          },
+          {
+            "grpId": "PNTGRP71",
+            "grpNam": "Acomp Elite Benefits Sala VIP",
+            "grpDes": "Acomp Elite Benefits Sala VIP",
+            "amount": 13,
+            "expDate": "2028-06-18T00:00:00Z",
+            "totalAccrual": 13
+          },
+          {
+            "grpId": "PNTGRP73",
+            "grpNam": "Elite Benefits Sala VIP España",
+            "grpDes": "Elite Benefits Sala VIP España (MAD y BCN)",
+            "amount": 3,
+            "expDate": "2028-06-18T00:00:00Z",
+            "totalAccrual": 3
+          }
+        ]
+      }
+    ]
+  },
+  "lmLastThreeTransactions": {
+    "activityHistory": {
+      "title": "Actividad Reciente",
+      "transactions": [
+        {
+          "activityType": "STOTH",
+          "date": "JUL 02",
+          "iconFlag": "LM",
+          "index": 1,
+          "logo": {
+            "title": "Avianca logo",
+            "url": "https://d296xu67oj0g2g.cloudfront.net/lm_cms/images/CMS/LOGOS/COMERCIOS%20ALIADOS/ALL%20PARTNERS/AV_2.png"
+          },
+          "text": "Redención Aérea AV PNR AUCRHY",
+          "totalAmount": -8060,
+          "transactionReference": "ACT316581092"
+        },
+        {
+          "activityType": "STOTH",
+          "date": "JUL 02",
+          "iconFlag": "LM",
+          "index": 2,
+          "logo": {
+            "title": "Avianca logo",
+            "url": "https://d296xu67oj0g2g.cloudfront.net/lm_cms/images/CMS/LOGOS/COMERCIOS%20ALIADOS/ALL%20PARTNERS/AV_2.png"
+          },
+          "text": "Redención Aérea AV PNR AUCRHY",
+          "totalAmount": -1080,
+          "transactionReference": "ACT316581091"
+        },
+        {
+          "activityType": "STOTH",
+          "date": "JUL 02",
+          "iconFlag": "LM",
+          "index": 3,
+          "logo": {
+            "title": "Avianca logo",
+            "url": "https://d296xu67oj0g2g.cloudfront.net/lm_cms/images/CMS/LOGOS/COMERCIOS%20ALIADOS/ALL%20PARTNERS/AV_2.png"
+          },
+          "text": "Redención Aérea AV PNR AUCRHY",
+          "totalAmount": -10740,
+          "transactionReference": "ACT316581090"
+        }
+      ]
+    },
+    "profileInfo": [
+      {
+        "type": "lifetimeEarnings",
+        "value": "0"
+      },
+      {
+        "type": "lifetimeRedemptions",
+        "value": "-19880"
+      }
+    ]
+  }
+}

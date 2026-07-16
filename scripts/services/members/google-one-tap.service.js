@@ -1,6 +1,7 @@
 import { loadScript } from '../../aem.js';
 import { loadMembersConfig } from './members-config.js';
 import { getSession } from './session.store.js';
+import { isMembersEnabled } from './members-flag.js';
 
 const GSI_SRC = 'https://accounts.google.com/gsi/client';
 const FREQ_COOKIE = 'members-onetap-shown';
@@ -126,6 +127,9 @@ function buildAuthUrl(cfg, lang, redirectUri, pkce) {
  */
 // eslint-disable-next-line import/prefer-default-export
 export async function initOneTap() {
+  // Kill-switch maestro (defense-in-depth con el gate de scripts.js): con Members OFF
+  // nunca se inyecta el script GSI de Google (accounts.google.com/gsi/client) ni el prompt.
+  if (!(await isMembersEnabled())) return;
   if (getSession().status !== 'anonymous') return; // solo anónimo
 
   // Config del CF (CU-282): habilitación, frecuencia y rutas permitidas.
