@@ -1,10 +1,3 @@
-/* Override section max-width to allow full-width hero banner */
-main > .section.form-hero-header-banner-container {
-    max-width: 100% !important;
-    width: 100% !important;
-    margin: 0 !important;
-}
-
 /* Ensure block fills the wrapper */
 .form-hero-header-banner-wrapper > .form-hero-header-banner {
     width: 100%;

@@ -10,7 +10,7 @@ import htm from 'htm';
 import { Incrementer } from '../../atoms/incrementer/incrementer.js';
 import { Icon } from '../../atoms/icon/icon.js';
 import { Button } from '../../atoms/button/button.js';
-import { Alert } from '../alert/alert.js';
+import { Alert, LINK_STATE_CLASSES } from '../alert/alert.js';
 import { processContentHTML } from '../../helpers/process-content-html.js';
 import { sanitizeHTML } from '../../../scripts/utils/sanitize.js';
 
@@ -388,7 +388,23 @@ export const PassengerSelector = ({
         strongClassName: 'font-bold',
         processRelAttributes: true,
         linkButtonOptions: {
-          customClassName: '!text-[14px] !leading-[21px] py-0',
+          // Booking-box info banner: replicamos EXACTAMENTE el tratamiento que
+          // Alert (variante informative) aplica cuando NO se usa
+          // preserveRawHTML. El átomo LinkButton solo cambia color en
+          // hover/active, así que Alert le suma:
+          //   1. `!text-text-link-informative-active` para forzar #0E4C54 en
+          //      TODOS los estados (decisión de producto en informative).
+          //   2. `LINK_STATE_CLASSES` para el font-bold en hover/active/focus.
+          // Ver comentarios junto a LINK_STATE_CLASSES y linkButtonOptions
+          // dentro de alert.js.
+          //
+          // Estados resultantes:
+          //   - default:       #0E4C54, font-normal, underline
+          //   - hover/active:  #0E4C54, font-bold,   underline
+          //   - focus-visible: #0E4C54 + ring,        font-bold, underline
+          //   - disabled:      text-text-brand-disable + cursor-not-allowed
+          underline: true,
+          customClassName: `!text-[14px] !leading-[21px] py-0 !text-text-link-informative-active ${LINK_STATE_CLASSES}`,
           linkTarget: 'self',
         },
       },
@@ -648,7 +664,7 @@ export const PassengerSelector = ({
           class="absolute ${dropdownPositionStyles} bg-white rounded-[16px] shadow-[0px_2px_12px_0px_rgba(27,27,27,0.15)] p-[24px] z-50 flex flex-col gap-[16px] w-[359px]"
         >
           <!-- Title -->
-          <h3 class="!text-[16px] font-bold text-[var(--color-text-normal-primary)] leading-[normal] !mt-0 !mb-0 h-[21px]">${i18n['bookingBox.labels.whoFlies'] || '¿Quiénes vuelan?'}</h3>
+          <h3 class="!text-[16px] !font-bold text-[var(--color-text-normal-primary)] leading-[normal] !mt-0 !mb-0 h-[21px]">${i18n['bookingBox.labels.whoFlies'] || '¿Quiénes vuelan?'}</h3>
 
           <!-- Passenger List -->
           <div class="flex flex-col">
