@@ -10,7 +10,7 @@ import htm from 'htm';
 import { Incrementer } from '../../atoms/incrementer/incrementer.js';
 import { Icon } from '../../atoms/icon/icon.js';
 import { Button } from '../../atoms/button/button.js';
-import { Alert } from '../alert/alert.js';
+import { Alert, LINK_STATE_CLASSES } from '../alert/alert.js';
 import { processContentHTML } from '../../helpers/process-content-html.js';
 import { sanitizeHTML } from '../../../scripts/utils/sanitize.js';
 
@@ -388,18 +388,23 @@ export const PassengerSelector = ({
         strongClassName: 'font-bold',
         processRelAttributes: true,
         linkButtonOptions: {
-          // Booking-box info banner: opt-in to underline en el estado DEFAULT.
-          // El default de LinkButton es `underline: false` (sin underline en reposo,
-          // solo en hover/active). Aquí lo activamos para que el enlace luzca
-          // subrayado desde el estado en reposo — el resto de estados (hover,
-          // active, focus, disabled) los sigue heredando de getLinkButtonStyles.
+          // Booking-box info banner: replicamos EXACTAMENTE el tratamiento que
+          // Alert (variante informative) aplica cuando NO se usa
+          // preserveRawHTML. El átomo LinkButton solo cambia color en
+          // hover/active, así que Alert le suma:
+          //   1. `!text-text-link-informative-active` para forzar #0E4C54 en
+          //      TODOS los estados (decisión de producto en informative).
+          //   2. `LINK_STATE_CLASSES` para el font-bold en hover/active/focus.
+          // Ver comentarios junto a LINK_STATE_CLASSES y linkButtonOptions
+          // dentro de alert.js.
+          //
+          // Estados resultantes:
+          //   - default:       #0E4C54, font-normal, underline
+          //   - hover/active:  #0E4C54, font-bold,   underline
+          //   - focus-visible: #0E4C54 + ring,        font-bold, underline
+          //   - disabled:      text-text-brand-disable + cursor-not-allowed
           underline: true,
-          // Color del link en Alert informative = #0E4C54 (token
-          // --color-text-link-informative-active). Como aquí usamos
-          // `preserveRawHTML=true` en el Alert consumidor, replicamos lo que
-          // hace alert.js internamente (forzar el tono active en todos los
-          // estados) para mantener consistencia visual.
-          customClassName: '!text-text-link-informative-active !text-[14px] !leading-[21px] py-0',
+          customClassName: `!text-[14px] !leading-[21px] py-0 !text-text-link-informative-active ${LINK_STATE_CLASSES}`,
           linkTarget: 'self',
         },
       },
