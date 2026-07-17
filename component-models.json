@@ -804,6 +804,10 @@
             "value": "padding-y-32-desktop"
           },
           {
+            "name": "no-padding-x",
+            "value": "no-padding-x"
+          },
+          {
             "name": "padding-title",
             "value": "padding-title"
           },

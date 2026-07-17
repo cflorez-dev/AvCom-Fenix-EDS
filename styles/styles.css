@@ -334,6 +334,11 @@ main div.section.padding-title {
   padding-bottom: 0;
 }
 
+.section.no-padding-x {
+  padding-left: 0;
+  padding-right: 0;
+}
+
 /* Desktop >= 992px */
 @media (min-width: 992px) {
   .section.layout-1-2-992 {

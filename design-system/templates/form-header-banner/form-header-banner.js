@@ -126,7 +126,7 @@ export const FormHeaderBanner = ({
   return html`
   <div class=${containerClasses} data-alignment=${contentAlignment} ...${rest}>
     <div class="w-full py-8 relative inline-flex flex-col justify-center items-center gap-14">
-      <div class="self-stretch xl:px-8 flex flex-col justify-start items-center gap-9">
+      <div class="self-stretch flex flex-col justify-start items-center gap-9">
           <div data-alert="true" data-device="mob" data-form="true" class="w-full max-w-[1248px] rounded-[24px] shadow-[0px_2px_20px_2px_rgba(73,73,73,0.25)] flex flex-col min-[1024px]:flex-row justify-center items-start overflow-hidden">
               <div class="relative self-stretch h-[180px] min-[1024px]:h-auto min-[1024px]:flex-1 overflow-hidden">
                 ${imageData?.src ? html`
