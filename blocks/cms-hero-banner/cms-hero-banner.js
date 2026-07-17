@@ -110,7 +110,7 @@ export default async function decorate(block) {
 
   // Clear block and setup with Tailwind classes
   block.innerHTML = '';
-  block.className = 'cms-hero-banner h-[457px] min-[1248px]:h-[324px] p-4 min-[1248px]:p-6 rounded-3xl box-border overflow-hidden relative w-full text-[var(--text-normal-lighter)] flex justify-center items-end md:h-[457px]';
+  block.className = 'cms-hero-banner h-[457px] min-[1248px]:h-[324px] rounded-3xl box-border overflow-hidden relative w-full text-[var(--text-normal-lighter)] flex justify-center items-end md:h-[457px]';
 
   // Adjust image URL params for hero-quality rendering
   const heroImageUrl = (url, width) => {

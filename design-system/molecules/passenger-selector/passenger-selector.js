@@ -388,7 +388,18 @@ export const PassengerSelector = ({
         strongClassName: 'font-bold',
         processRelAttributes: true,
         linkButtonOptions: {
-          customClassName: '!text-[14px] !leading-[21px] py-0',
+          // Booking-box info banner: opt-in to underline en el estado DEFAULT.
+          // El default de LinkButton es `underline: false` (sin underline en reposo,
+          // solo en hover/active). Aquí lo activamos para que el enlace luzca
+          // subrayado desde el estado en reposo — el resto de estados (hover,
+          // active, focus, disabled) los sigue heredando de getLinkButtonStyles.
+          underline: true,
+          // Color del link en Alert informative = #0E4C54 (token
+          // --color-text-link-informative-active). Como aquí usamos
+          // `preserveRawHTML=true` en el Alert consumidor, replicamos lo que
+          // hace alert.js internamente (forzar el tono active en todos los
+          // estados) para mantener consistencia visual.
+          customClassName: '!text-text-link-informative-active !text-[14px] !leading-[21px] py-0',
           linkTarget: 'self',
         },
       },
@@ -648,7 +659,7 @@ export const PassengerSelector = ({
           class="absolute ${dropdownPositionStyles} bg-white rounded-[16px] shadow-[0px_2px_12px_0px_rgba(27,27,27,0.15)] p-[24px] z-50 flex flex-col gap-[16px] w-[359px]"
         >
           <!-- Title -->
-          <h3 class="!text-[16px] font-bold text-[var(--color-text-normal-primary)] leading-[normal] !mt-0 !mb-0 h-[21px]">${i18n['bookingBox.labels.whoFlies'] || '¿Quiénes vuelan?'}</h3>
+          <h3 class="!text-[16px] !font-bold text-[var(--color-text-normal-primary)] leading-[normal] !mt-0 !mb-0 h-[21px]">${i18n['bookingBox.labels.whoFlies'] || '¿Quiénes vuelan?'}</h3>
 
           <!-- Passenger List -->
           <div class="flex flex-col">
