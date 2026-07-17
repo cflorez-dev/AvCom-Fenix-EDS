@@ -27,6 +27,9 @@ indices:
       - '/es/footer'
       - '/es/index/**'
       - '/es/componentesmvp2'
+      - '/es/componentes-mvp2'
+      - '/es/test'
+      - '/es/test/**'
     target: /es/query-index.json
     properties:
       lastModified:
@@ -48,6 +51,9 @@ indices:
       - '/en/footer'
       - '/en/index/**'
       - '/en/componentesmvp2'
+      - '/en/componentes-mvp2'
+      - '/en/test'
+      - '/en/test/**'
     target: /en/query-index.json
     properties:
       lastModified:
@@ -69,6 +75,9 @@ indices:
       - '/pt/footer'
       - '/pt/index/**'
       - '/pt/componentesmvp2'
+      - '/pt/componentes-mvp2'
+      - '/pt/test'
+      - '/pt/test/**'
     target: /pt/query-index.json
     properties:
       lastModified:
@@ -90,6 +99,9 @@ indices:
       - '/fr/footer'
       - '/fr/index/**'
       - '/fr/componentesmvp2'
+      - '/fr/componentes-mvp2'
+      - '/fr/test'
+      - '/fr/test/**'
     target: /fr/query-index.json
     properties:
       lastModified:
