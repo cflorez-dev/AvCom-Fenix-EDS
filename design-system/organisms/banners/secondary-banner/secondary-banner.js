@@ -175,7 +175,12 @@ export const SecondaryBanner = ({
         }
         // Right-anchored at all md+ breakpoints so SVGs stay aligned with the second column
         // (image) regardless of viewport width. 87px offset keeps BG behind the condor.
-        bgSVG.setAttribute('class', 'absolute top-0 md:right-[87px] md:h-[243px] md:w-auto');
+        // Condor nativo 789x240. Ancho fijo (md) + h-full: en desktop/tablet el condor
+        // llena la altura dinamica (240-290) estirandose SOLO en alto. El estiramiento se
+        // logra con preserveAspectRatio="none" aplicado UNICAMENTE en el render desktop
+        // (renderSVG(..., true)); NO en el elemento, para que el condor mobile conserve su
+        // aspecto nativo (comparte el mismo <svg>).
+        bgSVG.setAttribute('class', 'absolute top-0 md:right-[87px] md:h-full md:w-[789px]');
 
         const strokeColor = condorStrokeColor || 'white';
         const vectorPaths = vectorSVG.querySelectorAll('path');
@@ -186,7 +191,8 @@ export const SecondaryBanner = ({
         });
         // Right-anchored at all md+ breakpoints so the condor follows the second column
         // (image) start as viewport shrinks, keeping engranaje with BG at any width.
-        vectorSVG.setAttribute('class', 'absolute top-0 md:right-[1px] md:h-[243px] md:w-auto');
+        // Condor stroke nativo 273x240: mismo criterio que el bg (estira solo en desktop).
+        vectorSVG.setAttribute('class', 'absolute top-0 md:right-[1px] md:h-full md:w-[273px]');
 
         // Set both SVGs atomically to prevent partial render
         setCondorBgSVG(bgSVG);
@@ -210,11 +216,18 @@ export const SecondaryBanner = ({
     isDesktop,
   ]);
 
-  const renderSVG = (svgElement) => {
+  // stretch=true inyecta preserveAspectRatio="none" (solo desktop/tablet) para que el
+  // condor se estire en alto y llene la altura dinamica sin conservar su aspecto. El
+  // render mobile llama sin flag => aspecto nativo intacto.
+  const renderSVG = (svgElement, stretch = false) => {
     if (!svgElement) return null;
+    let outer = svgElement.outerHTML;
+    if (stretch && !/\spreserveAspectRatio\s*=/i.test(outer)) {
+      outer = outer.replace(/<svg\b/i, '<svg preserveAspectRatio="none"');
+    }
     return html`
       <span
-        dangerouslySetInnerHTML=${{ __html: sanitizeSVG(svgElement.outerHTML) }}
+        dangerouslySetInnerHTML=${{ __html: sanitizeSVG(outer) }}
         class="block right-0 overflow-hidden"
         style=${{ lineHeight: 0 }}
       />
@@ -304,7 +317,7 @@ export const SecondaryBanner = ({
 
   return html`
     <div
-      class=${`max-w-xl w-full ${fullCoverImage ? 'h-[216px]' : 'h-auto md:min-h-[243px]'} min-[1024px]:h-[243px] relative rounded-[16px] shadow-[0px_2px_25px_2px_rgba(120,124,130,0.15)] my-[32px] mx-[16px] min-[1024px]:mx-[32px] overflow-hidden lg:pb-[18px]`}
+      class=${`max-w-xl w-full ${fullCoverImage ? 'h-[216px] min-[1024px]:h-[243px]' : 'h-auto md:min-h-[240px] md:max-h-[290px]'} relative rounded-[16px] shadow-[0px_2px_25px_2px_rgba(120,124,130,0.15)] my-[32px] mx-[16px] min-[1024px]:mx-[32px] overflow-hidden`}
       style=${bannerBackground}
       data-name="secondary-banner"
     >
@@ -352,21 +365,16 @@ export const SecondaryBanner = ({
       `}
 
       <!-- Desktop / Tablet Version (>= 768): layout avalado, sin cambios -->
-      <div class=${fullCoverImage ? 'w-full h-full' : 'hidden md:block w-full h-full'}>
+      <div class=${fullCoverImage ? 'w-full h-full' : 'hidden md:block w-full'}>
        <!-- Left content section -->
-        <div class=${`w-full ${fullCoverImage ? 'h-[216px] lg:h-[243px]' : 'h-[216px] md:h-[243px]'} p-0 absolute left-0 top-0 inline-flex flex-col justify-between items-start z-2`}>
+        <div class=${fullCoverImage
+          ? `w-full h-[216px] lg:h-[243px] p-0 absolute left-0 top-0 inline-flex flex-col justify-between items-start z-2`
+          : `w-full min-h-[240px] p-0 relative inline-flex flex-col justify-center items-start z-2`}>
           <div data-banner-mode=${mode} class=${` relative w-full ${fullCoverImage ? '' : 'min-[1024px]:w-[873px]'} flex flex-col justify-start items-start gap-10`}>
-          <!-- Background condor pattern -->
-            <div class=${`absolute top-0 w-[100%] pointer-events-none ${fullCoverImage ? 'h-[216px] lg:h-[243px]' : 'h-[216px] md:h-[243px]'} z-10`}>
-              ${renderSVG(condorBgSVG)}
-              ${renderSVG(condorVectorSVG)}
-              
-            </div>
-          <!-- Background condor pattern -->
           <div class=${`w-full h-full relative z-20 flex flex-row gap-[8px] md:gap-0 ${fullCoverImage ? 'md:min-h-[216px]' : 'md:min-h-[243px]'} lg:min-h-0`}>
-              <div class=${`min-w-0 h-fit md:h-[243px] lg:h-fit flex flex-col gap-[24px] justify-center md:justify-between lg:justify-center z-10 p-[16px] min-[1024px]:p-[24px] ${fullCoverImage ? 'w-full min-[1024px]:max-w-[510px]' : 'flex-1 md:max-w-[61%] lg:max-w-none'}`}>
+              <div class=${`min-w-0 h-fit ${fullCoverImage ? 'md:h-[243px]' : 'md:min-h-[240px]'} lg:h-fit flex flex-col gap-[24px] justify-center ${fullCoverImage ? 'md:justify-between lg:justify-center' : 'md:justify-center'} z-10 p-[16px] min-[1024px]:p-[24px] ${fullCoverImage ? 'w-full min-[1024px]:max-w-[510px]' : 'flex-1 md:max-w-[61%] lg:max-w-none'}`}>
                 <div class="z-10 self-stretch flex flex-col justify-center items-start gap-[4px]">
-                  <h2 class=${`line-clamp-none md:line-clamp-3 self-stretch justify-start ${textColorClasses} font-bold font-['Red_Hat_Display'] ${fullCoverImage ? 'banner-title-scaled' : '!text-[18px] md:!text-[24px] lg:!text-[28px] !leading-none'}`}>
+                  <h2 class=${`line-clamp-none md:line-clamp-3 self-stretch justify-start ${textColorClasses} font-bold font-['Red_Hat_Display'] ${fullCoverImage ? 'banner-title-scaled' : '!text-[18px] md:!text-[24px] lg:!text-[28px] !leading-tight'}`}>
                     ${title}
                   </h2>
                   <div class="line-clamp-none md:line-clamp-3 self-stretch justify-start ${textColorClasses} text-[14px] leading-[21px] md:text-[18px] md:leading-[27px] font-normal font-['Red_Hat_Display']">
@@ -403,18 +411,36 @@ export const SecondaryBanner = ({
           
 
         <!-- Right image section - Mobile picture (fullCover: < 1024px; non-full: < 1024px so tablet 768-1023 also uses mobile image) -->
-      <div class=${`absolute right-0 top-0 h-[216px] md:h-[243px] lg:hidden z-1 overflow-hidden ${fullCoverImage ? 'w-full max-w-full max-h-full' : 'max-w-[216px] max-h-[216px] w-full min-[480px]:w-[50%] md:max-w-[300px] md:max-h-none md:w-[300px]'}`}>
+      <div class=${`absolute right-0 ${fullCoverImage ? 'top-0 h-[216px] md:h-[243px]' : 'inset-y-0 h-full'} lg:hidden z-1 overflow-hidden ${fullCoverImage ? 'w-full max-w-full max-h-full' : 'max-w-[216px] max-h-full w-full min-[480px]:w-[50%] md:max-w-[300px] md:w-[300px]'}`}>
         <div class="w-full h-full relative">
           ${buildMobilePicture()}
         </div>
       </div>
 
         <!-- Right image section - Desktop picture (>= 1024px only) -->
-      <div class=${`hidden lg:block absolute top-0 h-[243px] z-1 overflow-hidden ${fullCoverImage ? 'left-0 w-full max-w-full' : 'left-0 ml-[597px] max-w-[651px] w-[651px]'}`}>
+      <div class=${`hidden lg:block absolute ${fullCoverImage ? 'top-0 h-[243px]' : 'inset-y-0 h-full'} z-1 overflow-hidden ${fullCoverImage ? 'left-0 w-full max-w-full' : 'left-0 ml-[597px] max-w-[651px] w-[651px]'}`}>
         <div class="w-full h-full relative">
           ${buildDesktopPicture()}
         </div>
       </div>
+
+        <!-- Condor overlay: hermano de las imágenes. El bloque md padre NO está
+             posicionado, así que el bloque contenedor de este absolute es el card
+             (relative, alto dinámico 240-290); con inset-y-0 llena esa altura y los
+             SVG con md:h-full resuelven. z-1 = sobre la imagen (por orden DOM) y bajo
+             el contenido (z-2/z-20).
+             El borde DERECHO del overlay define donde arrancan los SVG right-anchored,
+             y debe caer en el borde de la columna de imagen (como en Figma):
+             - Desktop (>=1024): imagen fija en ml-[597px] => overlay w-[873px] (0-873).
+             - Tablet (768-1023): imagen 300px right-anchored => overlay right-[26px]
+               (26 = 300 imagen - 273 vector - 1 offset), asi el vector arranca justo en
+               el borde izq de la imagen y no 26px adentro. -->
+        ${fullCoverImage ? '' : html`
+        <div class="absolute inset-y-0 left-0 right-[26px] min-[1024px]:right-auto min-[1024px]:w-[873px] pointer-events-none z-1">
+          ${renderSVG(condorBgSVG, true)}
+          ${renderSVG(condorVectorSVG, true)}
+        </div>
+        `}
 
       </div>
       <!-- /Desktop / Tablet Version -->

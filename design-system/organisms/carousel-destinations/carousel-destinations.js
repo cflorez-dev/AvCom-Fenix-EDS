@@ -246,6 +246,12 @@ export const CarouselDestinations = ({
 
     const { container, stride } = info;
 
+    // Suspend scroll-snap for the whole button-scroll burst (mobile/tablet use
+    // `scroll-snap-type: x mandatory`, which quantizes the rAF animation into a
+    // jump). Restored once the burst settles — see the timeout below — so rapid
+    // multi-clicks animate the same as desktop and touch swiping keeps its snap.
+    container.style.scrollSnapType = 'none';
+
     // If no animation in progress, snap current position to nearest card boundary
     if (targetScrollLeftRef.current === null) {
       targetScrollLeftRef.current = Math.round(container.scrollLeft / stride) * stride;
@@ -261,10 +267,11 @@ export const CarouselDestinations = ({
 
     smoothScrollTo(container, targetScrollLeftRef.current);
 
-    // Reset target ref after scroll animation settles
+    // Reset target ref + restore scroll-snap after the burst settles
     clearTimeout(animationTimeoutRef.current);
     animationTimeoutRef.current = setTimeout(() => {
       targetScrollLeftRef.current = null;
+      container.style.scrollSnapType = '';
       updateNavigationState();
     }, SCROLL_DURATION_MS + 50);
   };
@@ -276,6 +283,12 @@ export const CarouselDestinations = ({
 
     const { container, stride } = info;
     const maxScrollLeft = Math.max(0, container.scrollWidth - container.clientWidth);
+
+    // Suspend scroll-snap for the whole button-scroll burst (mobile/tablet use
+    // `scroll-snap-type: x mandatory`, which quantizes the rAF animation into a
+    // jump). Restored once the burst settles — see the timeout below — so rapid
+    // multi-clicks animate the same as desktop and touch swiping keeps its snap.
+    container.style.scrollSnapType = 'none';
 
     // If no animation in progress, snap current position to nearest card boundary
     if (targetScrollLeftRef.current === null) {
@@ -292,10 +305,11 @@ export const CarouselDestinations = ({
 
     smoothScrollTo(container, targetScrollLeftRef.current);
 
-    // Reset target ref after scroll animation settles
+    // Reset target ref + restore scroll-snap after the burst settles
     clearTimeout(animationTimeoutRef.current);
     animationTimeoutRef.current = setTimeout(() => {
       targetScrollLeftRef.current = null;
+      container.style.scrollSnapType = '';
       updateNavigationState();
     }, SCROLL_DURATION_MS + 50);
   };

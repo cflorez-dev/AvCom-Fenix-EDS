@@ -86,9 +86,11 @@ const TipsCards = ({
     ? 'tips-card-description self-stretch justify-start text-white text-lg font-normal leading-[1.5]'
     : 'tips-card-description self-stretch justify-start text-text-normal-primary text-sm font-normal leading-normal';
 
+  // El `!` vence al `p { font-size: clamp() }` global de styles.css, que al ir
+  // sin @layer gana a las utilidades de Tailwind (@layer utilities).
   const descriptionPClass = isDark
     ? 'text-lg font-normal leading-[1.5] !m-0'
-    : 'text-sm font-normal leading-normal !m-0';
+    : '!text-sm font-normal leading-normal !m-0';
 
   // Footer text (dark-only, opcional): Figma P500 → 20px Regular blanco
   // line-height 1.5. Se pinta como último bloque de la columna para aprovechar

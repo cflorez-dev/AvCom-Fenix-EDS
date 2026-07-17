@@ -7,16 +7,6 @@ main > .section.cms-secondary-banner-container {
   align-items: center;
 }
 
-/* When secondary banners are in a grid layout (e.g. grid-6-6), restore the
-   standard section alignment so they sit inside the 1248px content column.
-   Use the global section-padding variable so mobile/tablet get horizontal
-   insets (16 / 32 px) matching the original avianca.com grid gutters. */
-main > .section.cms-secondary-banner-container[class*="grid-"] {
-  max-width: 1248px !important;
-  margin: 0 auto !important;
-  padding: 32px var(--main-section-div-padding, 16px) !important;
-}
-
 /* Allow `.section.no-padding-y` to override the vertical padding even when the
    banner is in a grid layout (which uses !important for its 32px padding). */
 main > .section.cms-secondary-banner-container[class*="grid-"].no-padding-y {
