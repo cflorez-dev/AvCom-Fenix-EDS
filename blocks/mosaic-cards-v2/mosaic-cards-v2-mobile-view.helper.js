@@ -51,18 +51,11 @@ async function createMobileCarousel(allCards, groupId, config = {}) {
 
   // Create carousel container with ARIA
   const carouselContainer = document.createElement('div');
-  carouselContainer.className = 'mosaic-v2-mobile-carousel pb-6 relative';
+  carouselContainer.className = 'mosaic-v2-mobile-carousel pb-0 relative';
   carouselContainer.setAttribute('data-group-id', groupId);
   carouselContainer.setAttribute('role', 'region');
   carouselContainer.setAttribute('aria-label', 'Mosaic cards carousel');
   const lateralPadding = getTransversalLateralPadding();
-
-  // In autoplay, keep the side gutters on the outer container so the moving
-  // track does not visually consume internal wrapper padding while scrolling.
-  if (autoplay) {
-    carouselContainer.style.paddingLeft = `${lateralPadding}px`;
-    carouselContainer.style.paddingRight = `${lateralPadding}px`;
-  }
 
   // Create carousel wrapper with horizontal scroll and touch support
   const carouselWrapper = document.createElement('div');

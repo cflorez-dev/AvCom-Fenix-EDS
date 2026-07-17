@@ -156,7 +156,7 @@ export const FooterBottom = ({
     : theme === 'white'
       ? 'bg-[var(--color-background-brand-primary-lighter)]'
       : 'bg-[var(--bg-page-light)]';
-  const containerClasses = `footer-bottom-container flex flex-col items-center justify-center w-full py-[16px] px-[24px] ${bgClass} ${customClassName} ${theme === 'white' ? 'h-[54px]' : ''}`;
+  const containerClasses = `footer-bottom-container flex flex-col items-center justify-center w-full py-[16px] px-4 md:px-6 lg:px-8 ${bgClass} ${customClassName} ${theme === 'white' ? 'h-[54px]' : ''}`;
 
   // Color del copyright según el tema
   // Light / White: --brand-primary, Dark: --logo-avianca-light

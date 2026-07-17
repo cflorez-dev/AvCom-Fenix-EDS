@@ -252,12 +252,18 @@ export const Alert = ({
     : '';
 
   // Inner container classes
-  const fullWidthClasses = fullWidth
-    ? marqueeMode ? 'py-4 px-6 w-full ' : 'py-4 px-4 w-full border-none '
-      + 'text-[var(--paragraph-p200-size,1.4rem)] '
-      + 'font-[var(--paragraph-p200-weight,400)] '
-      + 'leading-[var(--line-height-150,1.5)]'
-    : 'px-4 py-4 border-none';
+  // Lateral padding: 16px mobile, 24px from 768px (md), 32px from 1024px (lg)
+  let fullWidthClasses;
+  if (fullWidth) {
+    fullWidthClasses = marqueeMode
+      ? 'py-4 px-4 md:px-6 lg:px-8 w-full '
+      : 'py-4 px-4 md:px-6 lg:px-8 w-full border-none '
+        + 'text-[var(--paragraph-p200-size,1.4rem)] '
+        + 'font-[var(--paragraph-p200-weight,400)] '
+        + 'leading-[var(--line-height-150,1.5)]';
+  } else {
+    fullWidthClasses = 'px-4 py-4 border-none';
+  }
   
   // Add outline for success and error variants (doesn't affect box size)
   const getOutlineClasses = () => {
