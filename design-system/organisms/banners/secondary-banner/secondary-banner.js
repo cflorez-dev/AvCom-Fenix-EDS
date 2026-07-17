@@ -317,7 +317,7 @@ export const SecondaryBanner = ({
 
   return html`
     <div
-      class=${`max-w-xl w-full ${fullCoverImage ? 'h-[216px] min-[1024px]:h-[243px]' : 'h-auto md:min-h-[240px] md:max-h-[290px]'} relative rounded-[16px] shadow-[0px_2px_25px_2px_rgba(120,124,130,0.15)] my-[32px] mx-[16px] min-[1024px]:mx-[32px] overflow-hidden lg:pb-[18px]`}
+      class=${`max-w-xl w-full ${fullCoverImage ? 'h-[216px] min-[1024px]:h-[243px]' : 'h-auto md:min-h-[240px] md:max-h-[290px]'} relative rounded-[16px] shadow-[0px_2px_25px_2px_rgba(120,124,130,0.15)] my-[32px] mx-[16px] min-[1024px]:mx-[32px] overflow-hidden`}
       style=${bannerBackground}
       data-name="secondary-banner"
     >
@@ -374,7 +374,7 @@ export const SecondaryBanner = ({
           <div class=${`w-full h-full relative z-20 flex flex-row gap-[8px] md:gap-0 ${fullCoverImage ? 'md:min-h-[216px]' : 'md:min-h-[243px]'} lg:min-h-0`}>
               <div class=${`min-w-0 h-fit ${fullCoverImage ? 'md:h-[243px]' : 'md:min-h-[240px]'} lg:h-fit flex flex-col gap-[24px] justify-center ${fullCoverImage ? 'md:justify-between lg:justify-center' : 'md:justify-center'} z-10 p-[16px] min-[1024px]:p-[24px] ${fullCoverImage ? 'w-full min-[1024px]:max-w-[510px]' : 'flex-1 md:max-w-[61%] lg:max-w-none'}`}>
                 <div class="z-10 self-stretch flex flex-col justify-center items-start gap-[4px]">
-                  <h2 class=${`line-clamp-none md:line-clamp-3 self-stretch justify-start ${textColorClasses} font-bold font-['Red_Hat_Display'] ${fullCoverImage ? 'banner-title-scaled' : '!text-[18px] md:!text-[24px] lg:!text-[28px] !leading-none'}`}>
+                  <h2 class=${`line-clamp-none md:line-clamp-3 self-stretch justify-start ${textColorClasses} font-bold font-['Red_Hat_Display'] ${fullCoverImage ? 'banner-title-scaled' : '!text-[18px] md:!text-[24px] lg:!text-[28px] !leading-tight'}`}>
                     ${title}
                   </h2>
                   <div class="line-clamp-none md:line-clamp-3 self-stretch justify-start ${textColorClasses} text-[14px] leading-[21px] md:text-[18px] md:leading-[27px] font-normal font-['Red_Hat_Display']">

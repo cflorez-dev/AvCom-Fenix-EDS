@@ -13,8 +13,12 @@ const html = htm.bind(h);
  * que usan los `<u>` anidados (`group-hover/link:font-[700]`) para engordar junto con
  * el enlace; sin ella, un tramo subrayado se quedaría en 400 mientras el resto pasa a
  * 700. El LinkButton no aporta ninguna de estas clases: solo cambia el color.
+ *
+ * Se exporta para que consumers que usan `preserveRawHTML=true` (p.ej. booking-box
+ * → passenger-selector) puedan replicar EXACTAMENTE el mismo tratamiento de enlace
+ * sin duplicar strings.
  */
-const LINK_STATE_CLASSES = 'group/link hover:font-bold active:font-bold '
+export const LINK_STATE_CLASSES = 'group/link hover:font-bold active:font-bold '
   + 'focus:font-bold focus-visible:font-bold';
 
 /**

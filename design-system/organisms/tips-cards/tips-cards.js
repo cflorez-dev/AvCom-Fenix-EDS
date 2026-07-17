@@ -57,7 +57,7 @@ const TipsCards = ({
                   class="tips-card-description self-stretch justify-start text-text-normal-primary text-sm font-normal leading-normal"
                   dangerouslySetInnerHTML=${{
     __html: processContentHTML(card.description || '', 'informative', {
-      pClassName: 'text-sm font-normal leading-normal !m-0',
+      pClassName: '!text-sm font-normal leading-normal !m-0',
     }),
   }}
                 ></div>
