@@ -32,6 +32,7 @@ import {
   setStoredCountry,
 } from '../header/language-country-selector.js';
 import { ensurePOSDataLoaded } from '../header/get-pos-data.js';
+import { syncPoscodeInAddressBar } from '../../utils/poscode-url.helper.js';
 import { GeoConflictModal } from '../../../design-system/molecules/geo-conflict-modal/geo-conflict-modal.js';
 
 const html = htm.bind(h);
@@ -221,6 +222,10 @@ export async function maybeShowGeoConflictModal() {
     // re-render. No need to persist dismissal: after the reload the user is
     // IN the geo POS, so there's no conflict anymore.
     setStoredCountry(state.geoPos);
+    // A reload replays the address bar as-is. If the user arrived with a
+    // `?poscode=` deep-link, that param is Level 1 and would overwrite the POS
+    // they just accepted — sync it first.
+    syncPoscodeInAddressBar(state.geoPos);
     clearConflictState();
     unmountModal(container);
     window.location.reload();
