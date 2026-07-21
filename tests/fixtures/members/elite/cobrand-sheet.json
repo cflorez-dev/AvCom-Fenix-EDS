@@ -1,0 +1,54 @@
+{
+  "total": 3,
+  "offset": 0,
+  "limit": 3,
+  "data": [
+    {
+      "pos": "CO",
+      "partnerCode": "CLRSV",
+      "nombre_tarjeta": "Avianca Lifemiles Visa Infinite Silver",
+      "banco_emisor": "Bancolombia",
+      "imagen_url": "https://publish-p34631-e1321407.adobeaemcloud.com/content/dam/avianca/cards/clrsv.png",
+      "texto_chip": "3,230 millas",
+      "color_fondo_chip": "#7B2D8B",
+      "color_texto_chip": "#FFFFFF",
+      "beneficio_1_texto": "Tiquetes en canales de Avianca",
+      "beneficio_1_valor": "2 millas por cada USD",
+      "beneficio_2_texto": "Millas extra en vuelos con Avianca",
+      "beneficio_2_valor": "+10% millas",
+      "beneficio_3_texto": "Descuento en ingreso a salas VIP",
+      "beneficio_3_valor": "50% descuento",
+      "url_ver_mas": "/es/tarjetas/beneficios",
+      "orden_aparicion": "2",
+      "accion_agregar": "true",
+      "accion_solicitar": "true"
+    },
+    {
+      "pos": "CO",
+      "partnerCode": "VISA_BANCOL_CO",
+      "nombre_tarjeta": "Avianca Lifemiles Visa",
+      "banco_emisor": "Bancolombia",
+      "imagen_url": "https://publish-p34631-e1321407.adobeaemcloud.com/content/dam/avianca/cards/visa-bancol.png",
+      "texto_chip": "",
+      "beneficio_1_texto": "Compras en el exterior",
+      "beneficio_1_valor": "1 milla por cada USD",
+      "url_ver_mas": "javascript:alert('xss')",
+      "orden_aparicion": "1",
+      "accion_agregar": "true",
+      "accion_solicitar": "false"
+    },
+    {
+      "pos": "PE",
+      "partnerCode": "VISA_BCP_PE",
+      "nombre_tarjeta": "Avianca Lifemiles Visa BCP",
+      "banco_emisor": "BCP",
+      "imagen_url": "",
+      "beneficio_1_texto": "Vuelos con Avianca",
+      "beneficio_1_valor": "1.5 millas por cada USD",
+      "url_ver_mas": "/pe/tarjetas",
+      "orden_aparicion": "1",
+      "accion_agregar": "false",
+      "accion_solicitar": "true"
+    }
+  ]
+}

@@ -953,6 +953,21 @@ async function loadEager(doc) {
   // Start locale resolution early but don't block DOM work that doesn't need it
   const localeReady = initLocaleGlobals();
 
+  // Darksite gate: si el modo contingencia está activo, monta el interstitial
+  // ANTES de body.appear para evitar flash del sitio normal. Acotado a 900ms
+  // y fail-open: nunca bloquea el paint ni rompe la carga.
+  // Spec: docs/superpowers/specs/2026-07-07-darksite-design.md
+  try {
+    const { runDarksiteGate } = await import('./services/darksite/darksite-gate.js');
+    await Promise.race([
+      runDarksiteGate(),
+      new Promise((resolve) => { setTimeout(resolve, 900); }),
+    ]);
+  } catch (error) {
+    // eslint-disable-next-line no-console
+    console.warn('[scripts] Darksite gate failed (fail-open):', error);
+  }
+
   decorateTemplateAndTheme();
   const main = doc.querySelector('main');
   if (main) {
@@ -1129,14 +1144,32 @@ async function loadLazy(doc) {
 
   // Load header and footer without blocking content visibility.
   const headerElement = doc.querySelector('header');
-  await Promise.all([
-    headerElement ? loadHeader(headerElement) : Promise.resolve(),
-    loadFooter(doc.querySelector('footer')),
-  ]);
+
+  // Darksite: en las landings de detalle (`/darksite/{lang}/...`, gated por
+  // AV_DARKSITE_DETAIL_PAGES_ROOT + enabled) se carga el chrome propio del
+  // darksite (HeaderDarksite light + FooterBottom darksite-light) en vez del
+  // header/footer general. Si lo toma, se salta el loadHeader/loadFooter normal
+  // y su espera de header-template-ready (el chrome darksite no emite ese evento
+  // ni crea `.header-wrapper`). Fail-open: cualquier error cae al chrome normal.
+  let darksiteChromeLoaded = false;
+  try {
+    const { maybeLoadDarksiteChrome } = await import('./services/darksite/darksite-chrome.js');
+    darksiteChromeLoaded = await maybeLoadDarksiteChrome(doc);
+  } catch (error) {
+    // eslint-disable-next-line no-console
+    console.warn('[scripts] Darksite chrome failed (fail-open):', error);
+  }
+
+  if (!darksiteChromeLoaded) {
+    await Promise.all([
+      headerElement ? loadHeader(headerElement) : Promise.resolve(),
+      loadFooter(doc.querySelector('footer')),
+    ]);
+  }
 
   // If header exists, wait for header-template-ready event to ensure header structure is ready
   // This ensures the header containers exist and child blocks have rendered
-  if (headerElement) {
+  if (headerElement && !darksiteChromeLoaded) {
     await new Promise((resolve) => {
       // Check if event already fired (containers exist)
       const headerContainer = document.querySelector('.header-wrapper');
@@ -1267,19 +1300,29 @@ async function loadDelayed() {
   window.setTimeout(() => import('./delayed.js'), 3000);
   // load anything that can be postponed to the latest here
 
-  // Members (P5): precargar el script de Lifemiles eager-ish pero fuera del critical
-  // path (loadDelayed) para el silent-check futuro de 1255354. Dynamic import → no entra
-  // al bundle eager. El botón sign-in lo carga on-demand igual si esto falla.
-  import('./services/members/lm-script.loader.js')
-    .then(({ loadLmScript }) => loadLmScript())
-    .catch(() => { /* no-op: carga on-demand desde login.service */ });
+  // Members: kill-switch maestro (AV_MEMBERS_ENABLED en environment.json). Con la feature
+  // OFF ni siquiera se cargan los módulos ni se inyectan los scripts de terceros (Lifemiles
+  // + Google One Tap). Los servicios además tienen un guard interno (defense-in-depth).
+  import('./services/members/members-flag.js')
+    .then(({ isMembersEnabled }) => isMembersEnabled())
+    .then((membersOn) => {
+      if (!membersOn) return;
 
-  // Members (P2 / CU-282): Google One Tap. El gate de ruta (Home + páginas corporativas) lo
-  // resuelve `initOneTap` desde el CF (`config.oneTap.corporatePaths`; default solo Home si el
-  // CF cae), junto con `enabled`, frecuencia y el guard de sesión anónima. Import incondicional:
-  // el servicio corta temprano (sesión/ruta/frecuencia) sin trabajo extra.
-  import('./services/members/google-one-tap.service.js')
-    .then(({ initOneTap }) => initOneTap())
+      // Members (P5): precargar el script de Lifemiles eager-ish pero fuera del critical
+      // path (loadDelayed) para el silent-check futuro de 1255354. Dynamic import → no entra
+      // al bundle eager. El botón sign-in lo carga on-demand igual si esto falla.
+      import('./services/members/lm-script.loader.js')
+        .then(({ loadLmScript }) => loadLmScript())
+        .catch(() => { /* no-op: carga on-demand desde login.service */ });
+
+      // Members (P2 / CU-282): Google One Tap. El gate de ruta (Home + páginas corporativas) lo
+      // resuelve `initOneTap` desde el CF (`config.oneTap.corporatePaths`; default solo Home si el
+      // CF cae), junto con `enabled`, frecuencia y el guard de sesión anónima. Import incondicional:
+      // el servicio corta temprano (sesión/ruta/frecuencia) sin trabajo extra.
+      import('./services/members/google-one-tap.service.js')
+        .then(({ initOneTap }) => initOneTap())
+        .catch(() => { /* no-op */ });
+    })
     .catch(() => { /* no-op */ });
 }
 
@@ -1312,23 +1355,34 @@ async function loadPage() {
   // pintar; el redirect al login lo hace session.service. Ver gateMembersPortalEarly.
   gateMembersPortalEarly();
 
-  // Members: páginas-puente members/auth/* (callback / redirect-login / redirect-logout).
-  // Servicio por ruta (reemplaza al bloque): muestra loader + corre la lógica del modo.
-  if (window.location.pathname.includes('/members/auth/')) {
-    import('./services/members/members-auth.route.js')
-      .then(({ handleAuthRoute }) => handleAuthRoute())
-      .catch(() => { /* no-op */ });
-  }
+  // Members: kill-switch maestro (AV_MEMBERS_ENABLED). Con la feature OFF no se re-hidrata
+  // sesión, no se manejan rutas /members/auth ni el modal de error. El gate síncrono
+  // `gateMembersPortalEarly()` de arriba queda (es fail-open y en prod OFF no habrá páginas
+  // /members publicadas).
+  import('./services/members/members-flag.js')
+    .then(({ isMembersEnabled }) => isMembersEnabled())
+    .then((membersOn) => {
+      if (!membersOn) return;
 
-  // Members (1255354): re-hidratar la sesión desde cookies en cada page load (MPA).
-  // Singleton por página: setea el estado + perfil (sessionStorage) + gancho multi-tab.
-  import('./services/members/session.service.js')
-    .then(({ initSession }) => initSession())
-    .catch(() => { /* no-op */ });
+      // Members: páginas-puente members/auth/* (callback / redirect-login / redirect-logout).
+      // Servicio por ruta (reemplaza al bloque): muestra loader + corre la lógica del modo.
+      if (window.location.pathname.includes('/members/auth/')) {
+        import('./services/members/members-auth.route.js')
+          .then(({ handleAuthRoute }) => handleAuthRoute())
+          .catch(() => { /* no-op */ });
+      }
 
-  // Members: mostrar pending auth-error modal si existe (guardado por callback fallido).
-  import('./services/members/members-auth.route.js')
-    .then(({ showPendingErrorModal }) => showPendingErrorModal())
+      // Members (1255354): re-hidratar la sesión desde cookies en cada page load (MPA).
+      // Singleton por página: setea el estado + perfil (sessionStorage) + gancho multi-tab.
+      import('./services/members/session.service.js')
+        .then(({ initSession }) => initSession())
+        .catch(() => { /* no-op */ });
+
+      // Members: mostrar pending auth-error modal si existe (guardado por callback fallido).
+      import('./services/members/members-auth.route.js')
+        .then(({ showPendingErrorModal }) => showPendingErrorModal())
+        .catch(() => { /* no-op */ });
+    })
     .catch(() => { /* no-op */ });
 
   await loadEager(document);

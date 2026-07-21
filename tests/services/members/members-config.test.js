@@ -130,8 +130,8 @@ describe('members/members-config', () => {
 
   it('resuelve el placeholder {lang} del link por locale', async () => {
     const { getMembersConfigSync } = await import(configPath);
-    expect(getMembersConfigSync('es').cards[0].link).toBe('/es/members/elite');
-    expect(getMembersConfigSync('pt').cards[0].link).toBe('/pt/members/elite');
+    expect(getMembersConfigSync('es').cards[0].link).toBe('/es/members/profile/elite');
+    expect(getMembersConfigSync('pt').cards[0].link).toBe('/pt/members/profile/elite');
     expect(getMembersConfigSync('fr').cards[2].link).toBe('/fr/members/viajes');
   });
 
@@ -164,6 +164,6 @@ describe('members/members-config', () => {
     const { loadMembersConfig } = await import(configPath);
     const cfg = await loadMembersConfig('pt');
     expect(cfg.cards).toHaveLength(5);
-    expect(cfg.cards[0].link).toBe('/pt/members/elite');
+    expect(cfg.cards[0].link).toBe('/pt/members/profile/elite');
   });
 });

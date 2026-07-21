@@ -95,6 +95,22 @@ export const AlertSample = () => {
               onDismiss=${handleDismiss}
             />
           </div>
+
+          <div>
+            <h3 class="text-[var(--paragraph-p200-size)] font-medium mb-[var(--spacing-x-small)]">Darksite (sticky header banner - Figma 9611:7929)</h3>
+            <p class="text-[var(--paragraph-p200-size)] text-[var(--text-normal-secondary)] mb-[var(--spacing-x-small)]">
+              Black background, white text, Red Hat Display 16px. Used post-bypass when darksite is active and the user chose to continue on avianca.com.
+            </p>
+            <${Alert}
+              variant="darksite"
+              fullWidth=${true}
+              marqueeMode=${false}
+              preserveRawHTML=${true}
+              contentHTML="<p>Infórmate sobre la afectación del <strong>vuelo AV366 que cubría la ruta Bogotá - Miami</strong>. <a href='#'><strong>Más detalles del vuelo</strong></a>.</p>"
+              dismissible=${true}
+              onDismiss=${handleDismiss}
+            />
+          </div>
         </div>
       </section>
 

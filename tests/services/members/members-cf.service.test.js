@@ -132,8 +132,10 @@ describe('members/members-cf.service', () => {
       tcText: '<p>T&C <a href="/es/legal">link</a></p>',
     });
 
-    // tiers → dict por key
-    expect(cfg.tiers.gold).toEqual({
+    // tiers → dict por key. Subset match (toMatchObject): el tier propaga además
+    // ~28 campos de color del Paso 2 (colorGradient*, colorOverlay, pill*, etc.),
+    // hoy undefined con este fixture. Se asertan solo los campos legacy mapeados.
+    expect(cfg.tiers.gold).toMatchObject({
       displayName: 'LifeMiles Gold', colorStart: '#D4AF37', colorEnd: '#A8841A', textColor: '#1A1A1A', icon: 'loyalty/gold',
     });
 
@@ -184,27 +186,15 @@ describe('members/members-cf.service', () => {
     expect(cfg.hero.quickActions[2].icon).toBe('');
   });
 
-  it('normalizeMembersCF (1263924 — eliteGoals): proyecta el array top-level a dict por tierKey (lowercase)', async () => {
+  it('normalizeMembersCF: eliteGoals v1 ELIMINADO (T18) — ya no se proyecta', async () => {
     vi.doMock(aemDataPath, () => ({ fetchAEMData: vi.fn() }));
     const { normalizeMembersCF } = await import(servicePath);
-    const item = {
+    // Aunque el CF trajera el array v1, ya no se normaliza (el hero migró a v2).
+    const cfg = normalizeMembersCF({
       ...sampleItem,
-      eliteGoals: [
-        {
-          tierKey: 'gold', metaTotal: 40000, metaAvianca: 16000, metricTotal: 'av-miles', metricAvianca: 'avstar',
-        },
-        {
-          tierKey: 'Silver', metaTotal: 20000, metaAvianca: 8000, metricTotal: 'av-miles', metricAvianca: 'avstar',
-        },
-      ],
-    };
-    const cfg = normalizeMembersCF(item);
-    expect(Object.keys(cfg.eliteGoals).sort()).toEqual(['gold', 'silver']);
-    expect(cfg.eliteGoals.gold).toEqual({
-      metaTotal: 40000, metaAvianca: 16000, metricTotal: 'av-miles', metricAvianca: 'avstar',
+      eliteGoals: [{ tierKey: 'gold', metaTotal: 40000, metaAvianca: 16000 }],
     });
-    // tierKey 'Silver' → key lowercase 'silver'
-    expect(cfg.eliteGoals.silver.metaTotal).toBe(20000);
+    expect(cfg.eliteGoals).toBeUndefined();
   });
 
   it('normalizeMembersCF (Paso 5 — logout): sale del menuItem isLogout → {show,icon,redirectTo}', async () => {

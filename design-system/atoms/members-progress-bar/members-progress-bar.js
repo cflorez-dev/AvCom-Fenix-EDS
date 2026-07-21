@@ -1,5 +1,6 @@
 import { h } from '@dropins/tools/preact.js';
 import htm from 'htm';
+import { ProgressItem } from '../progress-item/progress-item.js';
 
 const html = htm.bind(h);
 
@@ -40,6 +41,33 @@ const html = htm.bind(h);
  * - `loading`: boolean — skeleton (animate-pulse).
  * - `completedAriaLabel`: string — texto SR del check. Default 'Completado'.
  * - `customClassName`: string.
+ *
+ * ## Props NUEVAS del panel de progreso elite (1271699 paso 8 — OPCIONALES,
+ * ## default = comportamiento actual del hero INTACTO)
+ * - `milestones`: array — hitos a renderizar SOBRE el track como `ProgressItem`s
+ *   (`{pos: 0..1, label, sublabel, state, labelAlign, icon}` — el modelo de
+ *   `goal-progress.logic.js`). Espaciado por `pos` (equidistante cuando el
+ *   modelo lo define así); labels alineados según `labelAlign` de cada item.
+ *   Con milestones el estado legacy `completed` NO aplica (el verde va por
+ *   hito, no por barra — AC bloque 5).
+ * - `fillPct`: number 0-100 — override del cálculo `value/goal` (fill piecewise
+ *   del modelo). Si viene, el fill usa este % y se ignora `completed`.
+ * - `trackColor`: string CSS — color del track (elite: `#EEEFF1`). Default el
+ *   de `surface`.
+ * - `trackHeight`: number px — alto del track. Default 10 (hero); elite usa 16.
+ * - `milestoneMarker`: 'check'|'flag' — marcador default de los hitos (cada
+ *   item puede traer el suyo: 'flag' para "Inicio"). Default 'check'.
+ * - `milestoneStateColor`: string CSS — color del estado `current` de los hitos
+ *   (token del tier). Default '#1b1b1b'.
+ * - `fabSlot`: {pct: number, kind: 'total'|'avianca'|'cenit'} — HOOK del FAB
+ *   acelerador: renderiza un ancla VACÍA y OCULTA posicionada en el % de
+ *   avance: `<span class="goal-progress-fab-slot" data-progress-pct="{pct}"
+ *     data-bar-kind="{kind}" hidden></span>`.
+ *   El ancla se emite SIEMPRE que haya fabSlot (contrato del hook intacto).
+ * - `fabContent`: vnode — ACTIVACIÓN del hook (1271694 paso 5): FAB + tooltip
+ *   ya posicionados por el caller (absolutos sobre el ancho de la barra). Se
+ *   renderiza en una capa `relative` que envuelve el track (el FAB de 40px no
+ *   entra en el track con overflow-hidden). Default null = DOM legacy intacto.
  */
 const SURFACE = {
   light: {
@@ -63,6 +91,14 @@ export const MembersProgressBar = ({
   loading = false,
   completedAriaLabel = 'Completado',
   customClassName = '',
+  milestones = null,
+  fillPct = null,
+  trackColor = '',
+  trackHeight = 10,
+  milestoneMarker = 'check',
+  milestoneStateColor = '#1b1b1b',
+  fabSlot = null,
+  fabContent = null,
   ...rest
 }) => {
   const s = SURFACE[surface] || SURFACE.light;
@@ -85,8 +121,13 @@ export const MembersProgressBar = ({
   const safeGoal = Number(goal) > 0 ? Number(goal) : 0;
   const rawValue = Math.max(0, Number(value) || 0);
   const safeValue = safeGoal > 0 ? Math.min(rawValue, safeGoal) : rawValue;
-  const pct = safeGoal > 0 ? Math.min(100, Math.round((safeValue / safeGoal) * 100)) : 0;
-  const completed = safeGoal > 0 && rawValue >= safeGoal;
+  // Modo elite (1271699): `fillPct` override (fill piecewise del modelo) — el
+  // verde "completed" legacy NO aplica (los estados van por hito).
+  const hasFillOverride = fillPct != null && Number.isFinite(Number(fillPct));
+  const overridePct = hasFillOverride ? Math.max(0, Math.min(100, Number(fillPct))) : 0;
+  const legacyPct = safeGoal > 0 ? Math.min(100, Math.round((safeValue / safeGoal) * 100)) : 0;
+  const pct = hasFillOverride ? overridePct : legacyPct;
+  const completed = !hasFillOverride && safeGoal > 0 && rawValue >= safeGoal;
 
   // Color del fill (sin ternario anidado → lint).
   // Prioridad: completed (verde) > fillStyle (tier theme) > variant (legacy).
@@ -101,6 +142,64 @@ export const MembersProgressBar = ({
 
   const fillInlineStyle = { width: completed ? '100%' : `${pct}%` };
   if (useFillStyle) fillInlineStyle.background = fillStyle;
+
+  // --- Modo elite (1271699): hitos sobre el track + track custom + hook FAB.
+  const milestonesArr = Array.isArray(milestones) ? milestones : [];
+  const msDenom = Math.max(1, milestonesArr.length - 1);
+  const translateFor = (align) => {
+    if (align === 'left') return '0';
+    if (align === 'right') return '-100%';
+    return '-50%';
+  };
+  const milestonesEl = milestonesArr.length ? html`
+    <div class="relative w-full min-h-[96px] md:min-h-[74px]" data-name="progress-milestones">
+      ${milestonesArr.map((ms, i) => {
+    const msPos = Number.isFinite(Number(ms.pos)) ? Number(ms.pos) : i / msDenom;
+    const align = ms.labelAlign || 'center';
+    return html`
+          <span
+            key=${`${ms.label || ''}-${i}`}
+            class="absolute bottom-0"
+            style=${{ left: `${msPos * 100}%`, transform: `translateX(${translateFor(align)})` }}
+          >
+            <${ProgressItem}
+              label=${ms.label}
+              sublabel=${ms.sublabel}
+              state=${ms.state}
+              align=${align}
+              icon=${ms.icon}
+              marker=${ms.marker || milestoneMarker}
+              stateColor=${ms.stateColor || milestoneStateColor}
+            />
+          </span>
+        `;
+  })}
+    </div>
+  ` : null;
+
+  // Track: alto custom (elite 16px) vía inline-style SOLO cuando difiere del
+  // default 10px (la clase legacy `h-[10px]` queda para el hero); color custom
+  // (elite `#EEEFF1`) pisa la clase de surface.
+  const trackStyle = {};
+  const trackH = Number(trackHeight) || 10;
+  if (trackH !== 10) trackStyle.height = `${trackH}px`;
+  if (trackColor) trackStyle.background = trackColor;
+
+  // Hook FAB (1271694): ancla vacía OCULTA en el % de avance. NO renderiza UI.
+  const fabPct = fabSlot ? Math.max(0, Math.min(100, Number(fabSlot.pct) || 0)) : 0;
+  const fabSlotEl = fabSlot ? html`
+    <span
+      class="goal-progress-fab-slot absolute top-1/2"
+      style=${{ left: `${fabPct}%` }}
+      data-progress-pct=${fabPct}
+      data-bar-kind=${fabSlot.kind || ''}
+      hidden
+    ></span>
+  ` : null;
+
+  // Header (label + contador): en modo elite la fila de texto vive en la
+  // molécula GoalProgressRow → sin label ni goal no hay header (evita "0/0").
+  const showHeader = !!(label || labelCompleted || labelAccessory || safeGoal > 0);
 
   // Label que se muestra: si está completed y hay `labelCompleted`, lo usamos
   // (Figma 518:26305 / 26523 → "Millas calificables completadas"); en otro
@@ -135,26 +234,42 @@ export const MembersProgressBar = ({
       data-variant=${variant}
       data-surface=${surface}
       data-completed=${completed}
+      data-milestones=${milestonesArr.length || undefined}
       ...${rest}
     >
-      <div class="flex items-center justify-between gap-2">
-        <span class="flex items-center gap-2 min-w-0 leading-none">
-          ${checkEl}
-          ${displayLabel && html`<span class=${`text-sm font-normal leading-[19px] truncate ${s.label}`}>${displayLabel}</span>`}
-          ${labelAccessory}
-        </span>
-        ${!completed && html`
-          <span class="text-sm leading-[19px] tabular-nums shrink-0 whitespace-nowrap">
-            <span class=${`font-bold ${s.value}`}>${formatValue(safeValue)}</span><span class=${`font-normal ${s.goal}`}>/${formatValue(safeGoal)}</span>
+      ${showHeader && html`
+        <div class="flex items-center justify-between gap-2">
+          <span class="flex items-center gap-2 min-w-0 leading-none">
+            ${checkEl}
+            ${displayLabel && html`<span class=${`text-sm font-normal leading-[19px] truncate ${s.label}`}>${displayLabel}</span>`}
+            ${labelAccessory}
           </span>
-        `}
-      </div>
-      <div class=${`relative h-[10px] w-full rounded-full overflow-hidden ${s.track}`}>
-        <div
-          class=${`absolute inset-y-0 left-0 rounded-full ${fillClass} motion-safe:transition-[width] motion-safe:duration-500 motion-safe:ease-out`}
-          style=${fillInlineStyle}
-        ></div>
-      </div>
+          ${!completed && html`
+            <span class="text-sm leading-[19px] tabular-nums shrink-0 whitespace-nowrap">
+              <span class=${`font-bold ${s.value}`}>${formatValue(safeValue)}</span><span class=${`font-normal ${s.goal}`}>/${formatValue(safeGoal)}</span>
+            </span>
+          `}
+        </div>
+      `}
+      ${milestonesEl}
+      ${(() => {
+    const trackEl = html`
+          <div class=${`relative h-[10px] w-full rounded-full overflow-hidden ${trackColor ? '' : s.track}`} style=${trackStyle}>
+            <div
+              class=${`absolute inset-y-0 left-0 rounded-full ${fillClass} motion-safe:transition-[width] motion-safe:duration-500 motion-safe:ease-out`}
+              style=${fillInlineStyle}
+            ></div>
+            ${fabSlotEl}
+          </div>
+        `;
+    if (!fabContent) return trackEl;
+    return html`
+          <div class="relative" data-name="progress-bar-fab-layer">
+            ${trackEl}
+            ${fabContent}
+          </div>
+        `;
+  })()}
     </div>
   `;
 };

@@ -23,6 +23,23 @@ import { MembersQuickActionsSample } from '../../../design-system/molecules/memb
 import { MembersEliteProgressSample } from '../../../design-system/molecules/members-elite-progress/members-elite-progress.sample.js';
 import { MembersHeroExpandedSample } from '../../../design-system/molecules/members-hero-expanded/members-hero-expanded.sample.js';
 import { MembersHeroSkeletonSample } from '../../../design-system/molecules/members-hero-skeleton/members-hero-skeleton.sample.js';
+import { MembersTabsSample } from '../../../design-system/molecules/members-tabs/members-tabs.sample.js';
+import { MembersEliteSkeletonSample } from '../../../design-system/molecules/members-elite-skeleton/members-elite-skeleton.sample.js';
+import { GoalCardSample } from '../../../design-system/molecules/goal-card/goal-card.sample.js';
+import { GoalProgressRowSample } from '../../../design-system/molecules/goal-progress-row/goal-progress-row.sample.js';
+import { CenitPanelSample } from '../../../design-system/molecules/cenit-panel/cenit-panel.sample.js';
+import { AchievementAlertSample } from '../../../design-system/molecules/achievement-alert/achievement-alert.sample.js';
+import { HowToEarnPanelSample } from '../../../design-system/molecules/how-to-earn-panel/how-to-earn-panel.sample.js';
+import { NewYearStatusModalSample } from '../../../design-system/molecules/new-year-status-modal/new-year-status-modal.sample.js';
+import { AcceleratorTooltipSample } from '../../../design-system/molecules/accelerator-tooltip/accelerator-tooltip.sample.js';
+import { CobrandCardSample } from '../../../design-system/molecules/cobrand-card/cobrand-card.sample.js';
+import { CobrandEmptyStateSample } from '../../../design-system/molecules/cobrand-empty-state/cobrand-empty-state.sample.js';
+import { LmPlusPlanCardSample } from '../../../design-system/molecules/lm-plus-plan-card/lm-plus-plan-card.sample.js';
+import { LmPlusBannerSample } from '../../../design-system/molecules/lm-plus-banner/lm-plus-banner.sample.js';
+import { DarksiteFlightInfoSample } from '../../../design-system/molecules/darksite-flight-info/darksite-flight-info.sample.js';
+import { DarksiteMultiFlightInfoSample } from '../../../design-system/molecules/darksite-multi-flight-info/darksite-multi-flight-info.sample.js';
+import { DarksiteContactInfoSample } from '../../../design-system/molecules/darksite-contact-info/darksite-contact-info.sample.js';
+import { DarksiteInformativeBannerSample } from '../../../design-system/molecules/darksite-informative-banner/darksite-informative-banner.sample.js';
 
 const html = htm.bind(h);
 
@@ -54,6 +71,36 @@ export const MoleculesSamples = () => html`
         <${MembersEliteProgressSample} />
         <${MembersHeroExpandedSample} />
         <${MembersHeroSkeletonSample} />
+
+        <!-- Members ProgElite+Ben (1271689) -->
+        <${MembersTabsSample} />
+        <${MembersEliteSkeletonSample} />
+
+        <!-- Members ProgElite+Ben tab Progreso (1271699) -->
+        <${GoalCardSample} />
+        <${GoalProgressRowSample} />
+        <${CenitPanelSample} />
+        <${AchievementAlertSample} />
+        <${HowToEarnPanelSample} />
+        <${NewYearStatusModalSample} />
+
+        <!-- Members ProgElite+Ben casos especiales (1271694) -->
+        <${AcceleratorTooltipSample} />
+        <${CobrandCardSample} />
+        <${CobrandEmptyStateSample} />
+        <${LmPlusPlanCardSample} />
+        <${LmPlusBannerSample} />
+        <!-- Darksite interstitial content (Figma 9611:8004) -->
+        <${DarksiteFlightInfoSample} />
+
+        <!-- Darksite interstitial content — variante multi vuelos (Figma 9611:7745) -->
+        <${DarksiteMultiFlightInfoSample} />
+
+        <!-- Darksite líneas de contacto aisladas (Figma 9611:8017) -->
+        <${DarksiteContactInfoSample} />
+
+        <!-- Darksite banner informativo del home (Figma 9611:7981) -->
+        <${DarksiteInformativeBannerSample} />
     </div>
         `;
 

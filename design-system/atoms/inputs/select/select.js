@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from '@dropins/tools/preact-hooks.js';
 import htm from 'htm';
 import { Icon } from '../../icon/icon.js';
 import { Tooltip } from '../../tooltip/tooltip.js';
+import { ListItem } from '../../list-item/list-item.js';
 
 const html = htm.bind(h);
 
@@ -28,6 +29,12 @@ const html = htm.bind(h);
  * @param {string} [props.customClassName=''] - Additional CSS classes
  * @param {string} [props.id] - HTML id attribute
  * @param {string} [props.name] - HTML name attribute for forms
+ * @param {('light'|'darksite'|'darksite-dark'|'darksite-light')} [props.theme='light'] - Visual theme.
+ *   'darksite' and 'darksite-dark' render the compact pill trigger + dark dropdown
+ *   variant (Figma language selector spec), built on top of the `ListItem` atom.
+ *   'darksite-light' renders the compact pill trigger with light styling (#B6B6B6
+ *   border, #1B1B1B text) + white dropdown panel, for darksite headers with
+ *   light/white background.
  * @param {Object} props.rest - Additional HTML attributes
  * @returns {import('preact').VNode}
  */
@@ -51,8 +58,11 @@ export const Select = ({
   customClassName = '',
   id,
   name,
+  theme = 'light',
   ...rest
 }) => {
+  const isDarksite = theme === 'darksite' || theme === 'darksite-dark' || theme === 'darksite-light';
+  const isDarksiteLight = theme === 'darksite-light';
   const [isOpen, setIsOpen] = useState(false);
   const [selectedValue, setSelectedValue] = useState(value);
   const [focusedIndex, setFocusedIndex] = useState(-1);
@@ -270,6 +280,125 @@ export const Select = ({
   useEffect(() => {
     setSelectedValue(value);
   }, [value]);
+
+  // Darksite theme: compact pill trigger (globe icon + label, no chevron) and
+  // a dark dropdown built on top of ListItem (Figma language selector spec).
+  if (isDarksite) {
+    const handleDarksiteOptionKeyDown = (e, option) => {
+      const optionElements = getOptionElements();
+      const currentIndex = optionElements.indexOf(e.currentTarget);
+
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        selectOption(option);
+      } else if (e.key === 'Escape') {
+        e.preventDefault();
+        setIsOpen(false);
+        setFocusedIndex(-1);
+        selectRef.current?.querySelector('[role="combobox"]')?.focus();
+      } else if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        if (currentIndex < optionElements.length - 1) {
+          optionElements[currentIndex + 1]?.focus();
+        }
+      } else if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        if (currentIndex > 0) {
+          optionElements[currentIndex - 1]?.focus();
+        }
+      }
+    };
+
+    return html`
+      <div
+        class="relative inline-block ${customClassName}"
+        data-name="select"
+        data-theme=${theme}
+        ref=${selectRef}
+        ...${rest}
+      >
+        <div
+          role="combobox"
+          aria-expanded=${isOpen}
+          aria-haspopup="listbox"
+          aria-controls=${id ? `${id}-listbox` : undefined}
+          aria-label=${label || placeholder || 'Seleccionar idioma'}
+          aria-disabled=${disabled}
+          tabIndex=${isInteractive ? 0 : -1}
+          onClick=${toggleDropdown}
+          onKeyDown=${handleKeyDown}
+          class=${`
+            inline-flex items-center justify-center gap-2 py-[7.5px] px-[12px]
+            rounded-full bg-transparent
+            border border-solid ${isDarksiteLight ? 'border-[#B6B6B6]' : 'border-[var(--color-language-dark-button-border)]'}
+            transition-colors
+            ${isInteractive ? (isDarksiteLight ? 'cursor-pointer hover:bg-[rgba(0,0,0,0.04)]' : 'cursor-pointer hover:bg-[rgba(255,255,255,0.08)]') : 'cursor-not-allowed opacity-50'}
+            focus-visible:outline focus-visible:outline-2 focus-visible:outline-[var(--color-language-dark-focus-border)] focus-visible:outline-offset-[-1px]
+          `}
+        >
+          <span class="w-4 h-4 flex-shrink-0 inline-flex items-center justify-center" aria-hidden="true">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M8 14.6667C11.6819 14.6667 14.6667 11.6819 14.6667 8C14.6667 4.3181 11.6819 1.33334 8 1.33334C4.3181 1.33334 1.33334 4.3181 1.33334 8C1.33334 11.6819 4.3181 14.6667 8 14.6667Z" stroke=${isDarksiteLight ? '#1B1B1B' : 'var(--color-language-dark-text)'} stroke-width="1.2"/>
+              <path d="M1.33334 8H14.6667" stroke=${isDarksiteLight ? '#1B1B1B' : 'var(--color-language-dark-text)'} stroke-width="1.2"/>
+              <path d="M8 1.33334C9.66695 3.15851 10.6136 5.52738 10.6667 8C10.6136 10.4727 9.66695 12.8415 8 14.6667C6.33305 12.8415 5.38643 10.4727 5.33334 8C5.38643 5.52738 6.33305 3.15851 8 1.33334Z" stroke=${isDarksiteLight ? '#1B1B1B' : 'var(--color-language-dark-text)'} stroke-width="1.2"/>
+            </svg>
+          </span>
+          <span
+            class="text-[14px] font-normal leading-[19px] whitespace-nowrap"
+            style=${`font-family: var(--font-family-primary); color: ${isDarksiteLight ? '#1B1B1B' : 'var(--color-language-dark-text)'};`}
+          >
+            ${displayText}
+          </span>
+        </div>
+
+        <!-- Darksite Dropdown Options -->
+        ${isOpen && isInteractive && html`
+          <div
+            id=${id ? `${id}-listbox` : undefined}
+            role="listbox"
+            aria-labelledby=${id ? `${id}-label` : undefined}
+            ref=${dropdownRef}
+            class="absolute z-50 top-[calc(100%+8px)] right-0 w-[260px] rounded-2xl overflow-hidden py-2 flex flex-col"
+            style=${`background: ${isDarksiteLight ? '#FFFFFF' : 'var(--color-language-dark-panel-bg)'}; box-shadow: 0 2px 20px 2px var(--color-language-dark-panel-shadow);`}
+          >
+            ${options.map((option) => html`
+              <${ListItem}
+                key=${option.value}
+                theme=${isDarksiteLight ? 'default' : 'darksite'}
+                role="option"
+                label=${option.label}
+                selected=${selectedValue === option.value}
+                showSelectedIcon=${true}
+                onClick=${() => selectOption(option)}
+                onKeyDown=${(e) => handleDarksiteOptionKeyDown(e, option)}
+              />
+            `)}
+          </div>
+        `}
+
+        <!-- Hidden native select for form integration -->
+        ${name && html`
+          <select
+            id=${id}
+            name=${name}
+            value=${selectedValue}
+            disabled=${disabled}
+            required=${required}
+            class="sr-only"
+            tabIndex="-1"
+            aria-hidden="true"
+          >
+            <option value="">${placeholder}</option>
+            ${options.map(option => html`
+              <option key=${option.value} value=${option.value}>
+                ${option.label}
+              </option>
+            `)}
+          </select>
+        `}
+      </div>
+    `;
+  }
 
   return html`
     <div

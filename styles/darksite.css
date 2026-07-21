@@ -1,0 +1,361 @@
+/* styles/darksite.css — piel del interstitial de contingencia (Figma spec
+   darksite-figma-spec.md §1.2-1.3, §3, §4). El chrome (header/footer/dropdown)
+   lo genera scripts/services/darksite/darksite-gate.js; las secciones internas
+   son contenido del fragment /darksite/{lang}/interstitial. */
+
+/* ---------- Modo bypass: headerAlert sticky + reemplazo del banner del home
+   (Figma darksite-figma-spec.md §1.1). El overlay ya no tapa la página: este
+   chrome lo genera darksite-gate.js cuando el usuario ya hizo bypass. Va antes
+   del bloque .darksite-interstitial (selectores no relacionados) para no
+   disparar no-descending-specificity con las reglas p/a de ahí abajo. ---------- */
+
+/* Wrapper del headerAlert: solo posicionamiento. Todo el chrome visual
+   (bg negro, texto blanco Red Hat Display 16px, padding, gap, icono, dismiss,
+   min-height por padding+contenido) lo pinta el molecule Alert con
+   `variant='darksite'` — ver design-system/molecules/alert/alert.js. Mismo
+   patrón que blocks/marquesina/marquesina.css: el wrapper hace sticky/z-index,
+   el DS hace el estilo. Cualquier regla ad-hoc de bg/color/font/padding aquí
+   pelearía con las utilities Tailwind del variant y crearía deriva del spec. */
+.darksite-header-alert {
+  position: sticky;
+  top: 0;
+
+  /* Por encima del header (z-index 500-1000, ver blocks/header/header.css);
+     por debajo del overlay del interstitial (2147483647). */
+  z-index: 2000;
+}
+
+/* Reemplazo de la marquesina promocional: mientras el darksite esté activo
+   (`body.darksite-active`, seteado por `mountHeaderAlert` en darksite-gate.js),
+   ocultamos cualquier `.marquesina-global-container` o su sección autorada. La
+   alerta darksite (`.darksite-header-alert`) actúa como única marquesina de la
+   página, coherente con la regla de negocio "sin promociones en darksite"
+   (mismo criterio que swapHomeBanner). `display:none` para no reservar
+   layout; `!important` porque marquesina.js puede aplicar display inline al
+   insertar/redimensionar. Combinado con el guard JS de marquesina.js
+   (`updateHeaderTop`/`scheduleMarquesinaFinalize` chequean `darksite-active`)
+   evita que sobreescriba `--marquee-height` mientras la alerta esté montada. */
+body.darksite-active .marquesina-global-container,
+body.darksite-active .section.marquesina-container {
+  display: none !important;
+}
+
+/* Sección original marcada por el autor (section-metadata `darksite-swap`):
+   se oculta y el gate inserta `.darksite-informative-banner` justo después.
+   Dentro monta el molecule `DarksiteInformativeBanner` (Preact) con data
+   del CF `getDarksiteBanner`. La tarjeta oscura (fondo, radios, tipografía,
+   CTA pill) la define el molecule via Tailwind + tokens del DS; este CSS
+   solo da el contenedor. */
+.darksite-swapped {
+  display: none;
+}
+
+.darksite-informative-banner {
+  width: 100%;
+}
+
+.darksite-interstitial {
+  /* Alias al token Tailwind `--color-darksite-bg` (definido en
+     styles/variables/tailwind.css). Se mantiene `--darksite-bg` como alias
+     local por retro-compat con selectores que ya lo usaban. */
+  --darksite-bg: var(--color-darksite-bg);
+
+  position: fixed;
+  inset: 0;
+  /* Máximo int32: garantiza que el overlay quede POR ENCIMA de vendors que
+     usan z-index topes (OneTrust cookie banner, chat widgets, etc.). Es el
+     máximo que respetan los browsers; cualquier valor mayor se satura al
+     mismo. Combinado con la regla `body.darksite-open` de abajo que oculta
+     el consentimiento mientras el overlay esté montado. */
+  z-index: 2147483647;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  background: var(--darksite-bg);
+  color: var(--text-normal-lighter, #fff);
+  font-family: var(--font-family-primary, 'Red Hat Display', sans-serif);
+}
+
+body.darksite-open {
+  overflow: hidden;
+}
+
+/* Oculta el banner/preferences-center de OneTrust y su dark-filter mientras
+   el overlay está montado — al cerrar (`darksite-open` se remueve del body al
+   click de "Continuar"), OneTrust reaparece y el usuario puede completar el
+   flujo de consentimiento normalmente. Selectores documentados oficialmente
+   por OneTrust y estables entre releases. `!important` porque OneTrust
+   aplica sus estilos inline con la misma especificidad. */
+body.darksite-open #onetrust-consent-sdk,
+body.darksite-open #onetrust-banner-sdk,
+body.darksite-open .onetrust-pc-dark-filter,
+body.darksite-open #ot-sdk-btn-floating {
+  display: none !important;
+}
+
+/* Header y footer del interstitial ya no viven aquí: los provee el DS
+   (organismos `HeaderDarksite` y `FooterBottom` con variantes 'dark' /
+   'darksite-dark'), consumidos por scripts/services/darksite/darksite-gate.js
+   vía `render(h(...), host)` de Preact. Este archivo mantiene solo:
+   • la piel del contenedor `.darksite-interstitial`
+   • el chrome de bypass (`.darksite-header-alert*` y `.darksite-informative-banner`)
+   • los estilos de contenido autorado dentro del overlay (contactos, vuelos,
+     CTAs, cta-group responsive). */
+
+/* ---------- Contenido (secciones del fragment) ---------- */
+
+.darksite-interstitial > div {
+  width: 100%;
+  max-width: 1024px;
+  margin: 0 auto;
+  padding: 24px 16px;
+  text-align: center;
+}
+
+.darksite-interstitial > div:first-of-type {
+  padding-top: 56px;
+}
+
+.darksite-interstitial h1,
+.darksite-interstitial h2,
+.darksite-interstitial h3,
+.darksite-interstitial h4 {
+  color: inherit;
+}
+
+.darksite-interstitial > div a:not(.button) {
+  color: inherit;
+}
+
+/* ---------- CTAs (52px): outline por defecto; primary (strong) en blanco ---------- */
+
+.darksite-interstitial a.button,
+.darksite-interstitial button.button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 52px;
+  padding: 0 32px;
+  border: 1px solid var(--border-brand-primary-light, #fff);
+  border-radius: 26px;
+  background: transparent;
+  color: var(--text-normal-lighter, #fff);
+  font-family: inherit;
+  font-weight: var(--font-weight-bold, 700);
+  font-size: var(--font-size-normal, 16px);
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.darksite-interstitial a.button:hover,
+.darksite-interstitial button.button:hover {
+  background: rgb(255 255 255 / 15%);
+}
+
+.darksite-interstitial a.button:focus-visible,
+.darksite-interstitial button.button:focus-visible {
+  outline: 2px solid var(--focus-primary, #1d9bf0);
+  outline-offset: 2px;
+}
+
+.darksite-interstitial .button.primary {
+  background: var(--bg-brand-primary-lighter, #fff);
+  color: var(--text-normal-primary, #1b1b1b);
+}
+
+.darksite-interstitial .button.primary:hover {
+  background: var(--bg-hover-light, #e9e9e9);
+}
+
+/* Desktop: CTAs side-by-side centrados por inline-block + text-align de la
+   sección. OJO: .darksite-cta-group (clase que marca el gate en el padre del
+   CTA continuar) NO lleva flex en desktop — decorateSections agrupa h1 +
+   ruta + los dos .button-container en un mismo default-content-wrapper y un
+   flex row aquí metería el título en la fila de los botones. */
+.darksite-interstitial .button-container {
+  display: inline-block;
+  margin: 8px;
+}
+
+/* ---------- Contact cards: tarjeta única con 3 columnas y dividers 1px ----------
+   Selectores por clase BASE (`darksite-contacts`, contrato multi-clase legado)
+   Y por MODIFICADOR (`darksite-contacts-initial` / `-updated`, único valor que
+   el autor puede elegir hoy en el multiselect de Style de la sección en UE) —
+   ambos deben recibir el mismo estilo; ver docs/darksite-runbook.md. */
+
+.darksite-interstitial .darksite-contacts .columns > div,
+.darksite-interstitial .darksite-contacts-initial .columns > div,
+.darksite-interstitial .darksite-contacts-updated .columns > div {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  padding: 24px 0;
+  border: 1px solid var(--border-divider-subtle, #505050);
+  border-radius: 12px;
+  text-align: left;
+}
+
+.darksite-interstitial .darksite-contacts .columns > div > div,
+.darksite-interstitial .darksite-contacts-initial .columns > div > div,
+.darksite-interstitial .darksite-contacts-updated .columns > div > div {
+  padding: 0 24px;
+  border-left: 1px solid var(--border-divider-subtle, #505050);
+}
+
+.darksite-interstitial .darksite-contacts .columns > div > div:first-child,
+.darksite-interstitial .darksite-contacts-initial .columns > div > div:first-child,
+.darksite-interstitial .darksite-contacts-updated .columns > div > div:first-child {
+  border-left: none;
+}
+
+/* ---------- Footer del overlay: pintado por el DS `FooterBottom` (variant
+   'darksite-dark'). El gate inserta ese componente dentro de un
+   <footer data-darksite-slot="footer"> — no requiere selectores propios.
+   Único ajuste: `margin-top: auto` para clavarlo al bottom del overlay
+   (flex column) cuando el contenido no llena la altura completa. Match Figma
+   nodo 9611:8037 (footer siempre al pie de la pantalla). ---------- */
+
+.darksite-interstitial > [data-darksite-slot='footer'] {
+  margin-top: auto;
+}
+
+/* ---------- Content slot: contenedor de las molecules del DS
+   (`DarksiteFlightInfo` + `DarksiteContactInfo`) inyectadas por el gate.
+   Envuelve al `<main data-darksite-slot="content">` — no colisiona con la
+   regla legacy `.darksite-interstitial > div` porque el host es un <main>.
+   Layout: flex column centrada vertical y horizontalmente entre header y
+   footer, con el gap grande de Figma entre flight-info y contact-info. ---------- */
+
+.darksite-interstitial > [data-darksite-slot='content'] {
+  flex: 1 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  padding: 32px 16px 48px;
+}
+
+.darksite-interstitial > [data-darksite-slot='content'] .darksite-content-inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  /* Gap vertical entre bloques del interstitial (FlightInfo → ContactInfo).
+     Mobile: 48px. Desde 768px (breakpoint md): 80px. Spec Figma darksite. */
+  gap: 48px;
+  width: 100%;
+  max-width: 1440px;
+}
+
+@media (min-width: 768px) {
+  .darksite-interstitial > [data-darksite-slot='content'] .darksite-content-inner {
+    gap: 80px;
+  }
+  
+  .darksite-interstitial > [data-darksite-slot='content'] {
+    padding: 80px 96px;
+  }
+}
+
+/* ---------- Variante casos múltiples (§4): filas de vuelos, solo CSS ---------- */
+
+.darksite-interstitial .darksite-flights ul {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.darksite-interstitial .darksite-flights ul > li,
+.darksite-interstitial .darksite-flights p:not(.button-container) {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 16px;
+  min-height: 68px;
+  margin: 0 0 24px;
+  padding: 12px 24px;
+  border: 1px solid var(--border-divider-subtle, #505050);
+  border-radius: 12px;
+  text-align: left;
+}
+
+.darksite-interstitial .darksite-flights ul > li {
+  margin: 0;
+}
+
+/* linkButton "Ver detalle →" alineado a la derecha de cada fila. */
+.darksite-interstitial .darksite-flights ul > li a:last-child,
+.darksite-interstitial .darksite-flights p:not(.button-container) a:last-child {
+  margin-left: auto;
+  color: inherit;
+  font-weight: var(--font-weight-bold, 700);
+}
+
+/* ---------- Desktop (>= 768px) ---------- */
+
+@media (width >= 768px) {
+  .darksite-interstitial > div:first-of-type {
+    padding-top: 80px;
+  }
+}
+
+/* ---------- Mobile (< 768px) ---------- */
+
+@media (width < 768px) {
+  /* Botones apilados full-width con orden invertido respecto al DOM/desktop
+     (Figma §1.3). El grupo es el default-content-wrapper compartido con
+     h1/ruta (decorateSections): pasa a columna y SOLO los .button-container
+     reciben order (el último sube) — los demás siblings conservan order 0 y
+     quedan arriba en orden de fuente. Sin column-reverse: reordenaría todo. */
+  .darksite-interstitial .darksite-cta-group {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .darksite-interstitial .darksite-cta-group .button-container {
+    display: flex;
+    order: 3;
+    margin: 8px 0;
+  }
+
+  .darksite-interstitial .darksite-cta-group .button-container:last-of-type {
+    order: 2;
+  }
+
+  .darksite-interstitial .darksite-cta-group .button-container .button {
+    flex: 1;
+    width: 100%;
+  }
+
+  /* Contactos: 1 columna con dividers horizontales. */
+  .darksite-interstitial .darksite-contacts .columns > div,
+  .darksite-interstitial .darksite-contacts-initial .columns > div,
+  .darksite-interstitial .darksite-contacts-updated .columns > div {
+    grid-template-columns: 1fr;
+    padding: 0 24px;
+  }
+
+  .darksite-interstitial .darksite-contacts .columns > div > div,
+  .darksite-interstitial .darksite-contacts-initial .columns > div > div,
+  .darksite-interstitial .darksite-contacts-updated .columns > div > div {
+    padding: 24px 0;
+    border-top: 1px solid var(--border-divider-subtle, #505050);
+    border-left: none;
+  }
+
+  .darksite-interstitial .darksite-contacts .columns > div > div:first-child,
+  .darksite-interstitial .darksite-contacts-initial .columns > div > div:first-child,
+  .darksite-interstitial .darksite-contacts-updated .columns > div > div:first-child {
+    border-top: none;
+  }
+
+  /* Filas de vuelo en 2 líneas: ruta arriba; operador + "Ver detalle" abajo. */
+  .darksite-interstitial .darksite-flights ul > li,
+  .darksite-interstitial .darksite-flights p:not(.button-container) {
+    min-height: 0;
+    padding: 16px;
+  }
+}

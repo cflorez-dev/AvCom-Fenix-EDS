@@ -329,3 +329,48 @@ describe('members/session.service', () => {
     expect(setSession).toHaveBeenLastCalledWith({ status: 'expired', user: null });
   });
 });
+
+describe('session.service · metas del hero desde eliteGoalsV2 (T18)', () => {
+  beforeEach(() => { vi.resetModules(); });
+  afterEach(() => {
+    vi.restoreAllMocks();
+    delete globalThis.window;
+    delete globalThis.document;
+    delete globalThis.sessionStorage;
+  });
+
+  const V2 = {
+    gold: { totales: { col: 20000, row: 24000 }, avianca: { col: 8000, row: 12000 } },
+    magno: { totales: null, avianca: { col: 110000, row: 110000 } },
+  };
+  const METRICS = { total: 'historic', avianca: 'av-miles' };
+
+  it('resolveEliteGoalsV2: elige col/row por región + métricas de eliteMetrics (shape v1)', async () => {
+    setupDom(); mockDeps();
+    const { resolveEliteGoalsV2 } = await import(servicePath);
+    expect(resolveEliteGoalsV2(V2, 'gold', 'COL', METRICS)).toEqual({
+      metaTotal: 20000, metaAvianca: 8000, metricTotal: 'historic', metricAvianca: 'av-miles',
+    });
+    expect(resolveEliteGoalsV2(V2, 'gold', 'EXCOL', METRICS)).toEqual({
+      metaTotal: 24000, metaAvianca: 12000, metricTotal: 'historic', metricAvianca: 'av-miles',
+    });
+    // magno: sin totales → metaTotal null (hero no pinta barra total) pero sí avianca
+    const magno = resolveEliteGoalsV2(V2, 'magno', 'COL', METRICS);
+    expect(magno.metaTotal).toBeNull();
+    expect(magno.metaAvianca).toBe(110000);
+    // tier sin metas (lifemiles) → undefined (sin barras)
+    expect(resolveEliteGoalsV2(V2, 'lifemiles', 'COL', METRICS)).toBeUndefined();
+  });
+
+  it('resolveRegionFromProfile: applicableRegion o countryOfResidence+map → COL/EXCOL', async () => {
+    setupDom(); mockDeps();
+    const { resolveRegionFromProfile } = await import(servicePath);
+    expect(resolveRegionFromProfile({ memberProfileDetails: { applicableRegion: { value: 'COL' } } })).toBe('COL');
+    expect(resolveRegionFromProfile({ memberProfileDetails: { applicableRegion: { value: 'PER' } } })).toBe('EXCOL');
+    const raw = {
+      memberProfileDetails: { memberAccount: { memberProfile: { individualInfo: { countryOfResidence: 'CO' } } } },
+    };
+    expect(resolveRegionFromProfile(raw, { CO: 'COL' })).toBe('COL');
+    expect(resolveRegionFromProfile(null)).toBe('EXCOL'); // conservador
+  });
+});
