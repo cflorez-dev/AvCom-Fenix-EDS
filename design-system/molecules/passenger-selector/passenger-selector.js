@@ -528,7 +528,7 @@ export const PassengerSelector = ({
                5bbb817 to avoid the iOS bounce). -->
           <div class="flex-1 overflow-y-auto overscroll-contain px-[32px] pt-[16px] pb-0 flex flex-col gap-[16px]">
             <!-- Selected Passengers Display (Input Style) -->
-            <div class="self-stretch inline-flex flex-col justify-start items-start gap-1">
+            <div class="shrink-0 self-stretch inline-flex flex-col justify-start items-start gap-1">
               <div class="self-stretch h-12 rounded-lg outline-1 outline-offset-[-1px] outline-[var(--color-border-default)] inline-flex justify-start items-start overflow-hidden">
                 <div class="flex-1 h-12 px-4 bg-[var(--bg-input-default)] border-b-[3px] border-[var(--color-border-input-positive)] flex justify-start items-center gap-2 max-w-full">
                   <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -543,7 +543,7 @@ export const PassengerSelector = ({
             </div>
 
             <!-- Passenger List -->
-            <div class="flex flex-col">
+            <div class="shrink-0 flex flex-col">
               <!-- Adultos -->
               <div class="flex justify-between items-center h-[64px] py-[8px]">
                 <div class="flex flex-col gap-[4px]">
@@ -610,6 +610,10 @@ export const PassengerSelector = ({
             </div>
 
             <!-- Info Banner -->
+            <!-- heightMode="hug": sin overflow-y-auto interno — la alerta crece con su
+                 contenido y el scroll lo hace el wrapper del panel (bug 1292093, <383px).
+                 shrink-0: con scroll interno su min-height era 0 y absorbía todo el
+                 aplastamiento del flex column antes de que el wrapper scrolleara. -->
             ${showInfoBanner && html`
               <${Alert}
                 variant="informative"
@@ -617,13 +621,15 @@ export const PassengerSelector = ({
                 dismissible=${true}
                 onDismiss=${() => setShowInfoBanner(false)}
                 marqueeMode=${false}
+                heightMode="hug"
+                customClassName="shrink-0"
                 preserveRawHTML=${true}
               />
             `}
 
             ${showCabinClass && html`
               <!-- Cabin Class -->
-              <div class="self-stretch py-4 border-t border-[var(--border-stroke-default)] inline-flex flex-col justify-start items-start gap-6">
+              <div class="shrink-0 self-stretch py-4 border-t border-[var(--border-stroke-default)] inline-flex flex-col justify-start items-start gap-6">
                 <span class="self-stretch justify-start text-[var(--text-normal-primary)] text-base font-semibold leading-[21px]">${i18n['bookingBox.labels.cabin'] || 'Cabina'}</span>
                 <div class="self-stretch inline-flex justify-start items-center gap-x-6 gap-y-6 flex-wrap">
                   ${cabinOptions.map((option) => html`
@@ -639,12 +645,12 @@ export const PassengerSelector = ({
             `}
 
             ${validationError && html`
-              <div class="bg-red-50 border border-red-200 rounded-lg px-4 py-3 mb-4">
+              <div class="shrink-0 bg-red-50 border border-red-200 rounded-lg px-4 py-3 mb-4">
                 <p class="text-red-600">${validationError}</p>
               </div>
             `}
 
-            <div class="sticky bottom-0 left-0 right-0 bg-white pt-3 pb-[48px] mt-auto">
+            <div class="shrink-0 sticky bottom-0 left-0 right-0 bg-white pt-3 pb-[48px] mt-auto">
               <${Button}
                 variant="primary"
                 size="md"
@@ -742,7 +748,8 @@ export const PassengerSelector = ({
               onDismiss=${() => setShowInfoBanner(false)}
               marqueeMode=${false}
               isRounded=${true}
-              customClassName="rounded-[8px] border-none !p-[16px] !leading-[21px]"
+              heightMode="hug"
+              customClassName="rounded-[8px] border-none !p-[16px] !leading-[21px] shrink-0"
               preserveRawHTML=${true}
             />
           `}
