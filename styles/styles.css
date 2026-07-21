@@ -413,7 +413,10 @@ main .section.center-content > div {
 }
 
 main div.section.padding-title {
-  padding: 0 16px;
+  /* Solo cancela el padding vertical del `main > .section`; el horizontal debe
+     seguir la variable responsive (16/24/32px) igual que el resto de secciones.
+     Antes hardcodeaba `0 16px`, lo que pisaba los 24/32px en tablet/desktop. */
+  padding: 0 var(--main-section-div-padding, 16px);
   h1,h2,h3,h4,h5,h6 {
     margin: 0;
   }
