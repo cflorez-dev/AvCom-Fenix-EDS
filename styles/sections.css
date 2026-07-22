@@ -6,8 +6,13 @@
  * baseline as the rest of the site (see cross-browser matrix in PBI 1216373).
  * El selector :has() se perdió en ebd73fb9; sin él el hero rompe el grid de dos
  * columnas hasta que corre el JS (VSTS 1282508).
+ * El :not([class*="grid-"]) es obligatorio: el selector estructural describe una
+ * FORMA de DOM (rich-text + default-content con imagen), no un tipo de sección, y
+ * sin la exclusion capturaba tambien las secciones con layout de grid — su
+ * especificidad (0,3,2) gana al display:grid de grid-layout.css (0,3,0), y al dejar
+ * de ser grid los `grid-column: span N` de los hijos se ignoran (VSTS 1282504).
  */
-div.section:has(> .cms-rich-text-wrapper):has(> .default-content-wrapper picture),
+div.section:not([class*="grid-"]):has(> .cms-rich-text-wrapper):has(> .default-content-wrapper picture),
 div.section[data-section-type='hero-destinations'],
 div.section[data-section-type='hero-destinations-detail'] {
   display: flex;
@@ -64,7 +69,7 @@ div.section[data-section-type='hero-destinations'] div.default-content-wrapper{
 }
 
 @media (max-width: 1023px) {
-  div.section:has(> .cms-rich-text-wrapper):has(> .default-content-wrapper picture),
+  div.section:not([class*="grid-"]):has(> .cms-rich-text-wrapper):has(> .default-content-wrapper picture),
   div.section[data-section-type='hero-destinations'],
   div.section[data-section-type='hero-destinations-detail'] {
     flex-direction: column;
