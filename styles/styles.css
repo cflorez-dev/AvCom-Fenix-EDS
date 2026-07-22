@@ -275,11 +275,21 @@ main > .section.has-custom-bg.mosaic-v2-container.has-nav-padding {
 }
 
 /* section metadata */
+
+/* Invariante de layout (foundations "Márgenes y ancho de contenido"): el margen
+   lateral (32/24/16px) es el espacio MINIMO entre el contenido y el borde del
+   viewport y lo pone `main > .section`. Ningun estilo de seccion debe declarar
+   padding horizontal: los estilos que solo quieren tocar el eje vertical usan
+   `padding-block`, y la UNICA forma de renunciar al margen lateral es la clase
+   `no-padding-x`, que existe para eso. */
 main .section.light,
 main .section.highlight {
   background-color: var(--light-color);
-  margin: 0;
-  padding: 40px 0;
+
+  /* `margin: 0` cancelaba tambien el `margin: auto` de la seccion y la
+     descentraba; `padding: 40px 0` borraba el margen lateral (VSTS 1282504). */
+  margin-block: 0;
+  padding-block: 40px;
 }
 
 main .section.center-content {
@@ -297,12 +307,12 @@ main .section.center-content > div {
 
 /* TODO: remove style, is only for client meet 17-12 - START */
 .section.center-content:has(.default-content-wrapper) {
-    padding: 0;
-}
-@media (max-width: 1247px) {
-    .section.center-content:has(.default-content-wrapper) {
-        padding-inline: var(--main-section-div-padding, 16px);
-    }
+  /* Solo el eje vertical. Con `padding: 0` esta regla (0,3,0) ganaba a
+     `main > .section` y a `padding-title`, y desde que 1282504 dio margen
+     lateral a todas las secciones dejaba el contenido 32px por fuera del resto
+     (o pegado al borde entre 1248 y 1311px). La media query de 1247px reponia
+     el padding lateral y ya no hace falta. */
+  padding-block: 0;
 }
 /* TODO: remove style, is only for client meet 17-12 - END */
 
@@ -312,10 +322,12 @@ main .section.center-content > div {
 }
 
 main div.section.padding-title {
-  /* Solo cancela el padding vertical del `main > .section`; el horizontal debe
-     seguir la variable responsive (16/24/32px) igual que el resto de secciones.
-     Antes hardcodeaba `0 16px`, lo que pisaba los 24/32px en tablet/desktop. */
-  padding: 0 var(--main-section-div-padding, 16px);
+  /* Solo cancela el padding vertical del `main > .section`; el horizontal lo
+     sigue poniendo la seccion con su variable responsive (16/24/32px). Antes
+     redeclaraba el lateral aqui, y al ser mas especifica (0,2,2) pisaba el
+     `no-padding-x` del autor (0,2,0): una seccion con ambos se quedaba con
+     margen lateral pese a haber pedido lo contrario. */
+  padding-block: 0;
   h1,h2,h3,h4,h5,h6 {
     margin: 0;
   }
