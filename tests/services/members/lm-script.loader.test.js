@@ -7,10 +7,18 @@ const loaderPath = '../../../scripts/services/members/lm-script.loader.js';
 const aemPath = '../../../scripts/aem.js';
 const aemDataPath = '../../../scripts/utils/aem-data.js';
 const configPath = '../../../scripts/services/members/members-config.js';
+const flagPath = '../../../scripts/services/members/members-flag.js';
+
+// Por default el kill-switch maestro está ON en estos tests (probamos el comportamiento
+// de inyección); el caso OFF tiene su propio test.
+const mockFlag = (enabled = true) => {
+  vi.doMock(flagPath, () => ({ isMembersEnabled: vi.fn().mockResolvedValue(enabled) }));
+};
 
 describe('members/lm-script.loader', () => {
   beforeEach(() => {
     vi.resetModules();
+    mockFlag(true);
   });
   afterEach(() => {
     vi.restoreAllMocks();
@@ -31,6 +39,18 @@ describe('members/lm-script.loader', () => {
     expect(loadScript).toHaveBeenCalledWith(
       'https://log-in.lifemiles.com/lm-login.umd.js?env=uat',
     );
+  });
+
+  it('kill-switch OFF (AV_MEMBERS_ENABLED) → NO inyecta el script de Lifemiles', async () => {
+    const loadScript = vi.fn().mockResolvedValue(undefined);
+    vi.doMock(aemPath, () => ({ loadScript }));
+    vi.doMock(aemDataPath, () => ({ fetchAEMData: vi.fn().mockResolvedValue({ data: [] }) }));
+    vi.doMock(configPath, () => ({ loadMembersConfig: vi.fn().mockResolvedValue({ env: 'uat' }) }));
+    mockFlag(false); // override el ON del beforeEach
+    const { loadLmScript } = await import(loaderPath);
+    const result = await loadLmScript();
+    expect(loadScript).not.toHaveBeenCalled();
+    expect(result).toBeUndefined();
   });
 
   it('usa AV_LM_SCRIPT_URL del environment.json cuando está (URL de pruebas de LM)', async () => {
