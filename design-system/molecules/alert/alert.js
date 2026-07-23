@@ -14,12 +14,18 @@ const html = htm.bind(h);
  * el enlace; sin ella, un tramo subrayado se quedaría en 400 mientras el resto pasa a
  * 700. El LinkButton no aporta ninguna de estas clases: solo cambia el color.
  *
+ * El peso SOLO cambia en `hover` y `active` (como el ancla de referencia de producto):
+ * ambos estados se limpian al terminar la interacción. A propósito NO se engorda en
+ * foco (ni `:focus` ni `:focus-visible`): el `:focus` persiste tras un click (o un
+ * click+arrastre que suelta fuera sin navegar), así que hacerlo bold en foco dejaba el
+ * enlace "pegado" en negrita. El foco de teclado sigue señalizado por el anillo
+ * (`focus-visible:after:*` que aporta `getLinkButtonStyles`), sin cambiar el peso.
+ *
  * Se exporta para que consumers que usan `preserveRawHTML=true` (p.ej. booking-box
  * → passenger-selector) puedan replicar EXACTAMENTE el mismo tratamiento de enlace
  * sin duplicar strings.
  */
-export const LINK_STATE_CLASSES = 'group/link hover:font-bold active:font-bold '
-  + 'focus:font-bold focus-visible:font-bold';
+export const LINK_STATE_CLASSES = 'group/link hover:font-bold active:font-bold';
 
 /**
  * Alert - Base flexible atom for notifications and alerts
