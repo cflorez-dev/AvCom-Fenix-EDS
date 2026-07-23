@@ -1,6 +1,7 @@
 import { loadScript } from '../../aem.js';
 import { fetchAEMData } from '../../utils/aem-data.js';
 import { loadMembersConfig } from './members-config.js';
+import { isMembersEnabled } from './members-flag.js';
 
 // URL base del script de login de Lifemiles. PROD por default; se puede override
 // desde `environment.json` con la key `AV_LM_SCRIPT_URL` (mismo patrón que
@@ -36,6 +37,10 @@ let loaded;
  */
 export async function loadLmScript() {
   if (loaded) return loaded;
+  // Kill-switch maestro: cubre también el camino ON-DEMAND (login.service.js llama a
+  // loadLmScript al click en "Sign in"), que el gate de scripts.js no ve. Con Members
+  // OFF nunca se inyecta el script de Lifemiles.
+  if (!(await isMembersEnabled())) return undefined;
   const [{ env }, base] = await Promise.all([loadMembersConfig(), resolveLmScriptUrl()]);
   loaded = loadScript(`${base}?env=${env}`);
   return loaded;

@@ -5,6 +5,7 @@ import { Actions } from '../../../design-system/organisms/header/actions/actions
 import { getSession } from '../members/session.store.js';
 import { getStoredLanguage } from './language-country-selector.js';
 import { fetchAEMData } from '../../utils/aem-data.js';
+import { isMembersEnabled } from '../members/members-flag.js';
 
 /**
  * Orquestador del bloque `header-user-actions` (cart + botón de usuario/Members).
@@ -52,9 +53,16 @@ async function resolveSignInLabel() {
 }
 
 async function renderWinner(winner, container) {
+  // Kill-switch maestro Members: con la feature OFF no pasamos `session` (el organism
+  // <Actions> no monta <UserSession> → NO se dispara el fetch del CF de members ni el
+  // botón de login) y ocultamos el user button. Solo queda el cart (driveado por config
+  // del bloque). Es el comportamiento pre-members del header.
+  const enabled = await isMembersEnabled();
   // Label: el del BLOQUE primero (configurable por idioma+POS), i18n como red de seguridad.
-  const signInLabel = await resolveSignInLabel();
-  const userData = { ...winner.user, label: winner.user.label || signInLabel || '' };
+  const signInLabel = enabled ? await resolveSignInLabel() : '';
+  const userData = enabled
+    ? { ...winner.user, label: winner.user.label || signInLabel || '' }
+    : { ...winner.user, show: false };
   const handleCartClick = (e) => {
     e.preventDefault();
     container.dispatchEvent(new CustomEvent('cart-click', { detail: { ...winner.cart }, bubbles: true }));
@@ -64,7 +72,7 @@ async function renderWinner(winner, container) {
       <${Actions}
         cart=${winner.cart}
         user=${userData}
-        session=${getSession()}
+        session=${enabled ? getSession() : undefined}
         onCartClick=${handleCartClick}
         customClassName="header-user-actions"
       />
