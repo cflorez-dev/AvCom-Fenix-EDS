@@ -1315,10 +1315,11 @@ async function loadDelayed() {
         .then(({ loadLmScript }) => loadLmScript())
         .catch(() => { /* no-op: carga on-demand desde login.service */ });
 
-      // Members (P2 / CU-282): Google One Tap. El gate de ruta (Home + páginas corporativas) lo
-      // resuelve `initOneTap` desde el CF (`config.oneTap.corporatePaths`; default solo Home si el
-      // CF cae), junto con `enabled`, frecuencia y el guard de sesión anónima. Import incondicional:
-      // el servicio corta temprano (sesión/ruta/frecuencia) sin trabajo extra.
+      // Members (P2 / CU-282): Google One Tap. El gate de ruta (Home + páginas
+      // corporativas) lo resuelve `initOneTap` desde el CF
+      // (`config.oneTap.corporatePaths`; default solo Home si el CF cae), junto con
+      // `enabled`, frecuencia y el guard de sesión anónima. Import incondicional: el
+      // servicio corta temprano (sesión/ruta/frecuencia) sin trabajo extra.
       import('./services/members/google-one-tap.service.js')
         .then(({ initOneTap }) => initOneTap())
         .catch(() => { /* no-op */ });
