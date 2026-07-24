@@ -6,6 +6,7 @@ import { Sidemenu } from '../../../molecules/sidemenu/sidemenu.js';
 import { MembersHeroHeader } from '../../../molecules/members-hero-header/members-hero-header.js';
 import { MembersMenuList } from '../../../molecules/members-menu-list/members-menu-list.js';
 import { logout } from '../../../../scripts/services/members/logout.service.js';
+import { getStoredLanguage } from '../../../../scripts/services/header/language-country-selector.js';
 import { useLoginButtonVariation } from '../use-login-button-variation.js';
 import { useMembersLabels } from '../use-members-labels.js';
 import { useMembersConfig } from '../use-members-config.js';
@@ -17,10 +18,11 @@ const html = htm.bind(h);
 // El átomo LoginButton espera la clave normalizada (kebab). Mapeamos por valor
 // normalizado (sin espacios/guiones); default a la base logueada 'lifemiles'
 // (nunca 'logged-out' acá, que es el estado anónimo).
-// ⚠️ Las claves de Lifemiles para los tiers *-cenit NO están confirmadas por LM (2026-06-12):
-// asumimos que el string normalizado (lowercase, sin espacios/guiones) es `goldcenit` /
-// `diamondcenit`. Si LM usa otro string, esos tiers caen a su base (gold/diamond) — degradación
-// segura. Confirmar con Lifemiles y ajustar. Las keys de salida matchean `config.tiers` del CF.
+// Las keys de salida matchean `config.tiers` del CF (los *-cenit caen a su base
+// vía el fallback de color del botón). Los strings Cenit del servicio NO son
+// exactos: verificado en QA 2026-07-15 que LM manda "Diamond Cenit One Million"
+// (no "Diamond Cenit") → `diamondcenitonemillion`. Por eso el match exacto no
+// alcanza y hace falta el fallback por SUBSTRING abajo.
 const TIER_MAP = {
   lifemiles: 'lifemiles',
   silver: 'silver',
@@ -33,7 +35,28 @@ const TIER_MAP = {
 };
 const normalizeTier = (raw) => {
   const key = String(raw || '').toLowerCase().replace(/[\s_-]+/g, '');
-  return TIER_MAP[key] || 'lifemiles';
+  if (TIER_MAP[key]) return TIER_MAP[key];
+  // Fallback por SUBSTRING para strings de servicio no exactos (ej. Cenit
+  // "Diamond Cenit One Million" → "diamondcenitonemillion"). El color se resuelve
+  // por el tier base contenido; una variante Cenit comparte color con su base.
+  const cenit = key.includes('cenit');
+  if (key.includes('magno')) return 'magno';
+  if (key.includes('diamond')) return cenit ? 'diamond-cenit' : 'diamond';
+  if (key.includes('gold')) return cenit ? 'gold-cenit' : 'gold';
+  if (key.includes('silver')) return 'silver';
+  if (key.includes('redplus')) return 'red-plus';
+  return 'lifemiles';
+};
+
+// Millas del drawer con separador de miles por locale (refinamiento 2026-07-14
+// punto 2.8b) — mismo idiom que members-hero.js (la molecule pinta tal cual).
+const formatMilesByLocale = (n) => {
+  const lang = String(
+    getStoredLanguage()
+    || (typeof document !== 'undefined' && document.documentElement.lang)
+    || 'es',
+  ).toLowerCase().slice(0, 2);
+  try { return new Intl.NumberFormat(lang).format(n); } catch (e) { return String(n); }
 };
 
 /**
@@ -147,7 +170,7 @@ export const Authenticated = ({ user }) => {
       tierThemes=${cfg.tierThemes}
       tierLabel=${user?.tier || ''}
       membershipNumber=${user?.membershipNumber || null}
-      totalMiles=${user?.totalMiles || '— millas'}
+      totalMiles=${user?.totalMiles ? formatMilesByLocale(user.totalMiles) : '— millas'}
       expiryDate=${user?.expiryDate || '—'}
       totalLabel=${labels.balanceTotal || 'Total'}
       expiryLabel=${labels.balanceExpiry || 'Fecha de vencimiento'}

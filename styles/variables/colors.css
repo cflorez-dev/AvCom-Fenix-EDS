@@ -78,6 +78,7 @@
   --border-divider-subtle: #505050;
   --border-brand-secondary-default: #1b1b1b;
   --border-stroke-default: #d9d9d9;
+  --border-stroke-dark: #b6b6b6;   /* Figma border/stroke/dark — marcadores/líneas de hitos */
   --border-stroke-focus: #1d9bf0;
   
   /* Icon Colors */

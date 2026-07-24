@@ -298,6 +298,19 @@ export const normalizeTierKey = (raw) => {
   if (k === 'silvercenit') return 'silver-cenit';
   if (k === 'goldcenit') return 'gold-cenit';
   if (k === 'diamondcenit') return 'diamond-cenit';
+  // Magno no distingue Cenit en theming (1271699): cualquier variante colapsa.
+  if (k === 'magnocenit' || k === 'magno-cenit') return 'magno';
+  // Keys compuestas del SERVICIO (1271699): `status.current` llega con sufijo de
+  // nivel pegado ('diamondone', 'goldone', 'magnotwo'…) y `tier`/`cenitStatus`
+  // como display armado ('Diamond Cenit One Million' → 'diamond-cenit-one-million'
+  // tras el replace de arriba). Por sufijo, no lista cerrada: ambos formatos
+  // colapsan al preset `-cenit` del tier base; si no existe (magno), al base.
+  const composite = k.match(/^(redplus|red-plus|lifemiles|silver|gold|diamond|magno)(?:-?cenit)?-?(?:one|two)(?:-million)?$/);
+  if (composite) {
+    const base = composite[1] === 'redplus' ? 'red-plus' : composite[1];
+    const cenitKey = `${base}-cenit`;
+    return TIER_PRESETS[cenitKey] ? cenitKey : base;
+  }
   return TIER_PRESETS[k] ? k : 'lifemiles';
 };
 
@@ -587,6 +600,159 @@ export const getMembersCardTheme = (rawTier, cfTierThemes = {}) => {
     gradientToStop: base.cardColorEndStop || preset.gradientToStop,
     // `gradientAngle`, `cardBackground`, `cardShadow` se preservan del `base`
     // (que ya implementa CF || preset || default).
+  };
+};
+
+// ---------------------------------------------------------------------------
+// Tokens de la sección "Progreso Elite y beneficios" (1271692, Bloque 2 header).
+// APPEND-ONLY: no toca `TIER_PRESETS`/`getTierTheme`/`cfTierToTheme` (superficie
+// viva del hero de Mi Lifemiles — regresión crítica). Namespace propio de tokens
+// del AC (`colorGradientStrong/Subtle/Decor`, `colorOverlay`, `colorText`,
+// `colorBorderAccent`) con resolución CF nuevo → legacy → preset.
+//
+// Hex de `contexto-figma.md` §A (gradiente strong + overlay) y §B (gradiente
+// sutil de alertas, listo para 1271699). Decisión D1: Lifemiles strong end
+// `#D50013` (variable aplicada; Juan lo levanta con diseño). Variantes CENIT
+// comparten los colores de su tier base (así lo documenta el sheet) → los
+// presets van por los 6 tiers base y `getEliteTierTokens` colapsa cenit → base.
+// ---------------------------------------------------------------------------
+export const ELITE_TIER_PRESETS = {
+  lifemiles: {
+    gradientStrongFrom: '#B50080',
+    gradientStrongTo: '#D50013', // D1: variable aplicada (panel dice #D5013B)
+    gradientDecorFrom: '#B50080',
+    gradientDecorTo: '#D50013',
+    overlay: '#970346',
+    text: '#FAFAFA',
+    borderAccent: '#970346',
+  },
+  'red-plus': {
+    gradientStrongFrom: '#930004',
+    gradientStrongTo: '#C90102',
+    gradientDecorFrom: '#930004',
+    gradientDecorTo: '#C90102',
+    gradientSubtleFrom: '#FFF1F2',
+    gradientSubtleTo: '#FFFCFC',
+    overlay: '#7D0106',
+    text: '#FAFAFA',
+    borderAccent: '#7D0106',
+  },
+  silver: {
+    gradientStrongFrom: '#393838',
+    gradientStrongTo: '#6C6C6C',
+    gradientDecorFrom: '#393838',
+    gradientDecorTo: '#6C6C6C',
+    gradientSubtleFrom: '#F2F2F2',
+    gradientSubtleTo: '#FFFFFF',
+    overlay: '#393838',
+    text: '#FAFAFA',
+    borderAccent: '#393838',
+  },
+  gold: {
+    gradientStrongFrom: '#AE5E29',
+    gradientStrongFromStop: '42%',
+    gradientStrongTo: '#C37D1D',
+    gradientStrongToStop: '91%',
+    gradientDecorFrom: '#AE5E29',
+    gradientDecorTo: '#C37D1D',
+    gradientSubtleFrom: '#FFF6E9',
+    gradientSubtleTo: '#FFFAF4',
+    overlay: '#A55B1F',
+    text: '#FAFAFA',
+    borderAccent: '#A55B1F',
+  },
+  diamond: {
+    gradientStrongFrom: '#232021',
+    gradientStrongTo: '#585F5E',
+    gradientDecorFrom: '#232021',
+    gradientDecorTo: '#585F5E',
+    gradientSubtleFrom: '#F2F2F2',
+    gradientSubtleTo: '#D5D5D5',
+    overlay: '#0F0F0F',
+    text: '#FAFAFA',
+    borderAccent: '#0F0F0F',
+  },
+  magno: {
+    gradientStrongFrom: '#000000',
+    gradientStrongTo: '#1F0B00',
+    gradientDecorFrom: '#000000',
+    gradientDecorTo: '#1F0B00',
+    gradientSubtleFrom: '#F3EEEB',
+    gradientSubtleTo: '#FDFBF9',
+    overlay: '#1B0900',
+    text: '#FAFAFA',
+    borderAccent: '#1B0900',
+  },
+};
+
+/**
+ * Colapsa un tier crudo del VM (incl. variantes Cenit) a una de las 6 keys base
+ * de `ELITE_TIER_PRESETS` (decisión 5: "las variantes CENIT comparten los
+ * colores de su tier base"). Reusa `normalizeTierKey` para los casos conocidos
+ * (gold-cenit → gold, etc.) y rescata por substring las variantes que
+ * `normalizeTierKey` no reconoce (ej. "Magno Cenit One Million", que caería a
+ * lifemiles). Default seguro: lifemiles.
+ * @param {string} rawTier
+ * @returns {'lifemiles'|'red-plus'|'silver'|'gold'|'diamond'|'magno'}
+ */
+export const eliteBaseTierKey = (rawTier) => {
+  // Substring PRIMERO: `normalizeTierKey('Gold Cenit One Million')` no reconoce
+  // esa string (cae a 'lifemiles'), así que el match por nombre de tier es la
+  // fuente autoritativa para las variantes Cenit. Cubre los 5 tiers coloreados.
+  const s = String(rawTier || '').toLowerCase();
+  if (s.includes('magno')) return 'magno';
+  if (s.includes('diamond')) return 'diamond';
+  if (s.includes('gold')) return 'gold';
+  if (s.includes('silver')) return 'silver';
+  if (/red[\s_-]*plus|redplus/.test(s)) return 'red-plus';
+  // lifemiles y variantes de naming/casing → normalizeTierKey, colapsando -cenit.
+  const base = normalizeTierKey(rawTier).replace(/-cenit$/, '');
+  return ELITE_TIER_PRESETS[base] ? base : 'lifemiles';
+};
+
+/**
+ * Tokens visuales del header elite para un tier crudo del VM. Resuelve
+ * campo-a-campo con la cadena **CF nuevo → legacy → preset** (decisión T4-A):
+ *   colorGradientStrongStart → colorStart/gradientFrom → preset.gradientStrongFrom
+ *   colorOverlay             → balanceCardBg           → preset.overlay
+ *   colorText                → textColor               → preset.text
+ *   colorBorderAccent        → (sin legacy)            → preset.borderAccent
+ * `cfTierMap` es un dict de tiers del CF por key (típicamente `cfg.tiers`, que
+ * Paso 2 extiende con los campos nuevos; también tolera `cfg.tierThemes`, que
+ * trae los legacy `gradientFrom/To`/`balanceCardBg`). El hero NO se ve afectado
+ * (esta función es nueva; `getTierTheme` queda intacto).
+ * @param {string} rawTier
+ * @param {Object<string, object>} [cfTierMap={}]
+ * @returns {{key, gradientStrongFrom, gradientStrongTo, gradientStrongFromStop,
+ *   gradientStrongToStop, gradientDecorFrom, gradientDecorTo, gradientSubtleFrom,
+ *   gradientSubtleTo, overlay, text, borderAccent}}
+ */
+export const getEliteTierTokens = (rawTier, cfTierMap = {}) => {
+  const key = eliteBaseTierKey(rawTier);
+  const preset = ELITE_TIER_PRESETS[key] || ELITE_TIER_PRESETS.lifemiles;
+  // Entrada del CF para este tier: probamos la key base, la key normalizada
+  // completa (por si el CF autora "gold-cenit" aparte) y la cruda.
+  const cf = (cfTierMap && (cfTierMap[key]
+    || cfTierMap[normalizeTierKey(rawTier)]
+    || cfTierMap[rawTier])) || {};
+  const pick = (cfNew, cfLegacy, presetVal) => cfNew || cfLegacy || presetVal;
+  // Legacy del strong: `colorStart/End` (shape `cfg.tiers`) o `gradientFrom/To`
+  // (shape `cfg.tierThemes`). Se resuelve antes para no pasar los `100`.
+  const legacyStart = cf.colorStart || cf.gradientFrom;
+  const legacyEnd = cf.colorEnd || cf.gradientTo;
+  return {
+    key,
+    gradientStrongFrom: pick(cf.colorGradientStrongStart, legacyStart, preset.gradientStrongFrom),
+    gradientStrongTo: pick(cf.colorGradientStrongEnd, legacyEnd, preset.gradientStrongTo),
+    gradientStrongFromStop: cf.colorGradientStrongStartStop || preset.gradientStrongFromStop || '0%',
+    gradientStrongToStop: cf.colorGradientStrongEndStop || preset.gradientStrongToStop || '100%',
+    gradientDecorFrom: pick(cf.colorGradientDecorStart, null, preset.gradientDecorFrom),
+    gradientDecorTo: pick(cf.colorGradientDecorEnd, null, preset.gradientDecorTo),
+    gradientSubtleFrom: pick(cf.colorGradientSubtleStart, null, preset.gradientSubtleFrom),
+    gradientSubtleTo: pick(cf.colorGradientSubtleEnd, null, preset.gradientSubtleTo),
+    overlay: pick(cf.colorOverlay, cf.balanceCardBg, preset.overlay),
+    text: pick(cf.colorText, cf.textColor, preset.text),
+    borderAccent: pick(cf.colorBorderAccent, null, preset.borderAccent),
   };
 };
 

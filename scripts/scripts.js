@@ -953,6 +953,21 @@ async function loadEager(doc) {
   // Start locale resolution early but don't block DOM work that doesn't need it
   const localeReady = initLocaleGlobals();
 
+  // Darksite gate: si el modo contingencia está activo, monta el interstitial
+  // ANTES de body.appear para evitar flash del sitio normal. Acotado a 900ms
+  // y fail-open: nunca bloquea el paint ni rompe la carga.
+  // Spec: docs/superpowers/specs/2026-07-07-darksite-design.md
+  try {
+    const { runDarksiteGate } = await import('./services/darksite/darksite-gate.js');
+    await Promise.race([
+      runDarksiteGate(),
+      new Promise((resolve) => { setTimeout(resolve, 900); }),
+    ]);
+  } catch (error) {
+    // eslint-disable-next-line no-console
+    console.warn('[scripts] Darksite gate failed (fail-open):', error);
+  }
+
   decorateTemplateAndTheme();
   const main = doc.querySelector('main');
   if (main) {
@@ -1129,14 +1144,32 @@ async function loadLazy(doc) {
 
   // Load header and footer without blocking content visibility.
   const headerElement = doc.querySelector('header');
-  await Promise.all([
-    headerElement ? loadHeader(headerElement) : Promise.resolve(),
-    loadFooter(doc.querySelector('footer')),
-  ]);
+
+  // Darksite: en las landings de detalle (`/darksite/{lang}/...`, gated por
+  // AV_DARKSITE_DETAIL_PAGES_ROOT + enabled) se carga el chrome propio del
+  // darksite (HeaderDarksite light + FooterBottom darksite-light) en vez del
+  // header/footer general. Si lo toma, se salta el loadHeader/loadFooter normal
+  // y su espera de header-template-ready (el chrome darksite no emite ese evento
+  // ni crea `.header-wrapper`). Fail-open: cualquier error cae al chrome normal.
+  let darksiteChromeLoaded = false;
+  try {
+    const { maybeLoadDarksiteChrome } = await import('./services/darksite/darksite-chrome.js');
+    darksiteChromeLoaded = await maybeLoadDarksiteChrome(doc);
+  } catch (error) {
+    // eslint-disable-next-line no-console
+    console.warn('[scripts] Darksite chrome failed (fail-open):', error);
+  }
+
+  if (!darksiteChromeLoaded) {
+    await Promise.all([
+      headerElement ? loadHeader(headerElement) : Promise.resolve(),
+      loadFooter(doc.querySelector('footer')),
+    ]);
+  }
 
   // If header exists, wait for header-template-ready event to ensure header structure is ready
   // This ensures the header containers exist and child blocks have rendered
-  if (headerElement) {
+  if (headerElement && !darksiteChromeLoaded) {
     await new Promise((resolve) => {
       // Check if event already fired (containers exist)
       const headerContainer = document.querySelector('.header-wrapper');

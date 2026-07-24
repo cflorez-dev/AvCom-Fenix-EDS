@@ -2,13 +2,19 @@
 
 /* Container interno del render (dentro de .cms-button, NO la sección).
    Se scopea bajo .cms-button para no colisionar con la sección que EDS
-   nombra `.section.cms-button-container`. El botón se ajusta a su contenido
-   (auto) en desktop; el contenedor lo centra. */
+   nombra `.section.cms-button-container`.
+
+   `display: block` (no flex) a propósito: el botón se renderiza `inline-flex`
+   con `width: auto`, así que como caja inline hereda el `text-align` de la
+   sección y respeta el estilo que ponga el autor (text-left / text-center /
+   text-right en Section Metadata). Con `display: flex; justify-content: center`
+   el botón quedaba centrado SIEMPRE, ignorando el estilo de sección: el autor
+   no podía alinearlo y quitar los estilos tampoco lo destrababa (el centrado
+   venía del bloque, no de la sección). Sin estilo de alineación el botón queda
+   a la izquierda, igual que el texto que lo rodea. */
 .cms-button .cms-button-container {
-  display: flex;
+  display: block;
   width: 100%;
-  align-items: center;
-  justify-content: center;
   margin-bottom: var(--spacing-2, 0.5rem);
 }
 

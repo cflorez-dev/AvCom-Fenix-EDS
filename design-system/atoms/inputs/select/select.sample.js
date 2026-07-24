@@ -17,6 +17,13 @@ const sampleOptions = [
 /**
  * SelectSample - Showcase component demonstrating all Select states and variants
  */
+const languageOptions = [
+  { value: 'es', label: 'Español' },
+  { value: 'en', label: 'Inglés' },
+  { value: 'pt', label: 'Portugués' },
+  { value: 'fr', label: 'Francés' },
+];
+
 export const SelectSample = () => {
   const [normalValue, setNormalValue] = useState('');
   const [successValue, setSuccessValue] = useState('');
@@ -26,6 +33,8 @@ export const SelectSample = () => {
   const [readonlyValue, setReadonlyValue] = useState('option1');
   const [interactiveOriginValue, setInteractiveOriginValue] = useState('');
   const [interactiveDestinationValue, setInteractiveDestinationValue] = useState('');
+  const [darksiteLanguageValue, setDarksiteLanguageValue] = useState('es');
+  const [darksiteLightLanguageValue, setDarksiteLightLanguageValue] = useState('es');
 
   return html`
     <div class="p-8 space-y-12 bg-white">
@@ -209,6 +218,36 @@ export const SelectSample = () => {
             state="success"
             helperText="Valid destination selected"
             iconName="action/plane"
+          />
+        </div>
+      </div>
+
+      <!-- Darksite Language Dropdown (Dark Background) -->
+      <div>
+        <h3 class="text-lg font-semibold mb-4 text-[var(--text-normal-primary)]">
+          Darksite Language Dropdown — Dark Background
+        </h3>
+        <div class="bg-[#1B1B1B] p-12 rounded-lg flex justify-end">
+          <${Select}
+            options=${languageOptions}
+            value=${darksiteLanguageValue}
+            onChange=${setDarksiteLanguageValue}
+            theme="darksite-dark"
+          />
+        </div>
+      </div>
+
+      <!-- Darksite Language Dropdown (Light Background) -->
+      <div>
+        <h3 class="text-lg font-semibold mb-4 text-[var(--text-normal-primary)]">
+          Darksite Language Dropdown — Light Background
+        </h3>
+        <div class="bg-white p-12 rounded-lg border border-[#E0E0E0] flex justify-end">
+          <${Select}
+            options=${languageOptions}
+            value=${darksiteLightLanguageValue}
+            onChange=${setDarksiteLightLanguageValue}
+            theme="darksite-light"
           />
         </div>
       </div>

@@ -715,6 +715,99 @@
               }
             }
           }
+        },
+        {
+          "title": "Members Hero",
+          "id": "members-hero",
+          "plugins": {
+            "xwalk": {
+              "page": {
+                "resourceType": "core/franklin/components/block/v1/block",
+                "template": {
+                  "name": "Members Hero",
+                  "model": "members-hero"
+                }
+              }
+            }
+          }
+        },
+        {
+          "title": "Members Cards",
+          "id": "members-cards",
+          "plugins": {
+            "xwalk": {
+              "page": {
+                "resourceType": "core/franklin/components/block/v1/block",
+                "template": {
+                  "name": "Members Cards",
+                  "model": "members-cards"
+                }
+              }
+            }
+          }
+        },
+        {
+          "title": "Members Elite",
+          "id": "members-elite",
+          "plugins": {
+            "xwalk": {
+              "page": {
+                "resourceType": "core/franklin/components/block/v1/block",
+                "template": {
+                  "name": "Members Elite",
+                  "model": "members-elite"
+                }
+              }
+            }
+          }
+        },
+        {
+          "title": "Travel Documents",
+          "id": "travel-documents",
+          "plugins": {
+            "xwalk": {
+              "page": {
+                "resourceType": "core/franklin/components/block/v1/block",
+                "template": {
+                  "name": "Travel Documents",
+                  "model": "travel-documents",
+                  "key-value": true
+                }
+              }
+            }
+          }
+        },
+        {
+          "title": "Searchbar Embed",
+          "id": "searchbar-embed",
+          "plugins": {
+            "xwalk": {
+              "page": {
+                "resourceType": "core/franklin/components/block/v1/block",
+                "template": {
+                  "name": "Searchbar Embed",
+                  "model": "searchbar-embed",
+                  "key-value": true
+                }
+              }
+            }
+          }
+        },
+        {
+          "title": "Destination Cards Embed",
+          "id": "destination-cards-embed",
+          "plugins": {
+            "xwalk": {
+              "page": {
+                "resourceType": "core/franklin/components/block/v1/block",
+                "template": {
+                  "name": "Destination Cards Embed",
+                  "model": "destination-cards-embed",
+                  "key-value": true
+                }
+              }
+            }
+          }
         }
       ]
     },

@@ -274,6 +274,107 @@ main > .section.has-custom-bg.mosaic-v2-container.has-nav-padding {
   overflow: visible;
 }
 
+/* Members Elite header full-bleed (refinamiento 2026-07-14, puntos 1.3/2.1):
+   el gradiente por tier se pinta en un ::before de 100vw (mismo patrón
+   has-custom-bg de arriba) para que el color llegue a los bordes del viewport
+   aunque `main > .section` limite el contenido a 1248px. El organism
+   (members-elite-header.js) entrega el gradiente en la CSS var inline
+   `--elite-header-bg`; el contenido interior conserva el ancho del section. */
+.members-elite-header {
+  position: relative;
+  isolation: isolate;
+}
+
+.members-elite-header::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  left: calc(50% - 50vw);
+  width: 100vw;
+  background: var(--elite-header-bg);
+  z-index: -1;
+  pointer-events: none;
+}
+
+/* Cóndor decorativo del header elite (refinamiento 2026-07-15). El componente
+   `EliteHeaderCondor` rinde un <img> del vector `decorative-vector.svg` (pluma
+   fina 117×132 = spec Figma §A, el MISMO del drawer hero). Tamaño y posición van
+   acá (no en clases Tailwind arbitrarias, que tw:watch no compila sin correr):
+   - Mobile (≤767): chico arriba-derecha (la balance box va full-width abajo).
+   - Desktop (≥768): 117×131 anclado ABAJO (bottom:0), a la izquierda de la
+     balance box (right:368px, medido en Figma). */
+.members-elite-header [data-name='members-elite-header-condor'] {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  width: 88px;
+  height: 99px;
+  display: block;
+}
+
+@media (min-width: 768px) {
+  .members-elite-header [data-name='members-elite-header-condor'] {
+    top: auto;
+    bottom: 0;
+    right: 368px;
+    width: 117px;
+    height: 131px;
+  }
+}
+
+/* Sheet de contenido gris del members-elite (refinamiento 2026-07-15). Fondo
+   #DFDFDF full-bleed (100vw, mismo patrón que el hero) detrás de tabs + paneles.
+   `z-index:1` crea contexto de apilamiento para que el ::before (z-index:-1)
+   quede por ENCIMA del hero en el solape (si no, el hero lo taparía). El
+   `margin-top:-32px` cancela el gap del flex-col (lg:gap-8 = 32px → a ras en
+   desktop; gap-6 = 24px → 8px de solape en ≤1023). `padding-top` da aire a los
+   tabs por debajo del borde del hero. En ≤767 las esquinas superiores se
+   redondean 16px (efecto sheet montando sobre el hero). */
+.members-elite-sheet {
+  position: relative;
+  z-index: 1;
+  margin-top: -32px;
+  padding-top: 32px;
+  padding-bottom: 32px;
+}
+
+/* El global `main > .section { padding: 32px … }` dejaba 32px de padding-bottom
+   BLANCO debajo del sheet (entre el último panel y el footer). Lo anulamos en
+   esta sección y ese espacio lo aporta ahora el `padding-bottom` gris del sheet
+   → el #DFDFDF llega hasta el footer sin franja blanca. */
+main > .section.members-elite-container {
+  padding-bottom: 0;
+}
+
+.members-elite-sheet::before {
+  content: '';
+  position: absolute;
+  top: -8px;
+  bottom: 0;
+
+  /* Full-bleed vía left+right = calc(50% - 50vw) (NO `width: 100vw`): con ambos
+     seteados el ancho es el del viewport EXACTO. `width: 100vw` sobrepasaba el
+     ancho visible (por `scrollbar-gutter: stable` + `overflow-x: clip` en html),
+     dejando las esquinas superiores redondeadas FUERA de lo visible → se veían
+     cuadradas. Así los corners caen justo en el borde del viewport y se ven. */
+  left: calc(50% - 50vw);
+  right: calc(50% - 50vw);
+  background: #dfdfdf;
+  z-index: -1;
+  pointer-events: none;
+}
+
+@media (max-width: 767px) {
+  .members-elite-sheet {
+    padding-top: 24px;
+  }
+
+  .members-elite-sheet::before {
+    border-top-left-radius: 16px;
+    border-top-right-radius: 16px;
+  }
+}
+
 /* section metadata */
 
 /* Invariante de layout (foundations "Márgenes y ancho de contenido"): el margen

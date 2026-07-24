@@ -34,7 +34,7 @@ const SAMPLE_CARDS = [
     icon: 'action/assessment',
     title: 'Progreso Elite y beneficios',
     description: 'Consulta tu nivel actual, tus beneficios y tu progreso hacia el siguiente estatus.',
-    link: '#/es/members/elite',
+    link: '#/es/members/profile/elite',
     linkType: 'internal',
     visible: true,
     sortOrder: 1,
