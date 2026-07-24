@@ -315,8 +315,8 @@ export default async function decorate(block) {
   const sectionsToRender = enableCarouselMode
     ? [
         mosaicSections[mosaicSections.length - 1], // pre-clone of last slide
-        ...mosaicSections,                          // originals
-        ...mosaicSections,                          // post-clones
+        ...mosaicSections, // originals
+        ...mosaicSections, // post-clones
       ]
     : mosaicSections;
 
@@ -329,7 +329,10 @@ export default async function decorate(block) {
     if (mosaicData.block) {
       // Find the rendered mosaic content (created by cms-mosaic-cards.js as nextSibling)
       const renderedContent = mosaicData.block.nextElementSibling;
-      if (renderedContent && renderedContent.classList.contains('cms-mosaic-cards-rendered')) {
+      if (
+        renderedContent &&
+        renderedContent.classList.contains("cms-mosaic-cards-rendered")
+      ) {
         renderedContentMap.set(mosaicData.id, renderedContent);
       }
 
@@ -347,20 +350,20 @@ export default async function decorate(block) {
         if (row.children.length > 1) {
           const cells = [...row.children];
           const cardData = {
-            imageDesktop: '',
-            imageDesktopAlt: '',
-            imageMobile: '',
-            imageMobileAlt: '',
-            title: '',
-            description: '',
-            ctaLabel: '',
-            supportIcon: '',
-            linkUrl: '',
-            linkAlt: '',
-            linkOpensIn: 'sameTab',
-            ctaIconBefore: 'none',
-            ctaIconAfter: 'none',
-            clickBehavior: 'fullCard',
+            imageDesktop: "",
+            imageDesktopAlt: "",
+            imageMobile: "",
+            imageMobileAlt: "",
+            title: "",
+            description: "",
+            ctaLabel: "",
+            supportIcon: "",
+            linkUrl: "",
+            linkAlt: "",
+            linkOpensIn: "sameTab",
+            ctaIconBefore: "none",
+            ctaIconAfter: "none",
+            clickBehavior: "fullCard",
           };
 
           let cellIndex = 0;
@@ -369,15 +372,16 @@ export default async function decorate(block) {
           // AEM fusiona imageDesktopAlt en esta celda: el alt queda embebido en <picture><img alt="">
           // Fallback: external URLs may be rendered as <a href="url"> links instead of <img>.
           if (cells[cellIndex]) {
-            const img = cells[cellIndex].querySelector('img');
+            const img = cells[cellIndex].querySelector("img");
             if (img) {
               cardData.imageDesktop = img.src;
-              cardData.imageDesktopAlt = img.alt || '';
+              cardData.imageDesktopAlt = img.alt || "";
             } else {
-              const link = cells[cellIndex].querySelector('a[href]');
+              const link = cells[cellIndex].querySelector("a[href]");
               if (link && /\.(jpe?g|png|gif|webp|svg|avif)/i.test(link.href)) {
                 cardData.imageDesktop = link.href;
-                cardData.imageDesktopAlt = link.title || link.textContent.trim() || '';
+                cardData.imageDesktopAlt =
+                  link.title || link.textContent.trim() || "";
               }
             }
             cellIndex += 1;
@@ -385,15 +389,16 @@ export default async function decorate(block) {
 
           // Cell 1: imageMobile (OPCIONAL)
           if (cells[cellIndex]) {
-            const mobileImg = cells[cellIndex].querySelector('img');
+            const mobileImg = cells[cellIndex].querySelector("img");
             if (mobileImg) {
               cardData.imageMobile = mobileImg.src;
-              cardData.imageMobileAlt = mobileImg.alt || '';
+              cardData.imageMobileAlt = mobileImg.alt || "";
             } else {
-              const link = cells[cellIndex].querySelector('a[href]');
+              const link = cells[cellIndex].querySelector("a[href]");
               if (link && /\.(jpe?g|png|gif|webp|svg|avif)/i.test(link.href)) {
                 cardData.imageMobile = link.href;
-                cardData.imageMobileAlt = link.title || link.textContent.trim() || '';
+                cardData.imageMobileAlt =
+                  link.title || link.textContent.trim() || "";
               }
             }
             cellIndex += 1;
@@ -429,9 +434,17 @@ export default async function decorate(block) {
 
           // Cell 5/6: linkUrl (index depends on whether supportIcon was present)
           if (cells[cellIndex]) {
-            const link = cells[cellIndex].querySelector('a');
-            let linkUrl = link ? link.href : cells[cellIndex].textContent.trim();
-            if (linkUrl && !linkUrl.startsWith('http://') && !linkUrl.startsWith('https://') && !linkUrl.startsWith('/') && !linkUrl.startsWith('//')) {
+            const link = cells[cellIndex].querySelector("a");
+            let linkUrl = link
+              ? link.href
+              : cells[cellIndex].textContent.trim();
+            if (
+              linkUrl &&
+              !linkUrl.startsWith("http://") &&
+              !linkUrl.startsWith("https://") &&
+              !linkUrl.startsWith("/") &&
+              !linkUrl.startsWith("//")
+            ) {
               linkUrl = `/${linkUrl}`;
             }
             cardData.linkUrl = linkUrl;
@@ -447,7 +460,7 @@ export default async function decorate(block) {
           // linkOpensIn
           if (cells[cellIndex]) {
             const opensIn = cells[cellIndex].textContent.trim();
-            if (opensIn === 'sameTab' || opensIn === 'newTab') {
+            if (opensIn === "sameTab" || opensIn === "newTab") {
               cardData.linkOpensIn = opensIn;
             }
             cellIndex += 1;
@@ -474,7 +487,7 @@ export default async function decorate(block) {
           // clickBehavior
           if (cells[cellIndex]) {
             const behavior = cells[cellIndex].textContent.trim();
-            if (behavior === 'ctaOnly' || behavior === 'fullCard') {
+            if (behavior === "ctaOnly" || behavior === "fullCard") {
               cardData.clickBehavior = behavior;
             }
           }
@@ -509,26 +522,40 @@ export default async function decorate(block) {
   // Wait for async SVG icons to load inside rendered content before cloning DOM.
   // SvgIcon (Preact) fetches SVGs via useEffect — cloneNode(true) would miss
   // icons that haven't loaded yet because the clone is a static snapshot.
-  const waitForSvgIcons = (renderedEl, cards, maxWait = 2000) => new Promise((resolve) => {
-    let expectedCount = 0;
-    cards.forEach((card) => {
-      if (card.ctaIconBefore && card.ctaIconBefore !== 'none') expectedCount += 1;
-      if (card.ctaIconAfter && card.ctaIconAfter !== 'none') expectedCount += 1;
-    });
-    if (expectedCount === 0) { resolve(); return; }
+  const waitForSvgIcons = (renderedEl, cards, maxWait = 2000) =>
+    new Promise((resolve) => {
+      let expectedCount = 0;
+      cards.forEach((card) => {
+        if (card.ctaIconBefore && card.ctaIconBefore !== "none")
+          expectedCount += 1;
+        if (card.ctaIconAfter && card.ctaIconAfter !== "none")
+          expectedCount += 1;
+      });
+      if (expectedCount === 0) {
+        resolve();
+        return;
+      }
 
-    const check = () => renderedEl.querySelectorAll('[data-name="linkButton"] svg').length >= expectedCount;
-    if (check()) { resolve(); return; }
-
-    const observer = new MutationObserver(() => {
+      const check = () =>
+        renderedEl.querySelectorAll('[data-name="linkButton"] svg').length >=
+        expectedCount;
       if (check()) {
+        resolve();
+        return;
+      }
+
+      const observer = new MutationObserver(() => {
+        if (check()) {
+          observer.disconnect();
+          resolve();
+        }
+      });
+      observer.observe(renderedEl, { childList: true, subtree: true });
+      setTimeout(() => {
         observer.disconnect();
         resolve();
-      }
+      }, maxWait);
     });
-    observer.observe(renderedEl, { childList: true, subtree: true });
-    setTimeout(() => { observer.disconnect(); resolve(); }, maxWait);
-  });
 
   const iconWaitPromises = [];
   mosaicSections.forEach((mosaicData) => {
@@ -544,15 +571,15 @@ export default async function decorate(block) {
   // Add each mosaic section as a slide or single item
   const slides = [];
   sectionsToRender.forEach((mosaicData, index) => {
-    const slide = document.createElement('div');
+    const slide = document.createElement("div");
 
     if (enableCarouselMode) {
       // Carousel mode: full-width slides with padding for proper content display
       // Using container width (not w-screen) to respect page padding/margins
-      slide.className = 'mosaic-v2-slide w-full shrink-0';
+      slide.className = "mosaic-v2-slide w-full shrink-0";
     } else {
       // Single mosaic: adjust to container width
-      slide.className = 'mosaic-v2-slide w-full';
+      slide.className = "mosaic-v2-slide w-full";
     }
 
     // With pre-clone structure: [pre-clone(0), originals(1..N), post-clones(N+1..2N)]
@@ -560,11 +587,11 @@ export default async function decorate(block) {
     const isOriginal = enableCarouselMode
       ? index >= 1 && index <= mosaicSections.length
       : true;
-    slide.setAttribute('data-slide-index', index);
-    slide.setAttribute('data-slide-id', mosaicData.id);
-    slide.setAttribute('data-original', isOriginal ? 'true' : 'false');
-    if (isPreClone) slide.setAttribute('data-clone-position', 'pre');
-    slide.setAttribute('aria-label', mosaicData.label);
+    slide.setAttribute("data-slide-index", index);
+    slide.setAttribute("data-slide-id", mosaicData.id);
+    slide.setAttribute("data-original", isOriginal ? "true" : "false");
+    if (isPreClone) slide.setAttribute("data-clone-position", "pre");
+    slide.setAttribute("aria-label", mosaicData.label);
 
     // Get rendered content from our stored map
     const renderedContent = renderedContentMap.get(mosaicData.id);
@@ -577,20 +604,27 @@ export default async function decorate(block) {
 
       // Hide the original cms-mosaic-cards block structure
       if (mosaicData.block) {
-        mosaicData.block.style.display = 'none';
+        mosaicData.block.style.display = "none";
       }
     } else {
       // Fallback: if rendered content not found, show warning
       // eslint-disable-next-line no-console
       console.warn(`Mosaic V2: No rendered content found for ${mosaicData.id}`);
-      slide.innerHTML = '<div class="p-8 text-center text-gray-500">Content not rendered</div>';
+      slide.innerHTML =
+        '<div class="p-8 text-center text-gray-500">Content not rendered</div>';
     }
 
     // Hide original section (only once, for original sections)
     if (isOriginal) {
-      mosaicData.section.style.display = 'none';
-      mosaicData.section.classList.add('mosaic-section-hidden', '!p-0', '!m-0', '!h-0', '!overflow-hidden');
-      mosaicData.section.setAttribute('aria-hidden', 'true');
+      mosaicData.section.style.display = "none";
+      mosaicData.section.classList.add(
+        "mosaic-section-hidden",
+        "!p-0",
+        "!m-0",
+        "!h-0",
+        "!overflow-hidden",
+      );
+      mosaicData.section.setAttribute("aria-hidden", "true");
     }
 
     slides.push(slide);
@@ -602,8 +636,8 @@ export default async function decorate(block) {
   // don't bleed past the container edges. Arrows remain on the outer
   // container, unaffected by the wrapper's clipping.
   if (needsClipWrapper) {
-    const clipWrapper = document.createElement('div');
-    clipWrapper.className = 'mosaic-v2-clip';
+    const clipWrapper = document.createElement("div");
+    clipWrapper.className = "mosaic-v2-clip";
     clipWrapper.appendChild(carouselTrack);
     carouselContainer.appendChild(clipWrapper);
   } else {
@@ -614,27 +648,29 @@ export default async function decorate(block) {
   if (enableCarouselMode) {
     // Load design system components dynamically
     const [{ CarouselNavigationButton }] = await Promise.all([
-      import(`${window.hlx.codeBasePath}/design-system/atoms/carousel-navigation-button/carousel-navigation-button.js`),
+      import(
+        `${window.hlx.codeBasePath}/design-system/atoms/carousel-navigation-button/carousel-navigation-button.js`
+      ),
     ]);
 
     // Create hidden button elements for actual navigation logic
-    const prevButton = document.createElement('button');
-    prevButton.className = 'mosaic-v2-prev hidden';
-    prevButton.setAttribute('aria-label', 'Previous mosaic');
-    prevButton.setAttribute('type', 'button');
+    const prevButton = document.createElement("button");
+    prevButton.className = "mosaic-v2-prev hidden";
+    prevButton.setAttribute("aria-label", "Previous mosaic");
+    prevButton.setAttribute("type", "button");
 
-    const nextButton = document.createElement('button');
-    nextButton.className = 'mosaic-v2-next hidden';
-    nextButton.setAttribute('aria-label', 'Next mosaic');
-    nextButton.setAttribute('type', 'button');
+    const nextButton = document.createElement("button");
+    nextButton.className = "mosaic-v2-next hidden";
+    nextButton.setAttribute("aria-label", "Next mosaic");
+    nextButton.setAttribute("type", "button");
 
     carouselContainer.appendChild(prevButton);
     carouselContainer.appendChild(nextButton);
 
     // Create navigation wrapper with Preact (shows on >= 768px only)
     if (showArrows) {
-      const navWrapper = document.createElement('div');
-      navWrapper.className = 'mosaic-v2-navigation hidden md:block';
+      const navWrapper = document.createElement("div");
+      navWrapper.className = "mosaic-v2-navigation hidden md:block";
       carouselContainer.appendChild(navWrapper);
 
       render(
@@ -658,10 +694,10 @@ export default async function decorate(block) {
   }
 
   // Initialize mobile view helper for responsive behavior
-  const mobileContainer = document.createElement('div');
-  mobileContainer.className = 'mosaic-v2-mobile-container';
-  mobileContainer.style.display = 'none';
-  section.insertAdjacentElement('afterend', mobileContainer);
+  const mobileContainer = document.createElement("div");
+  mobileContainer.className = "section mosaic-v2-mobile-container";
+  mobileContainer.style.display = "none";
+  section.insertAdjacentElement("afterend", mobileContainer);
 
   let mobileHelperInitialized = false;
   let mobileObserver = null;
@@ -679,7 +715,7 @@ export default async function decorate(block) {
       clearTimeout(mobileInitTimeoutId);
       mobileInitTimeoutId = null;
     }
-    window.removeEventListener('resize', handleMobileResize);
+    window.removeEventListener("resize", handleMobileResize);
 
     const { initMobileViewHelper } = await loadMobileViewHelperModule();
     initMobileViewHelper({
@@ -694,35 +730,38 @@ export default async function decorate(block) {
   }
 
   function handleMobileResize() {
-    if (window.matchMedia('(max-width: 1023px)').matches) {
+    if (window.matchMedia("(max-width: 1023px)").matches) {
       initializeMobileHelper();
     }
   }
 
   // Initialize immediately on mobile/tablet to preserve current behavior.
   // On desktop, lazy-init near viewport to reduce startup JS work.
-  if (window.matchMedia('(max-width: 1023px)').matches) {
+  if (window.matchMedia("(max-width: 1023px)").matches) {
     initializeMobileHelper();
-  } else if ('IntersectionObserver' in window) {
-    mobileObserver = new IntersectionObserver((entries) => {
-      const [entry] = entries;
-      if (entry?.isIntersecting) {
-        initializeMobileHelper();
-      }
-    }, {
-      root: null,
-      rootMargin: '350px 0px',
-      threshold: 0,
-    });
+  } else if ("IntersectionObserver" in window) {
+    mobileObserver = new IntersectionObserver(
+      (entries) => {
+        const [entry] = entries;
+        if (entry?.isIntersecting) {
+          initializeMobileHelper();
+        }
+      },
+      {
+        root: null,
+        rootMargin: "350px 0px",
+        threshold: 0,
+      },
+    );
     mobileObserver.observe(carouselContainer);
-    window.addEventListener('resize', handleMobileResize, { passive: true });
+    window.addEventListener("resize", handleMobileResize, { passive: true });
 
     // Safety net: initialize eventually to support long sessions and late viewport switches.
     mobileInitTimeoutId = setTimeout(() => {
       initializeMobileHelper();
     }, 8000);
   } else {
-    window.addEventListener('resize', handleMobileResize, { passive: true });
+    window.addEventListener("resize", handleMobileResize, { passive: true });
     mobileInitTimeoutId = setTimeout(() => {
       initializeMobileHelper();
     }, 1500);
@@ -731,7 +770,7 @@ export default async function decorate(block) {
   // Animation control (works for both autoplay and manual navigation)
   if (enableCarouselMode) {
     let animationId;
-    let position = 0;         // Will be corrected to skip pre-clone after DOM is ready
+    let position = 0; // Will be corrected to skip pre-clone after DOM is ready
     let originalStartPosition = 0; // Position of first original slide (after pre-clone)
     // True loop period = offsetLeft(post_clone_0) - offsetLeft(original_0).
     // Measured from the DOM to avoid the off-by-one-gap error in formula-based approaches.
@@ -759,11 +798,16 @@ export default async function decorate(block) {
       if (Number.isFinite(gap)) return gap;
       return 0;
     };
-    const getOriginalSlideOffsets = () => Array.from(
-      carouselTrack.querySelectorAll('.mosaic-v2-slide[data-original="true"]'),
-    ).map((slide) => slide.offsetLeft);
+    const getOriginalSlideOffsets = () =>
+      Array.from(
+        carouselTrack.querySelectorAll(
+          '.mosaic-v2-slide[data-original="true"]',
+        ),
+      ).map((slide) => slide.offsetLeft);
     const getCurrentSlideIndex = () => {
-      const currentPosition = Math.abs(window.mosaicCarouselStates[groupId].position || 0);
+      const currentPosition = Math.abs(
+        window.mosaicCarouselStates[groupId].position || 0,
+      );
       const offsets = getOriginalSlideOffsets();
       if (!offsets.length) return 0;
       let nearestIndex = 0;
@@ -782,8 +826,8 @@ export default async function decorate(block) {
     const transitionDuration = Math.max(300, Math.min(autoplaySpeed / 4, 800));
 
     // Guard flags to prevent race conditions with rapid arrow clicks
-    let isWrapping = false;      // true while animateWrap CSS transition is in flight
-    let resumeTimeoutId = null;  // tracks pending resume timeout (cancelable)
+    let isWrapping = false; // true while animateWrap CSS transition is in flight
+    let resumeTimeoutId = null; // tracks pending resume timeout (cancelable)
     let clearTransitionFn = null; // current transitionend cleanup fn (to remove before new one)
     // When loop=false: pixel offset of the last original slide (stop boundary for autoplay).
     // Measured DOM in the init setTimeout below; also resolved lazily inside animate().
@@ -804,14 +848,14 @@ export default async function decorate(block) {
 
       // Remove any stale transitionend listener before starting a new transition
       if (clearTransitionFn) {
-        carouselTrack.removeEventListener('transitionend', clearTransitionFn);
+        carouselTrack.removeEventListener("transitionend", clearTransitionFn);
         clearTransitionFn = null;
       }
 
       if (animated && window.innerWidth >= 768) {
         carouselTrack.style.transition = `transform ${transitionDuration}ms ease-in-out`;
       } else {
-        carouselTrack.style.transition = 'none';
+        carouselTrack.style.transition = "none";
       }
 
       carouselTrack.style.transform = `translateX(${newPosition}px)`;
@@ -820,11 +864,11 @@ export default async function decorate(block) {
 
       // Clean up transition property after animation ends
       clearTransitionFn = () => {
-        carouselTrack.style.transition = '';
-        carouselTrack.removeEventListener('transitionend', clearTransitionFn);
+        carouselTrack.style.transition = "";
+        carouselTrack.removeEventListener("transitionend", clearTransitionFn);
         clearTransitionFn = null;
       };
-      carouselTrack.addEventListener('transitionend', clearTransitionFn);
+      carouselTrack.addEventListener("transitionend", clearTransitionFn);
     };
 
     // Convert autoplay-speed (ms) to scroll speed (pixels per frame)
@@ -847,7 +891,10 @@ export default async function decorate(block) {
           // i.e. when post_clone_0 is fully aligned with where original_0 was.
           // Using position += loopPeriod (not = originalStartPosition) so the reset
           // is always correct regardless of which slide the user last navigated to.
-          if (loopPeriod > 0 && position <= originalStartPosition - loopPeriod) {
+          if (
+            loopPeriod > 0 &&
+            position <= originalStartPosition - loopPeriod
+          ) {
             position += loopPeriod;
           }
           carouselTrack.style.transform = `translateX(${position}px)`;
@@ -882,7 +929,11 @@ export default async function decorate(block) {
       // Always evaluate arrow-hide threshold — runs every frame regardless of pause/autoplay
       // state. This hides the right arrow as soon as 80% of the last fold is visible so the
       // user never sees a "dead" arrow that blocks clicks without giving feedback.
-      if (!loop && arrowHideThreshold > 0 && Math.abs(position) >= arrowHideThreshold) {
+      if (
+        !loop &&
+        arrowHideThreshold > 0 &&
+        Math.abs(position) >= arrowHideThreshold
+      ) {
         updateArrowVisibility(originalSlidesCount - 1);
       }
 
@@ -893,7 +944,9 @@ export default async function decorate(block) {
     // Step 1: correct initial position to skip the pre-clone and show original_0.
     // Step 2: measure the true loop period from DOM positions (post_clone_0 - original_0).
     setTimeout(() => {
-      const allSlideEls = Array.from(carouselTrack.querySelectorAll('.mosaic-v2-slide'));
+      const allSlideEls = Array.from(
+        carouselTrack.querySelectorAll(".mosaic-v2-slide"),
+      );
       // original slides start at index 1 (pre-clone is index 0)
       const firstOriginalSlide = allSlideEls[1];
       // first post-clone is at index 1 + originalSlidesCount
@@ -901,7 +954,7 @@ export default async function decorate(block) {
       if (firstOriginalSlide) {
         originalStartPosition = -firstOriginalSlide.offsetLeft;
         position = originalStartPosition;
-        carouselTrack.style.transition = 'none';
+        carouselTrack.style.transition = "none";
         carouselTrack.style.transform = `translateX(${position}px)`;
         window.mosaicCarouselStates[groupId].position = position;
       }
@@ -920,8 +973,9 @@ export default async function decorate(block) {
         if (originalSlidesCount >= 2) {
           const secondToLast = allSlideEls[originalSlidesCount - 1]; // index N-1 (1-based)
           if (secondToLast && lastOriginalSlide) {
-            const slideWidth = lastOriginalSlide.offsetLeft - secondToLast.offsetLeft;
-            arrowHideThreshold = secondToLast.offsetLeft + slideWidth * 0.80;
+            const slideWidth =
+              lastOriginalSlide.offsetLeft - secondToLast.offsetLeft;
+            arrowHideThreshold = secondToLast.offsetLeft + slideWidth * 0.8;
           }
         }
       }
@@ -941,21 +995,27 @@ export default async function decorate(block) {
       clearTimeout(resizeTimeout);
       resizeTimeout = setTimeout(handleResize, 120);
     };
-    window.addEventListener('resize', debouncedResize);
+    window.addEventListener("resize", debouncedResize);
 
     // Arrow click handlers (navigate by LinkCard width)
     if (showArrows) {
-      const prevButton = carouselContainer.querySelector('.mosaic-v2-prev');
-      const nextButton = carouselContainer.querySelector('.mosaic-v2-next');
+      const prevButton = carouselContainer.querySelector(".mosaic-v2-prev");
+      const nextButton = carouselContainer.querySelector(".mosaic-v2-next");
 
       // Show/hide nav arrow buttons at the edges when loop is disabled.
       // Uses visibility+opacity so arrow space is preserved (no layout shift).
       updateArrowVisibility = (index) => {
         if (loop) return;
-        const navLeft = carouselContainer.querySelector('.mosaic-v2-nav-left');
-        const navRight = carouselContainer.querySelector('.mosaic-v2-nav-right');
-        if (navLeft) navLeft.classList.toggle('is-nav-disabled', index === 0);
-        if (navRight) navRight.classList.toggle('is-nav-disabled', index === originalSlidesCount - 1);
+        const navLeft = carouselContainer.querySelector(".mosaic-v2-nav-left");
+        const navRight = carouselContainer.querySelector(
+          ".mosaic-v2-nav-right",
+        );
+        if (navLeft) navLeft.classList.toggle("is-nav-disabled", index === 0);
+        if (navRight)
+          navRight.classList.toggle(
+            "is-nav-disabled",
+            index === originalSlidesCount - 1,
+          );
       };
 
       // Helper: resume autoplay after user interaction.
@@ -969,16 +1029,20 @@ export default async function decorate(block) {
           clearTimeout(resumeTimeoutId);
           resumeTimeoutId = null;
         }
-        const resumeDelay = Math.max(transitionDuration + 100, autoplaySpeed * 2);
+        const resumeDelay = Math.max(
+          transitionDuration + 100,
+          autoplaySpeed * 2,
+        );
         resumeTimeoutId = setTimeout(() => {
           resumeTimeoutId = null;
           // When loop=false, do NOT resume autoplay if already at the last slide.
           // This prevents autoplay from re-engaging and scrolling into clone territory
           // after the user navigates to the end with the arrow buttons.
-          if (!loop && getCurrentSlideIndex() === originalSlidesCount - 1) return;
+          if (!loop && getCurrentSlideIndex() === originalSlidesCount - 1)
+            return;
           // Only resume if no wrap animation is still in flight
           if (!isWrapping) {
-            carouselTrack.style.transition = '';
+            carouselTrack.style.transition = "";
             window.mosaicCarouselStates[groupId].isPaused = false;
             window.mosaicCarouselStates[groupId].manualControl = false;
           }
@@ -994,11 +1058,13 @@ export default async function decorate(block) {
         isWrapping = true;
 
         const state = window.mosaicCarouselStates[groupId];
-        const allSlideEls = Array.from(carouselTrack.querySelectorAll('.mosaic-v2-slide'));
+        const allSlideEls = Array.from(
+          carouselTrack.querySelectorAll(".mosaic-v2-slide"),
+        );
 
         let cloneEl;
         let snapIndex;
-        if (direction === 'prev') {
+        if (direction === "prev") {
           // Animate backward to pre-clone (index 0 in allSlideEls)
           cloneEl = allSlideEls[0];
           snapIndex = originalSlidesCount - 1; // snap to original last slide after
@@ -1018,7 +1084,7 @@ export default async function decorate(block) {
 
         // Cancel stale clearTransitionFn before setting our own below
         if (clearTransitionFn) {
-          carouselTrack.removeEventListener('transitionend', clearTransitionFn);
+          carouselTrack.removeEventListener("transitionend", clearTransitionFn);
           clearTransitionFn = null;
         }
 
@@ -1029,21 +1095,21 @@ export default async function decorate(block) {
         state.position = targetPos;
 
         const onEnd = () => {
-          carouselTrack.removeEventListener('transitionend', onEnd);
+          carouselTrack.removeEventListener("transitionend", onEnd);
           isWrapping = false;
           // Silent snap to corresponding original slide
-          carouselTrack.style.transition = 'none';
+          carouselTrack.style.transition = "none";
           const offsets = getOriginalSlideOffsets();
           position = -offsets[snapIndex];
           state.position = position;
           carouselTrack.style.transform = `translateX(${position}px)`;
           resumeAfterInteraction();
         };
-        carouselTrack.addEventListener('transitionend', onEnd);
+        carouselTrack.addEventListener("transitionend", onEnd);
       };
 
       if (prevButton) {
-        prevButton.addEventListener('click', () => {
+        prevButton.addEventListener("click", () => {
           if (isWrapping) return; // Block clicks during wrap transition
           const state = window.mosaicCarouselStates[groupId];
           const currentIndex = getCurrentSlideIndex();
@@ -1060,7 +1126,7 @@ export default async function decorate(block) {
             // Wrap prev (first → last): animate to pre-clone then snap to last original
             state.isPaused = true;
             state.manualControl = true;
-            animateWrap('prev');
+            animateWrap("prev");
           }
           // else: no loop, already at first — do nothing.
           // IMPORTANT: do NOT touch state here; leaving manualControl=true with
@@ -1069,11 +1135,16 @@ export default async function decorate(block) {
       }
 
       if (nextButton) {
-        nextButton.addEventListener('click', () => {
+        nextButton.addEventListener("click", () => {
           if (isWrapping) return; // Block clicks during wrap transition
           // Block click if we're already past the arrow-hide threshold (70% into last fold).
           // This keeps the visual hide and the functional disable perfectly in sync.
-          if (!loop && arrowHideThreshold > 0 && Math.abs(position) >= arrowHideThreshold) return;
+          if (
+            !loop &&
+            arrowHideThreshold > 0 &&
+            Math.abs(position) >= arrowHideThreshold
+          )
+            return;
           const state = window.mosaicCarouselStates[groupId];
 
           // Use floor-based index (slide we're scrolling FROM), not nearest-based.
@@ -1084,7 +1155,8 @@ export default async function decorate(block) {
           const absPos = Math.abs(position);
           let currentIndex = 0;
           for (let i = offsets.length - 1; i >= 0; i -= 1) {
-            if (absPos >= offsets[i] - 1) { // -1 to handle float rounding
+            if (absPos >= offsets[i] - 1) {
+              // -1 to handle float rounding
               currentIndex = i;
               break;
             }
@@ -1102,7 +1174,7 @@ export default async function decorate(block) {
             // Wrap next (last → first): animate to post-clone of first then snap to first original
             state.isPaused = true;
             state.manualControl = true;
-            animateWrap('next');
+            animateWrap("next");
           }
           // else: no loop, already at last — do nothing.
           // IMPORTANT: do NOT touch state here; leaving manualControl=true with
@@ -1112,11 +1184,11 @@ export default async function decorate(block) {
     }
 
     // Cleanup
-    window.addEventListener('beforeunload', () => {
+    window.addEventListener("beforeunload", () => {
       if (animationId) {
         cancelAnimationFrame(animationId);
       }
-      window.removeEventListener('resize', debouncedResize);
+      window.removeEventListener("resize", debouncedResize);
       clearTimeout(resizeTimeout);
     });
   }
