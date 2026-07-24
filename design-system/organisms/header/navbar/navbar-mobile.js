@@ -6,11 +6,13 @@ import { Logo } from '../../../atoms/logo/logo.js';
 import { LanguageSelectorButton } from '../language-selector-button/language-selector-button.js';
 import { PosForm } from '../pos-form/pos-form.js';
 import loadSVGIcon from '../../../../scripts/utils/svg.helper.js';
+import { sanitizeSVG } from '../../../../scripts/utils/sanitize.js';
 import { waitForHlxCodeBasePath, buildIconPath } from '../../../../scripts/utils/hlx.helper.js';
 import { Icon } from '../../../atoms/icon/icon.js';
 import { MegamenuItem } from '../../../molecules/megamenu/megamenu.js';
 import { CabinUpgradeForm } from '../../forms/cabin-upgrade-form/cabin-upgrade-form.js';
 import { MMBForm } from '../../forms/mmb-form/mmb-form.js';
+import { SSCIForm } from '../../forms/ssci-form/ssci-form.js';
 import {
   getCountries,
   getLanguages,
@@ -69,6 +71,26 @@ const MegaBannerSlot = ({ cmsBlock, formType, formLabel }) => {
         const clone = cmsBlock.cloneNode(true);
         clone.style.display = '';
         slot.appendChild(clone);
+
+        // El card de la variante izquierda usa `!h-fit` (fit-content, correcto para el
+        // banner standalone del CMS). Pero en el slot del menu mobile debe LLENAR los
+        // 220px del slot en tablet (como en produccion y en el megamenu desktop); si no,
+        // queda ~160px y el contenido/CTA se recorta. El `!h-fit` (Tailwind v4) no cede a
+        // CSS externo, asi que se fuerza inline. En mobile (<768) se deja fit-content
+        // (layout apilado, mas alto).
+        const leftCard = clone.querySelector(
+          '[data-name="secondary-banner"][data-image-position="left"]',
+        );
+        if (leftCard) {
+          // OJO: hay que usar priority 'important' — el card trae `md:!h-fit`
+          // (height:fit-content !important de Tailwind v4) y un inline sin important
+          // NO lo gana. En mobile (<768) se quita para dejar el fit-content apilado.
+          if (window.innerWidth >= 768) {
+            leftCard.style.setProperty('height', '220px', 'important');
+          } else {
+            leftCard.style.removeProperty('height');
+          }
+        }
       });
     };
 
@@ -82,8 +104,13 @@ const MegaBannerSlot = ({ cmsBlock, formType, formLabel }) => {
     const observer = new MutationObserver(scheduleSync);
     observer.observe(cmsBlock, { childList: true, subtree: true });
 
+    // Re-aplica la altura del card (fija en tablet, fit-content en mobile) al cruzar
+    // el breakpoint de 768px sin que la fuente mute.
+    window.addEventListener('resize', scheduleSync, { passive: true });
+
     return () => {
       observer.disconnect();
+      window.removeEventListener('resize', scheduleSync);
       if (rafId !== null) cancelAnimationFrame(rafId);
     };
   }, [cmsBlock, formType]);
@@ -101,6 +128,15 @@ const MegaBannerSlot = ({ cmsBlock, formType, formLabel }) => {
     return html`
       <div class="megamenu-mobile-banner rounded-[16px] mt-6 flex flex-col gap-4">
         <${MMBForm} simplified=${true} context="megamenu" />
+      </div>
+    `;
+  }
+  if (formType === 'ssci') {
+    // Same wrapper as MMB; SSCI organism reads its label from i18n
+    // (`ssciForm.megamenuLabel`) in simplified mode.
+    return html`
+      <div class="megamenu-mobile-banner rounded-[16px] mt-6 flex flex-col gap-4">
+        <${SSCIForm} simplified=${true} context="megamenu" />
       </div>
     `;
   }
@@ -207,7 +243,7 @@ export const NavbarMobile = ({
     return html`
       <span
         class="inline-flex items-center justify-center"
-        dangerouslySetInnerHTML=${{ __html: clonedSvg.outerHTML }}
+        dangerouslySetInnerHTML=${{ __html: sanitizeSVG(clonedSvg.outerHTML) }}
       />
     `;
   };
@@ -227,17 +263,23 @@ export const NavbarMobile = ({
   // the modal stays mounted with stale mobile-state clones that the source's
   // MutationObserver can leak into the desktop megamenu — the user sees a
   // broken layout until the modal is closed manually.
+  //
+  // Usamos `matchMedia` con el MISMO query que header.js (`(max-width: 1023.98px)`)
+  // para evitar off-by-one en Windows con DPR fraccional: `window.innerWidth`
+  // redondea distinto al motor de media queries y podía dejar el modal abierto
+  // 1px de rango justo cuando header.js ya había cambiado a modo desktop.
   useEffect(() => {
     if (!isModalOpen) return undefined;
-    const handleResize = () => {
-      if (window.innerWidth >= 1024) {
+    const mq = window.matchMedia('(max-width: 1023.98px)');
+    const handleChange = () => {
+      if (!mq.matches) {
         setIsModalOpen(false);
         setSelectedSection(null);
         setShowLanguageForm(false);
       }
     };
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
+    mq.addEventListener('change', handleChange);
+    return () => mq.removeEventListener('change', handleChange);
   }, [isModalOpen]);
 
   const handleNavLinkClick = () => {
@@ -316,17 +358,20 @@ export const NavbarMobile = ({
     const hasSubItems = section.subItems && section.subItems.length > 0;
     const hasMegamenu = section.megamenu && section.megamenu.columns?.length > 0;
     const isExpandable = hasSubItems || hasMegamenu;
+    // Estado seleccionado (1263924, Sub C): "Lifemiles" destacado en rutas /members.
+    const isSelected = !!section.selected;
 
     if (isExpandable) {
       return html`
               <li class="group/itemList flex flex-row items-center" key=${section.url}>
-                  <div class="hidden group-hover/itemList:block bg-[var(--color-background-brand-highlight-default)] h-[36px] w-[4px]"></div>
+                  <div class=${`${isSelected ? 'block' : 'hidden group-hover/itemList:block'} bg-[var(--color-background-brand-highlight-default)] h-[36px] w-[4px]`}></div>
                   <div class="w-full py-4 px-0 text-[16px] group-hover/itemList:translate-x-2 transition-transform">
                     <button
                       type="button"
+                      aria-current=${isSelected ? 'page' : undefined}
                       class=${`
-                        h-[21px] flex items-center justify-between no-underline text-base font-normal 
-                        text-[var(--text-normal-primary)] w-full bg-transparent border-none cursor-pointer p-0 
+                        h-[21px] flex items-center justify-between no-underline text-base ${isSelected ? 'font-bold' : 'font-normal'}
+                        text-[var(--text-normal-primary)] w-full bg-transparent border-none cursor-pointer p-0
                         text-left transition-colors 
                         group-hover/itemList:text-[var(--brand-secondary)] 
                         focus-visible:outline-none focus-visible:ring-0
@@ -346,11 +391,12 @@ export const NavbarMobile = ({
 
     return html`
               <li class="group/itemList flex flex-row items-center" key=${section.url}>
-                <div class="hidden group-hover/itemList:block bg-[var(--color-background-brand-highlight-default)] h-[36px] w-[4px]"></div>
+                <div class=${`${isSelected ? 'block' : 'hidden group-hover/itemList:block'} bg-[var(--color-background-brand-highlight-default)] h-[36px] w-[4px]`}></div>
                 <div class="w-full py-4 px-0 text-[16px] group-hover:translate-x-2 transition-transform" >
                   <a
                     href=${section.url}
-                    class="flex items-center justify-between no-underline text-base font-normal text-[var(--text-normal)] w-full transition-colors group-hover/itemList:text-[var(--brand-secondary)] [&:hover]:scale-100"
+                    aria-current=${isSelected ? 'page' : undefined}
+                    class=${`flex items-center justify-between no-underline text-base ${isSelected ? 'font-bold' : 'font-normal'} text-[var(--text-normal)] w-full transition-colors group-hover/itemList:text-[var(--brand-secondary)] [&:hover]:scale-100`}
                     onClick=${handleNavLinkClick}
                   >
                     <span>${section.itemLabel}</span>

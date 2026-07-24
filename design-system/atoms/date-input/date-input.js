@@ -10,9 +10,14 @@ import { Icon } from '../icon/icon.js';
 const html = htm.bind(h);
 
 // Constants for state-based styling (defined outside component for performance)
+// `outline-offset-[-1px]` mantiene el borde consistente entre el input standalone
+// (OW / solo ida) y el contenedor agrupado del rango (RT / ida y vuelta), que ya usa
+// ese offset; sin el, el outline del standalone se dibujaba 1px por fuera y el borde
+// "cambiaba" al pasar de RT a OW (bug 1286625). Es el mismo patron que city-selector,
+// origin-destination-selector y el input atom.
 const STATE_CLASSES = {
-  normal: 'outline outline-1  outline-neutral-400',
-  disabled: 'outline outline-1  outline-border-input-disabled',
+  normal: 'outline outline-1 outline-offset-[-1px] outline-neutral-400',
+  disabled: 'outline outline-1 outline-offset-[-1px] outline-border-input-disabled',
 };
 
 const LABEL_STATE_CLASSES = {
@@ -148,11 +153,15 @@ export const DateInput = ({
   const containerClasses = useMemo(() => {
     // Border radius: solo esquinas SUPERIORES para grouped
     // (la línea verde al fondo maneja su propio border-radius)
+    // Radio fijo en 8px (Figma bradius-8px-m). NO usar `rounded-*-lg`: el tema
+    // del proyecto redefine --radius-lg a 0.8rem (12.8px), así que las esquinas
+    // agrupadas salían más grandes que el standalone y el input cambiaba de radio
+    // al pasar de RT (grouped) a OW (standalone). Fijar 8px las empareja.
     let borderRadiusClass = 'rounded-[8px]';
     if (variant === 'grouped-left') {
-      borderRadiusClass = 'rounded-tl-lg';
+      borderRadiusClass = 'rounded-tl-[8px]';
     } else if (variant === 'grouped-right') {
-      borderRadiusClass = 'rounded-tr-lg';
+      borderRadiusClass = 'rounded-tr-[8px]';
     }
 
     // Outline only for standalone
@@ -180,9 +189,9 @@ export const DateInput = ({
   const greenLineClasses = useMemo(() => {
     switch (variant) {
       case 'grouped-left':
-        return 'w-[calc(100%-4px)] self-center rounded-bl-lg';
+        return 'w-[calc(100%-4px)] self-center rounded-bl-[8px]';
       case 'grouped-right':
-        return 'w-[calc(100%-4px)] self-center rounded-br-lg';
+        return 'w-[calc(100%-4px)] self-center rounded-br-[8px]';
       default:
         return 'w-full';
     }

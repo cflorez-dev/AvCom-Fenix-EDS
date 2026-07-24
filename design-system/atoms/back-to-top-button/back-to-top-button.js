@@ -66,15 +66,23 @@ export const BackToTopButton = ({
     }
   };
 
-  // Container classes - Fixed positioning with Tailwind (always bottom-right corner)
+  // Container classes - Fixed positioning; concrete top/right/bottom/left come from `position` (inline style)
+  // so that author-provided values from the AEM block override any CSS/Tailwind defaults.
   const containerClasses = 'fixed '
-    + 'bottom-[20px] right-[20px] '
-    + 'max-sm:bottom-[12px] max-sm:right-[12px] '
     + 'transition-all duration-[var(--transition-normal)] ease-[var(--ease-in-out)] '
     + 'z-[90] ' // Below modals (z-100), above content
     + (isVisible
       ? 'opacity-100 visible translate-y-0'
       : 'opacity-0 invisible translate-y-[10px]');
+
+  // Build inline positioning style from the `position` prop. Only include defined
+  // sides so authors can position from any edge (top/right/bottom/left).
+  const positionStyle = ['top', 'right', 'bottom', 'left'].reduce((acc, side) => {
+    if (position && position[side] !== undefined && position[side] !== null && position[side] !== '') {
+      acc[side] = position[side];
+    }
+    return acc;
+  }, {});
 
   // Default icon (arrow up) - Matches Figma design
   const defaultIcon = html`
@@ -100,6 +108,7 @@ export const BackToTopButton = ({
   return html`
     <div
       class=${`${containerClasses} ${customClassName}`}
+      style=${positionStyle}
       aria-hidden=${!isVisible}
       data-name="backToTopButton"
     >

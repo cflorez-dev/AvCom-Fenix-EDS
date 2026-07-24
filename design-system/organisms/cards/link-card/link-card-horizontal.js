@@ -2,6 +2,8 @@ import { h } from '@dropins/tools/preact.js';
 import { useState, useEffect, useRef } from '@dropins/tools/preact-hooks.js';
 import htm from 'htm';
 import { LinkButton } from '../../../atoms/link-button/link-button.js';
+import { processContentHTML } from '../../../helpers/process-content-html.js';
+import { sanitizeHTML } from '../../../../scripts/utils/sanitize.js';
 
 const html = htm.bind(h);
 
@@ -99,8 +101,13 @@ export const LinkCardHorizontal = ({
     + 'overflow-hidden transition-all bg-[var(--bg-card-lighter)] '
     + `${borderClasses} `
     + 'flex flex-col md:flex-row items-start md:items-center justify-center '
-    + `${!isPhotographicCard ? 'hover:shadow-[0_2px_20px_2px_rgba(73,73,73,0.25)] ' : ''}`
-    + `${focusBorderClasses} ${!isPhotographicCard ? 'focus-visible:shadow-[0_2px_20px_2px_rgba(73,73,73,0.25)] ' : ''}`
+    // El hover/focus shadow de TODA la card solo aplica si la card completa es
+    // interactiva (isClickable = href && clickBehavior==='fullCard'). Si no hay
+    // interacción, o si la única interacción es el botón terciario interno
+    // (clickBehavior==='button'), la card no debe mostrar hover; ese feedback lo da
+    // el botón por sí mismo.
+    + `${!isPhotographicCard && isClickable ? 'hover:shadow-[0_2px_20px_2px_rgba(73,73,73,0.25)] ' : ''}`
+    + `${focusBorderClasses} ${!isPhotographicCard && isClickable ? 'focus-visible:shadow-[0_2px_20px_2px_rgba(73,73,73,0.25)] ' : ''}`
     + 'focus-visible:outline focus-visible:outline-2 focus-visible:outline-[var(--focus-primary)] focus-visible:outline-offset-2 '
     + '';
 
@@ -130,6 +137,16 @@ export const LinkCardHorizontal = ({
     + 'leading-normal '
     + 'tracking-[var(--paragraph-p300-letter-spacing)] '
     + 'text-[var(--text-normal-primary)] !text-[16px] w-full min-w-0 max-w-full relative shrink-0 break-words';
+
+  // VSTS: la descripción es rich text (puede traer <p>, <strong>, listas, enlaces).
+  // Se procesa y se inyecta como HTML — antes se renderizaba como texto y mostraba
+  // las etiquetas literales (p.ej. "<p>...</p>") en las mosaic cards.
+  const processedDescription = processContentHTML(description || '', 'informative', {
+    pClassName: descriptionClasses,
+    // Los enlaces inline del rich-text deben ir subrayados (sin esto quedan
+    // no-underline tras el fix del CTA #1020). VSTS 1282235.
+    linkButtonOptions: { underline: true },
+  });
 
   // Handler for card click
   const handleCardClick = (e) => {
@@ -216,9 +233,10 @@ export const LinkCardHorizontal = ({
         <p class=${titleClasses}>
           ${title}
         </p>
-        <p class=${descriptionClasses}>
-          ${description}
-        </p>
+        <div
+          class="w-full min-w-0 max-w-full"
+          dangerouslySetInnerHTML=${{ __html: sanitizeHTML(processedDescription) }}
+        ></div>
       </div>
 
       <!-- Link button container -->

@@ -6,6 +6,27 @@ import { DateSelector } from '../date-selector/date-selector.js';
 const html = htm.bind(h);
 
 /**
+ * Resolve which date sub-step ('departure' | 'return' | null) should be open.
+ *
+ * When `mode` collapses to `'single'` (one-way), the return DateSelector is
+ * unmounted, so a lingering `'return'` sub-step would leave NO selector open —
+ * the mobile modal disappears while BookingBox still thinks the dates step is
+ * active, producing a broken blank/white-gap view (RT → pick departure →
+ * auto-advance to return → switch to One Way). Coerce that stale `'return'`
+ * back to `'departure'` so the single departure selector stays open.
+ *
+ * @param {'single'|'range'} mode
+ * @param {'departure'|'return'|null} activeStepProp - step controlled by BookingBox
+ * @param {'departure'|'return'|null} internalActiveStep - DateRangePicker's own sub-step
+ * @returns {'departure'|'return'|null}
+ */
+export const resolveActiveStep = (mode, activeStepProp, internalActiveStep) => {
+  if (activeStepProp === null) return null;
+  const step = internalActiveStep || activeStepProp;
+  return mode === 'single' && step === 'return' ? 'departure' : step;
+};
+
+/**
  * DateRangePicker - Orquestador principal para selección de fechas (ida/regreso o solo ida)
  *
  * ## Props
@@ -124,7 +145,7 @@ export const DateRangePicker = ({
   // - Si activeStepProp es null, usar internalActiveStep (cerrado)
   // - Si activeStepProp es 'departure', usar internalActiveStep (abierto, pero sub-step interno)
   // - Esto permite que DateRangePicker maneje la transición departure -> return internamente
-  const activeStep = activeStepProp === null ? null : (internalActiveStep || activeStepProp);
+  const activeStep = resolveActiveStep(mode, activeStepProp, internalActiveStep);
 
   // Flag para saber si acabamos de cambiar departure (evita mostrar returnDate anterior)
   const [justChangedDeparture, setJustChangedDeparture] = useState(false);

@@ -35,6 +35,7 @@ function parseConfig(block) {
     defaultOpen: configValues[3] || 'none',
     visibilityStartDate: configValues[4] || '',
     visibilityEndDate: configValues[5] || '',
+    itemSpacing: configValues[6] || 'default',
   };
 }
 
@@ -61,6 +62,57 @@ function parseItems(block) {
       contentEl: cells[2] || null,
     };
   });
+}
+
+/**
+ * Injects/updates the FAQPage JSON-LD script in head from accordion items.
+ * All accordion-simplified blocks on the page share a single FAQPage schema
+ * (one schema per type per URL); questions are deduped by name so
+ * editor re-decoration never duplicates entries. Skipped on noindex pages.
+ * @param {Array<Object>} items - Parsed accordion items ({ label, contentEl })
+ */
+function upsertFaqJsonLd(items) {
+  const robots = document.head.querySelector('meta[name="robots"]')?.content || '';
+  if (robots.toLowerCase().includes('noindex')) return;
+
+  const entries = items
+    .map((item) => ({
+      question: (item.label || '').trim(),
+      answer: (item.contentEl?.textContent || '').replace(/\s+/g, ' ').trim(),
+    }))
+    .filter((entry) => entry.question && entry.answer);
+  if (entries.length === 0) return;
+
+  const existing = document.head.querySelector('script[data-faq-json-ld="true"]');
+  let mainEntity = [];
+  if (existing) {
+    try {
+      mainEntity = JSON.parse(existing.textContent)?.mainEntity || [];
+    } catch (e) {
+      mainEntity = [];
+    }
+  }
+
+  const seen = new Set(mainEntity.map((question) => question.name));
+  entries.forEach(({ question, answer }) => {
+    if (seen.has(question)) return;
+    seen.add(question);
+    mainEntity.push({
+      '@type': 'Question',
+      name: question,
+      acceptedAnswer: { '@type': 'Answer', text: answer },
+    });
+  });
+
+  const script = existing || document.createElement('script');
+  script.type = 'application/ld+json';
+  script.setAttribute('data-faq-json-ld', 'true');
+  script.textContent = JSON.stringify({
+    '@context': 'https://schema.org',
+    '@type': 'FAQPage',
+    mainEntity,
+  });
+  if (!existing) document.head.appendChild(script);
 }
 
 /**
@@ -227,7 +279,9 @@ const AccordionItem = ({
  * @param {'exclusive'|'multiple'} props.openMode
  * @param {'none'|'first'|'all'}   props.defaultOpen
  */
-const AccordionSimplifiedGroup = ({ items, openMode, defaultOpen }) => {
+const AccordionSimplifiedGroup = ({
+  items, openMode, defaultOpen, itemSpacing,
+}) => {
   // Lazy initializer: compute initial Set once on first render
   const [openSet, setOpenSet] = useState(() => {
     const set = new Set();
@@ -264,9 +318,11 @@ const AccordionSimplifiedGroup = ({ items, openMode, defaultOpen }) => {
     });
   };
 
+  const gapClass = itemSpacing === 'none' ? 'gap-0' : 'gap-3';
+
   return html`
     <div
-      class="accordion-simplified-group flex flex-col gap-3 w-full"
+      class=${`accordion-simplified-group flex flex-col ${gapClass} w-full ${itemSpacing === 'none' ? 'accordion-simplified-group--no-gap' : ''}`}
       data-name="accordionSimplifiedGroup"
     >
       ${items.map((item, i) => html`
@@ -332,6 +388,10 @@ export default function decorate(block) {
 
   if (items.length === 0) return;
 
+  // FAQPage JSON-LD for SEO, generated from the visible Q&A content
+  // (same head-injection pattern as blocks/breadcrumb) — VSTS 1281547
+  upsertFaqJsonLd(items);
+
   // Hide original children to preserve data-aue-* for editor (Pattern B)
   Array.from(block.children).forEach((child) => {
     child.style.display = 'none';
@@ -348,6 +408,7 @@ export default function decorate(block) {
         items=${items}
         openMode=${config.openMode}
         defaultOpen=${config.defaultOpen}
+        itemSpacing=${config.itemSpacing}
       />
     `,
     container,

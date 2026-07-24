@@ -25,17 +25,29 @@ export default async function decorate(block) {
 
   // Create header container structure FIRST so child blocks can find their containers
   // This fixes the race condition where header-navbar couldn't find .header-navbar-desktop
+  //
+  // Layout (Members spec — Figma 9:16447 / 9:16492 / 9:16618 / 9:16822):
+  //   ≤767px : [logo] ............ [user-chip][cart-chip][hamburger]
+  //   768-1023: [logo] ........... [lang][user-full][cart-chip][hamburger]
+  //   1024-1149: [logo][nav] ..... [lang][user-chip][cart-chip]
+  //   ≥1150: [logo][nav] ......... [lang][user-full][cart-chip]
+  //
+  // The hamburger lives in the RIGHT cluster (after cart) — header-navbar.js
+  // mounts to `.header-navbar-mobile` via querySelector, so DOM order doesn't
+  // affect wiring. The language selector is hidden under 768 with `hidden md:flex`.
   const headerContainer = document.createElement('div');
-  headerContainer.className = 'header-wrapper max-w-[1247px] w-full flex flex-row justify-between items-center h-[76px] min-[1440px]:h-[76px] top-[var(--marquee-height)]';
+  headerContainer.className = 'header-wrapper max-w-xl w-full flex flex-row justify-between items-center h-[76px] min-[1440px]:h-[76px] top-[var(--marquee-height)]';
   headerContainer.innerHTML = `
     <div class="header-container flex flex-row items-center gap-[24px]">
-      <div class="header-navbar-mobile"></div>
       <div class="header-logo flex items-center"></div>
     </div>
     <div class="header-navbar-desktop"></div>
-    <div class="header-user-actions  h-[48px] flex items-center justify-center flex-row gap-[16px]">
-      <div class="header-language-selector"></div>
-      <div class="user-actions"></div>
+    <div class="header-user-actions h-[48px] flex items-center justify-center flex-row gap-6">
+      <div class="flex items-center gap-2">
+        <div class="header-language-selector hidden md:flex"></div>
+        <div class="user-actions"></div>
+      </div>
+      <div class="header-navbar-mobile"></div>
     </div>
   `;
 

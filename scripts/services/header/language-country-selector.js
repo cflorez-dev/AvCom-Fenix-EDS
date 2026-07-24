@@ -11,6 +11,7 @@ import {
   getDefaultCountryIsoCode,
 } from './get-pos-data.js';
 import { resolveHreflangRedirectUrl } from './hreflang-redirection.js';
+import { syncPoscodeInUrl } from '../../utils/poscode-url.helper.js';
 
 /**
  * Detect if the page is running in AEM author / Universal Editor mode.
@@ -989,6 +990,14 @@ export function setStoredPos(pos, fallback) {
  * Navigate to a language path (explicit user action only)
  * Call this when user explicitly selects a country/language
  * Pattern: /{lang}/ - country is stored in cookie, not URL
+ *
+ * When the current URL carries a `?poscode=` (a deep-link from an external
+ * system), the param is rewritten to the POS the user just picked. It is the
+ * Level-1 POS source and outranks the cookie on every page load, so leaving it
+ * stale makes `resolvePOSFromURL()` write the previous POS back right after the
+ * reload — the header would snap back to the old country. See
+ * `scripts/utils/poscode-url.helper.js`.
+ *
  * @param {string} pos - POS value in format "language-country" (e.g., "es-col")
  */
 export function navigateToPOS(pos) {
@@ -1000,21 +1009,40 @@ export function navigateToPOS(pos) {
   const normalizedPos = normalizePos(pos);
   if (!normalizedPos) return;
 
-  const { language } = parsePos(normalizedPos);
+  const { language, country } = parsePos(normalizedPos);
   if (!language) return;
+
+  // `poscode` speaks the ISO vocabulary (catalog `keyIso`), not the internal
+  // country code: 'col' → 'co'.
+  const posCode = getCountryData()[country]?.keyIso || '';
 
   // Pattern: /{lang}/ - always use language-only path
   const targetPath = `/${language}/`;
 
-  resolveHreflangRedirectUrl(language).then((redirectUrl) => {
-    if (redirectUrl === window.location.pathname) {
+  /**
+   * Resolve the final destination, keeping the current query string when we
+   * stay on the same path (that branch used to be a plain reload, which
+   * preserved it) and syncing `poscode` on top.
+   */
+  const resolveTarget = (redirectUrl) => {
+    const url = new URL(redirectUrl, window.location.href);
+    if (url.pathname === window.location.pathname && !url.search) {
+      url.search = window.location.search;
+      url.hash = window.location.hash;
+    }
+    return syncPoscodeInUrl(`${url.pathname}${url.search}${url.hash}`, posCode);
+  };
+
+  const go = (redirectUrl) => {
+    const target = resolveTarget(redirectUrl);
+    if (new URL(target, window.location.href).href === window.location.href) {
       window.location.reload();
     } else {
-      window.location.href = redirectUrl;
+      window.location.href = target;
     }
-  }).catch(() => {
-    window.location.href = targetPath;
-  });
+  };
+
+  resolveHreflangRedirectUrl(language).then(go).catch(() => go(targetPath));
 }
 
 /**

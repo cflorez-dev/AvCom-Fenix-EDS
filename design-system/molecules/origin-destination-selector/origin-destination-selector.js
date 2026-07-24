@@ -1,6 +1,7 @@
 import { h } from '@dropins/tools/preact.js';
 import { useState, useEffect, useCallback, useMemo } from '@dropins/tools/preact-hooks.js';
 import htm from 'htm';
+import { sanitizeSpreadProps } from '../../../scripts/utils/sanitize.js';
 import { CitySelector } from '../city-selector/city-selector.js';
 import { SwapButton } from '../../atoms/swap-button/swap-button.js';
 import {
@@ -397,7 +398,7 @@ export const OriginDestinationSelector = ({
     <div
       class=${`relative ${containerClasses}`}
       data-name="originDestinationSelector"
-      ...${rest}
+      ...${sanitizeSpreadProps(rest)}
     >
       <!-- Grouped container with shared borders -->
       <div class="flex flex-col md:flex-row outline outline-1 outline-offset-[-1px] outline-[var(--color-border-default)] rounded-[8px] bg-background-input-default overflow-hidden">

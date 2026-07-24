@@ -54,6 +54,12 @@ export const consultaCombinabilidad = ({
   body: { idioma, codigoIataOrigen, codigoIataDestino },
 });
 
+export const parametroCabinas = ({
+  idioma = 'es',
+} = {}) => apimFetch('digital', `/v1/parametroCabinas/${idioma}`, {
+  method: 'GET',
+});
+
 export const getCheapestPrices = async ({
   tripType,
   originCityCode,

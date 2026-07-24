@@ -102,10 +102,6 @@
 
 /* Tablet: show only table-tablet (768px - 1023px) */
 @media (min-width: 768px) and (max-width: 1024px) {
-  .section.tables-container {
-    padding-inline: 24px;
-  }
-
   .tables .table-desktop {
     display: none;
   }
@@ -227,10 +223,6 @@
 
 /* Mobile: show only table-mobile (< 768px) */
 @media (max-width: 767px) {
-  .section.tables-container {
-    padding-inline: 24px;
-  }
-
   .tables .table-desktop {
     display: none;
   }

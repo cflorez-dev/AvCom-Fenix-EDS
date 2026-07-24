@@ -7,6 +7,7 @@ import {
 import htm from 'htm';
 import { Button } from '../../../atoms/button/button.js';
 import loadSVGIcon from '../../../../scripts/utils/svg.helper.js';
+import { sanitizeSVG } from '../../../../scripts/utils/sanitize.js';
 
 const html = htm.bind(h);
 
@@ -39,6 +40,7 @@ const html = htm.bind(h);
 export const SecondaryBanner = ({
   title = '',
   firstLabel = '',
+  // eslint-disable-next-line no-unused-vars -- CU-207 CA5: model field kept, not rendered
   secondaryLabel = '',
   imageDesktop = '',
   imageMobile = '',
@@ -62,10 +64,12 @@ export const SecondaryBanner = ({
 
   // State for button size based on screen width
   const initialWidth = typeof window !== 'undefined' ? window.innerWidth : 0;
-  const [buttonSize, setButtonSize] = useState(initialWidth < 1024 ? 'xs' : 'md');
+  // Bug 2: tablet (>=768px) uses the large button ('md'); only mobile stays compact ('xs')
+  const [buttonSize, setButtonSize] = useState(initialWidth < 768 ? 'xs' : 'md');
 
-  // State for detecting desktop viewport (>= 1024px)
-  const [isDesktop, setIsDesktop] = useState(initialWidth >= 1024);
+  // State for detecting desktop viewport (>= 768px)
+  // Non-fullCover variant applies the desktop layout (and desktop SVGs) from tablet up.
+  const [isDesktop, setIsDesktop] = useState(initialWidth >= 768);
   const loadingMode = loading === 'eager' ? 'eager' : 'lazy';
   const imageDecoding = loadingMode === 'eager' ? 'sync' : 'async';
   const imageFetchPriority = loadingMode === 'eager' ? 'high' : 'low';
@@ -80,8 +84,8 @@ export const SecondaryBanner = ({
   useEffect(() => {
     const updateScreenSize = () => {
       const width = window.innerWidth;
-      setButtonSize(width < 1024 ? 'xs' : 'md');
-      setIsDesktop(width >= 1024);
+      setButtonSize(width < 768 ? 'xs' : 'md'); // Bug 2: large button from tablet up
+      setIsDesktop(width >= 768);
     };
 
     updateScreenSize();
@@ -169,7 +173,14 @@ export const SecondaryBanner = ({
             path.setAttribute('style', `fill: ${solidColor};`);
           });
         }
-        bgSVG.setAttribute('class', 'absolute top-0 right-0 min-[1024px]:right-[87px] min-[1024px]:h-[243px] min-[1024px]:w-auto');
+        // Right-anchored at all md+ breakpoints so SVGs stay aligned with the second column
+        // (image) regardless of viewport width. 87px offset keeps BG behind the condor.
+        // Condor nativo 789x240. Ancho fijo (md) + h-full: en desktop/tablet el condor
+        // llena la altura dinamica (240-290) estirandose SOLO en alto. El estiramiento se
+        // logra con preserveAspectRatio="none" aplicado UNICAMENTE en el render desktop
+        // (renderSVG(..., true)); NO en el elemento, para que el condor mobile conserve su
+        // aspecto nativo (comparte el mismo <svg>).
+        bgSVG.setAttribute('class', 'absolute top-0 md:right-[87px] md:h-full md:w-[789px]');
 
         const strokeColor = condorStrokeColor || 'white';
         const vectorPaths = vectorSVG.querySelectorAll('path');
@@ -178,7 +189,10 @@ export const SecondaryBanner = ({
           path.setAttribute('stroke', strokeColor);
           path.setAttribute('style', `fill: none; stroke: ${strokeColor}; stroke-width: ${strokeWidth};`);
         });
-        vectorSVG.setAttribute('class', 'absolute top-0 right-[1px] min-[1024px]:h-[243px] min-[1024px]:w-auto');
+        // Right-anchored at all md+ breakpoints so the condor follows the second column
+        // (image) start as viewport shrinks, keeping engranaje with BG at any width.
+        // Condor stroke nativo 273x240: mismo criterio que el bg (estira solo en desktop).
+        vectorSVG.setAttribute('class', 'absolute top-0 md:right-[1px] md:h-full md:w-[273px]');
 
         // Set both SVGs atomically to prevent partial render
         setCondorBgSVG(bgSVG);
@@ -202,11 +216,18 @@ export const SecondaryBanner = ({
     isDesktop,
   ]);
 
-  const renderSVG = (svgElement) => {
+  // stretch=true inyecta preserveAspectRatio="none" (solo desktop/tablet) para que el
+  // condor se estire en alto y llene la altura dinamica sin conservar su aspecto. El
+  // render mobile llama sin flag => aspecto nativo intacto.
+  const renderSVG = (svgElement, stretch = false) => {
     if (!svgElement) return null;
+    let outer = svgElement.outerHTML;
+    if (stretch && !/\spreserveAspectRatio\s*=/i.test(outer)) {
+      outer = outer.replace(/<svg\b/i, '<svg preserveAspectRatio="none"');
+    }
     return html`
       <span
-        dangerouslySetInnerHTML=${{ __html: svgElement.outerHTML }}
+        dangerouslySetInnerHTML=${{ __html: sanitizeSVG(outer) }}
         class="block right-0 overflow-hidden"
         style=${{ lineHeight: 0 }}
       />
@@ -233,7 +254,7 @@ export const SecondaryBanner = ({
           loading=${loadingMode}
           decoding=${imageDecoding}
           fetchpriority=${imageFetchPriority}
-          class=" w-full h-full object-cover object-[right_top]"
+          class="w-full h-full object-cover object-[right_top]"
         />
       </picture>
     `;
@@ -284,33 +305,80 @@ export const SecondaryBanner = ({
     ? `background: linear-gradient(to bottom, ${gradientColorStart}, ${gradientColorEnd});`
     : `background: ${backgroundColor || '#1b1b1b'};`;
 
+  // Pre-compute CTA link attributes (shared by mobile + desktop layouts)
+  const isInternalCtaLink = ctaUrl.startsWith('/') || ctaUrl.startsWith('#');
+  const ctaTarget = isInternalCtaLink ? '_self' : '_blank';
+  let ctaRel;
+  if (isInternalCtaLink) {
+    ctaRel = ctaLinkType !== 'dofollow' ? ctaLinkType : undefined;
+  } else {
+    ctaRel = `noopener noreferrer${ctaLinkType !== 'dofollow' ? ` ${ctaLinkType}` : ''}`;
+  }
+
   return html`
-    <!-- Desktop Version -->
-    <div 
-      class="secondary-banner-card max-w-[1248px] w-full h-[216px] min-[1024px]:h-[243px] relative rounded-[24px] shadow-[0px_2px_20px_2px_rgba(73,73,73,0.25)] my-[32px] mx-[16px] min-[1024px]:mx-[32px] overflow-hidden pb-[18px]"
+    <div
+      class=${`max-w-xl w-full ${fullCoverImage ? 'h-[216px] min-[1024px]:h-[243px]' : 'h-auto md:min-h-[240px] md:max-h-[290px]'} relative rounded-[16px] shadow-[0px_2px_25px_2px_rgba(120,124,130,0.15)] my-[32px] mx-[16px] min-[1024px]:mx-[32px] overflow-hidden`}
       style=${bannerBackground}
+      data-name="secondary-banner"
     >
-       <!-- Left content section -->
-        <div class="w-full h-[216px] md:h-[230px] lg:h-[243px] p-0 absolute left-0 top-0 inline-flex flex-col justify-between items-start z-2">
-          <div data-banner-mode=${mode} class=${` relative w-full ${fullCoverImage ? '' : 'min-[1024px]:w-[873px]'} flex flex-col justify-start items-start gap-10`}>
-          <!-- Background condor pattern -->
-            <div class="absolute top-0 w-[100%] pointer-events-none h-[216px] md:h-[230px] lg:h-[243px] z-10">
-              ${renderSVG(condorBgSVG)}
+      <!-- Mobile Version (< 768): vertical stack — image top, content below (Figma 9012-160538) -->
+      ${fullCoverImage ? '' : html`
+      <div class="md:hidden flex flex-col w-full">
+        <!-- Image top (full width, 170px) -->
+        <div class="relative w-full h-[170px] overflow-hidden">
+          ${buildMobilePicture()}
+          ${showCondor ? html`
+            <div class="absolute top-0 right-0 w-[140px] h-[140px] pointer-events-none z-10 overflow-hidden [&_svg]:absolute [&_svg]:top-0 [&_svg]:right-0 [&_svg]:h-full [&_svg]:w-auto">
               ${renderSVG(condorVectorSVG)}
-              
             </div>
-          <!-- Background condor pattern -->
-          <div class="w-full h-full relative z-20 flex flex-row gap-[8px] min-[769px]:gap-0">
-              <div class=${`min-w-0 h-[216px] min-[1024px]:h-[243px] flex flex-col justify-between z-10 p-[16px] min-[1024px]:p-[24px] ${fullCoverImage ? 'w-full min-[1024px]:max-w-[510px]' : 'flex-1'}`}>
+          ` : ''}
+        </div>
+        <!-- Content below image -->
+        <div data-banner-mode=${mode} class="relative z-20 flex flex-col gap-[16px] items-start justify-center p-[16px]">
+          <div class="self-stretch flex flex-col justify-center items-start gap-[4px]">
+            <h2 class=${`self-stretch justify-start ${textColorClasses} font-bold font-['Red_Hat_Display'] !text-[18px] !leading-none`}>
+              ${title}
+            </h2>
+            <div class="self-stretch justify-start ${textColorClasses} text-[14px] leading-[21px] font-normal font-['Red_Hat_Display']">
+              ${firstLabel}
+            </div>
+          </div>
+          ${ctaText && ctaUrl ? html`
+            <div data-appearance="secondary" data-iconafter="false" data-iconbefore="false" data-icononly="false" data-size="default" data-state="default">
+              <a
+                href=${ctaUrl}
+                target=${ctaTarget}
+                rel=${ctaRel}
+                class="inline-block"
+              >
+                <${Button}
+                  variant=${mode === 'dark' ? 'primary' : 'secondary'}
+                  size=${buttonSize}
+                >
+                  ${ctaText}
+                </${Button}>
+              </a>
+            </div>
+          ` : ''}
+        </div>
+      </div>
+      `}
+
+      <!-- Desktop / Tablet Version (>= 768): layout avalado, sin cambios -->
+      <div class=${fullCoverImage ? 'w-full h-full' : 'hidden md:block w-full'}>
+       <!-- Left content section -->
+        <div class=${fullCoverImage
+          ? `w-full h-[216px] lg:h-[243px] p-0 absolute left-0 top-0 inline-flex flex-col justify-between items-start z-2`
+          : `w-full min-h-[240px] p-0 relative inline-flex flex-col justify-center items-start z-2`}>
+          <div data-banner-mode=${mode} class=${` relative w-full ${fullCoverImage ? '' : 'min-[1024px]:w-[873px]'} flex flex-col justify-start items-start gap-10`}>
+          <div class=${`w-full h-full relative z-20 flex flex-row gap-[8px] md:gap-0 ${fullCoverImage ? 'md:min-h-[216px]' : 'md:min-h-[243px]'} lg:min-h-0`}>
+              <div class=${`min-w-0 h-fit ${fullCoverImage ? 'md:h-[243px]' : 'md:min-h-[240px]'} lg:h-fit flex flex-col gap-[24px] justify-center ${fullCoverImage ? 'md:justify-between lg:justify-center' : 'md:justify-center'} z-10 p-[16px] min-[1024px]:p-[24px] ${fullCoverImage ? 'w-full min-[1024px]:max-w-[510px]' : 'flex-1 md:max-w-[61%] lg:max-w-none'}`}>
                 <div class="z-10 self-stretch flex flex-col justify-center items-start gap-[4px]">
-                  <h2 class=${`${ctaText && ctaUrl ? 'line-clamp-2' : 'line-clamp-4'} self-stretch justify-start ${textColorClasses} font-bold font-['Red_Hat_Display'] ${fullCoverImage ? 'banner-title-scaled' : ''}`}>
+                  <h2 class=${`line-clamp-none md:line-clamp-3 self-stretch justify-start ${textColorClasses} font-bold font-['Red_Hat_Display'] ${fullCoverImage ? 'banner-title-scaled' : '!text-[18px] md:!text-[24px] lg:!text-[28px] !leading-tight'}`}>
                     ${title}
                   </h2>
-                  <div class="${ctaText && ctaUrl ? 'line-clamp-2' : 'line-clamp-4'} self-stretch justify-start ${textColorClasses} leading-[21px] min-[769px]:!leading-[32px] text-[16px] min-[1024px]:text-[24px] font-normal font-['Red_Hat_Display']">
+                  <div class="line-clamp-none md:line-clamp-3 self-stretch justify-start ${textColorClasses} text-[14px] leading-[21px] md:text-[18px] md:leading-[27px] font-normal font-['Red_Hat_Display']">
                     ${firstLabel}
-                  </div>
-                  <div class="${ctaText && ctaUrl ? 'line-clamp-2' : 'line-clamp-4'} self-stretch justify-start ${textColorClasses} leading-[16px] min-[769px]:!leading-[21px] text-[12px] min-[1024px]:text-[16px] font-normal font-['Red_Hat_Display'] opacity-90">
-                    ${secondaryLabel}
                   </div>
                 </div>
                 ${ctaText && ctaUrl ? html`
@@ -334,7 +402,7 @@ export const SecondaryBanner = ({
                   </div>
                 ` : ''}
               </div>
-              ${fullCoverImage ? '' : html`<div class="spacer w-[181px] lg:w-[271px] shrink-0"></div>`}
+              ${fullCoverImage ? '' : html`<div class="spacer w-[181px] md:w-[300px] lg:w-[271px] shrink-0"></div>`}
           </div>
       </div>
 
@@ -342,26 +410,41 @@ export const SecondaryBanner = ({
         </div>
           
 
-        <!-- Right image section - Mobile (< 1024px) -->
-      <div class=${`absolute right-0 top-0 h-[216px] md:h-[230px] lg:hidden z-1 overflow-hidden ${fullCoverImage ? 'w-full max-w-full max-h-full' : 'max-w-[216px] max-h-[216px] w-full min-[480px]:w-[50%]'}`}>
+        <!-- Right image section - Mobile picture (fullCover: < 1024px; non-full: < 1024px so tablet 768-1023 also uses mobile image) -->
+      <div class=${`absolute right-0 ${fullCoverImage ? 'top-0 h-[216px] md:h-[243px]' : 'inset-y-0 h-full'} lg:hidden z-1 overflow-hidden ${fullCoverImage ? 'w-full max-w-full max-h-full' : 'max-w-[216px] max-h-full w-full min-[480px]:w-[50%] md:max-w-[300px] md:w-[300px]'}`}>
         <div class="w-full h-full relative">
           ${buildMobilePicture()}
         </div>
       </div>
 
-        <!-- Right image section - Desktop (>= 1024px) -->
-      <div class=${`hidden lg:block absolute top-0 h-[243px] z-1 overflow-hidden ${fullCoverImage ? 'left-0 w-full max-w-full' : 'left-0 ml-[597px] max-w-[651px] w-[651px]'}`}>
+        <!-- Right image section - Desktop picture (>= 1024px only) -->
+      <div class=${`hidden lg:block absolute ${fullCoverImage ? 'top-0 h-[243px]' : 'inset-y-0 h-full'} z-1 overflow-hidden ${fullCoverImage ? 'left-0 w-full max-w-full' : 'left-0 ml-[597px] max-w-[651px] w-[651px]'}`}>
         <div class="w-full h-full relative">
           ${buildDesktopPicture()}
         </div>
       </div>
 
-   
+        <!-- Condor overlay: hermano de las imágenes. El bloque md padre NO está
+             posicionado, así que el bloque contenedor de este absolute es el card
+             (relative, alto dinámico 240-290); con inset-y-0 llena esa altura y los
+             SVG con md:h-full resuelven. z-1 = sobre la imagen (por orden DOM) y bajo
+             el contenido (z-2/z-20).
+             El borde DERECHO del overlay define donde arrancan los SVG right-anchored,
+             y debe caer en el borde de la columna de imagen (como en Figma):
+             - Desktop (>=1024): imagen fija en ml-[597px] => overlay w-[873px] (0-873).
+             - Tablet (768-1023): imagen 300px right-anchored => overlay right-[26px]
+               (26 = 300 imagen - 273 vector - 1 offset), asi el vector arranca justo en
+               el borde izq de la imagen y no 26px adentro. -->
+        ${fullCoverImage ? '' : html`
+        <div class="absolute inset-y-0 left-0 right-[26px] min-[1024px]:right-auto min-[1024px]:w-[873px] pointer-events-none z-1">
+          ${renderSVG(condorBgSVG, true)}
+          ${renderSVG(condorVectorSVG, true)}
+        </div>
+        `}
 
-      
+      </div>
+      <!-- /Desktop / Tablet Version -->
     </div>
-
-   
   `;
 };
 

@@ -10,8 +10,9 @@ import htm from 'htm';
 import { Incrementer } from '../../atoms/incrementer/incrementer.js';
 import { Icon } from '../../atoms/icon/icon.js';
 import { Button } from '../../atoms/button/button.js';
-import { Alert } from '../alert/alert.js';
+import { Alert, LINK_STATE_CLASSES } from '../alert/alert.js';
 import { processContentHTML } from '../../helpers/process-content-html.js';
+import { sanitizeHTML } from '../../../scripts/utils/sanitize.js';
 
 const html = htm.bind(h);
 
@@ -98,6 +99,7 @@ export const PassengerSelector = ({
   onChange,
   onError,
   showCabinClass = true,
+  cabinOptions = [],
   onBack,
   onClose,
   stepTitle = '¿Quiénes vuelan?',
@@ -386,7 +388,23 @@ export const PassengerSelector = ({
         strongClassName: 'font-bold',
         processRelAttributes: true,
         linkButtonOptions: {
-          customClassName: '!text-[14px] !leading-[21px] py-0',
+          // Booking-box info banner: replicamos EXACTAMENTE el tratamiento que
+          // Alert (variante informative) aplica cuando NO se usa
+          // preserveRawHTML. El átomo LinkButton solo cambia color en
+          // hover/active, así que Alert le suma:
+          //   1. `!text-text-link-informative-active` para forzar #0E4C54 en
+          //      TODOS los estados (decisión de producto en informative).
+          //   2. `LINK_STATE_CLASSES` para el font-bold en hover/active/focus.
+          // Ver comentarios junto a LINK_STATE_CLASSES y linkButtonOptions
+          // dentro de alert.js.
+          //
+          // Estados resultantes:
+          //   - default:       #0E4C54, font-normal, underline
+          //   - hover/active:  #0E4C54, font-bold,   underline
+          //   - focus-visible: #0E4C54 + ring,        font-bold, underline
+          //   - disabled:      text-text-brand-disable + cursor-not-allowed
+          underline: true,
+          customClassName: `!text-[14px] !leading-[21px] py-0 !text-text-link-informative-active ${LINK_STATE_CLASSES}`,
           linkTarget: 'self',
         },
       },
@@ -491,7 +509,7 @@ export const PassengerSelector = ({
               >
                <${Icon} icon="navigation/arrow-back" size="sm" />
               </button>
-              <h2 class="font-bold text-[var(--color-text-normal-primary)]">${i18n['bookingBox.labels.whoFlies'] || stepTitle}</h2>
+              <h2 class="font-bold !text-[18px] text-[var(--color-text-normal-primary)] min-h-[24px]">${i18n['bookingBox.labels.whoFlies'] || stepTitle}</h2>
               <button
                 type="button"
                 class="hover:opacity-60"
@@ -510,7 +528,7 @@ export const PassengerSelector = ({
                5bbb817 to avoid the iOS bounce). -->
           <div class="flex-1 overflow-y-auto overscroll-contain px-[32px] pt-[16px] pb-0 flex flex-col gap-[16px]">
             <!-- Selected Passengers Display (Input Style) -->
-            <div class="self-stretch inline-flex flex-col justify-start items-start gap-1">
+            <div class="shrink-0 self-stretch inline-flex flex-col justify-start items-start gap-1">
               <div class="self-stretch h-12 rounded-lg outline-1 outline-offset-[-1px] outline-[var(--color-border-default)] inline-flex justify-start items-start overflow-hidden">
                 <div class="flex-1 h-12 px-4 bg-[var(--bg-input-default)] border-b-[3px] border-[var(--color-border-input-positive)] flex justify-start items-center gap-2 max-w-full">
                   <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -525,7 +543,7 @@ export const PassengerSelector = ({
             </div>
 
             <!-- Passenger List -->
-            <div class="flex flex-col">
+            <div class="shrink-0 flex flex-col">
               <!-- Adultos -->
               <div class="flex justify-between items-center h-[64px] py-[8px]">
                 <div class="flex flex-col gap-[4px]">
@@ -544,7 +562,7 @@ export const PassengerSelector = ({
               ${totalPassengers === MAX_TOTAL_PASSENGERS && html`
                 <p 
                   class="text-[var(--color-text-brand-disable)] leading-[1.5] link-container !m-0"
-                  dangerouslySetInnerHTML=${{ __html: groupTravelLinkProcessed }}
+                  dangerouslySetInnerHTML=${{ __html: sanitizeHTML(groupTravelLinkProcessed) }}
                 />
               `}
 
@@ -592,6 +610,10 @@ export const PassengerSelector = ({
             </div>
 
             <!-- Info Banner -->
+            <!-- heightMode="hug": sin overflow-y-auto interno — la alerta crece con su
+                 contenido y el scroll lo hace el wrapper del panel (bug 1292093, <383px).
+                 shrink-0: con scroll interno su min-height era 0 y absorbía todo el
+                 aplastamiento del flex column antes de que el wrapper scrolleara. -->
             ${showInfoBanner && html`
               <${Alert}
                 variant="informative"
@@ -599,36 +621,36 @@ export const PassengerSelector = ({
                 dismissible=${true}
                 onDismiss=${() => setShowInfoBanner(false)}
                 marqueeMode=${false}
+                heightMode="hug"
+                customClassName="shrink-0"
                 preserveRawHTML=${true}
               />
             `}
 
             ${showCabinClass && html`
               <!-- Cabin Class -->
-              <div class="self-stretch py-4 border-t border-[var(--border-stroke-default)] inline-flex flex-col justify-start items-start gap-4">
-                <div class="self-stretch justify-start text-[var(--text-normal-primary)] text-base font-semibold">${i18n['bookingBox.labels.cabin'] || 'Cabina'}</div>
-                <div class="self-stretch inline-flex justify-start items-center gap-6">
-                  <${RadioButton}
-                    label=${i18n['bookingBox.labels.economy'] || 'Economy'}
-                    checked=${passengers.cabinClass === 'economy'}
-                    onClick=${() => handleCabinClassChange('economy')}
-                  />
-                  <${RadioButton}
-                    label=${i18n['bookingBox.labels.businessClass'] || 'Business Class'}
-                    checked=${passengers.cabinClass === 'business'}
-                    onClick=${() => handleCabinClassChange('business')}
-                  />
+              <div class="shrink-0 self-stretch py-4 border-t border-[var(--border-stroke-default)] inline-flex flex-col justify-start items-start gap-6">
+                <span class="self-stretch justify-start text-[var(--text-normal-primary)] text-base font-semibold leading-[21px]">${i18n['bookingBox.labels.cabin'] || 'Cabina'}</span>
+                <div class="self-stretch inline-flex justify-start items-center gap-x-6 gap-y-6 flex-wrap">
+                  ${cabinOptions.map((option) => html`
+                    <${RadioButton}
+                      key=${option.id}
+                      label=${option.label}
+                      checked=${passengers.cabinClass === option.id}
+                      onClick=${() => handleCabinClassChange(option.id)}
+                    />
+                  `)}
                 </div>
               </div>
             `}
 
             ${validationError && html`
-              <div class="bg-red-50 border border-red-200 rounded-lg px-4 py-3 mb-4">
+              <div class="shrink-0 bg-red-50 border border-red-200 rounded-lg px-4 py-3 mb-4">
                 <p class="text-red-600">${validationError}</p>
               </div>
             `}
 
-            <div class="sticky bottom-0 left-0 right-0 bg-white pt-3 pb-[48px] mt-auto">
+            <div class="shrink-0 sticky bottom-0 left-0 right-0 bg-white pt-3 pb-[48px] mt-auto">
               <${Button}
                 variant="primary"
                 size="md"
@@ -648,7 +670,7 @@ export const PassengerSelector = ({
           class="absolute ${dropdownPositionStyles} bg-white rounded-[16px] shadow-[0px_2px_12px_0px_rgba(27,27,27,0.15)] p-[24px] z-50 flex flex-col gap-[16px] w-[359px]"
         >
           <!-- Title -->
-          <h3 class="!font-bold text-[var(--color-text-normal-primary)] leading-[normal] !mt-0 !mb-0 h-[21px]">${i18n['bookingBox.labels.whoFlies'] || '¿Quiénes vuelan?'}</h3>
+          <h3 class="!text-[16px] !font-bold text-[var(--color-text-normal-primary)] leading-[normal] !mt-0 !mb-0 h-[21px]">${i18n['bookingBox.labels.whoFlies'] || '¿Quiénes vuelan?'}</h3>
 
           <!-- Passenger List -->
           <div class="flex flex-col">
@@ -670,7 +692,7 @@ export const PassengerSelector = ({
             ${totalPassengers === MAX_TOTAL_PASSENGERS && html`
               <p 
                 class="text-[var(--color-text-brand-disable)] leading-[1.5] link-container !m-0"
-                dangerouslySetInnerHTML=${{ __html: groupTravelLinkProcessed }}
+                dangerouslySetInnerHTML=${{ __html: sanitizeHTML(groupTravelLinkProcessed) }}
               />
             `}
 
@@ -726,26 +748,25 @@ export const PassengerSelector = ({
               onDismiss=${() => setShowInfoBanner(false)}
               marqueeMode=${false}
               isRounded=${true}
-              customClassName="rounded-[8px] border-none !p-[16px] !leading-[21px]"
+              heightMode="hug"
+              customClassName="rounded-[8px] border-none !p-[16px] !leading-[21px] shrink-0"
               preserveRawHTML=${true}
             />
           `}
 
           ${showCabinClass && html`
             <!-- Cabin Class -->
-            <div class="self-stretch py-4 border-t border-[var(--border-stroke-default)] inline-flex flex-col justify-start items-start gap-4">
-              <div class="self-stretch justify-start text-[var(--text-normal-primary)] text-base font-semibold h-[21px]">${i18n['bookingBox.labels.cabin'] || 'Cabina'}</div>
-              <div class="self-stretch inline-flex justify-start items-center gap-6">
-                <${RadioButton}
-                  label=${i18n['bookingBox.labels.economy'] || 'Economy'}
-                  checked=${passengers.cabinClass === 'economy'}
-                  onClick=${() => handleCabinClassChange('economy')}
-                />
-                <${RadioButton}
-                  label=${i18n['bookingBox.labels.businessClass'] || 'Business Class'}
-                  checked=${passengers.cabinClass === 'business'}
-                  onClick=${() => handleCabinClassChange('business')}
-                />
+            <div class="self-stretch py-4 border-t border-[var(--border-stroke-default)] inline-flex flex-col justify-start items-start gap-6">
+              <span class="self-stretch justify-start text-[var(--text-normal-primary)] text-base font-semibold leading-[21px]">${i18n['bookingBox.labels.cabin'] || 'Cabina'}</span>
+              <div class="self-stretch inline-flex justify-start items-center gap-x-6 gap-y-6 flex-wrap">
+                ${cabinOptions.map((option) => html`
+                  <${RadioButton}
+                    key=${option.id}
+                    label=${option.label}
+                    checked=${passengers.cabinClass === option.id}
+                    onClick=${() => handleCabinClassChange(option.id)}
+                  />
+                `)}
               </div>
             </div>
           `}

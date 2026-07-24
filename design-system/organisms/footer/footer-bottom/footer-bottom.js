@@ -1,5 +1,6 @@
 import { h } from '@dropins/tools/preact.js';
 import htm from 'htm';
+import { isSafeUrl } from '../../../../scripts/utils/sanitize.js';
 
 const html = htm.bind(h);
 
@@ -96,7 +97,7 @@ export const FooterBottom = ({
 
     return html`
       <a
-        href=${social.url}
+        href=${isSafeUrl(social.url) ? social.url : '#'}
         target=${target}
         rel=${rel}
         class="footer-bottom-social-link flex items-center justify-center !w-[24px] !h-[24px] transition-all hover:opacity-80"
@@ -113,7 +114,7 @@ export const FooterBottom = ({
 
     return html`
       <a
-        href=${appStoreUrl}
+        href=${isSafeUrl(appStoreUrl) ? appStoreUrl : '#'}
         target="_blank"
         rel="noopener noreferrer"
         class="footer-bottom-app-store-button flex items-center transition-all hover:opacity-90"
@@ -134,7 +135,7 @@ export const FooterBottom = ({
 
     return html`
       <a
-        href=${googlePlayUrl}
+        href=${isSafeUrl(googlePlayUrl) ? googlePlayUrl : '#'}
         target="_blank"
         rel="noopener noreferrer"
         class="footer-bottom-app-store-button flex items-center transition-all hover:opacity-90"
@@ -155,7 +156,7 @@ export const FooterBottom = ({
     : theme === 'white'
       ? 'bg-[var(--color-background-brand-primary-lighter)]'
       : 'bg-[var(--bg-page-light)]';
-  const containerClasses = `footer-bottom-container flex flex-col items-center justify-center w-full py-[16px] px-[24px] ${bgClass} ${customClassName} ${theme === 'white' ? 'h-[54px]' : ''}`;
+  const containerClasses = `footer-bottom-container flex flex-col items-center justify-center w-full py-[16px] px-4 md:px-6 lg:px-8 ${bgClass} ${customClassName} ${theme === 'white' ? 'h-[54px]' : ''}`;
 
   // Color del copyright según el tema
   // Light / White: --brand-primary, Dark: --logo-avianca-light

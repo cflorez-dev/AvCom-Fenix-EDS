@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from '@dropins/tools/preact-hooks.js';
 import htm from 'htm';
 import { CabinUpgradeForm } from '../../organisms/forms/cabin-upgrade-form/cabin-upgrade-form.js';
 import { MMBForm } from '../../organisms/forms/mmb-form/mmb-form.js';
+import { SSCIForm } from '../../organisms/forms/ssci-form/ssci-form.js';
 import loadSVGIcon from '../../../scripts/utils/svg.helper.js';
 
 const html = htm.bind(h);
@@ -260,12 +261,26 @@ export const Megamenu = ({
   useEffect(() => {
     const el = panelRef.current;
     if (!el) return () => {};
-    const update = () => {
+    // Batch scroll/resize updates in rAF so the panel's `top` write is aligned
+    // with the paint frame of the header's CSS height transition (200ms). This
+    // eliminates 1-frame lag jitter where the panel briefly sits above/below
+    // the header's animated edge — visible during fast scroll on Windows.
+    let rafPending = 0;
+    let lastTop = -1;
+    const write = () => {
+      rafPending = 0;
       const header = document.querySelector('header');
       if (!header) return;
-      el.style.top = `${header.getBoundingClientRect().bottom}px`;
+      const top = header.getBoundingClientRect().bottom;
+      if (top === lastTop) return;
+      lastTop = top;
+      el.style.top = `${top}px`;
     };
-    const rafId = requestAnimationFrame(update);
+    const update = () => {
+      if (rafPending) return;
+      rafPending = requestAnimationFrame(write);
+    };
+    const rafId = requestAnimationFrame(write);
     window.addEventListener('resize', update);
     window.addEventListener('scroll', update, { passive: true });
 
@@ -284,6 +299,7 @@ export const Megamenu = ({
 
     return () => {
       cancelAnimationFrame(rafId);
+      if (rafPending) cancelAnimationFrame(rafPending);
       window.removeEventListener('resize', update);
       window.removeEventListener('scroll', update);
       if (ro) ro.disconnect();
@@ -371,6 +387,15 @@ export const Megamenu = ({
         </div>
       `;
     }
+    if (formType === 'ssci') {
+      // Same wrapper as MMB. The label is read from `ssciForm.megamenuLabel`
+      // by the organism in simplified mode.
+      return html`
+        <div class="flex flex-col gap-6 h-full justify-start">
+          <${SSCIForm} simplified=${true} buttonBelow=${true} context="megamenu" />
+        </div>
+      `;
+    }
     if (cmsBlock) {
       return html`<div ref=${bannerRef} class="h-full" />`;
     }
@@ -397,7 +422,7 @@ export const Megamenu = ({
                p-[var(--spacing-x-x-large)]"
       >
         <div
-          class=${`max-w-[1248px] mx-auto megamenu-grid${hasBanner ? ' has-banner' : ''}${formType ? ' has-form' : ''}`}
+          class=${`max-w-xl mx-auto megamenu-grid${hasBanner ? ' has-banner' : ''}${formType ? ' has-form' : ''}`}
           style=${{
     '--mc': colCount,
     '--col-w': COL_WIDTHS[colCount] || '240px',
@@ -419,7 +444,7 @@ export const Megamenu = ({
           `}
 
           ${hasBanner && html`
-            <div class=${`megamenu-banner ${formType ? 'overflow-visible' : 'overflow-hidden'} min-h-[160px] max-h-[220px] xl:max-h-[222px] h-full max-w-[460px]${formType ? ' bg-white' : ''}`}>
+            <div class=${`megamenu-banner ${formType ? 'overflow-visible' : 'overflow-hidden'} min-h-[160px] lg:max-h-[220px] xl:max-h-[222px] lg:h-full max-w-[460px]${formType ? ' bg-white' : ''}`}>
               ${renderBannerContent()}
             </div>
           `}

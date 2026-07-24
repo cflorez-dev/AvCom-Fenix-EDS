@@ -1,3 +1,16 @@
-.header-logo-img {
-  transition: height 200ms ease, width 200ms ease;
+/* Logo keeps a constant size across initial (76px) and sticky (50px) header
+   variants per Figma spec (nodes 9:16618, 9:17410, 9:16822, 9:17532). No
+   dimensional transition is needed — the previous height/width transition was
+   the visual half of the removed scroll-based shrink logic in header-logo.js. */
+
+/* From 768px onwards (tablet + desktop), lock the logo to the Figma spec
+   size: 120×29 px with the correct aspect ratio, regardless of the header
+   being in its initial (76px) or sticky (50px) variant. Below 768px the
+   intrinsic dimensions of the authored asset are honored. */
+@media (width >= 768px) {
+  .header-logo-img {
+    width: 120px;
+    height: 29px;
+    aspect-ratio: 120 / 29;
+  }
 }

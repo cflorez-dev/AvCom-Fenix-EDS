@@ -4,6 +4,7 @@ import { BookingBox } from '../../design-system/organisms/booking-box/booking-bo
 import { preloadIcons } from '../../design-system/atoms/icon/icon.js';
 import { fetchAEMData } from '../../scripts/utils/aem-data.js';
 import { resolveLocale } from '../../scripts/utils/locale.js';
+import { fetchCabinOptions, isBookingBoxCabinEnabled } from '../../scripts/services/cabin/cabin-options.service.js';
 
 const html = htm.bind(h);
 
@@ -20,6 +21,9 @@ const BOOKING_BOX_ICONS = [
   'navigation/arrow-back',
   'navigation/close',
 ];
+
+// Parent (positional) config fields authored as single-cell rows, in model order.
+const CABIN_PARENT_FIELDS = ['cabinTabsEnabled'];
 
 /**
  * Decorates the Booking Box Block
@@ -43,44 +47,51 @@ export default async function decorate(block) {
 
   const rows = [...block.children];
   const actionButtons = [];
+  const cabinConfig = {};
+  let parentIdx = 0;
 
   rows.forEach((row) => {
     const cells = [...row.children];
 
-    const textCell = cells[0];
-    const text = textCell?.textContent.trim();
+    if (cells.length >= 2) {
+      const text = cells[0]?.textContent.trim();
+      const link = cells[1]?.querySelector('a');
+      const href = link ? link.href : (cells[1]?.textContent.trim() || '');
 
-    const hrefCell = cells[1];
-    let href = '';
-
-    if (hrefCell) {
-      const link = hrefCell.querySelector('a');
-      if (link) {
-        href = link.href;
-      } else {
-        href = hrefCell.textContent.trim();
+      if (text) {
+        actionButtons.push({
+          icon: '/icons/action/link.svg',
+          text,
+          label: text,
+          href,
+          variant: 'iconRight',
+          target: '_blank',
+        });
       }
-    }
-
-    if (text) {
-      actionButtons.push({
-        icon: '/icons/action/link.svg',
-        text,
-        label: text,
-        href,
-        variant: 'iconRight',
-        target: '_blank',
-      });
+    } else if (cells.length === 1 && parentIdx < CABIN_PARENT_FIELDS.length) {
+      const field = CABIN_PARENT_FIELDS[parentIdx];
+      const raw = cells[0]?.textContent.trim() || '';
+      cabinConfig[field] = field === 'cabinTabsEnabled' ? raw.toLowerCase() === 'true' : raw;
+      parentIdx += 1;
     }
   });
 
   const locale = await resolveLocale();
   const language = locale.language || 'es';
-  const config = await fetchAEMData(language);
+  const [config, envConfig] = await Promise.all([
+    fetchAEMData(language),
+    fetchAEMData('environment'),
+  ]);
 
   const i18Data = Object.fromEntries(
     config.data.map(({ Key, Text }) => [Key, Text]),
   );
+
+  // Global kill-switch AND per-instance authoring. Global OFF (or key absent) => no
+  // cabin tabs and no parametroCabinas call, regardless of authoring.
+  const globalCabinEnabled = isBookingBoxCabinEnabled(envConfig?.data);
+  const cabinTabsEnabled = globalCabinEnabled && cabinConfig.cabinTabsEnabled === true;
+  const cabinOptions = cabinTabsEnabled ? await fetchCabinOptions(language) : [];
 
   // Hide original children to preserve data-aue-* for editor (Pattern B)
   Array.from(block.children).forEach((child) => {
@@ -96,6 +107,8 @@ export default async function decorate(block) {
         actionButtons=${actionButtons}
         defaultTripType="round-trip"
         i18n=${i18Data}
+        cabinTabsEnabled=${cabinTabsEnabled}
+        cabinOptions=${cabinOptions}
       />
     `,
     container,

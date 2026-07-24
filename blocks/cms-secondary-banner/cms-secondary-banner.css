@@ -1,24 +1,10 @@
 /* Override main > .section styles to allow full width (single banner) */
 main > .section.cms-secondary-banner-container {
-  max-width: 100% !important;
-  width: 100% !important;
-  margin: 0 !important;
-  padding: 0 !important;
   overflow: hidden;
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
-}
-
-/* When secondary banners are in a grid layout (e.g. grid-6-6), restore the
-   standard section alignment so they sit inside the 1248px content column.
-   Use the global section-padding variable so mobile/tablet get horizontal
-   insets (16 / 32 px) matching the original avianca.com grid gutters. */
-main > .section.cms-secondary-banner-container[class*="grid-"] {
-  max-width: 1248px !important;
-  margin: 0 auto !important;
-  padding: 32px var(--main-section-div-padding, 16px) !important;
 }
 
 /* Allow `.section.no-padding-y` to override the vertical padding even when the
@@ -80,19 +66,7 @@ main > .section.cms-secondary-banner-container[class*="grid-"] .cms-secondary-ba
   max-width: 100%;
 }
 
-/* Fix: component uses w-full (width:100%) + mx margins, which causes overflow.
-   width:auto lets the block element fill parent minus margins naturally.
-   margin-inline:auto centers the banner when max-width (1248px) kicks in.
-   Parent padding provides the minimum edge spacing instead of component margins. */
-.cms-secondary-banner .cms-secondary-banner-content {
-  padding-inline: 16px;
-}
 
-@media (min-width: 1024px) {
-  .cms-secondary-banner .cms-secondary-banner-content {
-    padding-inline: 32px;
-  }
-}
 
 .cms-secondary-banner .cms-secondary-banner-content > div:first-child {
   width: auto;

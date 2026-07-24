@@ -17,18 +17,21 @@ main.has-background-image {
 
 /* Loading state - show fallback color while the image loads */
 main.has-background-image:not(.loaded) {
-  background-color: var(--bg-fallback-color, #f5f5f5);
+  background-color: var(--page-bg-color, var(--bg-fallback-color, #f5f5f5));
   background-image: none;
 }
 
 main.has-background-image:not(.loaded)::before {
-  background-color: var(--bg-fallback-color, #f5f5f5);
+  background-color: var(--page-bg-color, var(--bg-fallback-color, #f5f5f5));
 }
 
-/* Dynamic background image - only applied when JS sets --bg-current */
+/* Dynamic background image - only applied when JS sets --bg-current.
+   Layer order (top -> bottom): CMS image  ->  page gradient (--page-bg-image).
+   The author's solid color is exposed via --page-bg-color so it also paints
+   the area not covered by the image (e.g. with `size: auto`). */
 main.has-background-image.loaded {
-  background-image: var(--bg-current);
-  background-color: var(--bg-fallback-color, #f5f5f5);
+  background-image: var(--bg-current), var(--page-bg-image, none);
+  background-color: var(--page-bg-color, var(--bg-fallback-color, #f5f5f5));
 }
 
 /* Behavior: scroll (default) - background moves with content */
@@ -85,4 +88,17 @@ main.has-background-image[data-bg-behavior="fixed"].loaded {
   main.has-background-image {
     background-image: none !important; /* override other style */
   }
+}
+
+/* Universal Editor: replace 100vh with a fixed px value to break the
+   editor's infinite iframe resize loop. The vh unit reacts to the iframe
+   height (which the editor itself is resizing), causing runaway growth.
+   Marker class `is-aue` is added by scripts.js when running inside UE. */
+html.is-aue main.has-background-image {
+  min-height: 1000px;
+}
+
+html.is-aue main.has-background-image[data-bg-behavior="fixed"]::before {
+  height: 1000px;
+  margin-bottom: -1000px;
 }

@@ -1,15 +1,18 @@
 /* cms-button block styles */
 
-/* Container principal */
-.cms-button-container {
-  display: block;
+/* Container interno del render (dentro de .cms-button, NO la sección).
+   Se scopea bajo .cms-button para no colisionar con la sección que EDS
+   nombra `.section.cms-button-container`. El botón se ajusta a su contenido
+   (auto) en desktop; el contenedor lo centra. */
+.cms-button .cms-button-container {
+  display: flex;
   width: 100%;
   align-items: center;
   justify-content: center;
   margin-bottom: var(--spacing-2, 0.5rem);
 }
 
-.cms-button-container:last-child {
+.cms-button .cms-button-container:last-child {
   margin-bottom: 0;
 }
 
@@ -52,18 +55,14 @@
   display: block;
 }
 
-/* Ensure button elements take full width */
-.cms-button-element {
-  width: 100%;
+/* El botón se ajusta a su contenido en desktop (no ancho completo). */
+.cms-button .cms-button-element {
+  width: auto;
 }
 
-/* Responsive adjustments */
+/* En mobile el botón ocupa el ancho disponible (patrón CTA responsive). */
 @media (max-width: 768px) {
-  .cms-button-container {
-    width: 100%;
-  }
-  
-  .cms-button-element {
+  .cms-button .cms-button-element {
     width: 100%;
   }
 }

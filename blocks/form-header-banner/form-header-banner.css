@@ -1,9 +1,0 @@
-.section.form-header-banner-container {
-    max-width: 100%;
-}
-
-@media (width <= 1023px) {
-    .section.form-header-banner-container {
-        padding: 0 16px;
-    }
-}

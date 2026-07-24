@@ -122,6 +122,15 @@ const getValidColorVariant = (variant) => {
 };
 
 /**
+ * Captura el atributo class respetando su delimitador: el grupo 1 es la comilla de
+ * apertura y la retrorreferencia \1 exige la misma para cerrar. El grupo 2 es el valor.
+ * Sin esto, un valor legítimo como class="… font-['Red_Hat_Display'] …" se corta en el
+ * apóstrofo y el resto de las clases acaba fuera de las comillas, donde el parser las
+ * lee como atributos sueltos y no aplican.
+ */
+const CLASS_ATTR_REGEX = /class=(["'])([\s\S]*?)\1/i;
+
+/**
  * Helper function to add classes to a specific HTML tag
  * @param {string} htmlString - The HTML string to process
  * @param {string} tagName - The tag name to process (e.g., 'p', 'strong')
@@ -140,11 +149,11 @@ const addClassToTag = (htmlString, tagName, classNames) => {
     tagRegex,
     (match, attributes = '') => {
       // Check if class attribute already exists
-      const classMatch = attributes.match(/class=["']([^"']*)["']/i);
+      const classMatch = attributes.match(CLASS_ATTR_REGEX);
 
       if (classMatch) {
         // Class attribute exists, merge classes
-        const existingClasses = classMatch[1];
+        const existingClasses = classMatch[2];
         const existingClassesArray = existingClasses.split(/\s+/);
         const newClassesArray = classesToAdd.split(/\s+/);
         // Merge and remove duplicates
@@ -152,7 +161,7 @@ const addClassToTag = (htmlString, tagName, classNames) => {
           .filter(Boolean)
           .join(' ');
         return match.replace(
-          /class=["']([^"']*)["']/i,
+          CLASS_ATTR_REGEX,
           `class="${mergedClasses}"`,
         );
       }
@@ -172,6 +181,9 @@ const addClassToTag = (htmlString, tagName, classNames) => {
  * @param {boolean} [linkButtonOptions.iconOnly=false] - Icon-only mode
  * @param {boolean} [linkButtonOptions.disabled=false] - Disabled state
  * @param {string} [linkButtonOptions.customClassName=''] - Additional CSS classes
+ * @param {boolean} [linkButtonOptions.underline=false] - Opt-in underline for `variant='link'`.
+ *   Defaults to `false` (links inside cards / CTAs render without underline). Set to `true`
+ *   when this helper is used in rich-text contexts where underline is expected.
  * @param {string} [linkButtonOptions.alertVariant] - Alert variant for rel processing
  * @param {boolean} [linkButtonOptions.processRelAttributes=false] - Process rel attributes
  * @param {'self'|'blank'} [linkButtonOptions.linkTarget='self'] - Target for links
@@ -187,6 +199,7 @@ const processLinkTags = (htmlString, linkButtonOptions = {}) => {
     colorVariant: linkButtonOptions.colorVariant || 'informative',
     iconOnly: linkButtonOptions.iconOnly || false,
     disabled: linkButtonOptions.disabled || false,
+    underline: linkButtonOptions.underline || false,
     customClassName: linkButtonOptions.customClassName || '',
     customColor: linkButtonOptions.customLinkColor || null,
   });
@@ -201,11 +214,11 @@ const processLinkTags = (htmlString, linkButtonOptions = {}) => {
     ? rawCustomLinkColor
     : null;
 
-  // Replace border-border-stroke-focus with border-text-normal-primary
+  // Keep the design-system LinkButton hover/active color-change classes: rich-text
+  // links now change color on hover/active (like the DS LinkButton), instead of
+  // turning bold. Only the focus ring border color is remapped to match rich-text.
   const processedLinkButtonClasses = linkButtonClasses
     .replace('focus-visible:after:border-border-stroke-focus', 'focus-visible:after:border-text-normal-primary')
-    .replace(/hover:text-text-link-\w+-active/g, '')
-    .replace(/active:text-text-link-\w+-active/g, '')
     .trim()
     .replace(/\s+/g, ' ');
 
@@ -217,8 +230,8 @@ const processLinkTags = (htmlString, linkButtonOptions = {}) => {
       let processedAttributes = attributes;
       let processedContent = content;
 
-      // No need to process <u> or <strong> tags inside links anymore
-      // The hover:font-bold class on the <a> tag already handles the bold effect for all content
+      // No need to process <u> or <strong> tags inside links: the link changes
+      // color on hover/active (DS LinkButton behavior), so no per-child styling.
 
       // Process rel attributes if enabled
       const shouldProcessRel = linkButtonOptions.processRelAttributes
@@ -291,16 +304,15 @@ const processLinkTags = (htmlString, linkButtonOptions = {}) => {
         : '';
 
       // Check if class attribute already exists
-      const classMatch = processedAttributes.match(/class=["']([^"']*)["']/i);
+      const classMatch = processedAttributes.match(CLASS_ATTR_REGEX);
       if (classMatch) {
         // Class attribute exists, merge with LinkButton classes
-        const existingClasses = classMatch[1];
+        const existingClasses = classMatch[2];
         // Split classes to avoid duplicates
         const existingClassesArray = existingClasses.split(/\s+/);
         const linkButtonClassesArray = processedLinkButtonClasses.split(/\s+/);
-        // Add hover, active, focus, and focus-visible font-bold states
         // Override focus border inset to 0px (right at the edge, not outside or too inside)
-        const mergedClasses = [...new Set([...existingClassesArray, 'p-[2px]', 'group/link', 'hover:font-bold', 'active:font-bold', 'focus:font-bold', 'focus-visible:font-bold', 'focus-visible:after:!inset-[0px]', ...linkButtonClassesArray])]
+        const mergedClasses = [...new Set([...existingClassesArray, 'p-[2px]', 'focus-visible:after:!inset-[0px]', ...linkButtonClassesArray])]
           .filter(Boolean)
           .join(' ');
         // Strip any existing style attribute from processedAttributes if customLinkColor came (we'll add ours)
@@ -309,14 +321,13 @@ const processLinkTags = (htmlString, linkButtonOptions = {}) => {
           attrsForReturn = attrsForReturn.replace(/\s*style=["'][^"']*["']/i, '');
         }
         return `<a${attrsForReturn.replace(
-          /class=["']([^"']*)["']/i,
+          CLASS_ATTR_REGEX,
           `class="${mergedClasses}"`,
         )}${inlineStyle}>${processedContent}</a>`;
       }
       // No class attribute, add LinkButton classes with padding
-      // Add hover, active, focus, and focus-visible font-bold states
       // Override focus border inset to 0px (right at the edge, not outside or too inside)
-      return `<a class="p-[2px] group/link hover:font-bold active:font-bold focus:font-bold focus-visible:font-bold focus-visible:after:!inset-[0px] ${processedLinkButtonClasses}"${processedAttributes}${inlineStyle}>${processedContent}</a>`;
+      return `<a class="p-[2px] focus-visible:after:!inset-[0px] ${processedLinkButtonClasses}"${processedAttributes}${inlineStyle}>${processedContent}</a>`;
     },
   );
 };

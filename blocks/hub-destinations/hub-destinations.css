@@ -1,7 +1,37 @@
 /* hub-destinations block styles */
 main > .section.hub-destinations-container{
-    padding: 0;
     padding-bottom: 64px;
-    margin: 0;;
-    max-width: 100%;
+}
+
+/* ≤1023px — carruseles de destinos full-bleed.
+   El scroll vive en `.overflow-x-auto` (molécula Carousel) pero está confinado al
+   content-box de la sección (padding lateral = --main-section-div-padding: 16/24px),
+   así que las tarjetas de los extremos se cortan contra ese padding. Acá el scroll
+   container rompe ese padding con margin negativo (llega al borde del viewport) y lo
+   re-agrega como padding-left + un spacer final, de modo que la 1ª/última card quedan
+   alineadas con el contenido y las intermedias asoman contra el borde real. El título
+   y los filtros del carrusel NO se mueven. En >=1024px se conserva el carrusel
+   contenido (con flechas) tal cual.
+
+   `overflow-x: visible` neutraliza los dos `overflow-x-hidden` (wrapper de
+   CarouselDestinations + <section hubDestinations>) que si no cliparían el breakout;
+   el guard contra scroll horizontal de página ya lo da `body { overflow-x: clip }`. */
+@media (width <= 1023px) {
+  .hub-destinations [data-name="hubDestinations"],
+  .hub-destinations [data-name="carouselDestinations"] > div.overflow-x-hidden {
+    overflow-x: visible;
+  }
+
+  .hub-destinations [data-name="carouselDestinations"] .overflow-x-auto {
+    margin-inline: calc(-1 * var(--main-section-div-padding, 16px));
+    padding-left: var(--main-section-div-padding, 16px);
+    scroll-padding-left: var(--main-section-div-padding, 16px);
+  }
+
+  /* Gutter derecho: padding-right se clippa en overflow-x:auto (WebKit/Chrome),
+     así que el margen final lo da un spacer flex. */
+  .hub-destinations [data-name="carouselDestinations"] .overflow-x-auto::after {
+    content: '';
+    flex: 0 0 var(--main-section-div-padding, 16px);
+  }
 }

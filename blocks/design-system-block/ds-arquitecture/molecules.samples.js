@@ -15,6 +15,14 @@ import { CalendarMonthSample } from '../../../design-system/molecules/calendar-m
 import { MonthGridSample } from '../../../design-system/molecules/month-grid/month-grid.sample.js';
 import { DateSelectorSample } from '../../../design-system/molecules/date-selector/date-selector.sample.js';
 import { PriceIndicatorSample } from '../../../design-system/atoms/price-indicator/price-indicator.sample.js';
+import { SidemenuSample } from '../../../design-system/molecules/sidemenu/sidemenu.sample.js';
+import { MembersHeroCompactSample } from '../../../design-system/molecules/members-hero-compact/members-hero-compact.sample.js';
+import { MembersDataGridSample } from '../../../design-system/molecules/members-data-grid/members-data-grid.sample.js';
+import { MembersMembershipCardSample } from '../../../design-system/molecules/members-membership-card/members-membership-card.sample.js';
+import { MembersQuickActionsSample } from '../../../design-system/molecules/members-quick-actions/members-quick-actions.sample.js';
+import { MembersEliteProgressSample } from '../../../design-system/molecules/members-elite-progress/members-elite-progress.sample.js';
+import { MembersHeroExpandedSample } from '../../../design-system/molecules/members-hero-expanded/members-hero-expanded.sample.js';
+import { MembersHeroSkeletonSample } from '../../../design-system/molecules/members-hero-skeleton/members-hero-skeleton.sample.js';
 
 const html = htm.bind(h);
 
@@ -36,6 +44,16 @@ export const MoleculesSamples = () => html`
         <${PriceIndicatorSample} />
         <${DateSelectorSample} />
         <${DateRangePickerSample} />
+        <${SidemenuSample} />
+
+        <!-- Members hero (1263924, Sub A) -->
+        <${MembersHeroCompactSample} />
+        <${MembersDataGridSample} />
+        <${MembersMembershipCardSample} />
+        <${MembersQuickActionsSample} />
+        <${MembersEliteProgressSample} />
+        <${MembersHeroExpandedSample} />
+        <${MembersHeroSkeletonSample} />
     </div>
         `;
 

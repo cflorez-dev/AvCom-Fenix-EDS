@@ -12,7 +12,6 @@ main > .section.cms-flexible-content-banner-container {
   flex-direction: column;
   align-items: stretch;
   justify-content: center;
-  padding-inline: 16px;
 }
 
 /* Force every wrapper in the block chain to take the full section width.
@@ -32,21 +31,7 @@ main > .section.cms-flexible-content-banner-container {
   box-shadow: 0 2px 25px 2px rgb(120 124 130 / 15%);
 }
 
-@media (width >= 1024px) {
-  main > .section.cms-flexible-content-banner-container {
-    padding-inline: 32px;
-  }
-}
 
-/* From 1280px upward the banner's own max-w-[1248px] is the binding constraint;
-   the section's padding-inline only steals width from the banner without adding
-   visible breathing room (the section is already capped at 1248px by the project
-   default). Drop the padding here so the banner reaches its Figma-spec 1248px. */
-@media (width >= 1280px) {
-  main > .section.cms-flexible-content-banner-container {
-    padding-inline: 0;
-  }
-}
 
 /* Mobile: no truncation — text expands naturally with the container. */
 .cms-flexible-content-banner-content [data-name="flexible-content-banner"] [data-truncate="title"],

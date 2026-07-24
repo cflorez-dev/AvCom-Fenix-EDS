@@ -149,8 +149,8 @@ function mapBlockOptions(block) {
           return;
         }
 
-        // 13. formType (none/mmb)
-        if (currentIndex === 12 && ['none', 'mmb'].includes(textContent.toLowerCase())) {
+        // 13. formType (none/mmb/ssci)
+        if (currentIndex === 12 && ['none', 'mmb', 'ssci'].includes(textContent.toLowerCase())) {
           mappedOptions.formType = textContent.toLowerCase();
           currentIndex += 1;
           return;

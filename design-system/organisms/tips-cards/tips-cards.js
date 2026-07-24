@@ -1,5 +1,6 @@
 import { h } from '@dropins/tools/preact.js';
 import htm from 'htm';
+import { processContentHTML } from '../../helpers/process-content-html.js';
 
 const html = htm.bind(h);
 
@@ -33,7 +34,7 @@ const TipsCards = ({
           ${index > 0 && html`
             <div class="self-stretch border-t border-border-stroke-default lg:border-t-0 lg:border-l lg:self-stretch"></div>
           `}
-          <div data-size=${size} class="self-stretch lg:flex-1 inline-flex justify-start items-start gap-3">
+          <div data-size=${size} class="self-stretch lg:flex-1 lg:min-w-0 inline-flex justify-start items-start gap-3">
             ${card.icon && html`
               <div class="w-6 h-6 relative flex-shrink-0">
                 <img
@@ -45,16 +46,21 @@ const TipsCards = ({
                 />
               </div>
             `}
-            <div class="flex-1 inline-flex flex-col justify-start items-start gap-3">
+            <div class="flex-1 min-w-0 inline-flex flex-col justify-start items-start gap-3">
               ${card.title && html`
                 <div class="self-stretch justify-start text-text-normal-primary text-lg lg:text-xl font-bold leading-[1.5rem] lg:!leading-auto">
                   ${card.title}
                 </div>
               `}
               ${card.description && html`
-                <div class="self-stretch justify-start text-text-normal-primary text-sm font-normal leading-normal">
-                  ${card.description}
-                </div>
+                <div
+                  class="tips-card-description self-stretch justify-start text-text-normal-primary text-sm font-normal leading-normal"
+                  dangerouslySetInnerHTML=${{
+    __html: processContentHTML(card.description || '', 'informative', {
+      pClassName: '!text-sm font-normal leading-normal !m-0',
+    }),
+  }}
+                ></div>
               `}
             </div>
           </div>

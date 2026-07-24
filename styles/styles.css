@@ -65,6 +65,15 @@
 
 html {
   overflow-x: clip;
+
+  /* Reserve scrollbar column always so viewport width stays constant across
+     scroll-driven layout changes. Without this, on Windows/Linux (classic
+     scrollbars that occupy layout space) the header + megamenu jitter
+     horizontally when the header transitions from 76px → 50px on scroll and
+     content briefly slips under the vertical-overflow threshold, toggling the
+     scrollbar and shifting viewport width. macOS (overlay scrollbars) is not
+     affected which is why the bug only reproduces on Windows. */
+  scrollbar-gutter: stable;
 }
 
 body {
@@ -217,7 +226,9 @@ a:any-link {
 }
 
 main > .section {
-  max-width: var(--container-xl);
+  /* 1248px is the max CONTENT width; +64px leaves room for the 32px external
+     lateral margin on each side (VSTS 1282504). */
+  max-width: calc(var(--container-xl) + 64px);
   margin: auto;
   padding: 32px var(--main-section-div-padding, 16px);
 }
@@ -228,6 +239,13 @@ main > .section:first-of-type {
 
 main.has-custom-bg:not(.has-background-image) {
   background: var(--page-bg);
+}
+
+/* Page background coexists with CMS Background Image (CA3): the author's
+   solid color goes to background-color (visible around/under transparent
+   image areas) and a gradient goes as a layer below the image. */
+main.has-custom-bg.has-background-image {
+  background-color: var(--page-bg-color, var(--bg-fallback-color, transparent));
 }
 
 main > .section.has-custom-bg,
@@ -257,11 +275,21 @@ main > .section.has-custom-bg.mosaic-v2-container.has-nav-padding {
 }
 
 /* section metadata */
+
+/* Invariante de layout (foundations "Márgenes y ancho de contenido"): el margen
+   lateral (32/24/16px) es el espacio MINIMO entre el contenido y el borde del
+   viewport y lo pone `main > .section`. Ningun estilo de seccion debe declarar
+   padding horizontal: los estilos que solo quieren tocar el eje vertical usan
+   `padding-block`, y la UNICA forma de renunciar al margen lateral es la clase
+   `no-padding-x`, que existe para eso. */
 main .section.light,
 main .section.highlight {
   background-color: var(--light-color);
-  margin: 0;
-  padding: 40px 0;
+
+  /* `margin: 0` cancelaba tambien el `margin: auto` de la seccion y la
+     descentraba; `padding: 40px 0` borraba el margen lateral (VSTS 1282504). */
+  margin-block: 0;
+  padding-block: 40px;
 }
 
 main .section.center-content {
@@ -279,12 +307,12 @@ main .section.center-content > div {
 
 /* TODO: remove style, is only for client meet 17-12 - START */
 .section.center-content:has(.default-content-wrapper) {
-    padding: 0;
-}
-@media (max-width: 1247px) {
-    .section.center-content:has(.default-content-wrapper) {
-        padding-inline: var(--main-section-div-padding, 16px);
-    }
+  /* Solo el eje vertical. Con `padding: 0` esta regla (0,3,0) ganaba a
+     `main > .section` y a `padding-title`, y desde que 1282504 dio margen
+     lateral a todas las secciones dejaba el contenido 32px por fuera del resto
+     (o pegado al borde entre 1248 y 1311px). La media query de 1247px reponia
+     el padding lateral y ya no hace falta. */
+  padding-block: 0;
 }
 /* TODO: remove style, is only for client meet 17-12 - END */
 
@@ -294,7 +322,12 @@ main .section.center-content > div {
 }
 
 main div.section.padding-title {
-  padding: 0 16px;
+  /* Solo cancela el padding vertical del `main > .section`; el horizontal lo
+     sigue poniendo la seccion con su variable responsive (16/24/32px). Antes
+     redeclaraba el lateral aqui, y al ser mas especifica (0,2,2) pisaba el
+     `no-padding-x` del autor (0,2,0): una seccion con ambos se quedaba con
+     margen lateral pese a haber pedido lo contrario. */
+  padding-block: 0;
   h1,h2,h3,h4,h5,h6 {
     margin: 0;
   }
@@ -314,6 +347,11 @@ main div.section.padding-title {
 .section.no-padding-y {
   padding-top: 0;
   padding-bottom: 0;
+}
+
+.section.no-padding-x {
+  padding-left: 0;
+  padding-right: 0;
 }
 
 /* Desktop >= 992px */
@@ -353,9 +391,14 @@ main div.section.padding-title {
   }
 }
 
-/* Responsive padding-inline breakpoints */
-/* Tablet: 768px – 1023px → 24px */
-@media (width >= 768px) and (width <= 1023px) {
+/* Responsive padding-inline breakpoints — mobile-first (solo min-width)
+   para evitar huecos en Windows con DPR fraccional (125/150/175%) o con
+   scrollbar-gutter reservado, donde el innerWidth queda en valores tipo
+   1023.2px y max-width:1023px + min-width:1024px dejan un rango sin match.
+   La cascada de min-width se encarga del override; ya no hay gaps posibles. */
+
+/* Tablet: >= 768px → 24px */
+@media (min-width: 768px) {
     :root {
         --main-section-div-padding: 24px;
     }
@@ -365,19 +408,52 @@ main div.section.padding-title {
     }
 }
 
-/* Desktop: 1024px – 1247px → 32px */
-@media (width >= 1024px) and (width <= 1247px) {
+/* Desktop: >= 1024px → 32px
+   1248px es un max-CONTENT width, no un breakpoint (VSTS 1282504): el
+   margen lateral externo se mantiene en 32px para todo viewport >= 1024px. */
+@media (min-width: 1024px) {
     :root {
         --main-section-div-padding: 32px;
     }
-
-    main > .section > div {
-        box-sizing: content-box;
-    }
 }
 
-@media (width >= 1248px) {
-    :root {
-        --main-section-div-padding: 0;
-    }
+/* Gate de zona privada Members (1263924): cortina SYNC mientras se resuelve/redirige la
+   sesión de un anónimo en una ruta del Portal. La activa gateMembersPortalEarly()
+   (scripts.js) añadiendo `members-gate-pending` a <html>, ANTES de pintar, para que el
+   contenido del perfil no sea visible. El redirect al login lo hace session.service;
+   si no puede arrancar, el guard cae al home. Va en CSS eager para aplicar al 1er frame.
+   Restaurado: se perdió en el commit ebd73fb9; el JS sigue agregando la clase. */
+html.members-gate-pending main {
+  visibility: hidden;
+}
+
+html.members-gate-pending body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  background-color: var(--background-color);
+}
+
+html.members-gate-pending body::after {
+  content: "";
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  width: 32px;
+  height: 32px;
+  margin: -16px 0 0 -16px;
+  z-index: 10001;
+  border: 3px solid var(--light-color);
+  border-top-color: var(--text-color-secondary);
+  border-radius: 50%;
+  animation: members-gate-spin 0.8s linear infinite;
+}
+
+@keyframes members-gate-spin {
+  to { transform: rotate(360deg); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html.members-gate-pending body::after { animation: none; }
 }

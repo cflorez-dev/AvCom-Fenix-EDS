@@ -15,6 +15,7 @@ function extractCardFromRow(cells) {
     buttonText: null,
     buttonUrl: null,
     showChevron: false,
+    buttonVariant: 'link', // Bug 12: author-selectable CTA style; default keeps the link button
   };
 
   // Cell 0: Image
@@ -121,6 +122,18 @@ function extractCardFromRow(cells) {
       card['target-languages'] = targetLanguagesP.textContent.trim();
     }
   }
+
+  // Bug 12: Button style/variant. Read by keyword from the trailing cells (appended
+  // model field) rather than a fixed index, so existing content (no such cell) keeps
+  // the 'secondary' default and never mis-binds against the offset card cells.
+  const KNOWN_VARIANTS = ['link', 'secondary'];
+  cells.slice(6).forEach((cell) => {
+    const text = (cell?.querySelector('p')?.textContent || cell?.textContent || '')
+      .trim().toLowerCase();
+    if (KNOWN_VARIANTS.includes(text)) {
+      card.buttonVariant = text;
+    }
+  });
 
   return card;
 }

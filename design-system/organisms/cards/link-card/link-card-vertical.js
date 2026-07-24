@@ -2,6 +2,8 @@ import { h } from '@dropins/tools/preact.js';
 import { useState, useEffect } from '@dropins/tools/preact-hooks.js';
 import htm from 'htm';
 import { LinkButton } from '../../../atoms/link-button/link-button.js';
+import { processContentHTML } from '../../../helpers/process-content-html.js';
+import { sanitizeHTML, sanitizeSVG } from '../../../../scripts/utils/sanitize.js';
 
 const html = htm.bind(h);
 
@@ -29,7 +31,7 @@ const SvgIcon = ({ src, customClass = '' }) => {
   if (!svgMarkup) return null;
   return html`<span
     class=${`inline-flex items-center justify-center w-[16px] h-[16px] shrink-0 group-hover:scale-125 ${customClass}`}
-    dangerouslySetInnerHTML=${{ __html: svgMarkup }}
+    dangerouslySetInnerHTML=${{ __html: sanitizeSVG(svgMarkup) }}
     aria-hidden="true"
   />`;
 };
@@ -93,8 +95,13 @@ export const LinkCardVertical = ({
     + 'overflow-hidden transition-all bg-[var(--bg-card-lighter)] '
     + `${borderClasses} `
     + 'flex flex-col items-start justify-start '
-    + `${!isPhotographicCard ? 'hover:shadow-[0_2px_20px_2px_rgba(73,73,73,0.25)] ' : ''}`
-    + `${focusBorderClasses} ${!isPhotographicCard ? 'focus-visible:shadow-[0_2px_20px_2px_rgba(73,73,73,0.25)] ' : ''}`
+    // El hover/focus shadow de TODA la card solo aplica si la card completa es
+    // interactiva (isClickable = href && clickBehavior==='fullCard'). Si no hay
+    // interacción, o si la única interacción es el botón terciario interno
+    // (clickBehavior==='button'), la card no debe mostrar hover; ese feedback lo da
+    // el botón por sí mismo.
+    + `${!isPhotographicCard && isClickable ? 'hover:shadow-[0_2px_20px_2px_rgba(73,73,73,0.25)] ' : ''}`
+    + `${focusBorderClasses} ${!isPhotographicCard && isClickable ? 'focus-visible:shadow-[0_2px_20px_2px_rgba(73,73,73,0.25)] ' : ''}`
     + 'focus-visible:outline focus-visible:outline-2 focus-visible:outline-[var(--focus-primary)] focus-visible:outline-offset-2 '
     + '';
 
@@ -135,6 +142,16 @@ export const LinkCardVertical = ({
     + 'leading-normal '
     + 'tracking-[var(--paragraph-p300-letter-spacing)] '
     + 'text-[var(--text-normal-primary)] w-full min-w-0 max-w-full !text-[16px] relative shrink-0 break-words';
+
+  // VSTS: la descripción es rich text (puede traer <p>, <strong>, listas, enlaces).
+  // Se procesa y se inyecta como HTML — antes se renderizaba como texto y mostraba
+  // las etiquetas literales (p.ej. "<p>...</p>") en las mosaic cards.
+  const processedDescription = processContentHTML(description || '', 'informative', {
+    pClassName: descriptionClasses,
+    // Los enlaces inline del rich-text deben ir subrayados (sin esto quedan
+    // no-underline tras el fix del CTA #1020). VSTS 1282235.
+    linkButtonOptions: { underline: true },
+  });
 
   // Handler for card click
   const handleCardClick = (e) => {
@@ -221,9 +238,10 @@ export const LinkCardVertical = ({
         <p class=${titleClasses}>
           ${title}
         </p>
-        <p class=${descriptionClasses}>
-          ${description}
-        </p>
+        <div
+          class="w-full min-w-0 max-w-full"
+          dangerouslySetInnerHTML=${{ __html: sanitizeHTML(processedDescription) }}
+        ></div>
       </div>
 
       <!-- Link button container -->

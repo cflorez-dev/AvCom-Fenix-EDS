@@ -1,7 +1,4 @@
 /* Common CSS styles for CMS Mosaic Cards block */
-.section.cms-mosaic-cards-container{
-    padding: var(--main-section-div-padding-mosaic-cards, 32px 16px);
-}
 
 /* Allow the parent section's `no-padding-y` modifier to remove the vertical
    padding. The block-specific selector above has the same specificity as
@@ -12,14 +9,119 @@
     padding-bottom: 0;
 }
 
-@media (width >= 768px) and (width <= 1248px) {
+@media (width >= 768px) and (width <= 1023px) {
+    :root {
+        --main-section-div-padding-mosaic-cards: 24px;
+    }
+}
+
+@media (width >= 1024px) {
     :root {
         --main-section-div-padding-mosaic-cards: 32px;
     }
 }
 
-@media (width >= 1248px) {
-    :root {
-        --main-section-div-padding-mosaic-cards: 32px 0;
-    }
+/* CU-208: richtext support in link-card description.
+   Inherit base typography from `.link-card-description` (parent classes) and
+   only restore browser defaults for lists, bold, and link visual states. */
+.link-card-description p {
+    margin: 0;
+}
+
+.link-card-description p + p {
+    margin-top: 8px;
+}
+
+.link-card-description ul,
+.link-card-description ol {
+    margin: 8px 0;
+    padding-left: 20px;
+}
+
+.link-card-description ul {
+    list-style: disc;
+}
+
+.link-card-description ol {
+    list-style: decimal;
+}
+
+.link-card-description li {
+    margin: 0;
+}
+
+.link-card-description strong,
+.link-card-description b {
+    font-weight: 700;
+}
+
+.link-card-description em,
+.link-card-description i {
+    font-style: italic;
+}
+
+/* `.rich-text-link` mirrors the LinkButton atom (variant=link, size=default,
+   colorVariant=informative). Anchor tags inside link-card descriptions get this
+   class via scripts/utils/link-card-richtext.js so the visual styling is
+   guaranteed even if Tailwind utility resolution differs across pages. */
+.rich-text-link {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 2px;
+    font-family: 'Red Hat Display', sans-serif;
+    font-size: 16px;
+    line-height: 21px;
+    font-weight: 400;
+    letter-spacing: 0;
+    text-align: center;
+    color: var(--color-text-link-informative-default, #177f8c);
+    text-decoration: underline;
+    text-decoration-style: solid;
+    text-decoration-skip-ink: none;
+    text-underline-position: from-font;
+    cursor: pointer;
+    transition: color 200ms ease;
+}
+
+.rich-text-link:hover,
+.rich-text-link:active {
+    color: var(--color-text-link-informative-active, #0e4c54);
+    font-weight: 700;
+}
+
+.rich-text-link:focus-visible {
+    position: relative;
+    outline: none;
+}
+
+.rich-text-link:focus-visible::after {
+    content: '';
+    position: absolute;
+    inset: -2px;
+    border: 2px solid var(--color-border-stroke-focus, #1d9bf0);
+    border-radius: 4px;
+    pointer-events: none;
+}
+
+/* VSTS 1282235: los enlaces dentro del rich text respetan el design system —
+   color `--link-color-secondary`, hover/active del sistema, SIN underline
+   (antes tomaban el estilo LinkButton informativo con underline, o el color de
+   texto base cuando no se decoraban). */
+[data-block-name="cms-mosaic-cards"] a:any-link:not(.rich-text-link) {
+    color: var(--link-color-secondary);
+    text-decoration: none;
+    font-weight: 400;
+}
+
+[data-block-name="cms-mosaic-cards"] a:any-link:not(.rich-text-link):hover {
+    color: var(--text-link-active, #0e4c54);
+    font-weight: 700;
+}
+
+[data-block-name="cms-mosaic-cards"] a:any-link:not(.rich-text-link):focus-visible {
+    outline: 2px solid var(--border-stroke-focus, #1d9bf0);
+    outline-offset: 2px;
+    border-radius: 2px;
 }

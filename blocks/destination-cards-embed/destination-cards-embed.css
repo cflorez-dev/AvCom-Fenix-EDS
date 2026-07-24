@@ -1,0 +1,15 @@
+/* Destination Cards Embed Block (AirMarketing avianca-destination-cards) */
+
+.destination-cards-embed .destination-cards-embed-container {
+  width: 100%;
+}
+
+.destination-cards-embed avianca-destination-cards {
+  display: block;
+  width: 100%;
+  min-height: 400px;
+}
+
+.destination-cards-embed.hidden {
+  display: none;
+}

@@ -41,7 +41,7 @@ export const HeadingDestinations = ({
   return html`
     <div
       data-name="headingDestinations"
-      class="max-w-[1248px] px-[16px] min-[480px]:px-[32px] min-[1248px]:px-0 self-center w-full flex flex-col gap-4 min-[1248px]:flex-row min-[1248px]:items-center min-[1248px]:justify-between ${customClassName}"
+      class="max-w-xl min-[1248px]:px-0 self-center w-full flex flex-col gap-4 min-[1248px]:flex-row min-[1248px]:items-center min-[1248px]:justify-between ${customClassName}"
       ...${rest}
     >
     <div class="w-auto">
