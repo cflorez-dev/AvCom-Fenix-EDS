@@ -16,6 +16,16 @@
   margin-bottom: 0;
 }
 
+/* Hotfix: dentro de rich-text el botón se alinea con el texto que lo rodea
+   (izquierda) en vez de forzar el centrado. El `justify-content: center` de
+   arriba, combinado con el botón a ancho de contenido (width:auto), dejaba el
+   botón flotando centrado en su columna aunque el título y el párrafo iban
+   alineados a la izquierda. Scope acotado a .cms-rich-text-wrapper para no
+   tocar el resto de contextos (CTAs sueltos, banners, etc.). */
+.cms-rich-text-wrapper .cms-button .cms-button-container {
+  justify-content: flex-start;
+}
+
 /* Tooltip support (opcional - puede usar biblioteca externa) */
 .cms-button-container [data-tooltip] {
   position: relative;
