@@ -21,6 +21,12 @@ const CONDOR_PATHS = [
  * con el cóndor de marca dibujándose en loop continuo y un label, hasta que
  * el flujo lo cierre.
  *
+ * Medidas verificadas contra el nodo de Figma `77:9621` (frame desktop, y el
+ * de mobile `77:9626` usa exactamente las mismas): isotipo 110x124.3, gap de
+ * 32px entre isotipo y label, y label en 18px / Red Hat Display Medium sobre
+ * `#1b1b1b`. El SVG lleva `h-auto`: con viewBox 118x132.937 a 110px de ancho
+ * la altura queda en 123.92px, 0.4px por debajo del diseño.
+ *
  * @param {Object} props
  * @param {boolean} props.isOpen - Visible mientras sea true
  * @param {string} [props.label='Cargando...'] - Texto bajo el cóndor (i18n)
@@ -40,7 +46,7 @@ export const FullPageLoader = ({ isOpen, label = 'Cargando...' }) => {
 
   return html`
     <div
-      class="fixed inset-0 z-[1100] bg-white flex flex-col items-center justify-center gap-4"
+      class="fixed inset-0 z-[1100] bg-white flex flex-col items-center justify-center gap-8"
       role="status"
       aria-live="polite"
       data-name="fullPageLoader"
@@ -69,7 +75,7 @@ export const FullPageLoader = ({ isOpen, label = 'Cargando...' }) => {
           <path d=${d} pathLength="1" stroke="#1B1B1B" stroke-width="1" fill="none" />
         `)}
       </svg>
-      <p class="text-text-normal-primary text-base !m-0">${label}</p>
+      <p class="text-text-normal-primary text-lg font-medium !m-0">${label}</p>
     </div>
   `;
 };
