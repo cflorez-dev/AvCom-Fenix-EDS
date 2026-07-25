@@ -47,6 +47,8 @@ export const MEMBERS_DATA_STATES = Object.freeze({
   GOLD: 'gold', // happy path desktop del Figma 518:27631 (2 condiciones, persigue Gold 2027)
   SILVER: 'silver', // tier intermedio
   LIFEMILES: 'lifemiles', // tier base
+  RED_PLUS: 'red-plus', // tier bajo (2nd) — usado por mock de la pág. Elite 765:42466
+  DIAMOND: 'diamond', // tier alto (5º) — usado por mock de la pág. Elite 765:42724
   MAGNO: 'magno', // tier máximo → 1 sola condición (nota Figma 518:26721)
   EMPTY: 'empty', // wrapper sin datos → todos los campos null (placeholder por campo)
   PARTIAL: 'partial', // wrapper parcial → millas sí, elite ausente
@@ -91,6 +93,36 @@ const FIXTURES = {
       conditions: [
         { key: 'qualifying-miles', value: 0, goal: 10000 },
         { key: 'avianca-miles', value: 0, goal: 3000 },
+      ],
+    },
+  },
+  // Red Plus (Figma pág. Elite mobile 765:42466): tier 2 → persigue Silver.
+  // Millas coherentes con la escala (lifemiles 4.8k < red-plus < silver 232k).
+  [MEMBERS_DATA_STATES.RED_PLUS]: {
+    totalMiles: 24500,
+    milesExpiryDate: '2026-12-31',
+    statusExpiry: '2026-01-30',
+    elite: {
+      year: 2026,
+      tierTarget: 'silver',
+      conditions: [
+        { key: 'qualifying-miles', value: 4400, goal: 8000 },
+        { key: 'avianca-miles', value: 1150, goal: 2000 },
+      ],
+    },
+  },
+  // Diamond (Figma pág. Elite mobile 765:42724): tier 5 → persigue Magno.
+  // Millas coherentes con la escala (silver 232k < diamond < magno 540k).
+  [MEMBERS_DATA_STATES.DIAMOND]: {
+    totalMiles: 385000,
+    milesExpiryDate: '2026-12-31',
+    statusExpiry: '2026-01-30',
+    elite: {
+      year: 2026,
+      tierTarget: 'magno',
+      conditions: [
+        { key: 'qualifying-miles', value: 55000, goal: 45000 },
+        { key: 'avianca-miles', value: 65000, goal: 110000 },
       ],
     },
   },

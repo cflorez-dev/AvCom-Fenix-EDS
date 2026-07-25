@@ -28,6 +28,9 @@ import { MembersDataPairSample } from '../../../design-system/atoms/members-data
 import { MembersProgressBarSample } from '../../../design-system/atoms/members-progress-bar/members-progress-bar.sample.js';
 import { MembersQuickActionSample } from '../../../design-system/atoms/members-quick-action/members-quick-action.sample.js';
 import { SegmentedControlSample } from '../../../design-system/atoms/segmented-control/segmented-control.sample.js';
+import { SwitchSample } from '../../../design-system/atoms/switch/switch.sample.js';
+import { SummaryTextSample } from '../../../design-system/atoms/summary-text/summary-text.sample.js';
+import { StatusProfileChipSample } from '../../../design-system/atoms/status-profile-chip/status-profile-chip.sample.js';
 import { ProgressItemSample } from '../../../design-system/atoms/progress-item/progress-item.sample.js';
 import { FloatingActionButtonSample } from '../../../design-system/atoms/floating-action-button/floating-action-button.sample.js';
 import { CarouselDestinationsSample } from '../../../design-system/organisms/carousel-destinations/carousel-destinations.sample.js';
@@ -71,6 +74,11 @@ export const AtomsSamples = () => html`
 
         <!-- Members ProgElite+Ben (1271689) -->
         <${SegmentedControlSample} />
+
+        <!-- Members Gestión de cuenta (1279360, kit DS) -->
+        <${SwitchSample} />
+        <${SummaryTextSample} />
+        <${StatusProfileChipSample} />
 
         <!-- Members ProgElite+Ben tab Progreso (1271699) -->
         <${ProgressItemSample} />

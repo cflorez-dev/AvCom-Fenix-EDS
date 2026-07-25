@@ -33,6 +33,10 @@ const EMPTY_BALANCE = { totalMiles: null, milesExpiryDate: null };
 export const MembersEliteHeaderSample = () => {
   const [idx, setIdx] = useState(0);
   const [empty, setEmpty] = useState(false);
+  // 1279360: alterna la variante "Gestión de cuenta" (crumb activo reemplazado +
+  // CTA "Mi Lifemiles ›" desktop). Con `accountVariant=false` el header elite
+  // queda idéntico (props nuevas en default).
+  const [accountVariant, setAccountVariant] = useState(false);
   const labels = getEliteLabelsSync();
   const current = TIERS[idx];
 
@@ -51,6 +55,13 @@ export const MembersEliteHeaderSample = () => {
         <${Button} variant=${empty ? 'primary' : 'secondary'} size="sm" onClick=${() => setEmpty(true)}>
           empty (0 millas)
         </${Button}>
+        <${Button}
+          variant=${accountVariant ? 'primary' : 'secondary'}
+          size="sm"
+          onClick=${() => setAccountVariant((v) => !v)}
+        >
+          ${accountVariant ? 'variante: Gestión de cuenta ✓' : 'variante: Gestión de cuenta'}
+        </${Button}>
       </div>
       <${MembersEliteHeader}
         user=${{ firstName: 'Sebastián', tier: current.tier, cenit: current.cenit }}
@@ -58,6 +69,8 @@ export const MembersEliteHeaderSample = () => {
         statusExpiry=${empty ? null : '2026-01-30'}
         tierThemes=${{}}
         labels=${labels}
+        activeCrumbLabel=${accountVariant ? 'Gestión de cuenta' : null}
+        headerCta=${accountVariant ? { label: 'Mi Lifemiles', href: '#', enabled: true } : null}
       />
     </section>
   `;

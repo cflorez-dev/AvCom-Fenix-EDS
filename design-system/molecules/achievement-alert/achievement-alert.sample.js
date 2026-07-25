@@ -8,19 +8,19 @@ const html = htm.bind(h);
 
 const CASES = [
   {
-    tier: 'red-plus', key: 'status:red-plus:2026', title: '¡Felicitaciones! Ahora eres Red Plus', body: 'Disfruta de los nuevos beneficios de tu estatus elite.',
+    tier: 'red-plus', key: 'status:red-plus:2026', title: '¡Felicitaciones! Ahora eres Red Plus', body: 'Accede a beneficios exclusivos y sigue acumulando millas para llegar a tu siguiente estatus.',
   },
   {
-    tier: 'silver', key: 'status:silver:2026', title: '¡Felicitaciones! Ahora eres Silver', body: 'Disfruta de los nuevos beneficios de tu estatus elite.',
+    tier: 'silver', key: 'status:silver:2026', title: '¡Felicitaciones! Ahora eres Silver', body: 'Accede a beneficios exclusivos y sigue acumulando millas para llegar a tu siguiente estatus.',
   },
   {
-    tier: 'gold', key: 'status:gold:2026', title: '¡Felicitaciones! Ahora eres Gold', body: 'Disfruta de los nuevos beneficios de tu estatus elite.',
+    tier: 'gold', key: 'status:gold:2026', title: '¡Felicitaciones! Ahora eres Gold', body: 'Accede a beneficios exclusivos y sigue acumulando millas para llegar a tu siguiente estatus.',
   },
   {
-    tier: 'diamond', key: 'cenit-1m:1m:2026', title: '¡Felicitaciones! Alcanzaste Cenit One Million', body: 'Ganaste de manera vitalicia todos los beneficios del estatus Diamond.',
+    tier: 'diamond', key: 'status:diamond:2026', title: '¡Felicitaciones! Ahora eres Diamond', body: 'Accede a beneficios exclusivos y sigue acumulando millas para llegar a tu siguiente estatus.',
   },
   {
-    tier: 'magno', key: 'status:magno:2026', title: '¡Felicitaciones! Ahora eres Magno', body: 'Disfruta de los nuevos beneficios de tu estatus elite.',
+    tier: 'magno', key: 'status:magno:2026', title: '¡Felicitaciones! Ahora eres Magno', body: 'Accede a beneficios exclusivos y sigue acumulando millas para llegar a tu siguiente estatus.',
   },
 ];
 

@@ -294,8 +294,9 @@ const MembersCardCondorMagno = ({ tier }) => {
  * lockup "avianca lifemiles" + badge de tier (top-right), nombre del socio +
  * stack de marca/sub-status (bottom-right).
  *
- * SOLO se muestra en desktop (≥1024px); la VISIBILIDAD la controla el organism
- * (`members-hero`) envolviéndola, no la molécula — así queda reusable para el
+ * SOLO se muestra en ≥1024px (breakpoint `lg:` de Tailwind); la VISIBILIDAD
+ * la controla el organism (`members-hero`) envolviéndola, no la molécula
+ * — así queda reusable para el
  * Dashboard hermano (1263921), que la dispone distinto. Theme por tier vía
  * `getTierTheme` (Gold usa gradientToStop 124.8%).
  *
@@ -380,8 +381,21 @@ export const MembersMembershipCard = ({
   //  3. Si NO hay angle ni en CF ni en preset → '135deg' genérico (red de
   //     seguridad; no es ningún Figma real).
   // Shadow: `theme.cardShadow` (solo magno hoy) → default Figma `shadow/large`.
+  //
+  // Figma permite stops en cualquier orden (posición 0-1 en el eje del
+  // gradient); CSS `linear-gradient()` requiere stops ASCENDENTES y clampa
+  // silenciosamente al valor previo si vienen invertidos (ver silver: from
+  // stop 85.982% + to stop 68.291% => franja dura en 85.982%). Ordenamos los
+  // stops antes de armar el string para preservar la transición Figma.
+  const parseStopPct = (s) => {
+    const n = parseFloat(String(s ?? '').replace('%', ''));
+    return Number.isFinite(n) ? n : 0;
+  };
+  const stopA = { color: theme.gradientFrom, stop: theme.gradientFromStop, pct: parseStopPct(theme.gradientFromStop) };
+  const stopB = { color: theme.gradientTo, stop: theme.gradientToStop, pct: parseStopPct(theme.gradientToStop) };
+  const [gradA, gradB] = stopA.pct <= stopB.pct ? [stopA, stopB] : [stopB, stopA];
   const cardBgImage = theme.cardBackground
-    || `linear-gradient(${theme.gradientAngle || '135deg'}, ${theme.gradientFrom} ${theme.gradientFromStop}, ${theme.gradientTo} ${theme.gradientToStop})`;
+    || `linear-gradient(${theme.gradientAngle || '135deg'}, ${gradA.color} ${gradA.stop}, ${gradB.color} ${gradB.stop})`;
   // Shadow: variante compact (Figma 518:22622) usa shadow suave 1.7/17/1.7 con
   // rgba(73,73,73,0.25); default sigue `shadow/large` del CF/preset.
   const compactShadow = '0px 1.7px 17px 1.7px rgba(73, 73, 73, 0.25)';

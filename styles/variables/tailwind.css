@@ -149,6 +149,13 @@
   --color-alert-dismiss-bg-active: rgba(0, 0, 0, 0.1);
   --color-alert-dismiss-icon: currentColor;
 
+  /* ToastAlert variant colors (white bg, 2px outline, floating notification) */
+  --color-toast-alert-positive: #1EA93C;
+  --color-toast-alert-informative: #177F8C;
+  --color-toast-alert-warning: #EF5B06;
+  --color-toast-alert-error-border: #FF1C46;
+  --color-toast-alert-error-icon: #C20000;
+
   /* Author/Editor Indicator Colors */
   --color-background-author-indicator: #f0f0f0;
   --color-border-author-indicator: #0066cc;

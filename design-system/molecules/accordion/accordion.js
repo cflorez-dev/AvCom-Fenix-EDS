@@ -17,6 +17,10 @@ const html = htm.bind(h);
  *   fondo claro deben pasar var(--icon-normal-primary)
  * @param {*} props.children - Accordion content
  * @param {Function} props.onToggle - Callback when accordion toggles
+ * @param {number} [props.forceOpen=0] - Token opt-in (ej. timestamp): cada vez que
+ *   cambia a un valor truthy el panel se ABRE (nunca cierra). Lo usa un caller que
+ *   necesita revelar un panel colapsado manualmente (ej. chip del banner de
+ *   completitud → sección dentro de un accordion cerrado).
  */
 export const Accordion = ({
   title = 'Title',
@@ -25,6 +29,7 @@ export const Accordion = ({
   customClassName = '',
   chevronColor = 'var(--icon-normal-light)',
   overflowVisibleWhenOpen = false,
+  forceOpen = 0,
   children,
   onToggle,
   ...rest
@@ -90,6 +95,14 @@ export const Accordion = ({
     return () => clearTimeout(t);
   }, [isOpen, overflowVisibleWhenOpen]);
 
+  // Force-open externo (opt-in): cuando `forceOpen` cambia a un valor truthy
+  // (token/timestamp) el panel se abre. Nunca cierra. El valor 0/undefined
+  // (default) es no-op, así que no altera el comportamiento de los consumidores
+  // que no pasan la prop.
+  useEffect(() => {
+    if (forceOpen) setIsOpen(true);
+  }, [forceOpen]);
+
   const onTransitionEnd = () => {
     if (isOpen) {
       // When opening finishes, return to 'auto' to adapt to content changes
@@ -99,8 +112,8 @@ export const Accordion = ({
 
   // Tailwind classes for structure and layout
   const containerClasses = `inline-flex flex-col gap-6 items-start w-full ${customClassName}`;
-  const headerClasses = 'self-stretch h-14 inline-flex items-start justify-between cursor-pointer py-4 focus-visible:outline-none';
-  const titleClasses = 'flex-1 h-6 !m-0 font-sans font-bold text-text-normal-lighter';
+  const headerClasses = 'self-stretch inline-flex items-center justify-between cursor-pointer pt-4 focus-visible:outline-none';
+  const titleClasses = 'flex-1 !m-0 font-sans font-bold text-text-normal-lighter flex items-center !text-base !leading-[21px] lg:!text-xl lg:!leading-[26px]';
   const iconContainerClasses = `transition-transform duration-300 ease-in-out ${isOpen ? 'rotate-180' : 'rotate-0'}`;
   // overflow-hidden durante la animación (clip del max-height). Cuando el
   // accordion está abierto y ASENTADO (height 'auto', fin de transición) y el

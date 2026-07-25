@@ -70,6 +70,22 @@ export const CobrandCardSample = () => html`
   }}
       labels=${LABELS}
     />
+
+    <p style=${{ color: '#666', margin: 0 }}>
+      Imagen VERTICAL (sheet imagen_vertical=true, Figma 819:32867 / 819:32936)
+      — frame square 150×150 desktop / 200×200 mobile:
+    </p>
+    <${CobrandCard}
+      card=${{
+    ...FULL_CARD,
+    isVerticalImage: true,
+    imageUrl: '',
+    milesPeriod: null,
+    name: 'Avianca Lifemiles Mastercard Vertical',
+  }}
+      labels=${LABELS}
+      milesLabel="Total acumulado en 2026"
+    />
     <p style=${{ color: '#666', margin: 0 }}>
       Slider (paso 9) — 3 tarjetas: paginación "n de m" + flechas (disabled en
       extremos) + acciones del sheet (solicitar oculta por POS):

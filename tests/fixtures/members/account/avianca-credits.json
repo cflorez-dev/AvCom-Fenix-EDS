@@ -1,0 +1,37 @@
+{
+  "credits": [
+    {
+      "maskedNumber": "••••••••8901",
+      "type": "Reembolsable",
+      "state": "active",
+      "currency": "COP",
+      "initialBalance": 500000,
+      "balance": 320000,
+      "holderName": "Juan Sebastián Rodríguez",
+      "issueDate": "2025-03-14",
+      "expiryDate": "2027-03-14"
+    },
+    {
+      "maskedNumber": "••••••••4477",
+      "type": "No reembolsable",
+      "state": "no-balance",
+      "currency": "COP",
+      "initialBalance": 250000,
+      "balance": 0,
+      "holderName": "María Fernanda Villalobos Santamaría de la Espriella",
+      "issueDate": "2024-11-02",
+      "expiryDate": "2026-11-02"
+    },
+    {
+      "maskedNumber": "••••••••1200",
+      "type": "Reembolsable",
+      "state": "cancelled",
+      "currency": "USD",
+      "initialBalance": 120,
+      "balance": 0,
+      "holderName": "Carlos Andrés Gómez",
+      "issueDate": "2023-06-20",
+      "expiryDate": "2025-06-20"
+    }
+  ]
+}

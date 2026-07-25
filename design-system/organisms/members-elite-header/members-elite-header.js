@@ -81,6 +81,13 @@ const EliteHeaderCondor = () => {
  * @param {string|null} [props.statusExpiry] - vigencia del estatus (ISO/date-only).
  * @param {Object<string,object>} [props.tierThemes] - dict de tiers del CF (cfg.tiers).
  * @param {Object} props.labels - labels elite (getEliteLabelsSync/loadEliteLabels).
+ * @param {string|null} [props.activeCrumbLabel] - (1279360, aditivo) reemplaza el
+ *   label del crumb activo (el shell "Gestión de cuenta" pasa
+ *   `labels.breadcrumbAccountActive`). Default null → crumb elite intacto.
+ * @param {{label?:string, href?:string, enabled?:boolean}|null} [props.headerCta] -
+ *   (1279360, aditivo, gated) CTA "Mi Lifemiles ›" a la derecha de la fila del
+ *   breadcrumb, SOLO desktop, cuando `enabled === true`. Default null → header
+ *   elite byte-idéntico (mobile nunca lo renderiza).
  */
 export const MembersEliteHeader = ({
   user = {},
@@ -88,6 +95,8 @@ export const MembersEliteHeader = ({
   statusExpiry = null,
   tierThemes = {},
   labels = {},
+  activeCrumbLabel = null,
+  headerCta = null,
 }) => {
   const lang = resolveLang();
   const tokens = getEliteTierTokens(user.tier, tierThemes);
@@ -137,27 +146,50 @@ export const MembersEliteHeader = ({
     isHome: true, url: `/${lang}/members`, label: labels.breadcrumbMyLifemiles || 'Mi Lifemiles',
   };
   const bcAccount = { url: `/${lang}/members/profile`, label: labels.breadcrumbAccount || 'Cuenta Lifemiles' };
-  const bcElite = { label: labels.breadcrumbElite || 'Progreso Elite y beneficios', isActive: true };
+  // Crumb activo: el shell account (1279360) reemplaza el label vía
+  // `activeCrumbLabel` (aditivo); sin él, el label elite intacto.
+  const bcElite = {
+    label: activeCrumbLabel || labels.breadcrumbElite || 'Progreso Elite y beneficios',
+    isActive: true,
+  };
   const breadcrumbHome = labels.breadcrumbMyLifemiles || 'Mi Lifemiles';
 
+  // CTA "Mi Lifemiles ›" (1279360, gated): solo desktop, solo si enabled. Default
+  // (null/off) → el header elite queda byte-idéntico (misma clase `md:block`).
+  const hasHeaderCta = !!(headerCta && headerCta.enabled);
+
   // Balance box: dos data-pairs con divisor. bg = overlay del tier.
-  // Figma 765:51861: label Static2 14px Regular blanco; valor size/medium 18px
-  // Bold blanco. AMBOS valores ("X millas" y la fecha) mismo tamaño/peso.
-  const dataPair = (label, value) => html`
-    <div class="flex flex-col gap-1 min-w-0">
-      <span class="text-sm leading-tight">${label}</span>
-      <span class="text-lg font-bold leading-tight whitespace-nowrap">${value}</span>
-    </div>
-  `;
+  // Figma 765:65049 (tablet 768-1023) / 765:65087 (desktop ≥1024): label
+  // Static2 14px Regular blanco; valor 18px SemiBold en tablet / 18px Bold en
+  // desktop, blanco. Padding 16/16/12/16 (top/x/bottom), rounded 16, gap-41
+  // entre los dos pares. Ancho: mobile full-width; **≥768px ancho FIJO 317px**
+  // (285 inner + 32 padding lateral) según spec Figma.
+  // Tipografía responsive:
+  //  - `<768px` (mobile) → label + valor 14px / 19px (spec original mobile)
+  //  - `768-1023px` (tablet) → label 14px, valor 18px / 24px SemiBold
+  //  - `≥1024px` (desktop) → label 14px, valor 18px / 24px Bold
+  // `!text-*` / `!leading-*`: `span` / reglas base globales pueden pisar las
+  // utilidades — important las fuerza al spec.
+  // `align` controla la alineación interna del pair:
+  //  - 'start' (default) → label + valor a la izquierda (pair izquierdo).
+  //  - 'end' → label + valor a la derecha (pair derecho, Figma 1059:65545).
+  const dataPair = (label, value, align = 'start') => {
+    const alignClass = align === 'end' ? 'items-end text-right' : 'items-start';
+    return html`
+      <div class="flex flex-col gap-[2px] min-w-0 ${alignClass}">
+        <span class="!text-[14px] !leading-[19px] antialiased whitespace-nowrap">${label}</span>
+        <span class="!text-[14px] !leading-[19px] md:!text-[18px] md:!leading-[24px] font-semibold lg:font-bold whitespace-nowrap">${value}</span>
+      </div>
+    `;
+  };
 
   const balanceBox = html`
     <div
-      class="rounded-2xl px-4 py-3 md:px-5 md:py-4 flex items-stretch gap-4 md:gap-6 w-full md:w-auto shrink-0 border-l-4 md:border-l-0"
+      class="rounded-2xl pt-4 pb-3 px-4 flex items-center justify-between gap-x-[41px] w-full md:w-[317px] shrink-0"
       style=${{ backgroundColor: tokens.overlay, borderColor: tokens.borderAccent }}
     >
-      ${dataPair(labels.youHaveLabel || 'Tienes', milesText)}
-      <div class="w-px self-stretch bg-white/25" aria-hidden="true"></div>
-      ${dataPair(labels.milesExpiryLabel || 'Fecha de vencimiento', expiryText)}
+      ${dataPair(labels.youHaveLabel || 'Tienes', milesText, 'start')}
+      ${dataPair(labels.milesExpiryLabel || 'Fecha de vencimiento', expiryText, 'end')}
     </div>
   `;
 
@@ -171,34 +203,79 @@ export const MembersEliteHeader = ({
         CONTENIDO vía styles.css: desktop abajo-izquierda de la balance box
         (bottom:0, right:368px medido en Figma). */ ''}
     <div
-      class="members-elite-header relative z-0 p-4 pb-8 md:p-6 lg:p-8 min-h-fit lg:min-h-[190px]"
+      class="members-elite-header relative z-0 pt-6 pb-8 md:pt-8"
       style=${{ '--elite-header-bg': bgGradient, color: tokens.text }}
       data-name="members-elite-header"
       data-tier=${tokens.key}
     >
       <${EliteHeaderCondor} />
 
-      <div class="relative z-10 flex flex-col gap-4 lg:gap-6">
-        ${/* Breadcrumb: 3 niveles desktop/tablet, 2 niveles mobile (§A). */ ''}
-        <div class="hidden md:block">
-          <${Breadcrumb} tone="dark" homeLabel=${breadcrumbHome} items=${[bcHome, bcAccount, bcElite]} />
+      <div class="relative z-10 flex flex-col gap-6 lg:gap-8">
+        ${/* Breadcrumb: 3 niveles desktop/tablet, 2 niveles mobile (§A). El shell
+            account (1279360) agrega el CTA "Mi Lifemiles ›" a la derecha de la
+            fila desktop (flex justify-between) SOLO cuando `headerCta.enabled`. */ ''}
+        <div class=${`hidden ${hasHeaderCta ? 'md:flex md:items-center md:justify-between md:gap-4' : 'md:block'}`}>
+          <${Breadcrumb} tone="dark" homeLabel=${breadcrumbHome} items=${[bcHome, bcAccount, bcElite]} alwaysShowHomeLabel=${true} />
+          ${/* CTA "Mi Lifemiles ›" — Figma `1056:32654` (Action Button, 113×24):
+              texto Static1 (16px) Regular blanco + chevron-right 24×24, gap 4px.
+              SIN border/background/padding/pill (es un text link con ícono, no
+              un botón outlined). El SVG chevron va inline (viewBox 16, `currentColor`)
+              en lugar del atom Icon: (1) evita paint-flash del cache async del atom
+              en un elemento above-the-fold, (2) el path 30.88%×50% del slot coincide
+              exacto con el `chevron-right.svg` original — solo escala del viewBox 16
+              al display 24×24. */ ''}
+          ${hasHeaderCta ? html`
+            <a
+              href=${headerCta.href || '#'}
+              data-name="members-header-cta"
+              class="inline-flex items-center gap-[var(--spacing-tiny)] shrink-0 h-6 text-base leading-none whitespace-nowrap transition-opacity hover:opacity-80 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-border-stroke-focus"
+            >
+              <span>${headerCta.label || ''}</span>
+              <svg
+                class="shrink-0 w-6 h-6"
+                viewBox="0 0 16 16"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+                aria-hidden="true"
+                focusable="false"
+              >
+                <path
+                  fill-rule="evenodd"
+                  clip-rule="evenodd"
+                  d="M6.47027 4L5.53027 4.94L8.58361 8L5.53027 11.06L6.47027 12L10.4703 8L6.47027 4Z"
+                  fill="currentColor"
+                />
+              </svg>
+            </a>
+          ` : null}
         </div>
         <div class="md:hidden">
-          <${Breadcrumb} tone="dark" homeLabel=${breadcrumbHome} items=${[bcHome, bcElite]} />
+          ${/* Mobile: home con ícono + label (Figma 1059:65517 "🏠 Mi Lifemiles").
+              alwaysShowHomeLabel fuerza el texto también en mobile. */ ''}
+          <${Breadcrumb} tone="dark" homeLabel=${breadcrumbHome} items=${[bcHome, bcElite]} alwaysShowHomeLabel=${true} />
         </div>
 
-        <div class="flex flex-col gap-5 md:flex-row md:items-end md:justify-between md:gap-8">
-          <div class="flex flex-col gap-1 min-w-0">
-            ${/* Saludo 24px SemiBold. `!text-2xl`: una regla base sin @layer
-                `h1 { font-size }` vence a la utilidad Tailwind (mismo gotcha que
-                button/p); important la fuerza a 24px. */ ''}
-            <h1 class="!m-0 !text-2xl font-semibold leading-tight">${greeting}</h1>
-            ${/* Línea [tier] | Vence: fecha. Figma 765:51857/51860: 18px Regular
-                blanco, nombre y "Vence" MISMO peso (no bold). `!text-lg`: el
-                `p { clamp() }` global sin @layer vence a text-lg en <p>. */ ''}
-            <p class="!m-0 !text-lg leading-tight">
+        <div class="flex flex-col gap-6 md:flex-row md:items-end md:justify-between md:gap-8">
+          <div class="flex flex-col gap-[4px] min-w-0 pb-[4px]">
+            ${/* Saludo SemiBold, tipografía responsive:
+                 - `<1024px` → 18px / 24px line-height
+                 - `≥1024px` → 24px / 32px line-height
+                `!text-*` / `!leading-*`: una regla base sin @layer
+                `h1 { font-size / line-height }` vence a las utilidades Tailwind
+                (mismo gotcha que button/p); important las fuerza al spec. */ ''}
+            <h1 class="!m-0 !text-[18px] !leading-[24px] lg:!text-[24px] lg:!leading-[32px] font-semibold">${greeting}</h1>
+            ${/* Línea [tier] | Vence: fecha. Figma 765:51857/51860: nombre y
+                "Vence" MISMO peso (Regular, no bold). Tipografía responsive:
+                 - `<1024px` → 14px / 19px line-height
+                 - `≥1024px` → 18px / 24px line-height
+                `!text-*` / `!leading-*`: el `p { clamp() }` global sin @layer
+                vence a las utilidades Tailwind — important las fuerza al spec.
+                Los 3 spans hijos (tierName, separador, Vence) heredan tamaño y
+                line-height del <p>. */ ''}
+            <p class="!m-0 !text-[14px] !leading-[19px] lg:!text-[18px] lg:!leading-[24px]">
               <span>${tierName}</span>${showVence
-  ? html` <span aria-hidden="true">|</span> ${labels.headerExpiresLabel || 'Vence:'} ${formatDate(statusExpiry, lang)}`
+  ? html`<span class="relative -top-px px-2 text-[rgba(217,217,217,0.50)]" aria-hidden="true">|</span>
+  <span>${labels.headerExpiresLabel || 'Vence:'} ${formatDate(statusExpiry, lang)}</span>`
   : ''}
             </p>
           </div>

@@ -90,7 +90,11 @@ export const AcceleratorTooltip = ({
       style=${{
     border: `2px solid ${borderColor}`,
     // Clamp al contenedor: centrado en el anchor, sin salirse por los extremos.
-    left: `clamp(0px, calc(${pct}% - 150px), calc(100% - 300px))`,
+    // Prefiere `var(--progress-fill-pct)` (posici\u00f3n REAL medida por
+    // `MembersProgressBar` en modo 'spread' \u2014 vista completa \u2014 donde los
+    // dots ya no son equidistantes); fallback al `anchorPct` prop para
+    // consumidores fuera de una barra con la var (samples, 'anchored').
+    left: `clamp(0px, calc(var(--progress-fill-pct, ${pct}%) - 150px), calc(100% - 300px))`,
   }}
       data-name="accelerator-tooltip"
       ...${rest}
