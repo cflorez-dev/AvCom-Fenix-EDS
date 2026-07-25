@@ -9,6 +9,7 @@ import { fetchAEMData } from '../../../../scripts/utils/aem-data.js';
 import { getStoredLanguage } from '../../../../scripts/services/header/language-country-selector.js';
 import { validateUpgrade, getUpgradesConfig } from '../../../../scripts/services/upgrades/upgrades.service.js';
 import { mapValidateResult, buildMmbRedirectUrl, UPGRADE_RESULT } from '../../../../scripts/services/upgrades/upgrades-result.js';
+import { showLoader, updateLoaderText } from '../../../../scripts/services/loader/loader.service.js';
 
 const html = htm.bind(h);
 
@@ -65,6 +66,9 @@ export const CabinUpgradeForm = ({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errors, setErrors] = useState({ pnrCode: '', lastName: '' });
   const [activeModal, setActiveModal] = useState(null); // null | UPGRADE_RESULT.*
+  // true cuando la página no tiene autorado el bloque cms-loader (el loader
+  // oficial de transiciones del producto) y toca usar la molecule de fallback.
+  const [useFallbackLoader, setUseFallbackLoader] = useState(false);
   const [labels, setLabels] = useState({});
 
   useEffect(() => {
@@ -152,6 +156,14 @@ export const CabinUpgradeForm = ({
     }
 
     setIsSubmitting(true);
+    // Figma 77-9620: usar el MISMO loader de las demás transiciones del
+    // producto (bloque cms-loader autorado en la página, GIF del cóndor).
+    // Si la página no lo tiene, cae a la molecule full-page-loader.
+    const hasCmsLoader = showLoader(true);
+    if (hasCmsLoader) {
+      updateLoaderText(labels.loaderLabel || 'Cargando...');
+    }
+    setUseFallbackLoader(!hasCmsLoader);
     try {
       const response = await validateUpgrade({ pnr: pnrCode });
       const result = mapValidateResult({ ...response, lastName });
@@ -175,11 +187,13 @@ export const CabinUpgradeForm = ({
         // marca ambos campos en estado error, además del modal.
         setErrors({ pnrCode: labels.notFoundPnrError, lastName: labels.notFoundLastNameError });
       }
+      showLoader(false);
       setActiveModal(result);
       onError({ result, response });
     } catch (error) {
       // eslint-disable-next-line no-console
       console.error('[cabin-upgrade-form] validate failed:', error);
+      showLoader(false);
       setActiveModal(UPGRADE_RESULT.ERROR);
       onError({ result: UPGRADE_RESULT.ERROR, error });
     }
@@ -257,7 +271,7 @@ export const CabinUpgradeForm = ({
       </div>
     </form>
 
-    <${FullPageLoader} isOpen=${isSubmitting} label=${labels.loaderLabel} />
+    <${FullPageLoader} isOpen=${isSubmitting && useFallbackLoader} label=${labels.loaderLabel} />
 
     <${ModalAviancaLayout}
       isOpen=${activeModal === UPGRADE_RESULT.NO_AVAILABILITY}

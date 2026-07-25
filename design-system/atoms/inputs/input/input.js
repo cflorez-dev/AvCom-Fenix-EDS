@@ -309,7 +309,7 @@ export const Input = ({
                 class=${`
                   bg-white
                   w-full bg-transparent border-0 outline-none p-0
-                  !text-base font-bold font-['Red_Hat_Display'] leading-normal
+                  !text-base !font-bold font-['Red_Hat_Display'] leading-normal
                   ${truncateOption && !isFocused ? 'truncate' : ''}
                   ${actualState === 'disabled' ? 'text-[#C4C8C5] cursor-not-allowed' : actualState === 'readonly' ? 'text-text-normal-secondary cursor-default' : 'text-text-normal-primary'}
                   placeholder:text-text-normal-secondary placeholder:font-normal
@@ -320,7 +320,7 @@ export const Input = ({
 
           <!-- Cursor placeholder when active but empty -->
           ${!shouldFloat && isFocused && !inputValue && html`
-            <div class="!text-base font-bold font-['Red_Hat_Display'] text-text-normal-primary">|</div>
+            <div class="!text-base !font-bold font-['Red_Hat_Display'] text-text-normal-primary">|</div>
           `}
 
           <!-- Hidden input for when not floating -->
