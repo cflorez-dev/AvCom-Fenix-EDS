@@ -130,20 +130,26 @@ const alignFor = (pos) => {
 };
 
 const milestone = ({
-  pos, label, sublabel = '', state = 'default', marker = 'check',
+  pos, label, sublabel = '', state = 'default', marker = 'check', goal = null,
 }) => ({
   pos,
   label,
   sublabel,
   state,
   marker, // 'check' (badge circular) | 'flag' ("Inicio") — anatomía de los mocks
+  // Meta numérica del hito (F2 stepper 2026-07-16): en Vista completa la barra
+  // reparte los hitos por FLEX (gap auto, como el auto-layout de Figma — los
+  // labels nunca se pisan) y el fill se interpola entre las posiciones REALES
+  // de los dots medidos, usando este `goal` como eje de valores. `null` en
+  // hitos de detalle (usan el fill piecewise del modelo, sin medición).
+  goal: Number.isFinite(Number(goal)) ? Number(goal) : null,
   labelAlign: alignFor(pos),
 });
 
 /** Hito "Inicio" (bandera + label, AC bloque 5). Estado `success` → bandera
  * VERDE (Figma 765-50736 `isComplete=True`: "Inicio" siempre está cumplido). */
 const startMilestone = (labels) => milestone({
-  pos: 0, label: labels.startLabel || '', marker: 'flag', state: 'success',
+  pos: 0, label: labels.startLabel || '', marker: 'flag', state: 'success', goal: 0,
 });
 
 /**
@@ -304,6 +310,7 @@ const buildFullRow = (kind, vm, detailRow, names, labels) => {
       label: names[e.tier] || e.tier,
       sublabel: e[dim] != null ? formatMiles(e[dim]) : '',
       state: secured(e) ? 'success' : 'default',
+      goal: e[dim],
     })),
   ];
 

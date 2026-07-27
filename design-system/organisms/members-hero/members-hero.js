@@ -12,7 +12,7 @@ import {
 } from '../../../scripts/services/members/members-i18n.js';
 import { getStoredLanguage } from '../../../scripts/services/header/language-country-selector.js';
 import { normalizeTierKey } from '../../helpers/members-tier-theme.js';
-import { resolveInitialExpanded } from '../../helpers/members-hero-logic.js';
+import { resolveInitialExpanded, toTitleCaseName } from '../../helpers/members-hero-logic.js';
 import { MembersHeroCompact } from '../../molecules/members-hero-compact/members-hero-compact.js';
 import { MembersHeroExpanded } from '../../molecules/members-hero-expanded/members-hero-expanded.js';
 import { MembersHeroSkeleton } from '../../molecules/members-hero-skeleton/members-hero-skeleton.js';
@@ -296,17 +296,21 @@ export const MembersHero = ({
     tooltipContent: labels.eliteTooltip,
     tooltipAriaLabel: labels.eliteTooltipAria,
     ctaLabel: labels.viewProgress,
-    // CTA "Ver progreso": en el hero 518:24090 NO se renderiza (el nodo
-    // `I518:24090;898:25916` solo expone title + 2 barras, sin tercer hijo).
-    // El comp standalone de `MembersEliteProgress` (Figma 518:25999/26144/26289)
-    // sí lleva CTA — por eso la molecule sigue soportándolo, pero en este
-    // contexto del hero lo pasamos como `null` para alinear con el spec y
-    // evitar el "doble gap" visual (gap-32 al CTA + barras estrechadas por
-    // flex-1 compitiendo con el CTA shrink-0).
-    ctaUrl: null,
+    // CTA "Ver progreso" (AVAEMF2P20-200): habilitado en TODAS las
+    // resoluciones. Apunta a la landing elite (`/{lang}/members/profile/elite`),
+    // mismo destino que la card "Mi estatus elite" (ver `members-config.js`).
+    // La molecule ya soporta doble render (mobile inline con el title / desktop
+    // a la derecha de las barras) con visibilidad por breakpoint.
+    ctaUrl: `/${lang}/members/profile/elite`,
   };
 
-  const memberName = [user.firstName, user.lastName].filter(Boolean).join(' ');
+  // `memberName` alimenta la tarjeta de membresía (bottom-left). El wrapper
+  // devuelve firstName/lastName en MAYÚSCULAS ("SEBASTIÁN RUIZ"); en la card
+  // los queremos en Title Case ("Sebastián Ruiz") — normalizamos acá (una sola
+  // vez, en el borde donde el VM del wrapper se convierte en props de UI).
+  const memberName = toTitleCaseName(
+    [user.firstName, user.lastName].filter(Boolean).join(' '),
+  );
 
   // Breadcrumb del hero (Figma 518:24516). Parent = portal Members landing.
   // EXCLUSIVO de `/members/profile`: si `showBreadcrumb === false` (Dashboard,

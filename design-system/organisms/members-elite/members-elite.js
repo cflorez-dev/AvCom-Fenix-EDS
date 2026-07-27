@@ -1,8 +1,9 @@
 import { h } from '@dropins/tools/preact.js';
 import { useState, useEffect, useRef } from '@dropins/tools/preact-hooks.js';
 import htm from 'htm';
-import { session as sessionStore } from '../../../scripts/services/members/session.store.js';
+import { session as sessionStore, setSession } from '../../../scripts/services/members/session.store.js';
 import { whenLmReady } from '../../../scripts/services/members/lm-script.loader.js';
+import { guardPortalSession } from '../../../scripts/services/members/members-guard.js';
 import {
   getMembersConfigSync,
   loadMembersConfig,
@@ -11,10 +12,11 @@ import {
   getEliteLabelsSync,
   loadEliteLabels,
 } from '../../../scripts/services/members/members-i18n.js';
-import { buildEliteDetailVM } from '../../../scripts/services/members/elite-detail.service.js';
+import { buildEliteDetailVM, pureTierBase } from '../../../scripts/services/members/elite-detail.service.js';
 import { buildPanelModel } from '../../../scripts/services/members/goal-progress.logic.js';
 import { loadCobrandCatalog, buildCobrandVM } from '../../../scripts/services/members/cobrand.service.js';
 import { loadClubSubscription } from '../../../scripts/services/members/club-subscription.service.js';
+import { loadBenefitsCatalog } from '../../../scripts/services/members/benefits-catalog.service.js';
 import { getStoredCountry, getStoredLanguage } from '../../../scripts/services/header/language-country-selector.js';
 import {
   shouldShowAlert,
@@ -22,7 +24,7 @@ import {
   detectTierChange,
   detectCenitCross,
 } from '../../../scripts/services/members/alert-persistence.js';
-import { getEliteTierTokens } from '../../helpers/members-tier-theme.js';
+import { getEliteTierTokens, normalizeTierKey } from '../../helpers/members-tier-theme.js';
 import { MembersTabs, getInitialTab } from '../../molecules/members-tabs/members-tabs.js';
 import { MembersEliteSkeleton } from '../../molecules/members-elite-skeleton/members-elite-skeleton.js';
 import { TAB_PROGRESS, TAB_BENEFITS } from '../../molecules/members-tabs/members-tabs.logic.js';
@@ -33,6 +35,7 @@ import { shouldShowNewYearModal, markNewYearModalSeen } from '../../../scripts/s
 import { AchievementAlert } from '../../molecules/achievement-alert/achievement-alert.js';
 import { GoalProgressPanel } from '../goal-progress-panel/goal-progress-panel.js';
 import { BenefitsSection } from '../benefits-section/benefits-section.js';
+import { BenefitsCatalog } from '../benefits-catalog/benefits-catalog.js';
 import { MembersEliteHeader } from '../members-elite-header/members-elite-header.js';
 import { Icon } from '../../atoms/icon/icon.js';
 
@@ -69,6 +72,14 @@ const readWrapperJson = async (settled) => {
   return null;
 };
 
+/** ¿El resultado settled de un wrapper LM indica SESIÓN EXPIRADA? `lmFetchWrapper`
+ *  agota su auto-refresh y devuelve un STRING `E.EON.xx` (no un Response) cuando el
+ *  refresh_token está muerto → la sesión no se recupera en silencio. Distinto de un
+ *  null "sin datos": esto exige re-login. */
+const isExpiredWrapper = (settled) => settled?.status === 'fulfilled'
+  && typeof settled.value === 'string'
+  && settled.value.startsWith('E.EON');
+
 /**
  * MembersElite — organism raíz de la página "Progreso Elite y beneficios"
  * (1271689, Fase 1a). Montado por el bloque puente `blocks/members-elite/`.
@@ -78,9 +89,9 @@ const readWrapperJson = async (settled) => {
  *    MemberHeader real por estatus).
  *  - `MembersTabs` (Progreso | Beneficios) con deep-linking `?tab=`.
  *  - Panel **Progreso**: contenedor estructural vacío (1271699 lo llena).
- *  - Panel **Beneficios**: 3 slots ordenados que renderizan `null` en esta fase
- *    (① catálogo por estatus — bloque 9, PBI hermano · ② cobrand — 1271694 ·
- *    ③ Lifemiles Plus — 1271694, gated). SOLO se deja la estructura y el orden.
+ *  - Panel **Beneficios**: 3 slots ordenados (① catálogo por estatus — 1271693,
+ *    bloque 9, wrapper `lmBenefits` fail-soft · ② cobrand — 1271694 ·
+ *    ③ Lifemiles Plus — 1271694, gated). Todos gated por `benefitsEnabled`.
  *
  * Estado de carga (decisión T13): mientras la sesión no sea `authenticated` o la
  * config no haya resuelto → `MembersEliteSkeleton` de la tab activa. La cortina
@@ -91,7 +102,21 @@ const readWrapperJson = async (settled) => {
  * auto-suscribe) + `getMembersConfigSync`/`loadMembersConfig` + los copies de
  * `members-i18n` (getEliteLabelsSync/loadEliteLabels).
  */
-export const MembersElite = ({ wrapperOverride = null } = {}) => {
+// Merge de override de config SOLO para samples/tests (mismo espíritu que
+// `wrapperOverride`): fuerza flags (ej. `benefitsEnabled`) sin tocar el CF real.
+// Default null = producción intacta.
+const applyCfgOverride = (base, ov) => (ov
+  ? {
+    ...base,
+    ...ov,
+    benefitsFlags: { ...base.benefitsFlags, ...ov.benefitsFlags },
+    // Deep-merge: un override parcial (ej. solo `fabEnabled`) no pisa el resto de
+    // los flags/íconos de eliteProgress del CF real.
+    eliteProgress: { ...base.eliteProgress, ...(ov.eliteProgress || {}) },
+  }
+  : base);
+
+export const MembersElite = ({ wrapperOverride = null, configOverride = null } = {}) => {
   // `wrapperOverride` (SOLO samples/tests): función con la firma de
   // `lmFetchWrapper` que reemplaza al global. Evita pelear con el loader real
   // de LM, que pisa `window.lmFetchWrapper` al cargar (fix e2e sample
@@ -99,7 +124,7 @@ export const MembersElite = ({ wrapperOverride = null } = {}) => {
   const [session, setSessionState] = useState(() => sessionStore.value);
   // cfg: el header (1271692) consume `cfg.tiers` (dict de tokens de color por
   // tier del CF, extendido en Paso 2 con los campos nuevos del AC).
-  const [cfg, setCfg] = useState(() => getMembersConfigSync());
+  const [cfg, setCfg] = useState(() => applyCfgOverride(getMembersConfigSync(), configOverride));
   const [labels, setLabels] = useState(() => getEliteLabelsSync());
   // ¿Resolvió el primer `loadMembersConfig`? Warm load (cache poblada con
   // tierThemes) arranca en `true`; cold load espera el fetch (success O failure).
@@ -133,10 +158,11 @@ export const MembersElite = ({ wrapperOverride = null } = {}) => {
   // decisión (que MUTA last-seen) corre UNA vez por carga, no por render.
   const [showNewYear, setShowNewYear] = useState(false);
   const newYearComputed = useRef(false);
-  // Tab Beneficios (1271694): VMs de cobrand (sheet + matching sobre el
-  // profileRaw ya traído) y Lifemiles Plus (wrapper fail-soft).
+  // Tab Beneficios: VMs de cobrand (sheet + matching sobre el profileRaw ya
+  // traído) y Lifemiles Plus (wrapper fail-soft) — 1271694 — más el catálogo
+  // de beneficios por estatus (slot ①, 1271693 — wrapper `lmBenefits` fail-soft).
   const [benefits, setBenefits] = useState({
-    status: 'loading', cobrandVM: null, lmPlusVM: null,
+    status: 'loading', cobrandVM: null, lmPlusVM: null, catalogVM: null, suspendedUntil: '',
   });
 
   // El store usa signals-core SIN integración preact → suscripción manual.
@@ -145,7 +171,7 @@ export const MembersElite = ({ wrapperOverride = null } = {}) => {
   useEffect(() => {
     let mounted = true;
     loadMembersConfig()
-      .then((c) => { if (mounted) setCfg(c); })
+      .then((c) => { if (mounted) setCfg(applyCfgOverride(c, configOverride)); })
       .catch(() => {})
       .finally(() => { if (mounted) setCfgLoaded(true); });
     loadEliteLabels().then((l) => { if (mounted) setLabels(l); }).catch(() => {});
@@ -185,6 +211,19 @@ export const MembersElite = ({ wrapperOverride = null } = {}) => {
             wrapperFn('eliteProgram', {}, false),
             wrapperFn('memberProfile', {}, false),
           ]);
+          // Sesión LM expirada (E.EON: el refresh_token murió → el silent refresh
+          // ya no la recupera). En vez de renderizar el panel VACÍO, disparamos la
+          // MISMA estrategia que `session.service.loadProfile`: status 'expired'
+          // (→ modal 1255601) + `guardPortalSession` (redirect a login en el Portal,
+          // sin el redirect roto del script → PKCE E.EON.6). Solo en el camino real
+          // (los samples/tests inyectan `wrapperOverride` y no deben redirigir).
+          if (!wrapperOverride && (isExpiredWrapper(eliteRes) || isExpiredWrapper(profileRes))) {
+            if (mounted) {
+              setSession({ status: 'expired', user: null });
+              guardPortalSession();
+            }
+            return;
+          }
           eliteRaw = await readWrapperJson(eliteRes);
           profileRaw = await readWrapperJson(profileRes);
         }
@@ -209,12 +248,68 @@ export const MembersElite = ({ wrapperOverride = null } = {}) => {
         lang = String(getStoredLanguage() || (typeof document !== 'undefined' && document.documentElement.lang) || '')
           .toLowerCase().slice(0, 2);
       } catch (e) { /* sin idioma → filas universales */ }
-      const [catalog, lmPlusVM] = await Promise.all([
+      // Tier base del socio (purificado, ej. 'gold'/'diamond'/'magno') para
+      // resolver los valores per-tier del catálogo (Plan B, Fase 2 — valuesByTier).
+      const benTier = pureTierBase(normalizeTierKey(
+        eliteData.eliteRaw?.status?.current || eliteData.eliteRaw?.tier || '',
+      ));
+      const [catalog, lmPlusVM, catalogVM] = await Promise.all([
         loadCobrandCatalog(pos, lang),
         loadClubSubscription(wrapperOverride || undefined),
+        // Catálogo de beneficios por estatus (1271693, slot ①): wrapper
+        // `lmBenefits` con el matching grupo→categoría de `cfg.benefitsCatalog`
+        // (seed presente aun en cold start). Fail-soft → 'unavailable' si el
+        // endpoint está roto (UAT hoy) → la sección catálogo no se renderiza.
+        loadBenefitsCatalog(wrapperOverride || undefined, cfg, benTier),
       ]);
       const cobrandVM = buildCobrandVM({ profileRaw: eliteData.profileRaw, catalog });
-      if (mounted) setBenefits({ status: 'ready', cobrandVM, lmPlusVM });
+      // MOCK-CLEANUP-1263924 (2026-07-24): `?mockCobrand=empty|cards` fuerza el
+      // VM del CobrandEmptyState (Figma 765:41596/41396) o un VM con cards
+      // ficticias para QA. `?mockLmPlus=none|active|suspended` fuerza el estado
+      // del LmPlusPlanCard / LmPlusBanner (Figma 765:41907/41707/42222/42018).
+      // Sólo en localhost (mismo gate que el resto del mock).
+      let cobrandVMFinal = cobrandVM;
+      let lmPlusVMFinal = lmPlusVM;
+      let suspendedUntilFinal = '';
+      try {
+        const isLocal = typeof window !== 'undefined'
+          && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
+        if (isLocal) {
+          const sp = new URLSearchParams(window.location.search);
+          const mockCobrand = (sp.get('mockCobrand') || '').toLowerCase();
+          if (mockCobrand === 'empty') {
+            cobrandVMFinal = {
+              empty: true, cards: [], actions: cobrandVM?.actions || null,
+            };
+          }
+          const mockLmPlus = (sp.get('mockLmPlus') || '').toLowerCase();
+          if (mockLmPlus === 'none') {
+            lmPlusVMFinal = { state: 'none', plan: null, upsell: null };
+          } else if (mockLmPlus === 'active') {
+            lmPlusVMFinal = {
+              state: 'active',
+              plan: { name: 'Plan 2', monthlyMiles: 1250, planId: '38' },
+              upsell: { name: 'Plan 3', priceDelta: 70000 },
+            };
+          } else if (mockLmPlus === 'suspended') {
+            lmPlusVMFinal = {
+              state: 'suspended',
+              plan: { name: 'Plan 1', monthlyMiles: 6000, planId: '29' },
+              upsell: null,
+            };
+            suspendedUntilFinal = 'Jun 12, 2026';
+          }
+        }
+      } catch (e) { /* param inválido → flujo normal */ }
+      if (mounted) {
+        setBenefits({
+          status: 'ready',
+          cobrandVM: cobrandVMFinal,
+          lmPlusVM: lmPlusVMFinal,
+          catalogVM,
+          suspendedUntil: suspendedUntilFinal,
+        });
+      }
     })();
     return () => { mounted = false; };
   }, [status, eliteData]);
@@ -256,6 +351,30 @@ export const MembersElite = ({ wrapperOverride = null } = {}) => {
       if (a.type === 'status') return tierChanged; // solo al CAMBIAR de estatus
       return true; // cenit-1m / cenit-2m: condición actual + sin dismiss
     });
+    // MOCK-CLEANUP-1263924 (2026-07-24): `?mockAlert=status|cenit-1m|cenit-2m|all`
+    // fuerza la alerta saltando `detectTierChange` + `shouldShowAlert` — QA/
+    // authoring del banner §B (1271699) con el theme del tier de `mockTier`.
+    // Gate DURO a localhost (mismo criterio de `isDevSessionMockEnabled`); en qa/
+    // prod es no-op. Reusa las copies del CF/i18n → validás la copia real.
+    try {
+      const isLocal = typeof window !== 'undefined'
+        && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
+      const mockAlert = isLocal
+        ? (new URLSearchParams(window.location.search).get('mockAlert') || '').toLowerCase()
+        : '';
+      if (mockAlert) {
+        const wanted = mockAlert === 'all'
+          ? ['status', 'cenit-1m', 'cenit-2m']
+          : [mockAlert];
+        const forced = wanted
+          .map((type) => model.alerts.find((a) => a.type === type))
+          .filter(Boolean);
+        if (forced.length) {
+          setActiveAlerts(forced);
+          return;
+        }
+      }
+    } catch (e) { /* param inválido → flujo normal */ }
     setActiveAlerts(active);
   }, [eliteData, cfgLoaded, session.user, cfg, labels]);
 
@@ -348,12 +467,10 @@ export const MembersElite = ({ wrapperOverride = null } = {}) => {
 
     progressContent = html`
       <div class="flex flex-col gap-4 md:gap-6">
-        <h2 class="!m-0">
-          <span class="block text-2xl font-semibold leading-normal text-[#1b1b1b]">
-            ${tpl(labels.progressTitle, { year: vm.year })}
-          </span>
-        </h2>
-
+        ${/* F7 (2026-07-16): título "Mi progreso Elite {año}" REMOVIDO por decisión de
+            diseño/PO — el AC lo pedía pero Figma no lo muestra (redundante con el hero
+            "Progreso Elite y beneficios"). Las keys i18n `progressTitle` se dejan
+            (inofensivas) por si se revierte. */ ''}
         ${activeAlerts.map((a) => html`
           <${AchievementAlert}
             key=${a.key}
@@ -431,7 +548,7 @@ export const MembersElite = ({ wrapperOverride = null } = {}) => {
     </section>
   `;
 
-  // Panel Beneficios: slot ① intacto (bloque 9, PBI hermano); slots ② y ③
+  // Panel Beneficios: slot ① catálogo por estatus (1271693); slots ② y ③
   // montados por BenefitsSection (1271694) con los VMs de cobrand/LM+.
   const benefitsPanel = html`
     <section
@@ -439,8 +556,18 @@ export const MembersElite = ({ wrapperOverride = null } = {}) => {
       data-panel="benefits"
       aria-label=${labels.tabBenefits || 'Beneficios'}
     >
-      ${/* ① Slot catálogo por estatus (bloque 9, PBI hermano) */ ''}
-      ${null}
+      ${/* ① Catálogo de beneficios por estatus (1271693, bloque 9). Gate: el
+          MISMO benefitsEnabled de la tab; el propio BenefitsCatalog devuelve
+          null si el VM es 'unavailable' (endpoint roto → no afirmar "sin
+          beneficios" sin dato). */ ''}
+      ${cfg.benefitsEnabled === true && benefits.status === 'ready' ? html`
+        <${BenefitsCatalog}
+          catalogVM=${benefits.catalogVM}
+          labels=${labels}
+          tier=${session.user?.tier || ''}
+          cfTiers=${cfg.tiers || {}}
+        />
+      ` : null}
       ${/* ②+③ Cobrand + Lifemiles Plus (1271694) */ ''}
       ${benefits.status === 'ready' ? html`
         <${BenefitsSection}
@@ -448,7 +575,10 @@ export const MembersElite = ({ wrapperOverride = null } = {}) => {
           lmPlusVM=${benefits.lmPlusVM}
           labels=${labels}
           flags=${cfg.benefitsFlags || {}}
+          lmPlusBanner=${cfg.lmPlusBanner || null}
+          lmPlusUrls=${cfg.lmPlusUrls || {}}
           milesLabel=${tpl(labels.cobrandMilesLabel, { year: new Date().getFullYear() })}
+          suspendedUntil=${benefits.suspendedUntil || ''}
         />
       ` : html`
         <span class="block h-[180px] w-full rounded-2xl bg-[#e9e9e9] animate-pulse" aria-hidden="true" data-state="loading"></span>

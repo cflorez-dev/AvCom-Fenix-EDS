@@ -28,8 +28,10 @@ const html = htm.bind(h);
  * - Si no hay acciones visibles → retorna `null` (no renderiza el contenedor).
  *
  * ## Layout
- * - ≤767 (mobile): grid de 4 columnas con `gap-x-2 gap-y-6`.
- * - ≥768 (sm+): fila a la izquierda con `gap-6` (sin distribución forzada).
+ * - <640 (mobile): grid de 4 columnas con `gap-x-2 gap-y-6`.
+ * - ≥640: fila a la izquierda con `gap-6` (sin distribución forzada). Se usa
+ *   `min-[640px]:` explícito (NO `sm:`) porque este repo redefine `sm=480px`
+ *   en `styles/variables/tailwind.css` — el breakpoint del hero es 640px.
  * - Pensado para fondos del dashboard (claros / neutros); el átomo trae su
  *   propio chip oscuro, así que no depende del background del contenedor.
  *
@@ -66,7 +68,7 @@ export const MembersQuickActionsProfile = ({
 
   return html`
     <div
-      class=${`grid grid-cols-4 gap-x-2 gap-y-6 sm:flex sm:items-start sm:justify-start sm:gap-6 ${customClassName}`}
+      class=${`grid grid-cols-4 gap-x-2 gap-y-6 min-[640px]:flex min-[640px]:items-start min-[640px]:justify-start min-[640px]:gap-6 ${customClassName}`}
       data-name="members-quick-actions-profile"
       ...${rest}
     >

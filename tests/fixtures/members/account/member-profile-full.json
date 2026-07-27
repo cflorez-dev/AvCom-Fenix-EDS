@@ -1,0 +1,72 @@
+{
+  "_comment": "FIXTURE FICTICIA (1279361). NO son datos reales de ningún socio. Shape espejo del wrapper memberProfile (ver tests/fixtures/members/elite/gold.json) con: pasaporte CON expiración + documento de identidad SIN expiración, contacto lleno con prefijo, y un contacto de emergencia poblado para ejercer el mapeo (el contrato real vino [] en las capturas).",
+  "memberProfile": {
+    "memberProfileDetails": {
+      "memberAccount": {
+        "companyCode": "LM",
+        "programCode": "LMS",
+        "accountStatus": "A",
+        "tier": "Gold",
+        "memberProfile": {
+          "membershipNumber": "99999999901",
+          "membershipType": "I",
+          "membershipStatus": "A",
+          "individualInfo": {
+            "memberNationality": "7710",
+            "preferredLanguage": "ES",
+            "preferredEmailAddress": "H",
+            "preferredPhoneNumber": "HP",
+            "title": "U",
+            "givenName": "Ana",
+            "secondName": "",
+            "familyName": "García",
+            "secondLastName": "López",
+            "displayName": "",
+            "gender": "F",
+            "dateOfBirth": "15-May-1990",
+            "age": 36,
+            "countryOfResidence": "7710",
+            "memberContactInfos": [
+              {
+                "addressType": "H",
+                "addressLine1": "Calle Falsa 123",
+                "addressLine2": "",
+                "city": "Bogotá",
+                "state": "Cundinamarca",
+                "country": "7710",
+                "zipCode": "110111",
+                "phoneCountryCode": "57",
+                "emailAddress": "ana.garcia.ficticia@example.com",
+                "phoneNumber": "3001234567"
+              }
+            ]
+          },
+          "emergencyContact": [
+            {
+              "name": "Pedro García",
+              "phoneCountryCode": "57",
+              "phoneNumber": "3009998877"
+            }
+          ],
+          "document": [
+            {
+              "documentType": "P",
+              "documentNumber": "AV1234567",
+              "issuedCountryCode": "7710",
+              "expiryDate": "20-Aug-2030",
+              "familyName": "García",
+              "sequenceNumber": "1"
+            },
+            {
+              "documentType": "I",
+              "documentNumber": "1020304050",
+              "issuedCountryCode": "7710",
+              "familyName": "García",
+              "sequenceNumber": "2"
+            }
+          ]
+        }
+      }
+    }
+  }
+}

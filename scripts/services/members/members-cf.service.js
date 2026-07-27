@@ -469,6 +469,120 @@ export function normalizeMembersCF(item) {
   if (typeof bfLmPlus === 'boolean') benefitsFlags.lmPlusEnabled = bfLmPlus;
   if (Object.keys(benefitsFlags).length) out.benefitsFlags = benefitsFlags;
 
+  // Tab Beneficios (flag de la TAB, no de los módulos): default true en APP_CONFIG
+  // (2026-07-17). Solo se proyecta si el CF trae el boolean → sirve de kill-switch
+  // sin deploy cuando el modeler agregue el campo.
+  if (typeof item.benefitsEnabled === 'boolean') out.benefitsEnabled = item.benefitsEnabled;
+
+  // benefitsCatalog (1271693, bloque 9): catálogo de categorías de beneficios
+  // por estatus (rework plan A — componente BenefitsCards de Figma). ⚠️ SCHEMA CF
+  // PENDIENTE (sub-CF "Benefit Category" + "Benefit SubItem" sin modelar; ver
+  // prompt-modeler-cf.md) — mapeo DEFENSIVO estilo `dashboardCards`/`hero`.
+  // Cada categoría: key + título (i18n `titleKey` O literal `title`) + `eyebrow`
+  // (overline del header) + icon (key del catálogo /icons o ref DAM →
+  // _publishUrl) + sortOrder + CTA (`ctaLabel`/`ctaUrl`) + `subBenefits[]`
+  // (`{ label, value:{kind,amount?,percent?}, lmGroup? }` — label + valor tipado).
+  // Links "Conoce todos"/"T&C" a nivel de catálogo (`seeAllUrl`/`termsUrl`).
+  // Umbral "Ilimitado" (`unlimitedThreshold`) plano o anidado. Solo se emite si
+  // el CF trae `categories` no vacío; si no, el caller cae al seed de código.
+  const bcSrc = item.benefitsCatalog || {};
+  const VALID_VALUE_KINDS = ['count', 'unlimited', 'na', 'discount'];
+  const normSubValue = (v) => {
+    if (!v || typeof v !== 'object' || !VALID_VALUE_KINDS.includes(v.kind)) return { kind: 'na' };
+    if (v.kind === 'count') {
+      const amount = toNum(v.amount);
+      if (!(amount !== undefined && amount > 0)) return { kind: 'na' };
+      const total = toNum(v.total); // máximo del beneficio ("N de M"); cae a amount
+      return { kind: 'count', amount, total: total !== undefined && total >= amount ? total : amount };
+    }
+    if (v.kind === 'discount') {
+      const percent = toNum(v.percent);
+      return percent !== undefined && percent > 0 ? { kind: 'discount', percent } : { kind: 'na' };
+    }
+    return { kind: v.kind };
+  };
+  let bcCatsArr = [];
+  if (Array.isArray(bcSrc.categories)) bcCatsArr = bcSrc.categories;
+  else if (Array.isArray(item.benefitsCategories)) bcCatsArr = item.benefitsCategories;
+  const bcCategories = bcCatsArr
+    .filter((c) => c && c.key)
+    .slice()
+    .sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0))
+    .map((c) => {
+      let subBenefits = [];
+      if (Array.isArray(c.subBenefits)) {
+        subBenefits = c.subBenefits
+          .filter((s) => s && s.label)
+          .map((s) => {
+            // El CF puede traer el valor tipado ANIDADO (`s.value.{kind,amount,
+            // total,percent}`) o PLANO (esos campos como hermanos de `label`) — la
+            // decisión de modelado a 3 niveles quedó ABIERTA (ver prompt-modeler-
+            // beneficios-casos-especiales.md §Nivel 3). Aceptamos ambos: si `s.value`
+            // es objeto se usa; si no, se lee del propio `s` (plano). Así la autoría
+            // funciona sin depender de qué shape eligió el modeler.
+            const valSrc = (s.value && typeof s.value === 'object') ? s.value : s;
+            const out2 = { label: String(s.label).trim(), value: normSubValue(valSrc) };
+            if (s.lmGroup) out2.lmGroup = String(s.lmGroup).trim();
+            // valuesByTier (Plan B, Fase 2): filas por tier del multifield del CF.
+            // Cada fila `{tier, kind, amount?, total?, percent?}` (valor plano o
+            // anidado, ídem sub-beneficio). `tier` a lowercase para el match del front.
+            if (Array.isArray(s.valuesByTier)) {
+              const rows = s.valuesByTier
+                .filter((r) => r && r.tier)
+                .map((r) => {
+                  const rSrc = (r.value && typeof r.value === 'object') ? r.value : r;
+                  return { tier: String(r.tier).trim().toLowerCase(), ...normSubValue(rSrc) };
+                });
+              if (rows.length) out2.valuesByTier = rows;
+            }
+            // maxByTier (Plan B, contador por tier): máximo "de M" del contador POR
+            // TIER. LM (2026-07-24) confirmó que `totalAccrual` es histórico de vida
+            // (NO el otorgado) → el M del contador sale de config. Solo aplica a los
+            // `count` con `lmGroup`. Filas `{tier, max}`; `tier` a lowercase.
+            if (Array.isArray(s.maxByTier)) {
+              const maxRows = s.maxByTier
+                .filter((r) => r && r.tier)
+                .map((r) => ({ tier: String(r.tier).trim().toLowerCase(), max: toNum(r.max) }))
+                .filter((r) => r.max !== undefined && r.max > 0);
+              if (maxRows.length) out2.maxByTier = maxRows;
+            }
+            return out2;
+          });
+      }
+      // eslint-disable-next-line no-underscore-dangle
+      const icon = c.icon?._publishUrl || (typeof c.icon === 'string' ? c.icon : '');
+      return {
+        key: c.key,
+        titleKey: c.titleKey || undefined,
+        title: c.title || undefined,
+        eyebrow: c.eyebrow || '',
+        icon,
+        sortOrder: c.sortOrder,
+        ctaLabel: c.ctaLabel || '',
+        ctaUrl: c.ctaUrl || '',
+        subBenefits,
+      };
+    });
+  if (bcCategories.length) {
+    out.benefitsCatalog = { categories: bcCategories };
+    if (bcSrc.seeAllUrl) out.benefitsCatalog.seeAllUrl = String(bcSrc.seeAllUrl);
+    if (bcSrc.termsUrl) out.benefitsCatalog.termsUrl = String(bcSrc.termsUrl);
+    // Íconos de los CTAs "Conoce todos"/"T&C" (1271693 AC: "ícono ajustable desde
+    // el CMS"). Asset del DAM → se resuelve `_publishUrl` (ídem imágenes del
+    // banner); string → key del átomo Icon. Sin ícono → el organism cae al default.
+    // eslint-disable-next-line no-underscore-dangle
+    const seeAllIcon = bcSrc.seeAllIcon?._publishUrl || (typeof bcSrc.seeAllIcon === 'string' ? bcSrc.seeAllIcon : '');
+    if (seeAllIcon) out.benefitsCatalog.seeAllIcon = seeAllIcon;
+    // eslint-disable-next-line no-underscore-dangle
+    const termsIcon = bcSrc.termsIcon?._publishUrl || (typeof bcSrc.termsIcon === 'string' ? bcSrc.termsIcon : '');
+    if (termsIcon) out.benefitsCatalog.termsIcon = termsIcon;
+    const bcTh = toNum(bcSrc.unlimitedThreshold ?? item.benefitsUnlimitedThreshold);
+    if (bcTh !== undefined) out.benefitsCatalog.unlimitedThreshold = bcTh;
+  } else {
+    const bcThOnly = toNum(bcSrc.unlimitedThreshold ?? item.benefitsUnlimitedThreshold);
+    if (bcThOnly !== undefined) out.benefitsCatalog = { unlimitedThreshold: bcThOnly };
+  }
+
   // newYearModal (1271694, A3): flag de visibilidad + URL del link terciario.
   // Anidado (`item.newYearModal` {enabled,tertiaryUrl}) o campos planos
   // (`newYearModalEnabled`/`newYearTertiaryUrl`).
@@ -479,6 +593,87 @@ export function normalizeMembersCF(item) {
   const nymUrl = nym.tertiaryUrl ?? item.newYearTertiaryUrl;
   if (typeof nymUrl === 'string') newYearModal.tertiaryUrl = nymUrl;
   if (Object.keys(newYearModal).length) out.newYearModal = newYearModal;
+
+  // lmPlusBanner (1271694, Tarea B): banner "Suscríbete a Lifemiles Plus" del estado
+  // 'sin plan' (LM+) = SecondaryBanner (imagen lifestyle + gradiente + cóndor). Los
+  // campos son 1:1 con las props del SecondaryBanner; las imágenes llegan como asset
+  // del DAM → se resuelve `_publishUrl`. `enabled` = kill-switch (null/ausente = ON,
+  // fail-open). Sin `lmPlusBanner` → el front cae al LmPlusBanner simple.
+  const bnr = item.lmPlusBanner;
+  if (bnr && typeof bnr === 'object') {
+    const banner = {};
+    if (typeof bnr.enabled === 'boolean') banner.enabled = bnr.enabled;
+    if (bnr.title) banner.title = String(bnr.title);
+    if (bnr.subtitle) banner.subtitle = String(bnr.subtitle);
+    // eslint-disable-next-line no-underscore-dangle
+    const imgD = bnr.imageDesktop?._publishUrl || (typeof bnr.imageDesktop === 'string' ? bnr.imageDesktop : '');
+    if (imgD) banner.imageDesktop = imgD;
+    // eslint-disable-next-line no-underscore-dangle
+    const imgM = bnr.imageMobile?._publishUrl || (typeof bnr.imageMobile === 'string' ? bnr.imageMobile : '');
+    if (imgM) banner.imageMobile = imgM;
+    if (bnr.imageAlt) banner.imageAlt = String(bnr.imageAlt);
+    if (bnr.imagePosition) banner.imagePosition = String(bnr.imagePosition);
+    if (bnr.ctaText) banner.ctaText = String(bnr.ctaText);
+    if (bnr.ctaUrl) banner.ctaUrl = String(bnr.ctaUrl);
+    if (bnr.backgroundColor) banner.backgroundColor = String(bnr.backgroundColor);
+    if (bnr.gradientColorStart) banner.gradientColorStart = String(bnr.gradientColorStart);
+    if (bnr.gradientColorEnd) banner.gradientColorEnd = String(bnr.gradientColorEnd);
+    if (bnr.condorStrokeColor) banner.condorStrokeColor = String(bnr.condorStrokeColor);
+    if (typeof bnr.showCondor === 'boolean') banner.showCondor = bnr.showCondor;
+    if (Object.keys(banner).length) out.lmPlusBanner = banner;
+  }
+
+  // lmPlusUrls (1271694): CTAs de la card LM+ del tab Beneficios cuando el socio
+  // TIENE plan (estado active/suspended): "Administrar suscripción" / "Mejorar
+  // plan" / "Activar plan". ⚠️ Los 3 campos viven en el sub-fragmento `account`
+  // (`item.account.*`), NO en el hub — porque el `lmPlusUpgradeUrl` que se REUSA
+  // ya vivía ahí desde el PBI 1263921 (junto a manageCardsUrl/requestCardUrl) y
+  // `manage`/`activate` se agregaron al lado para no partir el trío de CTAs de la
+  // misma card. Se lee de `item.account` con fallback a `item` (por robustez si
+  // otra fuente los trae planos). La URL de "Suscríbete" (sin plan) NO va acá:
+  // vive en `lmPlusBanner.ctaUrl`.
+  const lmUrlSrc = (item.account && typeof item.account === 'object') ? item.account : item;
+  const lmPlusUrls = {};
+  if (typeof lmUrlSrc.lmPlusManageUrl === 'string' && lmUrlSrc.lmPlusManageUrl) lmPlusUrls.manage = lmUrlSrc.lmPlusManageUrl;
+  if (typeof lmUrlSrc.lmPlusUpgradeUrl === 'string' && lmUrlSrc.lmPlusUpgradeUrl) lmPlusUrls.upgrade = lmUrlSrc.lmPlusUpgradeUrl;
+  if (typeof lmUrlSrc.lmPlusActivateUrl === 'string' && lmUrlSrc.lmPlusActivateUrl) lmPlusUrls.activate = lmUrlSrc.lmPlusActivateUrl;
+  if (Object.keys(lmPlusUrls).length) out.lmPlusUrls = lmPlusUrls;
+
+  // --- Sección `account` (Gestión de cuenta, Tandas 1+2 — espec-cf-lote.md).
+  // Mapeo FLAT del CF → shape anidado que consume members-config.js. Solo se
+  // proyecta lo que el CF trae TIPADO (boolean/string no vacío); lo ausente cae a
+  // los defaults de código (DEFAULT_ACCOUNT_CONFIG) vía el deep-merge del loader.
+  const acc = {};
+  if (typeof item.accountEnabled === 'boolean') acc.accountEnabled = item.accountEnabled;
+  if (typeof item.headerCtaEnabled === 'boolean') acc.headerCtaEnabled = item.headerCtaEnabled;
+  if (typeof item.headerCtaUrl === 'string' && item.headerCtaUrl) acc.headerCtaUrl = item.headerCtaUrl;
+  // Tab Datos (1279361, Tanda 2): campos numéricos/boolean del CF FLAT.
+  // maxCompanions (D19/R3), umbrales de la torta (D35), kill-switch de edición
+  // mock (P3). Solo se proyecta lo TIPADO y válido; lo ausente cae a los
+  // defaults de código (DEFAULT_ACCOUNT_CONFIG) vía el spread del loader.
+  const numField = (v) => (v != null && v !== '' && Number.isFinite(Number(v)) ? Number(v) : null);
+  const maxComp = numField(item.maxCompanions);
+  if (maxComp != null && maxComp > 0) acc.maxCompanions = maxComp;
+  const thWarn = numField(item.completenessThresholdWarning);
+  if (thWarn != null) acc.completenessThresholdWarning = thWarn;
+  const thPos = numField(item.completenessThresholdPositive);
+  if (thPos != null) acc.completenessThresholdPositive = thPos;
+  if (typeof item.editMockEnabled === 'boolean') acc.editMockEnabled = item.editMockEnabled;
+  // (blockXEnabled eliminados 2026-07-23 — la compuerta por tab es constante de
+  // código, ver PANELS_ENABLED en members-account.js.)
+  const accWallet = {};
+  if (typeof item.walletPaymentMethodsEnabled === 'boolean') accWallet.paymentMethodsEnabled = item.walletPaymentMethodsEnabled;
+  if (typeof item.walletAviancaCreditsEnabled === 'boolean') accWallet.aviancaCreditsEnabled = item.walletAviancaCreditsEnabled;
+  if (typeof item.walletLmPlusEnabled === 'boolean') accWallet.lmPlusEnabled = item.walletLmPlusEnabled;
+  if (typeof item.manageCardsUrl === 'string' && item.manageCardsUrl) accWallet.manageCardsUrl = item.manageCardsUrl;
+  if (typeof item.requestCardUrl === 'string' && item.requestCardUrl) accWallet.requestCardUrl = item.requestCardUrl;
+  if (typeof item.avCreditsMovementsUrl === 'string' && item.avCreditsMovementsUrl) accWallet.avCreditsMovementsUrl = item.avCreditsMovementsUrl;
+  if (typeof item.lmPlusEditPaymentUrl === 'string' && item.lmPlusEditPaymentUrl) accWallet.lmPlusEditPaymentUrl = item.lmPlusEditPaymentUrl;
+  if (typeof item.lmPlusCancelUrl === 'string' && item.lmPlusCancelUrl) accWallet.lmPlusCancelUrl = item.lmPlusCancelUrl;
+  if (typeof item.lmPlusUpgradeUrl === 'string' && item.lmPlusUpgradeUrl) accWallet.lmPlusUpgradeUrl = item.lmPlusUpgradeUrl;
+  if (typeof item.walletMockFallback === 'boolean') accWallet.mockFallback = item.walletMockFallback;
+  if (Object.keys(accWallet).length) acc.wallet = accWallet;
+  if (Object.keys(acc).length) out.account = acc;
 
   return out;
 }

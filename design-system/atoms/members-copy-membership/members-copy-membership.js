@@ -28,15 +28,21 @@ const html = htm.bind(h);
  * - `copiedLabel`: string — texto del tooltip tras copiar. Default 'Copiado'.
  * - `onCopy`: function(membershipNumber) — callback opcional; si se pasa, reemplaza
  *   el `navigator.clipboard.writeText` por defecto (ej. para disparar un toast).
- * - `size`: 'base'|'lg' — tamaño del número. 'base' (16px, drawer) o 'lg' (20px
- *   SemiBold, grid del hero — comp 518:27631). Default 'base'.
+ * - `size`: 'base'|'lg' — tamaño del número. 'base' (16/21 Bold, drawer) o 'lg'
+ *   (16/21 SemiBold + antialiased, grid del hero — comp 518:27631). Default 'base'.
  * - `customClassName`: string — clases extra para el root.
  */
 const NUMBER_SIZE = {
   base: 'font-bold text-base leading-[21px]',
-  // h5 (20px) SemiBold con `leading-[normal]` en Figma 518:24090 (token h5
-  // line-height = 100% → 20px). Antes 26px; ahora respeta el spec.
-  lg: 'font-semibold text-xl leading-[20px]',
+  // Grid del hero "Mi Lifemiles" (members dashboard, Figma 518:27631):
+  // responsive SemiBold + `antialiased` para suavizar el trazo sobre el
+  // gradient oscuro del tier.
+  //  - `<640px`  → 16/21 (Figma mobile).
+  //  - `≥640px`  → 18/24 (tablet, escala intermedia).
+  //  - `≥1024px` → 20/26 (desktop lg, Figma 518:23344).
+  // `!` en el font-size para blindar del `clamp()` global del sitio que
+  // pisaría `text-[16px]` con valores fluidos.
+  lg: 'font-semibold antialiased !text-[16px] !leading-[21px] min-[640px]:!text-[18px] min-[640px]:!leading-[24px] lg:!text-[20px] lg:!leading-[26px]',
 };
 
 export const MembersCopyMembership = ({
@@ -94,7 +100,7 @@ export const MembersCopyMembership = ({
         type="button"
         onClick=${handleCopy}
         aria-label=${copyAriaLabel}
-        class="group relative inline-flex items-center gap-1 p-0 bg-transparent border-0 cursor-pointer outline-none rounded-[4px]"
+        class="group relative inline-flex items-center gap-2 p-0 bg-transparent border-0 cursor-pointer outline-none rounded-[4px]"
         data-name="members-copy"
         data-copied=${copied}
       >

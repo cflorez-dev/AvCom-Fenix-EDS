@@ -80,6 +80,12 @@ const rowToCard = (row) => {
     name: String(row.nombre_tarjeta || ''),
     bank: String(row.banco_emisor || ''),
     imageUrl: safeUrl(row.imagen_url),
+    // Orientación del arte de la tarjeta (2026-07-24, sheet flag): las cards
+    // pueden ser horizontal (default, aspect 219:144 landscape) o vertical
+    // (aspect-square 150 desktop / 200 mobile con la imagen portrait centrada).
+    // Columna `imagen_vertical` → bool con default FALSE (a diferencia del resto
+    // de bools del sheet que defaultan a true) para no romper las filas legacy.
+    isVerticalImage: toBool(row.imagen_vertical, false),
     chip: chipText ? {
       text: chipText,
       bg: String(row.color_fondo_chip || ''),
@@ -214,6 +220,7 @@ export function buildCobrandVM({ profileRaw = null, catalog = [] } = {}) {
         name: String(raw?.typeDesc || code || ''),
         bank: '',
         imageUrl: '',
+        isVerticalImage: false,
         chip: null,
         benefits: [],
         seeMoreUrl: '',

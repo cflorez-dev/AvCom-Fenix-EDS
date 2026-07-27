@@ -965,6 +965,19 @@ function ensureDarksiteCss() {
 async function mountHeaderAlert(doc, language, pos) {
   if (isAlertDismissed() || doc.querySelector('[data-darksite-slot="header-alert"]')) return;
 
+  // Bug fix: en la rama "bypass sin overlay" de runDarksiteGate (action ===
+  // 'none', usuario que ya continuó en una navegación previa) este es el
+  // ÚNICO punto de entrada del chrome darksite — nunca pasa por mountOverlay,
+  // que es el único otro call-site que precarga `styles/darksite.css` (ver
+  // `ensureDarksiteCss` más abajo). Sin esa hoja de estilos, la regla
+  // `.darksite-header-alert { position: sticky; top: 0; z-index: 2000 }`
+  // nunca se aplica: el host queda en flujo normal, no viaja pegado al header
+  // sticky al scrollear. `ensureDarksiteCss` es idempotente (loadCSS dedupea
+  // por href), así que llamarla también desde la rama de mountOverlay no
+  // duplica nada.
+  // eslint-disable-next-line no-use-before-define
+  ensureDarksiteCss();
+
   // Idioma del CF (mismo criterio que mountOverlay): cookie `selected-language`
   // gana sobre `language` (URL-derived). Ver comentario en mountOverlay.
   const cfLang = resolveCfLanguage(language);
