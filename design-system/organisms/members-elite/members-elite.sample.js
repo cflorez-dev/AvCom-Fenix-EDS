@@ -43,8 +43,12 @@ export const MembersEliteSample = () => {
   const applyFixture = async (name) => {
     try {
       const data = await loadFixture(name);
+      // Catálogo de Beneficios (1271693, slot ①): las fixtures por cuenta no
+      // traen `lmBenefits` → se sirve la fixture del catálogo aparte para verlo
+      // ensamblado en el demo. (El endpoint real está roto en UAT.)
+      const benefits = await loadFixture('lm-benefits').catch(() => null);
       const mock = async (id) => new Response(
-        JSON.stringify(data[id] ?? null),
+        JSON.stringify(id === 'lmBenefits' ? benefits : (data[id] ?? null)),
         { status: 200, headers: { 'Content-Type': 'application/json' } },
       );
       setWrapperMock(() => mock);
@@ -92,7 +96,14 @@ export const MembersEliteSample = () => {
           loading (skeleton)
         </${Button}>
       </div>
-      <${MembersElite} key=${mountKey} wrapperOverride=${wrapperMock} />
+      ${/* configOverride SOLO del sample: habilita la tab Beneficios (① catálogo +
+          ② cobrand + ③ LM+) para ver el demo ensamblado. En prod esto lo prende
+          autoría por CF. */ ''}
+      <${MembersElite}
+        key=${mountKey}
+        wrapperOverride=${wrapperMock}
+        configOverride=${{ benefitsEnabled: true, benefitsFlags: { cobrandEnabled: true, lmPlusEnabled: true }, eliteProgress: { fabEnabled: true } }}
+      />
     </section>
   `;
 };

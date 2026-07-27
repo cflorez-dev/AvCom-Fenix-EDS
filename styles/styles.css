@@ -296,52 +296,93 @@ main > .section.has-custom-bg.mosaic-v2-container.has-nav-padding {
   pointer-events: none;
 }
 
-/* Cóndor decorativo del header elite (refinamiento 2026-07-15). El componente
-   `EliteHeaderCondor` rinde un <img> del vector `decorative-vector.svg` (pluma
-   fina 117×132 = spec Figma §A, el MISMO del drawer hero). Tamaño y posición van
-   acá (no en clases Tailwind arbitrarias, que tw:watch no compila sin correr):
-   - Mobile (≤767): chico arriba-derecha (la balance box va full-width abajo).
-   - Desktop (≥768): 117×131 anclado ABAJO (bottom:0), a la izquierda de la
-     balance box (right:368px, medido en Figma). */
+/* Cóndor decorativo del header elite (refinamiento 2026-07-15, coords exactas de
+   Figma verificadas vía MCP 2026-07-16). El componente `EliteHeaderCondor` rinde
+   un <img> del vector `decorative-vector.svg` (pluma fina, el MISMO del drawer
+   hero). Tamaño y posición van acá (no en clases Tailwind arbitrarias, que
+   tw:watch no compila sin correr). En TODOS los breakpoints el vector es 117×131.
+   - Mobile (≤767): Figma node 765:64994 → `right:-16px` y `top:-3px` (el -16
+     cancela el padding lateral del section para que el cóndor llegue al borde
+     de pantalla; -3px lo eleva sobre el top del hero).
+   - Tablet (768-1023): Figma node 765:65047 → `right:352px` y `top:-45px`
+     (posición absoluta relativa al header — el cóndor queda anclado ARRIBA
+     y desplazado 352px desde la derecha, justo a la izquierda de la balance box).
+   - Desktop (≥1024): 117×131 anclado ABAJO (bottom:0). El ancla es Figma
+     `1059:65464` (Greeting @1440): vector x=910 w=117 → right edge en x=1027
+     del CANVAS de 1440, es decir 413px desde el borde DERECHO DEL VIEWPORT.
+     El header está dentro del section (max-width 1312, content 1248 centrado)
+     así que la CSS `right` (relativa al padre) NO coincide con `413px from viewport`.
+     Fórmula: `(100% - 100vw) / 2` traslada el frame al viewport (negativo cuando
+     el header es más angosto que el viewport). `min(...)` escala proporcional al
+     ancho de viewport (100vw × 413/1440 ≈ 28.68vw) desde 1024 hasta 1440, y capa
+     en 413px para viewports > 1440. */
 .members-elite-header [data-name='members-elite-header-condor'] {
   position: absolute;
-  top: 16px;
-  right: 16px;
-  width: 88px;
-  height: 99px;
+  top: -3px;
+  right: -16px;
+  width: 117px;
+  height: 131px;
   display: block;
 }
 
-@media (min-width: 768px) {
+@media (min-width: 768px) and (max-width: 1023.98px) {
   .members-elite-header [data-name='members-elite-header-condor'] {
-    top: auto;
-    bottom: 0;
-    right: 368px;
+    top: 32px;
+    right: 352px;
     width: 117px;
     height: 131px;
   }
 }
 
-/* Sheet de contenido gris del members-elite (refinamiento 2026-07-15). Fondo
-   #DFDFDF full-bleed (100vw, mismo patrón que el hero) detrás de tabs + paneles.
-   `z-index:1` crea contexto de apilamiento para que el ::before (z-index:-1)
-   quede por ENCIMA del hero en el solape (si no, el hero lo taparía). El
-   `margin-top:-32px` cancela el gap del flex-col (lg:gap-8 = 32px → a ras en
-   desktop; gap-6 = 24px → 8px de solape en ≤1023). `padding-top` da aire a los
-   tabs por debajo del borde del hero. En ≤767 las esquinas superiores se
-   redondean 16px (efecto sheet montando sobre el hero). */
+@media (min-width: 1024px) {
+  .members-elite-header [data-name='members-elite-header-condor'] {
+    top: auto;
+    bottom: 0;
+    right: calc((100% - 100vw) / 2 + min(calc(100vw * 413 / 1440), 413px));
+    width: 117px;
+    height: 131px;
+  }
+}
+
+/*
+    Sheet de contenido gris del members-elite (refinamiento 2026-07-15). Fondo
+    #F1F1F1 full-bleed (100vw, mismo patrón que el hero) detrás de tabs + paneles.
+    (Más claro que el contenedor #DFDFDF del segmented control, para que ese óvalo
+    se distinga sobre el sheet.)
+    `z-index:1` crea contexto de apilamiento para que el ::before (z-index:-1)
+    quede por ENCIMA del hero en el solape (si no, el hero lo taparía). El
+    `margin-top:-32px` cancela el gap del flex-col (lg:gap-8 = 32px → a ras en
+    desktop; gap-6 = 24px → 8px de solape en ≤1023). `padding-top` da aire a los
+    tabs por debajo del borde del hero. Las esquinas superiores del ::before se
+    redondean 16px (Figma 1056:32884 — efecto sheet montando sobre el hero,
+    aplica en mobile y desktop).
+*/
 .members-elite-sheet {
   position: relative;
   z-index: 1;
   margin-top: -32px;
   padding-top: 32px;
-  padding-bottom: 32px;
+  padding-bottom: 48px;
+}
+
+@media (max-width: 767px) {
+  .members-elite-sheet {
+    padding-top: 24px;
+    padding-bottom: 24px;
+  }
+}
+
+@media (min-width: 768px) {
+    .members-elite-sheet {
+        margin-top: 0px;
+        padding-top: 0;
+    }
 }
 
 /* El global `main > .section { padding: 32px … }` dejaba 32px de padding-bottom
    BLANCO debajo del sheet (entre el último panel y el footer). Lo anulamos en
    esta sección y ese espacio lo aporta ahora el `padding-bottom` gris del sheet
-   → el #DFDFDF llega hasta el footer sin franja blanca. */
+   → el gris del sheet llega hasta el footer sin franja blanca. */
 main > .section.members-elite-container {
   padding-bottom: 0;
 }
@@ -359,19 +400,16 @@ main > .section.members-elite-container {
      cuadradas. Así los corners caen justo en el borde del viewport y se ven. */
   left: calc(50% - 50vw);
   right: calc(50% - 50vw);
-  background: #dfdfdf;
+  background: #f1f1f1;
   z-index: -1;
   pointer-events: none;
+  border-top-left-radius: 16px;
+  border-top-right-radius: 16px;
 }
 
-@media (max-width: 767px) {
-  .members-elite-sheet {
-    padding-top: 24px;
-  }
-
+@media (min-width: 768px) and (max-width: 1023.98px) {
   .members-elite-sheet::before {
-    border-top-left-radius: 16px;
-    border-top-right-radius: 16px;
+    top: -40px;
   }
 }
 
@@ -450,6 +488,10 @@ main div.section.padding-title {
   padding-bottom: 0;
 }
 
+/* Unica forma sancionada de renunciar al margen lateral de la seccion: el autor
+   pone el estilo "No padding x". Sin ella la invariante de arriba no tendria
+   valvula de escape y las secciones a sangre tendrian que anular el padding por
+   CSS de bloque. */
 .section.no-padding-x {
   padding-left: 0;
   padding-right: 0;

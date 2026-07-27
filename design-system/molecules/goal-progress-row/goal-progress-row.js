@@ -108,12 +108,18 @@ export const GoalProgressRow = ({
           </div>
         </div>
       </div>
+      ${/* Vista completa (mode 'full') → milestoneFlow 'spread' (F2 stepper):
+          hitos en flex con gap auto (no se pisan en mobile) + fill interpolado
+          entre los dots medidos usando `counterValue` (millas de la dimensión).
+          Detalle conserva 'anchored' (posiciones % del modelo). */ ''}
       <${MembersProgressBar}
         fillPct=${fillPct}
         fillStyle=${FILL_STYLES[fillStyleKey] || FILL_STYLES.total}
         trackColor=${TRACK_COLOR}
         trackHeight=${TRACK_HEIGHT}
         milestones=${milestones}
+        milestoneFlow=${mode === 'full' ? 'spread' : 'anchored'}
+        milestonesValue=${counterValue}
         milestoneStateColor=${tierColor}
         fabSlot=${withFabSlot ? { pct: fillPct, kind: fillStyleKey } : null}
         fabContent=${fab}

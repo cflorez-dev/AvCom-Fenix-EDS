@@ -9,12 +9,15 @@ const html = htm.bind(h);
 /**
  * AchievementAlert — banner dismissible de logro del tab Progreso elite
  * (1271699, AC bloques 7-8; §B: "Update de estatus" / alertas Cenit 1M/2M /
- * "cumpliste meta para mantener").
+ * "cumpliste meta para mantener"). Diseño "GoalHeader" (Figma 765:52308-52342,
+ * 2026-07-24): banner compacto con vector line-art del tier a la izquierda
+ * (81×91), gradiente sutil de fondo, título coloreado con el `overlay` del
+ * tier, body en `#1b1b1b`, dismiss 24×24 con ícono 16×16 alineado al centro.
  *
  * Fondo = gradiente SUTIL del tier (`colorGradientSubtleStart/End`, tokens
- * Fase 1b vía `getEliteTierTokens`) + cóndor decorativo line-art a la
- * IZQUIERDA (stroke = gradiente STRONG del tier — exhibit 765-52263) + título
- * COLOREADO con el token del tier + body + X de cierre.
+ * Fase 1b vía `getEliteTierTokens`) + vector decorativo line-art a la IZQUIERDA
+ * (stroke = gradiente STRONG del tier) + título COLOREADO con el `overlay` del
+ * tier + body + X de cierre. Sombra `shadow/medium @ 0.1` (Figma).
  *
  * Seguridad: el body puede venir RICH del CF/i18n → si trae HTML se sanitiza
  * con `sanitizeHTMLAsync` (whitelist DOMPurify del repo) ANTES de inyectarse;
@@ -24,7 +27,7 @@ const html = htm.bind(h);
  * `alert-persistence.js` vía `onDismiss` (T10, flag `alertsPersistDismiss`).
  *
  * ## Props
- * - `tier`: string — tier para el theming (gradiente sutil + cóndor).
+ * - `tier`: string — tier para el theming (gradiente sutil + vector).
  * - `title`: string — título (editable AEM).
  * - `body`: string — descripción en TEXTO PLANO (preferida).
  * - `bodyHTML`: string — descripción RICH (HTML del CF) → sanitizada async.
@@ -33,34 +36,42 @@ const html = htm.bind(h);
  * - `cfTiers`: dict de tiers del CF (override de tokens).
  * - `customClassName`: string.
  */
-const AlertCondor = ({ tierKey, strokeFrom, strokeTo }) => {
-  const strokeId = `achievement-alert-condor-${tierKey}-stroke`;
+// Vector decorativo (Figma 765:52308+ · viewBox 81.5178 × 92.1515). Mismas 3
+// paths por tier — el color viene del stroke con `gradientStrongFrom/To` del
+// token del tier (Red Plus rojo, Silver gris, Gold ocre, Diamond negro, Magno
+// carbón). Se posiciona ABSOLUTE dentro del banner (padding-left 88 le deja
+// hueco), sale del contenedor 6px a la izquierda y 14px arriba (Figma).
+const AlertVector = ({ tierKey, strokeFrom, strokeTo }) => {
+  const gradId = `achievement-alert-vec-${tierKey}`;
   return html`
     <svg
       xmlns="http://www.w3.org/2000/svg"
-      viewBox="0 0 224 200"
+      viewBox="0 0 81.5178 92.1515"
       fill="none"
       aria-hidden="true"
-      class="absolute top-0 left-0 h-full w-auto pointer-events-none select-none -scale-x-100"
-      data-name="achievement-alert-condor"
+      preserveAspectRatio="none"
+      class="absolute h-[91px] w-[81px] left-[-6px] top-[-14px] pointer-events-none select-none"
+      data-name="achievement-alert-vector"
     >
-      <path
-        d="M137.23 156.059C145.501 156.059 149.167 156.743 151.474 157.786C147.934 146.798 136.777 138.232 97.4587 135.293C103.738 142.563 110.333 149.527 117.287 156.059H137.23Z"
-        stroke=${`url(#${strokeId})`}
-        stroke-width="1.09228"
-      />
-      <path
-        d="M97.4589 135.304C59.2993 90.9597 33.5927 34.226 23.2889 -13.0469C23.2889 -13.0469 2.31274 5.45348 0.648127 44.3611C-1.19559 86.8824 21.6137 129.751 96.732 135.219C96.9743 135.261 97.2271 135.262 97.4589 135.293V135.304Z"
-        stroke=${`url(#${strokeId})`}
-        stroke-width="1.09228"
-      />
-      <path
-        d="M117.286 156.058C87.6702 156.058 36.5414 156.058 36.5414 156.058C37.616 158.566 41.314 160.325 49.7319 160.82C100.134 163.812 107.266 203.363 179.403 203.363C185.735 203.363 189.686 202.983 193.679 202.235C165.17 193.47 139.568 176.992 117.286 156.048V156.058Z"
-        stroke=${`url(#${strokeId})`}
-        stroke-width="1.09228"
-      />
+      <g>
+        <path
+          d="M57.7255 71.8601C61.1941 71.8601 62.7318 72.1481 63.6995 72.5867C62.2148 67.966 57.5355 64.3643 41.0453 63.1283C43.6787 66.1851 46.4448 69.1134 49.3611 71.8601H57.7255Z"
+          stroke=${`url(#${gradId})`}
+          stroke-width="0.8"
+        />
+        <path
+          d="M41.0453 63.1327C25.0411 44.4861 14.2597 20.6296 9.93835 0.751471C9.93835 0.751471 1.14091 8.53085 0.442766 24.8915C-0.330491 42.7716 9.23577 60.798 40.7404 63.0973C40.8421 63.115 40.9481 63.115 41.0453 63.1283V63.1327Z"
+          stroke=${`url(#${gradId})`}
+          stroke-width="0.8"
+        />
+        <path
+          d="M49.3607 71.86C36.9399 71.86 15.4964 71.86 15.4964 71.86C15.9471 72.9144 17.4981 73.6542 21.0285 73.8624C42.1672 75.1206 45.1586 91.7515 75.4128 91.7515C78.0684 91.7515 79.7253 91.592 81.4 91.2774C69.4432 87.5915 58.706 80.6628 49.3607 71.8556V71.86Z"
+          stroke=${`url(#${gradId})`}
+          stroke-width="0.8"
+        />
+      </g>
       <defs>
-        <linearGradient id=${strokeId} x1="8.82968" y1="69.2845" x2="164.2" y2="208.808" gradientUnits="userSpaceOnUse">
+        <linearGradient id=${gradId} x1="0.399982" y1="46.2515" x2="81.4" y2="46.2515" gradientUnits="userSpaceOnUse">
           <stop stop-color=${strokeFrom} />
           <stop offset="1" stop-color=${strokeTo} />
         </linearGradient>
@@ -108,7 +119,7 @@ export const AchievementAlert = ({
 
   return html`
     <aside
-      class=${`relative overflow-hidden rounded-2xl py-3 px-4 ${customClassName}`}
+      class=${`relative overflow-hidden flex items-start gap-2 pl-[88px] pr-4 py-4 rounded-[8px] shadow-[0px_2px_20px_2px_rgba(73,73,73,0.1)] ${customClassName}`}
       style=${{ background }}
       role="status"
       aria-live="polite"
@@ -116,29 +127,27 @@ export const AchievementAlert = ({
       data-tier=${tokens.key}
       ...${rest}
     >
-      <${AlertCondor}
+      <${AlertVector}
         tierKey=${tokens.key}
         strokeFrom=${tokens.gradientStrongFrom}
         strokeTo=${tokens.gradientStrongTo}
       />
-      <div class="relative flex items-start gap-3 pl-16 md:pl-24 pr-10">
-        <div class="flex flex-col gap-0.5 min-w-0">
-          <span class="text-[14px] font-bold leading-[19px]" style=${{ color: tokens.overlay }}>${title}</span>
-          ${safeBodyHTML ? html`
-            <span
-              class="text-[14px] font-normal leading-[19px] text-[#1b1b1b]"
-              dangerouslySetInnerHTML=${{ __html: safeBodyHTML }}
-            ></span>
-          ` : (body && html`
-            <span class="text-[14px] font-normal leading-[19px] text-[#1b1b1b]">${body}</span>
-          `)}
-        </div>
+      <div class="relative flex flex-col gap-1 min-w-0 flex-1">
+        <span class="text-[14px] font-bold leading-normal" style=${{ color: tokens.overlay }}>${title}</span>
+        ${safeBodyHTML ? html`
+          <span
+            class="text-[14px] font-normal leading-normal text-[#1b1b1b]"
+            dangerouslySetInnerHTML=${{ __html: safeBodyHTML }}
+          ></span>
+        ` : (body && html`
+          <span class="text-[14px] font-normal leading-normal text-[#1b1b1b]">${body}</span>
+        `)}
       </div>
       <button
         type="button"
         onClick=${handleDismiss}
         aria-label=${dismissAriaLabel}
-        class="absolute top-1/2 -translate-y-1/2 right-4 flex items-center justify-center w-6 h-6 rounded-full text-[#1b1b1b] hover:bg-black/5 focus-visible:outline focus-visible:outline-2"
+        class="relative shrink-0 flex items-center justify-center w-6 h-6 rounded-xl text-[#1b1b1b] hover:bg-black/5 focus-visible:outline focus-visible:outline-2"
         data-name="achievement-alert-dismiss"
       >
         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" fill="none" class="block" aria-hidden="true">

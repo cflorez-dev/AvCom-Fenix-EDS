@@ -107,10 +107,10 @@ export const ProgressItem = ({
       ${label && html`
         <span class="flex flex-col leading-tight pb-1">
           <span
-            class=${`text-[14px] leading-[19px] whitespace-nowrap text-[var(--text-normal-secondary)]${isCurrent ? 'font-bold' : 'font-normal'}`}
+            class=${`text-[length:var(--progress-item-font,14px)] leading-[var(--progress-item-leading,19px)] whitespace-nowrap text-[var(--text-normal-secondary)] ${isCurrent ? 'font-bold' : 'font-normal'}`}
           >${label}</span>
           ${sublabel && html`
-            <span class=${`text-[14px] leading-[19px] whitespace-nowrap text-[var(--text-normal-secondary)]${isCurrent ? 'font-bold' : 'font-normal'}`}>${sublabel}</span>
+            <span class=${`text-[length:var(--progress-item-font,14px)] leading-[var(--progress-item-leading,19px)] whitespace-nowrap text-[var(--text-normal-secondary)] ${isCurrent ? 'font-bold' : 'font-normal'}`}>${sublabel}</span>
           `}
         </span>
       `}

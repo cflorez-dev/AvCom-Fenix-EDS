@@ -4,8 +4,44 @@ import { CobrandSlider } from '../../molecules/cobrand-card/cobrand-slider.js';
 import { CobrandEmptyState } from '../../molecules/cobrand-empty-state/cobrand-empty-state.js';
 import { LmPlusPlanCard } from '../../molecules/lm-plus-plan-card/lm-plus-plan-card.js';
 import { LmPlusBanner } from '../../molecules/lm-plus-banner/lm-plus-banner.js';
+import { SecondaryBanner } from '../banners/secondary-banner/secondary-banner.js';
+import { SecondaryBannerLeft } from '../banners/secondary-banner/secondary-banner-variant.js';
 
 const html = htm.bind(h);
+
+/**
+ * Estado 'none' de LM+ (sin plan): banner "Suscríbete a Lifemiles Plus". Si el CF
+ * trae `lmPlusBanner` (con `title`) y no está apagado (`enabled !== false`), se
+ * renderiza el SecondaryBanner del diseño (imagen + gradiente + cóndor); si no, cae
+ * al LmPlusBanner simple (fallback). Para el gradiente morado con contenido BLANCO
+ * van `mode='light'` + `ctaStyle='light'` (⚠️ el naming de las variables está invertido:
+ * `--color-text-banner-dark`=#FFF, `-light`=#1B1B1B; y `ctaStyle:'light'`=botón blanco).
+ * `imagePosition='left'` usa la variante con imagen a la izquierda.
+ */
+const renderLmPlusNone = (lmPlusBanner, labels, lmPlusUrls) => {
+  const b = lmPlusBanner;
+  if (b && b.enabled !== false && b.title) {
+    const Banner = b.imagePosition === 'left' ? SecondaryBannerLeft : SecondaryBanner;
+    return html`<${Banner}
+      title=${b.title}
+      firstLabel=${b.subtitle || ''}
+      imageDesktop=${b.imageDesktop || ''}
+      imageMobile=${b.imageMobile || ''}
+      imageAlt=${b.imageAlt || ''}
+      ctaText=${b.ctaText || ''}
+      ctaUrl=${b.ctaUrl || ''}
+      mode="light"
+      ctaStyle="light"
+      backgroundColor=${b.backgroundColor || ''}
+      gradientColorStart=${b.gradientColorStart || ''}
+      gradientColorEnd=${b.gradientColorEnd || ''}
+      condorStrokeColor=${b.condorStrokeColor || ''}
+      showCondor=${b.showCondor !== false}
+      customClassName="!mx-0 !max-w-none"
+    />`;
+  }
+  return html`<${LmPlusBanner} labels=${labels} ctaUrl=${lmPlusUrls.subscribe || ''} />`;
+};
 
 /**
  * BenefitsSection — orquesta los módulos del PBI 1271694 en la tab Beneficios
@@ -42,6 +78,7 @@ export const BenefitsSection = ({
   lmPlusVM = null,
   labels = {},
   flags = {},
+  lmPlusBanner = null,
   milesLabel = '',
   lmPlusUrls = {},
   suspendedUntil = '',
@@ -82,9 +119,7 @@ export const BenefitsSection = ({
 
       ${lmPlusEnabled && html`
         <section class="flex flex-col gap-4" data-name="benefits-lm-plus" aria-label=${labels.lmPlusSectionTitle || ''}>
-          ${lmState === 'none' ? html`
-            <${LmPlusBanner} labels=${labels} ctaUrl=${lmPlusUrls.subscribe || ''} />
-          ` : html`
+          ${lmState === 'none' ? renderLmPlusNone(lmPlusBanner, labels, lmPlusUrls) : html`
             <h3 class="!m-0">
               <span class="block text-lg font-semibold leading-normal text-[#1b1b1b]">
                 ${labels.lmPlusSectionTitle || ''}

@@ -97,15 +97,14 @@ export const Authenticated = ({ user }) => {
   // header del drawer → los lectores de pantalla anuncian "Ana Palomares",
   // no "AnaPalomares". No se muestra visualmente.
   const fullName = [user?.firstName, user?.lastName].filter(Boolean).join(' ') || labels.account;
-  // Display VISIBLE en el header (Figma 14:31447 / 14:31453 / 76:12391):
-  // `firstName + lastName` CONCATENADOS SIN ESPACIO. Ejemplo del design system:
-  // firstName "Maximiliano" + lastName "Bartolomé" → "MaximilianoBartolomé"
-  // (se trunca a "MaximilianoBartol…" cuando excede `max-w-[136px]`; en ese
-  // caso el tooltip 76:12391 muestra el texto completo, también sin espacio).
+  // Display VISIBLE en el header: `firstName + lastName` CON espacio (F8, 2026-07-16,
+  // por decisión de diseño/PO). El código original los pegaba SIN espacio citando
+  // Figma 14:31447 ("MaximilianoBartolomé"), pero se confirmó que va con espacio
+  // ("Maximiliano Bartolomé"). Se trunca a `max-w-[136px]` con tooltip 76:12391.
   // Si solo hay firstName caemos a firstName; si no hay nada, al fullName
   // (que a su vez cae a labels.account).
   let displayName;
-  if (user?.firstName && user?.lastName) displayName = `${user.firstName}${user.lastName}`;
+  if (user?.firstName && user?.lastName) displayName = `${user.firstName} ${user.lastName}`;
   else displayName = user?.firstName || fullName;
   const tier = normalizeTier(user?.tier);
   // Iniciales para el chip (≤767 y 1024–1149): 1ª letra de nombre + 1ª de apellido.

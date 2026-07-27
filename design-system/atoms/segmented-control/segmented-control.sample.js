@@ -15,6 +15,8 @@ const html = htm.bind(h);
 export const SegmentedControlSample = () => {
   const [tab, setTab] = useState('progress');
   const [subTab, setSubTab] = useState('detail');
+  const [lgTab, setLgTab] = useState('a');
+  const [overflowTab, setOverflowTab] = useState('opt1');
 
   return html`
     <section class="p-10 max-w-[75rem] mx-auto flex flex-col gap-8">
@@ -48,6 +50,47 @@ export const SegmentedControlSample = () => {
           onChange=${setSubTab}
         />
         <p class="text-sm text-[#5a5a5a]">Activa: <strong>${subTab}</strong></p>
+      </div>
+
+      <div class="flex flex-col gap-3">
+        <h2 class="text-xl font-bold">Variante Large (size lg · 1279360)</h2>
+        <${SegmentedControl}
+          size="lg"
+          ariaLabel="Variante large"
+          options=${[
+    { key: 'a', label: 'Datos' },
+    { key: 'b', label: 'Pagos' },
+    { key: 'c', label: 'Ajustes' },
+  ]}
+          value=${lgTab}
+          onChange=${setLgTab}
+        />
+        <p class="text-sm text-[#5a5a5a]">Activa: <strong>${lgTab}</strong></p>
+      </div>
+
+      <div class="flex flex-col gap-3">
+        <h2 class="text-xl font-bold">Overflow scrollable + fluidMinW (viewport angosto · 1279360)</h2>
+        <p class="text-sm text-[#5a5a5a]">
+          5 opciones largas en un contenedor de 320px: scroll horizontal con
+          auto-scroll a la opción activa (probar tabs largos como "Configuraciones").
+        </p>
+        <div class="w-[320px] border border-dashed border-[#b6b6b6] p-2 rounded-2xl">
+          <${SegmentedControl}
+            scrollable=${true}
+            fluidMinW=${true}
+            ariaLabel="Overflow scrollable"
+            options=${[
+    { key: 'opt1', label: 'Información' },
+    { key: 'opt2', label: 'Documentos' },
+    { key: 'opt3', label: 'Acompañantes' },
+    { key: 'opt4', label: 'Preferencias' },
+    { key: 'opt5', label: 'Configuraciones' },
+  ]}
+            value=${overflowTab}
+            onChange=${setOverflowTab}
+          />
+        </div>
+        <p class="text-sm text-[#5a5a5a]">Activa: <strong>${overflowTab}</strong></p>
       </div>
     </section>
   `;

@@ -64,6 +64,16 @@ describe('club-subscription · toClubSubscriptionVM (contrato real)', () => {
     expect(vm.plan).toBeNull();
   });
 
+  it('activeSuscriptions NULL + plans[] (API real) → state none, NO unavailable', () => {
+    // La API real devuelve activeSuscriptions:null (no []) cuando el socio no tiene
+    // plan, junto con plans[] (verificado en vivo Magno 78368923603, 2026-07-23).
+    // Debe dar 'none' (banner Suscríbete), no 'unavailable' (que esconde la sección).
+    const vm = toClubSubscriptionVM({ activeSuscriptions: null, plans: [{ idPlan: '29', name: 'Plan 1', planOrder: 1 }] });
+    expect(vm.state).toBe('none');
+    expect(vm.plan).toBeNull();
+    expect(vm.plans).toHaveLength(1);
+  });
+
   it('plan activo CON match en plans[] → millas/mes + upsell del siguiente planOrder', () => {
     const raw = {
       activeSuscriptions: [{ planName: 'Plan 2', planId: '38' }],
@@ -74,12 +84,18 @@ describe('club-subscription · toClubSubscriptionVM (contrato real)', () => {
     expect(vm.upsell).toEqual({ name: 'Plan 3', priceDelta: 180160 });
   });
 
-  it('suspendida GATEADA: solo con indicador explícito; default active', () => {
-    expect(deriveSubscriptionState({ planName: 'Plan Lite', hasPendingCharge: true })).toBe('active');
+  it('suspendida: hasPendingCharge:true → suspended (confirmado con cuentas UAT LM); sin indicador → active', () => {
+    // hasPendingCharge=true = suspendida (cuentas UAT LM 2026-07-22: activa
+    // 75362820201 → false; suspendida 47464574706 → true).
+    expect(deriveSubscriptionState({ planName: 'Plan Lite', hasPendingCharge: true })).toBe('suspended');
+    // sin hasPendingCharge (o false) → activa.
+    expect(deriveSubscriptionState({ planName: 'Plan Lite', hasPendingCharge: false })).toBe('active');
+    expect(deriveSubscriptionState({ planName: 'Plan Lite' })).toBe('active');
+    // indicadores explícitos (por si LM suma un campo) también → suspended.
     expect(deriveSubscriptionState({ status: 'SUSPENDED' })).toBe('suspended');
     expect(deriveSubscriptionState({ suspended: true })).toBe('suspended');
     const vm = toClubSubscriptionVM({
-      activeSuscriptions: [{ planName: 'Plan Lite', planId: '33', status: 'suspended' }],
+      activeSuscriptions: [{ planName: 'Plan Lite', planId: '33', hasPendingCharge: true }],
       plans: [],
     });
     expect(vm.state).toBe('suspended');

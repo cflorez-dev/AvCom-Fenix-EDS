@@ -11,10 +11,14 @@ const html = htm.bind(h);
  * texto, url y `newTab` — todo CF-override (P7). Si se desactiva una, las visibles
  * se redistribuyen manteniendo el grid balanceado.
  *
- * Layout: ≤767 → fila repartida (justify-between); ≥768 → fila a la izquierda.
- * column-gap = 8px (gap-x-2 mobile / sm:gap-2 desktop) en TODOS los breakpoints
- * por spec; row-gap solo aplica en mobile (gap-y-6 = 24px del grid 4-col). Tope
- * de 4 (Figma); si llegan más, se loguea y se recortan (no se ocultan en silencio).
+ * Layout: <640 → grid 4-col repartido (justify-between implícito); ≥640 → fila
+ * flex a la izquierda. column-gap = 8px (gap-x-2 mobile / min-[640px]:gap-2
+ * desktop) en TODOS los breakpoints por spec; row-gap solo aplica en mobile
+ * (gap-y-6 = 24px del grid 4-col). Se usa `min-[640px]:` explícito (NO `sm:`)
+ * porque este repo redefine `sm=480px` en `styles/variables/tailwind.css` y el
+ * parent `members-data-grid` ya usa `min-[640px]:` como breakpoint del hero.
+ * Tope de 4 (Figma); si llegan más, se loguea y se recortan (no se ocultan
+ * en silencio).
  *
  * ## Props
  * - `actions`: Array<{key,label,icon,url,newTab,visible,sortOrder}> — de la config.
@@ -47,7 +51,7 @@ export const MembersQuickActions = ({
 
   return html`
     <div
-      class=${`grid grid-cols-4 gap-x-2 gap-y-6 sm:flex sm:items-start sm:justify-start sm:gap-2 ${customClassName}`}
+      class=${`grid grid-cols-4 gap-x-2 gap-y-6 min-[640px]:flex min-[640px]:items-start min-[640px]:justify-start min-[640px]:gap-2 ${customClassName}`}
       data-name="members-quick-actions"
       ...${rest}
     >

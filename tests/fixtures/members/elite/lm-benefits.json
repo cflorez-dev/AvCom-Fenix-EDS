@@ -1,0 +1,73 @@
+{
+  "_note": "Fixture del wrapper lmBenefits (1271693). Shape + grpId REALES capturados de LM (barrido 2026-07-22, cuentas Gold 47464574706 y Diamond Cenit 95939493904; ver project-controller/data/pbis/_progelite-ben/barrido-beneficios-tiers.md). Los 7 grpId con contador son estables y todos son Salas VIP o Upgrades: PNTGRP59 Sala VIP Avianca, PNTGRP71 Acompanantes, PNTGRP73 Salas VIP aliados (uat 'Partner Lounges'), PNTGRP69 Salas VIP GOL, PNTGRP60 Upgrade generico/INSIGNIA, PNTGRP61 Business Americas, PNTGRP62 Business Domestico. LM aporta por grpId el `amount` (DISPONIBLE) y `totalAccrual` (OTORGADO) -> contador 'disponible de otorgado'. En las cuentas de prueba (frescas) amount==totalAccrual; aca PNTGRP61 (10/12) y PNTGRP73 (3/8) se AJUSTAN a parcial para ejercer 'N de M'. PNTGRP59 trae 1000 (>= umbral 50) -> 'Ilimitado'. Mapeo grpId->seed (DEFAULT_BENEFITS_CATALOG): PNTGRP62->upgrades[0], PNTGRP61->upgrades[1], PNTGRP60->upgrades[2], PNTGRP59->lounges[0], PNTGRP71->lounges[1], PNTGRP73->lounges[2], PNTGRP69->lounges[3]. Los beneficios estaticos (priority, equipaje, bono millas) NO vienen aca: son config estatica (Plan B para per-tier).",
+  "member": {
+    "memshpnum": "47464574706",
+    "lastUpd": "2026-07-22T21:40:22.000000Z",
+    "tier": "Gold"
+  },
+  "summarization": [
+    {
+      "type": "EP",
+      "amount": 1049,
+      "totalAccrual": 1049,
+      "detail": [
+        {
+          "grpId": "PNTGRP59",
+          "grpNam": "Elite Benefits Sala VIP",
+          "grpDes": "Elite Benefits Sala VIP",
+          "amount": 1000,
+          "expDate": "2028-07-20T00:00:00Z",
+          "totalAccrual": 1000
+        },
+        {
+          "grpId": "PNTGRP60",
+          "grpNam": "Elite Benefits Upgrade",
+          "grpDes": "Ascensos de cabina para disfrutar tus vuelos con mas comodidad.",
+          "amount": 2,
+          "expDate": "2028-07-20T00:00:00Z",
+          "totalAccrual": 2
+        },
+        {
+          "grpId": "PNTGRP61",
+          "grpNam": "EB upgrade WL America",
+          "grpDes": "Elite Benefits Seat Flatbed",
+          "amount": 10,
+          "expDate": "2028-07-20T00:00:00Z",
+          "totalAccrual": 12
+        },
+        {
+          "grpId": "PNTGRP62",
+          "grpNam": "EB Upgrade WL Domestico",
+          "grpDes": "EB Upgrade WL Domestico",
+          "amount": 12,
+          "expDate": "2028-07-20T00:00:00Z",
+          "totalAccrual": 12
+        },
+        {
+          "grpId": "PNTGRP69",
+          "grpNam": "Salas VIP Gol",
+          "grpDes": "Salas VIP Gol",
+          "amount": 8,
+          "expDate": "2028-07-20T00:00:00Z",
+          "totalAccrual": 8
+        },
+        {
+          "grpId": "PNTGRP71",
+          "grpNam": "Acomp Elite Benefits Sala VIP",
+          "grpDes": "Acomp Elite Benefits Sala VIP",
+          "amount": 12,
+          "expDate": "2028-07-20T00:00:00Z",
+          "totalAccrual": 12
+        },
+        {
+          "grpId": "PNTGRP73",
+          "grpNam": "Elite Benefits Sala VIP Espana",
+          "grpDes": "Elite Benefits Sala VIP Espana (MAD y BCN)",
+          "amount": 3,
+          "expDate": "2028-07-20T00:00:00Z",
+          "totalAccrual": 8
+        }
+      ]
+    }
+  ]
+}

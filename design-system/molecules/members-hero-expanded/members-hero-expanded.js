@@ -17,8 +17,9 @@ const html = htm.bind(h);
  * sin acoplarse a "Mi Lifemiles".
  *
  * Compone, sobre el gradient del tier: saludo + toggle "Ocultar detalle ▴" +
- * `members-data-grid` + `members-membership-card` (solo ≥1024, vía `hidden lg:block`)
- * + `members-quick-actions` + `members-elite-progress`.
+ * `members-data-grid` + `members-membership-card` (solo ≥1024, vía
+ * `hidden lg:block` — breakpoint `lg:` de Tailwind) +
+ * `members-quick-actions` + `members-elite-progress`.
  *
  * ## Props
  * - `greeting`: string — saludo ya compuesto (ej. "Hola, Sebastián").
@@ -93,7 +94,7 @@ export const MembersHeroExpanded = ({
 
   return html`
     <div
-      class=${`relative w-full flex flex-col gap-[24px] px-[16px] py-[24px] rounded-bl-[16px] rounded-br-[16px] lg:rounded-none lg:p-[32px] ${borderAccentColor ? 'border border-solid' : ''} ${customClassName}`}
+      class=${`relative w-full flex flex-col gap-[24px] px-[16px] pt-[24px] pb-[16px] md:px-[24px] md:pt-[32px] md:pb-[24px] lg:px-[32px] lg:pt-[32px] lg:pb-[32px] ${borderAccentColor ? 'border border-solid' : ''} ${customClassName}`}
       style=${gradientStyle}
       data-name="members-hero-expanded"
       data-tier=${theme.key}
@@ -114,7 +115,7 @@ export const MembersHeroExpanded = ({
       <div class="flex items-center gap-[24px] max-w-[1248px] w-full mx-auto">
         <div class="flex flex-col min-w-0 flex-1">
           <h2
-            class="m-0! min-w-0 font-semibold! text-white! text-[20px]! leading-[26px]! max-w-[200px] md:leading-[32px]! lg:max-w-none lg:text-[28px]! lg:leading-[37px]!"
+            class="m-0! min-w-0 font-semibold! text-white! text-[20px]! leading-[26px]! max-w-full min-[640px]:text-[24px]! min-[640px]:leading-[32px]! lg:max-w-none lg:text-[28px]! lg:leading-[37px]!"
             data-name="members-hero-greeting"
           >${greeting}</h2>
           ${/* Figma 518:24516 (mobile <680): nº socio inline bajo el saludo
@@ -145,7 +146,10 @@ export const MembersHeroExpanded = ({
           forzar al DataGrid a estirarse al alto de la fila cuando la card
           asoma 29px extra. Ancho de la 2ª columna varía por modo: dashboard
           usa 289px (variante compact Figma 518:22622); profile usa 340px
-          (variante grande 224×200 con margen extra). */ ''}
+          (variante grande 224×200 con margen extra).
+          Visibilidad de la card: `lg:` (≥1024px) — confirmado por producto:
+          en <1024 el hero queda con el data-grid full-width y la card no se
+          renderiza. Ver JSDoc del organism y de MembersMembershipCard. */ ''}
       <div class=${`grid grid-cols-1 gap-6 lg:gap-[32px] ${showToggle ? 'lg:grid-cols-[minmax(0,1fr)_289px]' : 'lg:grid-cols-[minmax(0,1fr)_340px]'} ${showToggle ? 'lg:items-stretch' : 'lg:items-start'} lg:max-h-[171px] lg:overflow-visible max-w-[1248px] w-full mx-auto`}>
         <${MembersDataGrid}
           ...${grid}
@@ -177,7 +181,7 @@ export const MembersHeroExpanded = ({
       ${/* Tira elite: barra BLANCA full-width al pie del hero (comp 518:27631),
           NO stacked dentro de la columna izquierda. */ ''}
       ${elite && html`
-        <div class="max-w-[1248px] w-full mx-auto" data-name="members-hero-elite-slot">
+        <div class="max-w-[1248px] w-full mx-auto lg:mt-4" data-name="members-hero-elite-slot">
           <${MembersEliteProgress}
             elite=${elite}
             formatValue=${formatValue}

@@ -22,12 +22,10 @@ import {
  * no-Response / error ⇒ `state: 'unavailable'` y la sección LM+ entera NO se
  * renderiza (no podemos afirmar "sin plan" sin dato).
  *
- * VARIANTE SUSPENDIDA (GATEADA): la UI existe (diseño §D) pero solo se
- * muestra si `deriveSubscriptionState` ve un indicador EXPLÍCITO de
- * suspensión en la respuesta — campo aún NO observado en el contrato real.
- * Con entrada activa el default es 'active'.
- * // TODO(LM): representación de suscripción suspendida en lmClubSubscription
- * // (¿hasPendingCharge? ¿status?) — consulta §3 de verificacion-wrappers.md.
+ * VARIANTE SUSPENDIDA: la UI existe (diseño §D) y se muestra cuando
+ * `deriveSubscriptionState` detecta `hasPendingCharge: true` — indicador
+ * CONFIRMADO con las cuentas UAT de LM (2026-07-22): activa `75362820201`
+ * → `hasPendingCharge:false`; suspendida `47464574706` → `true`.
  */
 
 /** Resuelve los params del wrapper desde el POS/locale del sitio. */
@@ -45,25 +43,37 @@ const UNAVAILABLE_VM = {
 };
 
 /**
- * Estado de la suscripción activa. 'suspended' SOLO ante un indicador
- * EXPLÍCITO (`status`/`state`/`suspended` con semántica de suspensión) —
- * campo no observado aún en el contrato real; default 'active'.
+ * Estado de la suscripción activa. 'suspended' cuando `hasPendingCharge: true`
+ * (indicador CONFIRMADO con las cuentas UAT de LM, 2026-07-22) o ante un
+ * indicador explícito (`suspended`/`status`/`state`). Si no, 'active'.
  * @param {object} active entrada de `activeSuscriptions[0]`
  * @returns {('active'|'suspended')}
  */
 export const deriveSubscriptionState = (active) => {
   const status = String(active?.status ?? active?.state ?? '').toLowerCase();
-  if (active?.suspended === true || status.includes('suspend')) return 'suspended';
-  // TODO(LM): confirmar el campo real de suspensión (consulta §3).
+  // `hasPendingCharge: true` = suspendida. Confirmado comparando las 2 cuentas
+  // UAT que dio LM (2026-07-22): activa `75362820201` → false; suspendida
+  // `47464574706` → true. Se conservan `suspended`/`status` por si LM suma un
+  // campo explícito más adelante.
+  if (active?.suspended === true || status.includes('suspend') || active?.hasPendingCharge === true) {
+    return 'suspended';
+  }
   return 'active';
 };
 
 /** Proyecta la respuesta cruda del wrapper al VM de la sección LM+. */
 export const toClubSubscriptionVM = (raw) => {
   if (!raw || typeof raw !== 'object') return { ...UNAVAILABLE_VM };
-  const active = Array.isArray(raw.activeSuscriptions) ? raw.activeSuscriptions : null;
-  if (!active) return { ...UNAVAILABLE_VM }; // shape malformado → sin datos
-  const plans = Array.isArray(raw.plans) ? raw.plans : [];
+  // La API REAL devuelve `activeSuscriptions: null` (NO []) cuando el socio no tiene
+  // plan, junto con `plans[]` (verificado en vivo, Magno 78368923603, 2026-07-23):
+  // es una respuesta VÁLIDA "sin suscripción" → estado 'none' (banner Suscríbete),
+  // NO 'unavailable' (que esconde toda la sección LM+). Shape malformado REAL = sin
+  // activeSuscriptions NI plans válidos → 'unavailable'.
+  const activeRaw = Array.isArray(raw.activeSuscriptions) ? raw.activeSuscriptions : null;
+  const plansRaw = Array.isArray(raw.plans) ? raw.plans : null;
+  if (!activeRaw && !plansRaw) return { ...UNAVAILABLE_VM };
+  const active = activeRaw || [];
+  const plans = plansRaw || [];
 
   if (active.length === 0) {
     return {

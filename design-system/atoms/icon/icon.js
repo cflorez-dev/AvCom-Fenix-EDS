@@ -2,7 +2,7 @@
 import { h } from '@dropins/tools/preact.js';
 import { useState, useEffect } from '@dropins/tools/preact-hooks.js';
 import htm from 'htm';
-import { sanitizeSVG } from '../../../scripts/utils/sanitize.js';
+import { sanitizeSVG, ensureDOMPurify } from '../../../scripts/utils/sanitize.js';
 
 const html = htm.bind(h);
 
@@ -108,6 +108,22 @@ export const Icon = ({
   // Bump to force a re-render once an async fetch populates the cache.
   const [, setLoadedTick] = useState(0);
   const [error, setError] = useState(() => failedIcons.has(icon));
+
+  // sanitizeSVG() fails closed (renders nothing) if DOMPurify hasn't finished
+  // loading from the CDN yet (scripts.js kicks that off async and never awaits
+  // it). Icons rendered before that load completes would otherwise stay blank
+  // forever, since nothing else re-triggers a render for them. Re-render once
+  // DOMPurify becomes available so the icon paints as soon as it's safe to.
+  useEffect(() => {
+    if (window.DOMPurify) return undefined;
+    let mounted = true;
+    ensureDOMPurify().then(() => {
+      if (mounted) setLoadedTick((n) => n + 1);
+    }).catch(() => {});
+    return () => {
+      mounted = false;
+    };
+  }, []);
 
   // Fetch only when the icon isn't already cached. When it IS cached the raw
   // text is read synchronously below, so the icon paints on the first frame

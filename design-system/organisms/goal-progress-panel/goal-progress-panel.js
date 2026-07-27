@@ -118,9 +118,14 @@ export const GoalProgressPanel = ({
         ctaUrl=${entry.ctaUrl || ''}
         onClose=${() => setOpenFab(null)}
       />
+      ${/* Posici\u00f3n del bot\u00f3n FAB v\u00eda `var(--progress-fill-pct)` expuesta por
+          `MembersProgressBar` con el % REAL medido (modo 'spread' = vista
+          completa, los dots no son equidistantes). Fallback est\u00e1tico al
+          `row.fillPct` del modelo para 'anchored' (detalle) y para cualquier
+          consumidor que monte el FAB fuera de una barra con la var. */ ''}
       <span
         class="absolute top-1/2 z-10"
-        style=${{ left: `${row.fillPct}%`, transform: 'translate(-50%, -50%)' }}
+        style=${{ left: `var(--progress-fill-pct, ${row.fillPct}%)`, transform: 'translate(-50%, -50%)' }}
       >
         <${FloatingActionButton}
           icon=${fabIcons[row.kind] || null}

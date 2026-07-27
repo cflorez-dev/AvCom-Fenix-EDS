@@ -15,6 +15,10 @@ import { SecondaryBannerSample } from '../../../design-system/organisms/banners/
 import { MembersHeroSample } from '../../../design-system/organisms/members-hero/members-hero.sample.js';
 import { MembersEliteSample } from '../../../design-system/organisms/members-elite/members-elite.sample.js';
 import { MembersEliteHeaderSample } from '../../../design-system/organisms/members-elite-header/members-elite-header.sample.js';
+import { MembersAccountSample } from '../../../design-system/organisms/members-account/members-account.sample.js';
+import { MembersWalletSample } from '../../../design-system/organisms/members-wallet/members-wallet.sample.js';
+import { MembersAccountDataSample } from '../../../design-system/organisms/members-account-data/members-account-data.sample.js';
+import { MembersAccountSettingsSample } from '../../../design-system/organisms/members-account-settings/members-account-settings.sample.js';
 import { GoalProgressPanelSample } from '../../../design-system/organisms/goal-progress-panel/goal-progress-panel.sample.js';
 import { BenefitsSectionSample } from '../../../design-system/organisms/benefits-section/benefits-section.sample.js';
 import { FooterBottomSample } from '../../../design-system/organisms/footer/footer-bottom/footer-bottom.sample.js';
@@ -45,6 +49,18 @@ export const OrganismsSamples = () => html`
 
         <!-- Members ProgElite+Ben header (1271692) -->
         <${MembersEliteHeaderSample} />
+
+        <!-- Members Gestión de cuenta (1279360, shell) -->
+        <${MembersAccountSample} />
+
+        <!-- Members Gestión de cuenta — Wallet (1279362) -->
+        <${MembersWalletSample} />
+
+        <!-- Members Gestión de cuenta — Tab Datos (1279361) -->
+        <${MembersAccountDataSample} />
+
+        <!-- Members Gestión de cuenta — Tab Ajustes (1279363) -->
+        <${MembersAccountSettingsSample} />
 
         <!-- Members ProgElite+Ben tab Progreso (1271699) -->
         <${GoalProgressPanelSample} />

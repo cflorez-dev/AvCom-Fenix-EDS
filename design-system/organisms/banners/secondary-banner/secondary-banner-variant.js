@@ -230,10 +230,10 @@ export const SecondaryBannerLeft = ({
   condorStrokeColor = '',
   showCondor = true,
   loading = 'lazy',
+  customClassName = '',
 }) => {
   const [condorBgSVG, setCondorBgSVG] = useState(null);
   const [condorVectorSVG, setCondorVectorSVG] = useState(null);
-
 
   // Initialize breakpoint state synchronously to avoid SVG-fetch race during megamenu cloning.
   // Desktop layout (image left, condor right) starts at md (768px) — uniforme hasta 1248px+.
@@ -518,7 +518,7 @@ export const SecondaryBannerLeft = ({
 
   return html`
     <div
-      class="max-w-xl w-full relative rounded-[16px] shadow-[0px_2px_20px_2px_rgba(73,73,73,0.25)] my-[32px] mx-[16px] md:mx-[32px] overflow-hidden md:!h-fit lg:!h-fit xl:!h-fit"
+      class=${`max-w-xl w-full relative rounded-[16px] shadow-[0px_2px_20px_2px_rgba(73,73,73,0.25)] my-[32px] mx-[16px] md:mx-[32px] overflow-hidden md:!h-fit lg:!h-fit xl:!h-fit ${customClassName}`}
       style=${bannerBackground}
       data-name="secondary-banner"
       data-image-position="left"

@@ -102,16 +102,37 @@ const TIER_PRESETS = {
     condorTo: '#7C0005',
   },
   // Silver (Figma 518:23840 — card; 169:12237 — drawer)
-  // Gradient REAL Figma export: angle -52.14°, gray500 (LIGHT) 85.98% →
-  // gray1100 (DARK) 68.29%. Stops invertidos respecto a CF/preset clásico
-  // (LIGHT → DARK). CSS clamp del end-stop al start-stop → la mayoría queda
-  // en el color de inicio con transición al final.
+  //
+  // HERO / drawer / hero-header / hero-expanded / hero-compact (namespace CF
+  // `color*`, ángulo hardcoded 90deg en cada componente):
+  //   linear-gradient(90deg, #393838 0%, #6C6C6C 100%)
+  //
+  // CARD (members-membership-card, namespace CF `cardColor*`, angle desde CF
+  // `gradientAngle`). Valores exactos del panel "Dev Mode → CSS" de Figma:
+  //   linear-gradient(295deg, #C4C8C5 -85.98%, #393838 68.29%)
+  // Puntos críticos que suelen exportarse mal:
+  //   • Ángulo `295deg` (no `-52.137deg` del panel de rotación Figma; ése es
+  //     el ángulo del handle, no la convención CSS).
+  //   • Stop de LIGHT en `-85.98%` NEGATIVO: posiciona el color base fuera del
+  //     canvas, dejando solo la parte final del degradado visible. Sin el signo,
+  //     domina el silver y se pierde el look oscuro del tier.
   silver: {
-    gradientFrom: '#c4c8c5', // neutral/opaque/gray500 (LIGHT)
-    gradientFromStop: '85.982%',
-    gradientTo: '#393838', // neutral/opaque/gray1100 (DARK)
-    gradientToStop: '68.291%',
-    gradientAngle: '-52.137deg',
+    // Fallback del HERO (CF `colorStart/End/StartStop/Stop`).
+    gradientFrom: '#393838',
+    gradientFromStop: '0%',
+    gradientTo: '#6c6c6c',
+    gradientToStop: '100%',
+    gradientAngle: '90deg',
+    // Fallback del CARD (CF `cardColorStart/End/StartStop/EndStop/gradientAngle`).
+    // Consumido por `getMembersCardTheme`. Separado del hero porque la paleta
+    // y el ángulo son distintos por completo — el card usa una versión "clara
+    // con toque oscuro" en diagonal, no la variante "oscuro a gris" horizontal
+    // del hero.
+    cardGradientFrom: '#c4c8c5', // neutral/opaque/gray500 (LIGHT)
+    cardGradientFromStop: '-85.98%',
+    cardGradientTo: '#393838', // neutral/opaque/gray1100 (DARK)
+    cardGradientToStop: '68.29%',
+    cardGradientAngle: '295deg',
     balanceCardBg: '#393838',
     pillBg: '#262626',
     pillBorder: '#777777',
@@ -136,11 +157,18 @@ const TIER_PRESETS = {
   // Silver para el pill "Ver perfil" (bg/border/hover), con diferenciación
   // de sub-status fuera del botón.
   'silver-cenit': {
-    gradientFrom: '#c4c8c5',
-    gradientFromStop: '85.982%',
-    gradientTo: '#393838',
-    gradientToStop: '68.291%',
-    gradientAngle: '-52.137deg',
+    // Fallback del HERO (mismo look que silver base).
+    gradientFrom: '#393838',
+    gradientFromStop: '0%',
+    gradientTo: '#6c6c6c',
+    gradientToStop: '100%',
+    gradientAngle: '90deg',
+    // Fallback del CARD — ver nota completa en preset `silver`.
+    cardGradientFrom: '#c4c8c5',
+    cardGradientFromStop: '-85.98%',
+    cardGradientTo: '#393838',
+    cardGradientToStop: '68.29%',
+    cardGradientAngle: '295deg',
     balanceCardBg: '#393838',
     pillBg: '#262626',
     pillBorder: '#777777',
@@ -594,12 +622,33 @@ export const getMembersCardTheme = (rawTier, cfTierThemes = {}) => {
     // Gradiente del card: `cardColor*` del CF (cuando esté autorado) gana
     // sobre el preset. Permite al autor tweakear el card sin tocar código,
     // SIN afectar el drawer/hero (que siguen leyendo `colorStart/End`).
-    gradientFrom: base.cardColorStart || preset.gradientFrom,
-    gradientFromStop: base.cardColorStartStop || preset.gradientFromStop,
-    gradientTo: base.cardColorEnd || preset.gradientTo,
-    gradientToStop: base.cardColorEndStop || preset.gradientToStop,
-    // `gradientAngle`, `cardBackground`, `cardShadow` se preservan del `base`
-    // (que ya implementa CF || preset || default).
+    //
+    // NOTA de autoring: el CF debe usar los valores del panel "Dev Mode →
+    // CSS" de Figma (angle en convención CSS: 0° = arriba, positivo
+    // clockwise), NO los del panel de rotación (convención matemática). Ver
+    // preset `silver` para el patrón de referencia (angle 295°, stop light
+    // -85.98% para "sacar" el color base fuera del canvas). Un fix defensivo
+    // en `members-membership-card.js` ordena los stops ascendentes antes de
+    // armar el string CSS, así el render no se rompe si el autor pone stops
+    // en orden inverso.
+    //
+    // Fallback: `preset.cardGradient*` (namespace card-específico, ej.
+    // silver) → `preset.gradient*` (legacy compartido con hero, para tiers
+    // que aún no fueron separados). Así el default del card NO contamina
+    // el default del hero cuando la paleta difiere (caso silver).
+    gradientFrom: base.cardColorStart || preset.cardGradientFrom || preset.gradientFrom,
+    gradientFromStop: base.cardColorStartStop || preset.cardGradientFromStop || preset.gradientFromStop,
+    gradientTo: base.cardColorEnd || preset.cardGradientTo || preset.gradientTo,
+    gradientToStop: base.cardColorEndStop || preset.cardGradientToStop || preset.gradientToStop,
+    // Angle: CF `gradientAngle` → preset `cardGradientAngle` (card-específico)
+    // → preset `gradientAngle` (legacy). El resolver de `base.gradientAngle`
+    // ya cae del CF al `preset.gradientAngle`; acá preferimos primero el
+    // `cardGradientAngle` cuando existe.
+    gradientAngle: base.gradientAngle && base.gradientAngle !== preset.gradientAngle
+      ? base.gradientAngle
+      : (preset.cardGradientAngle || preset.gradientAngle || base.gradientAngle),
+    // `cardBackground`, `cardShadow` se preservan del `base` (que ya
+    // implementa CF || preset || default).
   };
 };
 

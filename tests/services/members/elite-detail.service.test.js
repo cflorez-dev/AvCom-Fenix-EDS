@@ -67,7 +67,7 @@ describe('members-config · defaults del tab Progreso elite (1271699 paso 3)', (
     expect(cfg.eliteProgress).toEqual({
       alertsPersistDismiss: true,
       progressDescriptionVisible: true,
-      fabEnabled: false,
+      fabEnabled: true, // default ON desde ff54555a (FAB habilitado para preview en qa)
       howToEarnSections23MaxTier: 'gold-cenit',
       progressBarIconTotal: 'members/lm',
       progressBarIconAvianca: 'action/plane',
