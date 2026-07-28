@@ -108,9 +108,14 @@ export const MembersCopyMembership = ({
             oscurece sobre el card gradient. -inset-1 = 4px de respiro
             (Figma 169:12888). Solo activo en :hover, NO en :focus-visible
             (focus usa otro halo plano por especificación Figma 518:23719). */ ''}
+        ${/* Mientras el tooltip "Copiado" está visible el halo de hover se APAGA:
+             el exhibit "Pressed / Copy" (Figma 518:22222) muestra el número SIN
+             halo, a diferencia del exhibit "Hover" (518:22211). Como el puntero
+             sigue sobre el botón después de hacer clic, sin este gate los dos
+             estados se pisaban (1284784). */ ''}
         <span
           aria-hidden="true"
-          class="absolute -inset-1 rounded-[4px] bg-[#6d6d6d] mix-blend-multiply opacity-0 motion-safe:transition-opacity motion-safe:duration-150 group-hover:opacity-40"
+          class=${`absolute -inset-1 rounded-[4px] bg-[#6d6d6d] mix-blend-multiply opacity-0 motion-safe:transition-opacity motion-safe:duration-150 ${copied ? '' : 'group-hover:opacity-40'}`}
         ></span>
         ${/* Halo FOCUS (Figma 518:23719): rgba(109,109,109,0.4) PLANO (sin
             mix-blend). Figma diferencia explícitamente hover (multiply) y
@@ -131,14 +136,24 @@ export const MembersCopyMembership = ({
         <span class=${`relative text-white whitespace-nowrap ${NUMBER_SIZE[size] || NUMBER_SIZE.base}`}>
           ${membershipNumber}
         </span>
+        ${/* El tooltip vive DENTRO del wrapper del ícono para quedar centrado sobre
+             ÉL, no sobre el botón completo (número + ícono). En el comp
+             (Figma 518:22222) el bubble de 90px se ancla en left:98 dentro de un
+             contenedor de 151.35 → su centro (143) cae sobre el centro del ícono
+             (141.7), no sobre el del bloque (75.7). Antes se centraba sobre el
+             botón entero y quedaba desplazado a la izquierda (1284784). */ ''}
         <span class="relative inline-flex items-center justify-center w-5 h-5 shrink-0">
           <img src=${copyIcon} alt="" class="block w-[12.75px] h-[15px]" />
-        </span>
         ${copied && html`
           <span
             role="status"
             aria-live="polite"
-            class="absolute left-1/2 -translate-x-1/2 bottom-full mb-1 inline-flex items-center gap-1 px-2 py-1 bg-[var(--color-brand-primary,#1b1b1b)] rounded-lg text-white text-sm font-normal leading-normal whitespace-nowrap pointer-events-none z-10"
+            ${/* Medidas EXACTAS del comp (Figma 518:13564): ancho 90, padding 8/4,
+                radius 8, gap 4. Van en valores arbitrarios porque la escala del
+                repo no es la de Tailwind por defecto: `py-1` renderiza 6.4px,
+                `gap-1` 6.4px y `rounded-lg` 12.8px (mismo motivo que el padding de
+                los shortcuts en 1284645). */ ''}
+            class="absolute left-1/2 -translate-x-1/2 bottom-full mb-[2px] inline-flex items-center gap-[4px] w-[90px] px-[8px] py-[4px] bg-[var(--color-brand-primary,#1b1b1b)] rounded-[8px] text-white text-sm font-normal leading-normal whitespace-nowrap pointer-events-none z-10"
           >
             <span>${copiedLabel}</span>
             ${/* Check icon (Figma 518:23712 / I518:13566): check blanco simple
@@ -155,6 +170,7 @@ export const MembersCopyMembership = ({
             </span>
           </span>
         `}
+        </span>
       </button>
     </div>
   `;

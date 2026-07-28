@@ -590,8 +590,11 @@ export const NavbarMobile = ({
       >
         <div>
           <header class="flex items-center justify-between px-4 lg:px-8 !h-[76px] mb-0 shadow-small">
-            <div class="w-auto !h-[24px]">
-               <${Logo} variant="primary" mode="mobile" size="small" customImageClassName="!w-auto !h-[24px]" />
+            <!-- Ilustración de Avianca del header del drawer: el ancho MANDA (50px,
+                 Figma 14:31444) y el alto sale del aspect ratio (~32px). Antes se
+                 fijaba el alto en 24px y el ancho quedaba en ~37.5px (1284595). -->
+            <div class="w-[50px] h-auto">
+               <${Logo} variant="primary" mode="mobile" size="small" customImageClassName="!w-[50px] !h-auto" />
             </div>
             <button
               type="button"

@@ -10,7 +10,6 @@ import {
   isMembersDataMockEnabled,
   getMockMemberMetrics,
   getEmptyMemberMetrics,
-  isDevSessionMockEnabled,
 } from './members-data.mock.js';
 import { guardPortalSession } from './members-guard.js';
 import { normalizeTierKey } from '../../../design-system/helpers/members-tier-theme.js';
@@ -201,9 +200,44 @@ export const resolveEliteGoalsV2 = (eliteGoalsV2, rawTier, region, eliteMetrics 
   };
 };
 
-/** Tier-objetivo del progreso elite (primer campo plausible del crudo). */
-const pickTierTarget = (e) => e?.tierTarget || e?.targetTier || e?.nextTier
-  || e?.status?.next || e?.tier || null;
+/** Escalera de tiers. Duplicada de `elite-detail.service.js` (que ya importa
+ * `deriveCenit` de este módulo) para no crear la dependencia circular
+ * session↔elite-detail — mismo criterio que `resolveRegionFromProfile`. */
+const TIER_LADDER_HERO = ['lifemiles', 'red-plus', 'silver', 'gold', 'diamond', 'magno'];
+
+/**
+ * Tier cuyas metas debe mostrar la tira elite del hero (1284716).
+ *
+ * La tabla `eliteGoalsV2`/`DEFAULT_ELITE_GOALS` está indexada por tier **DESTINO**
+ * (los montos son "lo que hay que hacer para LLEGAR a ese tier"), y el AC de la tab
+ * Progreso (1271699, bloque 6) define la meta inmediata como el **siguiente** peldaño:
+ * Lifemiles→Red Plus, Red Plus→Silver, Silver→Gold, Gold→Diamond. Antes se consultaba
+ * la tabla con el tier ACTUAL del socio: al tier base (sin fila propia) le quedaba
+ * `undefined` ⇒ hero SIN tira, y a los demás les mostraba las metas que ya cumplieron.
+ *
+ * Las variantes Cenit operan sobre el tier base puro (las metas no las distinguen).
+ * Magno es el último peldaño: se queda en su propia fila (meta única "mantener", AC
+ * bloque 6 variante Magno). Un tier desconocido ya lo colapsa `normalizeTierKey` a
+ * base lifemiles (mismo criterio que la tab elite) ⇒ persigue Red Plus.
+ *
+ * @param {string} rawTier tier del socio (crudo, sin normalizar)
+ * @returns {string} tier key con el que consultar `eliteGoalsV2`
+ */
+export const resolveHeroGoalTier = (rawTier) => {
+  const key = normalizeTierKey(rawTier);
+  const pure = String(key || '').replace(/-cenit$/, '');
+  const idx = TIER_LADDER_HERO.indexOf(pure);
+  if (idx < 0) return key;
+  if (idx === TIER_LADDER_HERO.length - 1) return pure; // magno: mantener
+  return TIER_LADDER_HERO[idx + 1];
+};
+
+/** Tier-objetivo del progreso elite (primer campo plausible del crudo). El
+ * `fallbackTarget` (meta calculada por la escalera) va ANTES de `e.tier` para que
+ * el título no anuncie el tier actual cuando el servicio no manda objetivo — si
+ * las barras muestran las metas de Gold, el copy debe decir Gold. */
+const pickTierTarget = (e, fallbackTarget = null) => e?.tierTarget || e?.targetTier
+  || e?.nextTier || e?.status?.next || fallbackTarget || e?.tier || null;
 
 /**
  * Mapea la respuesta CRUDA de `eliteProgram` → `EliteProgressVM` (o `null`).
@@ -218,10 +252,12 @@ const pickTierTarget = (e) => e?.tierTarget || e?.targetTier || e?.nextTier
  * (conditions/requirements con goal embebido, p.ej. el mock); si tampoco → `null`.
  * @param {object|null} raw
  * @param {{metaTotal:number,metaAvianca:number,metricTotal:string,metricAvianca:string}}
- *   [goalsForTier] - metas del CF para el tier del socio.
+ *   [goalsForTier] - metas del CF para el tier META del socio (ver `resolveHeroGoalTier`).
+ * @param {string|null} [targetTier] - tier meta calculado por la escalera; se usa como
+ *   objetivo del título cuando el servicio no manda uno explícito.
  * @returns {{year:number, tierTarget:string|null, conditions:object[]}|null}
  */
-function toEliteVM(raw, goalsForTier) {
+function toEliteVM(raw, goalsForTier, targetTier = null) {
   if (!raw) return null;
   const e = raw.eliteProgram || raw.elite || raw.data || raw;
   // Camino CF (1263924): combinar los VALORES de `qualified` (por type) con las metas
@@ -249,7 +285,7 @@ function toEliteVM(raw, goalsForTier) {
     if (cfConditions.length) {
       return {
         year: Number(e?.year ?? e?.targetYear) || (new Date().getFullYear() + 1),
-        tierTarget: pickTierTarget(e),
+        tierTarget: pickTierTarget(e, targetTier),
         conditions: cfConditions,
       };
     }
@@ -269,7 +305,7 @@ function toEliteVM(raw, goalsForTier) {
   if (!conditions.length) return null;
   return {
     year: Number(e?.year ?? e?.targetYear) || (new Date().getFullYear() + 1),
-    tierTarget: pickTierTarget(e),
+    tierTarget: pickTierTarget(e, targetTier),
     conditions,
   };
 }
@@ -295,7 +331,7 @@ async function readWrapperJson(settled) {
 /** Trae millas + progreso elite vía `lmBalance`/`eliteProgram` EN PARALELO.
  * Best-effort y NO-ROMPEDOR: cualquier fallo de estos wrappers degrada a campos
  * `null` (empty) y NUNCA afecta al perfil ni al estado de sesión. */
-async function fetchMemberMetrics(goalsForTier) {
+async function fetchMemberMetrics(goalsForTier, targetTier = null) {
   try {
     const [balanceRes, eliteRes] = await Promise.allSettled([
       window.lmFetchWrapper('lmBalance', {}, false),
@@ -312,7 +348,7 @@ async function fetchMemberMetrics(goalsForTier) {
       totalMiles: balance.totalMiles,
       milesExpiryDate: balance.milesExpiryDate,
       statusExpiry: extractStatusExpiry(balanceRaw, eliteRaw),
-      elite: toEliteVM(eliteRaw, goalsForTier),
+      elite: toEliteVM(eliteRaw, goalsForTier, targetTier),
       ...(cenit.level != null ? { cenit } : {}),
     };
   } catch (e) {
@@ -334,11 +370,16 @@ async function enrichUserWithMetrics(user, profileRaw = null) {
     const useMock = conf.env !== 'prd' && isMembersDataMockEnabled();
     // Metas elite del hero desde `eliteGoalsV2` (T18, región-aware + mapeo de
     // `eliteMetrics`) — consistente con la tab elite y con los valores reales de
-    // Avianca. Sin entrada para ese tier (lifemiles/magno-total) → undefined → sin barra.
+    // Avianca. La tabla se indexa por tier DESTINO, así que se consulta con la meta
+    // inmediata del socio (siguiente peldaño de la escalera, `resolveHeroGoalTier`),
+    // no con su tier actual (1284716). Magno se queda en su fila (meta "mantener").
     const { eliteGoalsV2, eliteMetrics, countryRegionMap } = conf;
     const region = resolveRegionFromProfile(profileRaw, countryRegionMap);
-    const goalsForTier = resolveEliteGoalsV2(eliteGoalsV2, user.tier, region, eliteMetrics);
-    const metrics = useMock ? getMockMemberMetrics() : await fetchMemberMetrics(goalsForTier);
+    const goalTier = resolveHeroGoalTier(user.tier);
+    const goalsForTier = resolveEliteGoalsV2(eliteGoalsV2, goalTier, region, eliteMetrics);
+    const metrics = useMock
+      ? getMockMemberMetrics()
+      : await fetchMemberMetrics(goalsForTier, goalTier);
     return { ...user, ...metrics };
   } catch (e) {
     return user; // el perfil sigue válido; las métricas quedan null (empty)
@@ -511,15 +552,6 @@ function wireCrossTab() {
  */
 // eslint-disable-next-line import/prefer-default-export
 export function initSession() {
-  // MOCK-CLEANUP-1263924: andamiaje DEV-ONLY (localhost + ?mockMembers=1) — salta
-  // cookie + wrappers, pinta sesión mock y auto-monta el hero. ELIMINAR este bloque
-  // (y members-dev-mock.js) antes de cerrar el PBI. Import dinámico → no entra a prod.
-  if (isDevSessionMockEnabled()) {
-    import('./members-dev-mock.js')
-      .then(({ startDevMock }) => startDevMock())
-      .catch(() => { /* no romper la página si el mock falla */ });
-    return;
-  }
   rehydrate();
   wireCrossTab();
 }
