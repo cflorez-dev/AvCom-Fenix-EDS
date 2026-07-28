@@ -54,10 +54,16 @@ export const MembersQuickAction = ({
   // Ícono a 32×32 (Figma: chip 50×50 = 32 content + 8 padding × 2 + 1 border × 2,
   // box-border). El átomo `Icon` no tiene preset `size` para 32 (sus presets
   // son xs=8/s=16/m=20/xl=24/l=40), por eso usamos `customSize={32}`.
+  // Hover/pressed INVIERTEN el chip (fondo claro, ícono oscuro — Figma 518:21862), así que
+  // el ícono tiene que cambiar de color con el estado:
+  //  - Átomo `Icon`: se pinta con `currentColor` y hereda el `text-*` del chip (el átomo
+  //    reescribe los `fill="#…"` del SVG con el valor que reciba).
+  //  - Imagen del DAM: un `<img>` NO se puede recolorear por CSS. Los assets de quick actions
+  //    son monocromos BLANCOS, así que `invert` los lleva exactamente al negro del chip.
   const isImageIcon = typeof icon === 'string' && (/^(https?:)?\/\//.test(icon) || icon.startsWith('/'));
   const iconNode = isImageIcon
-    ? html`<img src=${icon} alt=${iconAlt} class="w-8 h-8 object-contain" loading="lazy" />`
-    : html`<${Icon} icon=${icon} customSize=${32} color="#ffffff" />`;
+    ? html`<img src=${icon} alt=${iconAlt} class="w-8 h-8 object-contain group-hover:invert group-active:invert" loading="lazy" />`
+    : html`<${Icon} icon=${icon} customSize=${32} color="currentColor" />`;
 
   return html`
     <a
@@ -66,13 +72,20 @@ export const MembersQuickAction = ({
       rel=${newTab ? 'noopener noreferrer' : undefined}
       onClick=${handleClick}
       aria-label=${ariaLabel || label || undefined}
-      class=${`group flex flex-col items-center gap-[2px] pt-[8px] px-[4px] pb-[4px] w-full max-w-[80px] max-[640px]:max-w-none max-[640px]:self-stretch max-[640px]:justify-self-stretch no-underline text-center outline-none ${customClassName}`}
+      ${/* El foco va sobre el ITEM COMPLETO (chip + label), rectangular con doble borde
+           1.5px #28A8FF + 1.5px #FFFFFF (Figma 518:21862 exhibit "Focus"). Antes el anillo
+           envolvía solo el chip circular (1284756). */ ''}
+      class=${`group flex flex-col items-center gap-[2px] pt-[8px] px-[4px] pb-[4px] w-full max-w-[80px] max-[640px]:max-w-none max-[640px]:self-stretch max-[640px]:justify-self-stretch no-underline text-center outline-none rounded-[4px] focus-visible:[box-shadow:0_0_0_1.5px_#28a8ff,0_0_0_3px_#ffffff] ${customClassName}`}
       data-name="members-quick-action"
       data-key=${icon || undefined}
       ...${rest}
     >
       <span
-        class="flex items-center justify-center w-[50px] h-[50px] min-w-[50px] min-h-[50px] p-[8px] aspect-square rounded-full bg-[#262626] border border-solid border-[#9a9a9a] text-white shrink-0 box-border motion-safe:transition-colors motion-safe:duration-150 group-hover:bg-[#333333] group-active:bg-[#000000] group-focus-visible:[box-shadow:0_0_0_1.5px_#28a8ff,0_0_0_3px_#ffffff]"
+        ${/* Estados del chip (Figma 518:21862): hover → fondo #FFFFFF, pressed → fondo
+             #E9E9E9 (token `background/brand/secondary/hover`). En ambos el ícono pasa al
+             color del chip por `currentColor`. Antes el chip se OSCURECÍA (#333333 /
+             #000000), que es lo contrario de lo que pide el diseño (1284756). */ ''}
+        class="flex items-center justify-center w-[50px] h-[50px] min-w-[50px] min-h-[50px] p-[8px] aspect-square rounded-full bg-[#262626] border border-solid border-[#9a9a9a] text-white shrink-0 box-border motion-safe:transition-colors motion-safe:duration-150 group-hover:bg-white group-hover:text-[#262626] group-active:bg-[#e9e9e9] group-active:text-[#262626]"
       >
         ${iconNode}
       </span>

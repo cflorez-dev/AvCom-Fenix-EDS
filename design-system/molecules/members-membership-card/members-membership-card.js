@@ -396,9 +396,10 @@ export const MembersMembershipCard = ({
   const [gradA, gradB] = stopA.pct <= stopB.pct ? [stopA, stopB] : [stopB, stopA];
   const cardBgImage = theme.cardBackground
     || `linear-gradient(${theme.gradientAngle || '135deg'}, ${gradA.color} ${gradA.stop}, ${gradB.color} ${gradB.stop})`;
-  // Shadow: variante compact (Figma 518:22622) usa shadow suave 1.7/17/1.7 con
-  // rgba(73,73,73,0.25); default sigue `shadow/large` del CF/preset.
-  const compactShadow = '0px 1.7px 17px 1.7px rgba(73, 73, 73, 0.25)';
+  // Shadow: variante compact (Figma 518:22622) usa la geometría suave 1.7/17/1.7;
+  // el COLOR es el mismo del default (`shadow/large`, rgba(27,27,27,0.4)) — antes
+  // era rgba(73,73,73,0.25) y no correspondía a la spec (1284792, Figma 518:22279).
+  const compactShadow = '0px 1.7px 17px 1.7px rgba(27, 27, 27, 0.4)';
   const cardStyle = {
     backgroundImage: cardBgImage,
     boxShadow: compact ? compactShadow : (theme.cardShadow || MEMBERS_CARD_SHADOW_DEFAULT),
@@ -503,7 +504,11 @@ export const MembersMembershipCard = ({
            right-center, ver arriba). */ ''}
       <div class=${`relative z-[1] flex items-end justify-between ${compact ? 'gap-[10.968px] pb-[10.968px] px-[10.968px]' : 'gap-[12.903px] pb-[12.903px] px-[12.903px]'}`}>
         ${memberName && html`
-          <span class=${`font-bold text-white truncate min-w-0 ${compact ? 'text-[14px] leading-[19px]' : 'text-base leading-[21px]'}`} data-name="members-card-name">
+          ${/* El nombre SALTA a una segunda línea cuando no cabe (Figma 518:23111);
+               antes tenía `truncate`, que fuerza una sola línea con elipsis y deja
+               nombres largos cortados (1284728). `line-clamp-2` respeta el límite
+               del contenedor: 2 líneas máximo y elipsis solo si se pasa. */ ''}
+          <span class=${`font-bold text-white line-clamp-2 break-words min-w-0 ${compact ? 'text-[14px] leading-[19px]' : 'text-base leading-[21px]'}`} data-name="members-card-name">
             ${memberName}
           </span>
         `}
