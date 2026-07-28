@@ -27,6 +27,25 @@ export const resolveActiveStep = (mode, activeStepProp, internalActiveStep) => {
 };
 
 /**
+ * Clases del contenedor. En modo rango (RT) el outline lo pone este contenedor —los dos
+ * DateInput agrupados no lo llevan—; en modo single (OW) lo pone el propio DateInput.
+ *
+ * `outline-offset-[-1px]` dibuja el trazo HACIA ADENTRO. Sin él el outline queda por
+ * fuera de la caja y el campo se ve 2px más alto y 2px más ancho que su border-box: en
+ * producción el campo de fechas medía 57px visibles en RT contra 55px en OW (el
+ * standalone ya lo trae desde el fix 1286625), así que "cambiaba de alto" al alternar el
+ * tipo de viaje. Es el mismo offset que usan origin-destination-selector, city-selector,
+ * el átomo input y el contenedor agrupado del bottom sheet de date-selector.
+ *
+ * @param {boolean} isRange
+ * @param {string} customClassName
+ * @returns {string}
+ */
+export const resolveContainerClasses = (isRange, customClassName = '') => (isRange
+  ? `flex items-center outline outline-1 outline-offset-[-1px] outline-[var(--color-border-default)] rounded-[8px] bg-background-input-default overflow-hidden ${customClassName}`.trim()
+  : customClassName);
+
+/**
  * DateRangePicker - Orquestador principal para selección de fechas (ida/regreso o solo ida)
  *
  * ## Props
@@ -295,11 +314,8 @@ export const DateRangePicker = ({
 
   // ========== STYLING ==========
 
-  // Container with Tailwind classes
   const containerClasses = useMemo(
-    () => (isRange
-      ? `flex items-center outline outline-1 outline-[var(--color-border-default)] rounded-[8px] bg-background-input-default overflow-hidden ${customClassName}`.trim()
-      : customClassName),
+    () => resolveContainerClasses(isRange, customClassName),
     [isRange, customClassName],
   );
 
