@@ -70,7 +70,7 @@ export const MembersHeroCompact = ({
       onClick=${onToggle}
       aria-expanded="false"
       aria-label=${toggleAriaLabel || toggleLabel}
-      class="group inline-flex items-center gap-[4px] shrink-0 bg-transparent border-0 p-0 cursor-pointer text-white font-normal! text-[14px]! leading-[normal]! lg:text-[16px]! outline-none rounded-[4px] focus-visible:[box-shadow:0_0_0_1.5px_#28a8ff,0_0_0_3px_#ffffff]"
+      class="group relative inline-flex items-center gap-[4px] shrink-0 bg-transparent border-0 p-0 cursor-pointer text-white font-normal! text-[14px]! leading-[19px]! lg:text-[16px]! lg:leading-[21px]! outline-none rounded-[4px]"
       data-name="members-hero-toggle"
     >
       ${/* Estados del CTA (Figma 518:22242 "Action Button"): hover = SUBRAYADO solo
@@ -78,12 +78,28 @@ export const MembersHeroCompact = ({
            El `!` es obligatorio: `styles.css` trae un `font: inherit` sin capa que
            le gana a `@layer utilities`, así que `font-semibold` pelado no aplica
            sobre un <button> (mismo motivo que el `font-normal!` de arriba). */ ''}
-      <span class="group-hover:underline group-hover:decoration-solid group-active:no-underline group-active:font-semibold!">${toggleLabel}</span>
+      ${/* Focus ring (Figma 518:22271): `-inset-1` da 4px de aire entre el texto y
+           el ring azul (`#28a8ff` 1.5px) + halo blanco (3px). Va en span aparte
+           porque el ring de un box-shadow pegado al `<button>` (sin padding) queda
+           demasiado ajustado al texto y no coincide con el mock. Mismo patrón
+           que `MembersCopyMembership`. */ ''}
+      <span
+        aria-hidden="true"
+        class="absolute -inset-1 rounded-[4px] pointer-events-none opacity-0 group-focus-visible:opacity-100 [box-shadow:0_0_0_1.5px_#28a8ff,0_0_0_3px_#ffffff]"
+      ></span>
+      ${/* Grid-stack para evitar layout shift en pressed: Figma (518:22262) cambia
+           el weight 400→600 en pressed. Un sibling invisible con `font-semibold!`
+           reserva el ancho máximo (bold) y el visible cambia weight sin correr
+           el chevron ni el resto del layout. */ ''}
+      <span class="relative inline-grid">
+        <span aria-hidden="true" class="col-start-1 row-start-1 invisible font-semibold! pointer-events-none select-none">${toggleLabel}</span>
+        <span class="col-start-1 row-start-1 group-hover:underline group-hover:decoration-solid group-active:no-underline group-active:font-semibold!">${toggleLabel}</span>
+      </span>
       ${/* chevron-down del DS (mismo path relleno que `header-button.js`, anclado a
            la spec de Figma del chip de carrito). Antes era un chevron STROKED
            dibujado a mano, que no coincidía con el recurso de diseño (1284630).
            viewBox 16 con caja 24 → conserva el tamaño renderizado de siempre. */ ''}
-      <svg width="24" height="24" viewBox="0 0 16 16" fill="none" aria-hidden="true" class="motion-safe:transition-transform">
+      <svg width="24" height="24" viewBox="0 0 16 16" fill="none" aria-hidden="true" class="relative motion-safe:transition-transform">
         <path
           fill-rule="evenodd"
           clip-rule="evenodd"

@@ -805,4 +805,60 @@ export const getEliteTierTokens = (rawTier, cfTierMap = {}) => {
   };
 };
 
+/**
+ * Tokens del chip circular de `MembersQuickAction` por tier — SPEC 2026-07-27:
+ *   • Lifemiles → Figma 518:23646 (bg #970346 / border #D7ACBF).
+ *   • Red Plus  → Figma 518:23481 (bg #7D0106 / border #C88F91).
+ *   • Silver    → Figma 518:23522 (bg #262626 / border #9A9A9A).
+ *   • Gold      → Figma 518:23440 (bg #703B16 / border #CEB19C).
+ *   • Diamond   → Figma 518:23564 (bg #0F0F0F / border #808080).
+ *   • Magno     → Figma 518:23605 (bg #1B0900 / border #6E615B).
+ * Ícono blanco en todos (contraste ícono/fill ≥ 8.6). Los ratios de accesibilidad
+ * (stroke/fondo oscuro, stroke/fill) están validados en las láminas.
+ *
+ * La tabla vive acá — NO se derivan de `pillBg/pillBorder` — porque los tokens
+ * del chip pueden divergir de la píldora "Ver perfil" (mismo por-tier, pero
+ * distinto propósito y potenciales cambios futuros de hover/pressed).
+ *
+ * Estados hover/pressed: el Figma sí los define — chip completo BLANCO (bg y
+ * border) con el ícono en el color del tier. En pressed el chip pasa a `#E9E9E9`
+ * manteniendo el borde acompañando. La inversión mantiene el foco del CTA
+ * cuando el usuario interactúa (consistente con `pillTextHover` de la píldora
+ * "Ver perfil"). Ver Figma 518:23397.
+ *
+ * @param {string} rawTier
+ * @param {Object<string, object>} [cfTierThemes={}] - reservado para override
+ *   futuro del CF; hoy la tabla es hardcoded (el Figma es la fuente).
+ * @returns {{key,bg,border,icon,bgHover,borderHover,iconHover,bgActive,borderActive,iconActive}|null}
+ *   `null` si el tier no matchea ninguna key normalizada ⇒ el átomo cae a su
+ *   look oscuro genérico.
+ */
+const QUICK_ACTION_TOKENS_BY_TIER = Object.freeze({
+  lifemiles: { bg: '#970346', border: '#D7ACBF' },
+  'red-plus': { bg: '#7D0106', border: '#C88F91' },
+  silver: { bg: '#262626', border: '#9A9A9A' },
+  gold: { bg: '#703B16', border: '#CEB19C' },
+  diamond: { bg: '#0F0F0F', border: '#808080' },
+  magno: { bg: '#1B0900', border: '#6E615B' },
+});
+
+export const getQuickActionTokens = (rawTier, cfTierThemes = {}) => {
+  const key = normalizeTierKey(rawTier);
+  const spec = QUICK_ACTION_TOKENS_BY_TIER[key];
+  if (!spec) return null;
+  const { bg, border } = spec;
+  return {
+    key,
+    bg,
+    border,
+    icon: '#FFFFFF',
+    bgHover: '#FFFFFF',
+    borderHover: '#FFFFFF',
+    iconHover: bg,
+    bgActive: '#E9E9E9',
+    borderActive: '#E9E9E9',
+    iconActive: bg,
+  };
+};
+
 export default getMembersTierTheme;

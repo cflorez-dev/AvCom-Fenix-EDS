@@ -81,17 +81,34 @@ export const MembersHeroExpanded = ({
       onClick=${onToggle}
       aria-expanded="true"
       aria-label=${toggleAriaLabel || toggleLabel}
-      class="group inline-flex items-center gap-[4px] shrink-0 bg-transparent border-0 p-0 cursor-pointer text-white font-normal! text-[14px]! leading-[14px]! lg:text-[16px]! lg:leading-[16px]! outline-none rounded-[4px] focus-visible:[box-shadow:0_0_0_1.5px_#28a8ff,0_0_0_3px_#ffffff]"
+      class="group relative inline-flex items-center gap-[4px] shrink-0 bg-transparent border-0 p-0 cursor-pointer text-white font-normal! text-[14px]! leading-[19px]! lg:text-[16px]! lg:leading-[21px]! outline-none rounded-[4px]"
       data-name="members-hero-toggle"
     >
       ${/* Estados del CTA (Figma 518:22242 "Action Button"): hover = SUBRAYADO solo
            en la etiqueta; active/pressed = SemiBold. El `!` es obligatorio por el
            `font: inherit` sin capa de `styles.css` (ver members-hero-compact). */ ''}
-      <span class="group-hover:underline group-hover:decoration-solid group-active:no-underline group-active:font-semibold!">${toggleLabel}</span>
+      ${/* Focus ring (Figma 518:22271): `-inset-1` da 4px de aire entre el texto y
+           el ring azul (`#28a8ff` 1.5px) + halo blanco (3px). Va en span aparte
+           porque el ring de un box-shadow pegado al `<button>` (sin padding) queda
+           demasiado ajustado al texto y no coincide con el mock. Mismo patrón
+           que `MembersCopyMembership`. */ ''}
+      <span
+        aria-hidden="true"
+        class="absolute -inset-1 rounded-[4px] pointer-events-none opacity-0 group-focus-visible:opacity-100 [box-shadow:0_0_0_1.5px_#28a8ff,0_0_0_3px_#ffffff]"
+      ></span>
+      ${/* Grid-stack para evitar layout shift en pressed: Figma (518:22262) cambia
+           el weight 400→600 en pressed, lo que ensancha el texto y empuja el
+           chevron. Un sibling invisible con `font-semibold!` reserva el ancho
+           máximo (bold) y el visible cambia weight sin correr el layout. Ambos
+           necesitan `!` por el `font: inherit` sin capa de `styles.css`. */ ''}
+      <span class="relative inline-grid">
+        <span aria-hidden="true" class="col-start-1 row-start-1 invisible font-semibold! pointer-events-none select-none">${toggleLabel}</span>
+        <span class="col-start-1 row-start-1 group-hover:underline group-hover:decoration-solid group-active:no-underline group-active:font-semibold!">${toggleLabel}</span>
+      </span>
       ${/* chevron-up (estado expandido): mismo path relleno del DS que usa
            `header-button.js`, rotado 180°. Antes era un chevron STROKED dibujado a
            mano, distinto del recurso de diseño (1284630). */ ''}
-      <svg width="24" height="24" viewBox="0 0 16 16" fill="none" aria-hidden="true" class="rotate-180">
+      <svg width="24" height="24" viewBox="0 0 16 16" fill="none" aria-hidden="true" class="relative rotate-180">
         <path
           fill-rule="evenodd"
           clip-rule="evenodd"
@@ -168,6 +185,8 @@ export const MembersHeroExpanded = ({
             <${MembersQuickActions}
               actions=${quickActions}
               opensInNewWindowLabel=${opensInNewWindowLabel}
+              tier=${tier}
+              tierThemes=${tierThemes}
             />
           `}
         />
