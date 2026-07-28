@@ -504,11 +504,14 @@ export const MembersMembershipCard = ({
            right-center, ver arriba). */ ''}
       <div class=${`relative z-[1] flex items-end justify-between ${compact ? 'gap-[10.968px] pb-[10.968px] px-[10.968px]' : 'gap-[12.903px] pb-[12.903px] px-[12.903px]'}`}>
         ${memberName && html`
-          ${/* El nombre SALTA a una segunda línea cuando no cabe (Figma 518:23111);
-               antes tenía `truncate`, que fuerza una sola línea con elipsis y deja
-               nombres largos cortados (1284728). `line-clamp-2` respeta el límite
-               del contenedor: 2 líneas máximo y elipsis solo si se pasa. */ ''}
-          <span class=${`font-bold text-white line-clamp-2 break-words min-w-0 ${compact ? 'text-[14px] leading-[19px]' : 'text-base leading-[21px]'}`} data-name="members-card-name">
+          ${/* Nombre: max-w 180px para evitar superposición con el cóndor (bg
+               dcorativo) y el logo de Star Alliance (esquina inferior-derecha).
+               Cuando supera ese ancho el nombre WRAP a segunda línea (spec
+               2026-07-28); NO se trunca con `…`. Por eso NO usamos `line-clamp`
+               ni `truncate`: sólo `max-w-[180px] break-words`. `break-words`
+               permite partir tokens largos (ej. emails) si no caben en 180px.
+               `min-w-0` mantiene el shrink en el flex row cuando el logo crece. */ ''}
+          <span class=${`font-bold text-white max-w-[180px] break-words min-w-0 ${compact ? 'text-[14px] leading-[19px]' : 'text-base leading-[21px]'}`} data-name="members-card-name">
             ${memberName}
           </span>
         `}

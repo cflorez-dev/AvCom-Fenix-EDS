@@ -1,6 +1,7 @@
 import { h } from '@dropins/tools/preact.js';
 import htm from 'htm';
 import { MembersQuickAction } from '../../atoms/members-quick-action/members-quick-action.js';
+import { getQuickActionTokens } from '../../helpers/members-tier-theme.js';
 
 const html = htm.bind(h);
 
@@ -24,12 +25,19 @@ const html = htm.bind(h);
  * - `actions`: Array<{key,label,icon,url,newTab,visible,sortOrder}> — de la config.
  * - `opensInNewWindowLabel`: string — sufijo aria para acciones `newTab` (i18n).
  * - `max`: number — máximo de acciones a mostrar. Default 4.
+ * - `tier`: string — tier crudo del VM ("LifeMiles"/"Gold"/...). Se propaga al átomo
+ *   para tintar el chip circular con la paleta del tier (Figma 518:23646). Si no viene
+ *   o el tier no tiene spec confirmado, el chip mantiene su look oscuro genérico.
+ * - `tierThemes`: object — map indexado del CF (`cfg.tierThemes`) para overrides
+ *   de tokens del tier autoreados en Adobe (mismo patrón que `MembersHeroExpanded`).
  * - `customClassName`: string.
  */
 export const MembersQuickActions = ({
   actions = [],
   opensInNewWindowLabel = '',
   max = 4,
+  tier = '',
+  tierThemes = null,
   customClassName = '',
   ...rest
 }) => {
@@ -49,6 +57,11 @@ export const MembersQuickActions = ({
     ? `${a.label}, ${opensInNewWindowLabel}`
     : a.label);
 
+  // Tokens del chip por tier (Figma 518:23646). Se resuelven UNA vez a nivel de
+  // la fila y se pasan al átomo — evita N lookups al helper si hay muchas acciones.
+  // `null` (tier vacío o sin spec) ⇒ el átomo cae al chip oscuro genérico.
+  const chipTokens = tier ? getQuickActionTokens(tier, tierThemes || {}) : null;
+
   return html`
     <div
       class=${`grid grid-cols-4 gap-x-2 gap-y-6 min-[640px]:flex min-[640px]:items-start min-[640px]:justify-start min-[640px]:gap-2 ${customClassName}`}
@@ -64,6 +77,7 @@ export const MembersQuickActions = ({
           url=${a.url}
           newTab=${!!a.newTab}
           ariaLabel=${ariaFor(a)}
+          chipTokens=${chipTokens}
         />
       `)}
     </div>

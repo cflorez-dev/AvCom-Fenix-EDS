@@ -230,4 +230,71 @@ export function getMockMemberMetrics(state = getMembersDataMockState()) {
  * cuando el wrapper real falla o no está disponible. */
 export const getEmptyMemberMetrics = () => ({ ...EMPTY_METRICS });
 
+// ─────────────────────────────────────────────────────────────────────────────
+// Mock de SESIÓN (dev-only, localhost). Re-introduce lo que hacía el módulo
+// `members-dev-mock.js` eliminado en `e0011f4f`, pero gateado bien fuerte:
+// solo se activa cuando `isDevSessionMockEnabled()` es true (localhost + flag
+// `?mockMembers=1`) Y hay un estado de mock de datos (`?membersMock=<state>`).
+// Sin ambas condiciones esto NO corre. En qa/prod se ignora por hostname.
+// Uso: `?mockMembers=1&membersMock=lifemiles` → hero pintado con tier Lifemiles.
+// ─────────────────────────────────────────────────────────────────────────────
+
+/** Nombres/tier raw por estado — se usan para poblar el VM de sesión. Los tiers
+ * ya coinciden con las keys normalizadas del theme helper, así que se pasan tal
+ * cual como `user.tier` (equivalente a `acc.tier` del wrapper real). */
+const MOCK_USER_BY_STATE = {
+  [MEMBERS_DATA_STATES.LIFEMILES]: { firstName: 'Ana', lastName: 'Ruiz', tier: 'lifemiles' },
+  [MEMBERS_DATA_STATES.RED_PLUS]: { firstName: 'Luis', lastName: 'Pérez', tier: 'redPlus' },
+  [MEMBERS_DATA_STATES.SILVER]: { firstName: 'María', lastName: 'Gómez', tier: 'silver' },
+  [MEMBERS_DATA_STATES.GOLD]: { firstName: 'Carlos', lastName: 'Rojas', tier: 'gold' },
+  [MEMBERS_DATA_STATES.DIAMOND]: { firstName: 'Sofía', lastName: 'Vargas', tier: 'diamond' },
+  [MEMBERS_DATA_STATES.MAGNO]: { firstName: 'Andrés', lastName: 'Silva', tier: 'magno' },
+  [MEMBERS_DATA_STATES.EMPTY]: { firstName: 'Sin', lastName: 'Datos', tier: 'lifemiles' },
+  [MEMBERS_DATA_STATES.PARTIAL]: { firstName: 'Parcial', lastName: 'Data', tier: 'silver' },
+};
+
+/** Mapa de PRESENCIA de perfil "todo completo" — evita que aparezcan CTAs de
+ * completitud molestando la revisión visual del hero/quick-actions. Se calcula
+ * inline (sin depender de `profile-completeness`) para evitar acoplamiento del
+ * mock a la lista de checks. */
+const MOCK_PROFILE_FIELDS_COMPLETE = Object.freeze({
+  firstName: true,
+  lastName: true,
+  dateOfBirth: true,
+  nationality: true,
+  gender: true,
+  email: true,
+  phone: true,
+  phonePrefix: true,
+  address: true,
+  emergencyContact: true,
+  documentId: true,
+  travelDocument: true,
+});
+
+/**
+ * Devuelve un VM de sesión (`user`) completo para el estado indicado, listo para
+ * meter en el store con `setSession({ status: 'authenticated', user })`. Incluye
+ * las métricas del fixture correspondiente para que el hero no dispare fetch al
+ * wrapper real. Solo se usa desde `session.service.rehydrate()` bajo el gate
+ * dev-only.
+ * @param {string} [state] - key de `MEMBERS_DATA_STATES`. Default = estado activo.
+ * @returns {object|null} user VM, o `null` si el estado no tiene mapping.
+ */
+export function getMockUserVM(state = getMembersDataMockState()) {
+  const meta = MOCK_USER_BY_STATE[state];
+  if (!meta) return null;
+  const metrics = getMockMemberMetrics(state);
+  return {
+    membershipNumber: '000000000',
+    tier: meta.tier,
+    cenit: { level: null },
+    firstName: meta.firstName,
+    lastName: meta.lastName,
+    language: 'es',
+    profileFields: { ...MOCK_PROFILE_FIELDS_COMPLETE },
+    ...metrics,
+  };
+}
+
 export default getMockMemberMetrics;

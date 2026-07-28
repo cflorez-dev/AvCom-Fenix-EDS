@@ -150,11 +150,26 @@ export const MembersEliteProgress = ({
   const ctaEl = showCta ? html`
     <a
       href=${ctaUrl}
-      class="inline-flex items-center gap-[4px] text-[#1b1b1b] font-normal text-sm lg:text-base leading-[19px] lg:leading-[16px] no-underline whitespace-nowrap shrink-0 rounded-sm outline-none focus-visible:[box-shadow:0_0_0_1.5px_#28a8ff,0_0_0_3px_#ffffff]"
+      class="group relative inline-flex items-center gap-[4px] text-[#1b1b1b] font-normal text-[14px] leading-[19px] lg:text-[16px] lg:leading-[21px] no-underline whitespace-nowrap shrink-0 rounded-[4px] outline-none"
       data-name="members-elite-cta"
     >
-      <span>${ctaLabel}</span>
-      <${Icon} icon="navigation/arrow-right" customSize=${24} ariaLabel="" />
+      ${/* Focus ring (Figma 518:22271): `-inset-1` = 4px de respiro entre texto e
+           icono y el ring azul+blanco. Mismo patrón que `members-hero-toggle` y
+           `MembersCopyMembership` — un span aparte para que el box-shadow no quede
+           pegado al bounding box. */ ''}
+      <span
+        aria-hidden="true"
+        class="absolute -inset-1 rounded-[4px] pointer-events-none opacity-0 group-focus-visible:opacity-100 [box-shadow:0_0_0_1.5px_#28a8ff,0_0_0_3px_#ffffff]"
+      ></span>
+      ${/* hover = underline; active/pressed = SemiBold (Figma 518:22253 / 518:22262).
+           Grid-stack: el cambio 400→600 en pressed ensancha el texto y empujaría
+           la flecha; un sibling invisible con `font-semibold` reserva el ancho
+           bold para que el visible pueda cambiar weight sin correr el layout. */ ''}
+      <span class="relative inline-grid">
+        <span aria-hidden="true" class="col-start-1 row-start-1 invisible font-semibold pointer-events-none select-none">${ctaLabel}</span>
+        <span class="col-start-1 row-start-1 group-hover:underline group-hover:decoration-solid group-active:no-underline group-active:font-semibold">${ctaLabel}</span>
+      </span>
+      <span class="relative inline-flex"><${Icon} icon="navigation/arrow-right" customSize=${24} ariaLabel="" /></span>
     </a>
   ` : null;
 

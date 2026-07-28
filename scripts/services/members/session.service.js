@@ -10,6 +10,8 @@ import {
   isMembersDataMockEnabled,
   getMockMemberMetrics,
   getEmptyMemberMetrics,
+  isDevSessionMockEnabled,
+  getMockUserVM,
 } from './members-data.mock.js';
 import { guardPortalSession } from './members-guard.js';
 import { normalizeTierKey } from '../../../design-system/helpers/members-tier-theme.js';
@@ -510,6 +512,17 @@ async function loadProfile() {
  * redirige. (Antes había un lmRefreshSession() proactivo acá, pero ese helper es arity-0 y SIEMPRE
  * redirige al SSO en fallo → rompía la transición a expired; verificado en vivo QA 2026-06-11.) */
 async function rehydrate() {
+  // Dev-only short-circuit (localhost + `?mockMembers=1` + `?membersMock=<state>`):
+  // salta el flujo real de LM y monta un user mock listo para pintar el hero. Con
+  // esto se revisa en localhost sin cookie/token de LM. En qa/prod el gate por
+  // hostname en `isDevSessionMockEnabled()` lo ignora por completo.
+  if (isDevSessionMockEnabled() && isMembersDataMockEnabled()) {
+    const mockUser = getMockUserVM();
+    if (mockUser) {
+      setSession({ status: 'authenticated', user: mockUser, error: null });
+      return;
+    }
+  }
   if (!isLoggedIn()) {
     clearCache();
     setSession({ status: 'anonymous', user: null, error: null });

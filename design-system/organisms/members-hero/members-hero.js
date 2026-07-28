@@ -182,16 +182,29 @@ export const MembersHero = ({
   // Loading: autenticado pero el VM aún no resolvió (cold load, sin cache) O
   // el config aún no terminó de cargar (evita render con preset y posterior
   // re-render con CF → "flash" de gradiente). Skeleton matchea geometría del
-  // hero EXPANDIDO (Figma 518:23125 desktop / 518:23193 tablet / 518:23258
-  // mobile) con barrido lateral continuo. Bg `#d5d5d5` y padding 16/24/32
-  // vienen del Figma para minimizar el "salto" visual al hidratar — el bg del
-  // estado expandido es un gradient por tier que aún no conocemos en cold load.
+  // hero EXPANDIDO (Figma 518:24796 mobile / 518:24717 tablet / 518:24636
+  // desktop) con barrido lateral continuo, bg `#d5d5d5`.
+  //
+  // Padding: el skeleton reproduce EXACTAMENTE el padding que aplicará el
+  // molecule destino según el estado guardado (`expanded` viene de
+  // sessionStorage). Así, al hidratar el hero real, el contenido queda en la
+  // MISMA coordenada X/Y y no hay salto vertical/horizontal (CLS 0). Ver
+  // paddings de `MembersHeroCompact.js` y `MembersHeroExpanded.js`:
+  //   - Expanded → px-16 pt-24 pb-16 / md:px-24 md:pt-32 md:pb-24 / lg:p-32
+  //   - Compact  → pt-24 pb-16 px-16 (mobile+tablet) / lg:py-16 lg:px-32
+  // Nota: en mobile ambos coinciden (24/16/16/16); las diferencias aparecen
+  // en tablet (8px pt) y desktop (16px py). Sin este switch el skeleton pinta
+  // el layout de expanded aunque el usuario vaya a caer en compact.
+  const loadingPaddingClasses = expanded
+    ? 'px-[16px] pt-[24px] pb-[16px] md:px-[24px] md:pt-[32px] md:pb-[24px] lg:p-[32px]'
+    : 'pt-[24px] pb-[16px] px-[16px] lg:py-[16px] lg:px-[32px]';
   if (status === 'authenticated' && (!user || !cfgLoaded)) {
     return html`
       <div
-        class="members-hero rounded-2xl overflow-hidden bg-[#d5d5d5] p-4 md:p-6 lg:p-8"
+        class=${`members-hero rounded-2xl overflow-hidden bg-[#d5d5d5] ${loadingPaddingClasses}`}
         data-name="members-hero"
         data-state="loading"
+        data-target-state=${expanded ? 'expanded' : 'compact'}
         role="status"
         aria-live="polite"
         aria-busy="true"
