@@ -258,9 +258,13 @@ export const MembersHero = ({
     expiryValue: user.milesExpiryDate ? formatDate(user.milesExpiryDate, lang) : placeholder,
     statusLabel: labels.statusLabel,
     statusValue: tierLabel,
-    statusExpiryText: user.statusExpiry
-      ? `${labels.statusExpiryPrefix} ${formatDate(user.statusExpiry, lang)}`
-      : '',
+    // Vigencia del estatus: con el mismo criterio de "Fecha de vencimiento" de las
+    // millas, un socio SIN vigencia (tier base, que no tiene estatus elite) muestra el
+    // placeholder en vez de omitir la línea — si no, la sección Estatus queda sin el
+    // renglón que define el diseño y el bloque se ve incompleto (1284699).
+    statusExpiryText: `${labels.statusExpiryPrefix} ${
+      user.statusExpiry ? formatDate(user.statusExpiry, lang) : placeholder
+    }`,
     membershipLabel: labels.membershipLabel,
     membershipNumber: user.membershipNumber,
     copyAriaLabel: labels.copyAriaLabel,

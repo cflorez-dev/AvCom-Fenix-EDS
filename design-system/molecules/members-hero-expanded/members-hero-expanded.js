@@ -84,10 +84,20 @@ export const MembersHeroExpanded = ({
       class="group inline-flex items-center gap-[4px] shrink-0 bg-transparent border-0 p-0 cursor-pointer text-white font-normal! text-[14px]! leading-[14px]! lg:text-[16px]! lg:leading-[16px]! outline-none rounded-[4px] focus-visible:[box-shadow:0_0_0_1.5px_#28a8ff,0_0_0_3px_#ffffff]"
       data-name="members-hero-toggle"
     >
-      <span>${toggleLabel}</span>
-      ${/* chevron-up (estado expandido) */ ''}
-      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-        <path d="M18 15l-6-6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+      ${/* Estados del CTA (Figma 518:22242 "Action Button"): hover = SUBRAYADO solo
+           en la etiqueta; active/pressed = SemiBold. El `!` es obligatorio por el
+           `font: inherit` sin capa de `styles.css` (ver members-hero-compact). */ ''}
+      <span class="group-hover:underline group-hover:decoration-solid group-active:no-underline group-active:font-semibold!">${toggleLabel}</span>
+      ${/* chevron-up (estado expandido): mismo path relleno del DS que usa
+           `header-button.js`, rotado 180°. Antes era un chevron STROKED dibujado a
+           mano, distinto del recurso de diseño (1284630). */ ''}
+      <svg width="24" height="24" viewBox="0 0 16 16" fill="none" aria-hidden="true" class="rotate-180">
+        <path
+          fill-rule="evenodd"
+          clip-rule="evenodd"
+          d="M11.06 5.72656L8 8.7799L4.94 5.72656L4 6.66656L8 10.6666L12 6.66656L11.06 5.72656Z"
+          fill="currentColor"
+        />
       </svg>
     </button>
   ` : null;

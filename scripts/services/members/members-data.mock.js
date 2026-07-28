@@ -191,13 +191,15 @@ export function getMembersDataMockState() {
 export const isMembersDataMockEnabled = () => getMembersDataMockState() !== null;
 
 /**
- * ¿Está activo el MODO MOCK DE SESIÓN (dev-only)? — distinto del data-mock
- * (`?membersMock=`, que solo cambia las métricas en el camino REAL). Éste
- * (`?mockMembers=1`) SALTA cookie + wrappers y pinta una sesión mock completa para
- * ver el hero sin login. Gate DURO a localhost: en qa/prod el flag se IGNORA por
- * completo. La lógica pesada (VM mock + montaje del hero) vive en
- * `members-dev-mock.js` y se importa dinámicamente solo cuando esto devuelve true,
- * para no inflar el bundle de producción.
+ * ¿Está el flag DEV-ONLY `?mockMembers=1` activo? — distinto del data-mock
+ * (`?membersMock=`, que cambia las métricas en el camino REAL). Gate DURO a
+ * localhost: en qa/prod se IGNORA por completo.
+ *
+ * OJO (MOCK-CLEANUP-1263924): el módulo que pintaba la sesión mock y montaba el hero
+ * (`members-dev-mock.js`) se eliminó en `e0011f4f`, así que este flag YA NO monta nada.
+ * Hoy solo lo consume `members-guard.js` para no redirigir al login en localhost.
+ * Para ver el hero en local hay que montar el componente en un harness, o usar
+ * `?membersMock=<estado>` en un entorno non-prod con sesión real.
  * @returns {boolean}
  */
 export function isDevSessionMockEnabled() {
