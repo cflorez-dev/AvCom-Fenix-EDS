@@ -296,10 +296,14 @@ export const OriginDestinationSelector = ({
       const pool = filteredDestinations.length ? filteredDestinations : fetchedCities;
       if (!pool.length) return;
 
-      const matched = pool.find(
-        (c) => c.iataCityCode?.toUpperCase() === target
-          || c.iataTerminal?.toUpperCase() === target,
-      );
+      // Resolve the target IATA with the same precedence as the origin default
+      // (findDefaultOriginCity): metropolitan aggregate first (BUE/BUE), then
+      // city code, then a specific terminal. Without this, a card whose
+      // Destination is a metro code (e.g. BUE) would land on whichever terminal
+      // row (BUE/AEP) the backend returns first instead of the "all airports"
+      // aggregate. Catalog codes are uppercase and `target` is already
+      // uppercased, so exact-match comparison holds.
+      const matched = findDefaultOriginCity(pool, target);
       if (!matched) return;
 
       handleDestinationSelect(matched);
