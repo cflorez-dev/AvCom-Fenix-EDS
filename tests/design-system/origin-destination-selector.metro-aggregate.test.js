@@ -89,6 +89,30 @@ describe('promoteToMetroAggregate', () => {
     });
   });
 
+  describe('destination landing prefill (destinations.js resolution)', () => {
+    // The landing reached from the destinations hub resolves the CF city code
+    // with a plain first-match-by-city-code, then promotes. Verified live: the
+    // Buenos Aires landing was prefilling "Buenos Aires (AEP)".
+    const resolveLanding = (catalog, cityCode) => promoteToMetroAggregate(
+      catalog,
+      catalog.find((c) => String(c.iataCityCode || '').toUpperCase() === cityCode),
+    );
+
+    it('prefills the aggregate for a Buenos Aires landing whatever the catalog order', () => {
+      expect(resolveLanding([AEP, BUE, EZE], 'BUE')).toEqual(BUE);
+      expect(resolveLanding([EZE, AEP, BUE], 'BUE')).toEqual(BUE);
+    });
+
+    it('keeps the first-airport behaviour for every other metro', () => {
+      expect(resolveLanding([PAR_ORY, PAR_CDG], 'PAR')).toEqual(PAR_ORY);
+      expect(resolveLanding([SAO_CGH, SAO_GRU], 'SAO')).toEqual(SAO_CGH);
+    });
+
+    it('resolves single-airport cities unchanged', () => {
+      expect(resolveLanding([BOG, MDE], 'MDE')).toEqual(MDE);
+    });
+  });
+
   describe('fail-safe guards (must never blank out a resolved value)', () => {
     it('returns the terminal row when the aggregate is absent from the pool', () => {
       // Backend stopped publishing BUE/BUE → keep Ezeiza rather than nothing.
