@@ -194,7 +194,7 @@ export default async function decorate(block) {
   // Clear block and setup with Tailwind classes (same layout as v1; only the
   // token name changes so v1 and v2 can coexist on the same site).
   block.innerHTML = '';
-  block.className = 'cms-hero-banner-v2 h-[457px] min-[1248px]:h-[324px] p-4 min-[1248px]:p-6 rounded-3xl box-border overflow-hidden relative w-full text-[var(--text-normal-lighter)] flex justify-center items-end md:h-[457px]';
+  block.className = 'cms-hero-banner-v2 h-[457px] min-[1248px]:h-[324px] p-4 min-[1248px]:p-6 rounded-2xl box-border overflow-hidden relative w-full text-[var(--text-normal-lighter)] flex justify-center items-end md:h-[457px]';
 
   // --- LCP background layer: a REAL responsive <picture> with an eager,
   //     high-priority <img>. The browser discovers and fetches this without
