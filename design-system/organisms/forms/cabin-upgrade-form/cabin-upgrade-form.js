@@ -24,6 +24,49 @@ export const sanitizePnr = (value) => String(value ?? '')
 export const sanitizeLastName = (value) => String(value ?? '')
   .replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s]/g, '');
 
+// Ilustración por escenario (Figma 77-6794 "Modales - Error"): cada modal tiene
+// la suya, no comparten una sola. Se resuelven como sprite vía el atom Icon
+// (`/icons/<name>.svg`), a 80×80 dentro de ModalAviancaLayout.
+export const MODAL_ICONS = {
+  [UPGRADE_RESULT.NO_AVAILABILITY]: 'modals/upgrade-no-availability',
+  [UPGRADE_RESULT.NOT_FOUND]: 'modals/upgrade-not-found',
+  [UPGRADE_RESULT.ERROR]: 'modals/upgrade-error',
+};
+
+// Icono heredado, previo a tener las ilustraciones definitivas de Figma. Solo se
+// usa si llega un resultado desconocido.
+export const MODAL_ICON_FALLBACK = 'modals/upgrade-not-available';
+
+// Keys del diccionario con que el autor puede cambiar la imagen y su alt sin
+// deploy, igual que los textos. El valor de `.image` puede ser una ruta del sitio
+// (`/media_xxx.svg`), una URL absoluta o un nombre de sprite de `/icons/`.
+export const MODAL_IMAGE_KEYS = {
+  [UPGRADE_RESULT.NO_AVAILABILITY]: 'cabinUpgradeForm.modalHighDemand.image',
+  [UPGRADE_RESULT.NOT_FOUND]: 'cabinUpgradeForm.modalNotFound.image',
+  [UPGRADE_RESULT.ERROR]: 'cabinUpgradeForm.modalError.image',
+};
+
+/**
+ * Resuelve la ilustración de un modal. Precedencia: diccionario > override del
+ * bloque > ilustración de Figma embebida en el repo.
+ *
+ * El override del bloque (`modalImage` de form-header-banner) va segundo porque
+ * aplica a los tres modales por igual y está documentado como "no usar"; se
+ * conserva solo por compatibilidad.
+ *
+ * @param {string} result - Valor de UPGRADE_RESULT del modal que se está pintando
+ * @param {string} [cmsValue] - Valor de la key `*.image` del diccionario
+ * @param {string} [overrideSrc] - Override de autor del bloque form-header-banner
+ * @returns {string} Nombre de sprite, ruta del sitio o URL absoluta
+ */
+export const resolveModalIcon = (result, cmsValue, overrideSrc) => {
+  const authored = typeof cmsValue === 'string' ? cmsValue.trim() : '';
+  return authored
+    || overrideSrc
+    || MODAL_ICONS[result]
+    || MODAL_ICON_FALLBACK;
+};
+
 function getI18nLabel(key, fallback = '') {
   if (i18Cache) {
     const labelData = i18Cache.find((item) => item.Key === key);
@@ -99,6 +142,13 @@ export const CabinUpgradeForm = ({
         notFoundTitle: getI18nLabel('cabinUpgradeForm.modalNotFound.title', 'Reserva no encontrada'),
         notFoundDescription: getI18nLabel('cabinUpgradeForm.modalNotFound.description', 'Revisa el código de tu reserva y apellido'),
         notFoundButton: getI18nLabel('cabinUpgradeForm.modalNotFound.buttonText', 'Reintentar'),
+        // Imágenes de los modales: vacío = ilustración de Figma que vive en el repo.
+        highDemandImage: getI18nLabel(MODAL_IMAGE_KEYS[UPGRADE_RESULT.NO_AVAILABILITY], ''),
+        notFoundImage: getI18nLabel(MODAL_IMAGE_KEYS[UPGRADE_RESULT.NOT_FOUND], ''),
+        errorImage: getI18nLabel(MODAL_IMAGE_KEYS[UPGRADE_RESULT.ERROR], ''),
+        highDemandImageAlt: getI18nLabel('cabinUpgradeForm.modalHighDemand.imageAlt', ''),
+        notFoundImageAlt: getI18nLabel('cabinUpgradeForm.modalNotFound.imageAlt', ''),
+        errorImageAlt: getI18nLabel('cabinUpgradeForm.modalError.imageAlt', ''),
         notFoundPnrError: getI18nLabel('cabinUpgradeForm.error.pnrNotFound', 'Revisa el código de tu reserva'),
         notFoundLastNameError: getI18nLabel('cabinUpgradeForm.error.apellidoNotFound', 'Revisa el apellido'),
         formAriaLabel: getI18nLabel('cabinUpgradeForm.aria.form', 'Formulario de upgrade de cabina'),
@@ -201,7 +251,7 @@ export const CabinUpgradeForm = ({
   };
 
   const containerClasses = `cabin-upgrade-form w-full ${customClassName}`.trim();
-  const modalIcon = modalImageData?.src || 'modals/upgrade-not-available';
+  const modalIconOverride = modalImageData?.src;
 
   return html`
     <form
@@ -278,8 +328,8 @@ export const CabinUpgradeForm = ({
       onClose=${handleHighDemandClose}
       title=${labels.highDemandTitle}
       description=${modalDescription || labels.highDemandDescription}
-      icon=${modalIcon}
-      imageAlt=${modalImageAlt}
+      icon=${resolveModalIcon(UPGRADE_RESULT.NO_AVAILABILITY, labels.highDemandImage, modalIconOverride)}
+      imageAlt=${labels.highDemandImageAlt || modalImageAlt}
       primaryButtonLabel=${labels.highDemandButton}
       onPrimaryClick=${handleHighDemandClose}
     />
@@ -289,7 +339,8 @@ export const CabinUpgradeForm = ({
       onClose=${handleNotFoundClose}
       title=${labels.notFoundTitle}
       description=${labels.notFoundDescription}
-      icon=${modalIcon}
+      icon=${resolveModalIcon(UPGRADE_RESULT.NOT_FOUND, labels.notFoundImage, modalIconOverride)}
+      imageAlt=${labels.notFoundImageAlt || modalImageAlt}
       primaryButtonLabel=${labels.notFoundButton}
       onPrimaryClick=${handleNotFoundClose}
     />
@@ -299,7 +350,8 @@ export const CabinUpgradeForm = ({
       onClose=${closeModal}
       title=${labels.errorTitle}
       description=${labels.errorDescription}
-      icon=${modalIcon}
+      icon=${resolveModalIcon(UPGRADE_RESULT.ERROR, labels.errorImage, modalIconOverride)}
+      imageAlt=${labels.errorImageAlt || modalImageAlt}
       primaryButtonLabel=${labels.errorButton}
       onPrimaryClick=${closeModal}
     />
