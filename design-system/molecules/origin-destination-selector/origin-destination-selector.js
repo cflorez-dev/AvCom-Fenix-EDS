@@ -8,8 +8,6 @@ import {
   fetchCities,
   getDefaultOriginAiata,
   findDefaultOriginCity,
-  promoteToMetroAggregate,
-  applyMetroPriorityOrder,
   resolveNextDestination,
 } from './origin-destination-selector.service.js';
 import {
@@ -138,10 +136,10 @@ export const OriginDestinationSelector = ({
       setCitiesError(null);
 
       try {
-        const cities = applyMetroPriorityOrder(await fetchCities({
+        const cities = await fetchCities({
           originCode: '',
           destinationCode: '',
-        }));
+        });
 
         setFetchedCities(cities);
 
@@ -207,7 +205,7 @@ export const OriginDestinationSelector = ({
           useCache: false,
         });
 
-        setFilteredDestinations(applyMetroPriorityOrder(destinationOptions));
+        setFilteredDestinations(destinationOptions);
       } catch (error) {
         console.error('Error filtering destinations:', error);
         setFilteredDestinations([]);
@@ -298,20 +296,10 @@ export const OriginDestinationSelector = ({
       const pool = filteredDestinations.length ? filteredDestinations : fetchedCities;
       if (!pool.length) return;
 
-      // Resolve the target IATA with the same precedence as the origin default
-      // (findDefaultOriginCity): metropolitan aggregate first (BUE/BUE), then
-      // city code, then a specific terminal. Without this, a card whose
-      // Destination is a metro code (e.g. BUE) would land on whichever terminal
-      // row (BUE/AEP) the backend returns first instead of the "all airports"
-      // aggregate. Catalog codes are uppercase and `target` is already
-      // uppercased, so exact-match comparison holds.
-      //
-      // `promoteToMetroAggregate` then covers the reverse case, which is the
-      // one live content actually produces: the offers brief ships Buenos Aires
-      // as `EZE`, and PBI 1294884 requires the card click to fill the Booking
-      // Box with the "all airports" option regardless of which of the three
-      // codes (BUE/EZE/AEP) the author loaded. Only Buenos Aires is promoted.
-      const matched = promoteToMetroAggregate(pool, findDefaultOriginCity(pool, target));
+      const matched = pool.find(
+        (c) => c.iataCityCode?.toUpperCase() === target
+          || c.iataTerminal?.toUpperCase() === target,
+      );
       if (!matched) return;
 
       handleDestinationSelect(matched);
