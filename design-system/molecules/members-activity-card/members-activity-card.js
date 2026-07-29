@@ -82,9 +82,6 @@ export const MembersActivityCard = ({
 
   const formatDate = (value) => {
     if (!value) return '';
-    // String pre-formateado SIN año de 4 dígitos (ej. "JUL 03" del wrapper LM):
-    // mostrar tal cual — `new Date("JUL 03")` lo parsearía como año 2001.
-    if (!(value instanceof Date) && !/\d{4}/.test(String(value))) return String(value);
     const d = value instanceof Date ? value : new Date(value);
     if (Number.isNaN(d.getTime())) return String(value);
     // "Dic 30, 2026" — el `Intl` puede meter punto en el mes corto en es-*;

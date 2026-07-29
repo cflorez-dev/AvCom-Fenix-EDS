@@ -3,7 +3,7 @@ import { fetchAEMData } from '../../utils/aem-data.js';
 const STORAGE_DRIVER = 'localStorage';
 const STORAGE_PREFIX = 'avianca_apim_token_';
 const REFRESH_MARGIN_MS = 2 * 60 * 1000;
-const VALID_SERVICES = ['pricing', 'digital', 'upgrades'];
+const VALID_SERVICES = ['pricing', 'digital'];
 const TOKEN_ENDPOINT_KEY = 'AV_TOKEN_ENDPOINT';
 
 const getStorage = () => (STORAGE_DRIVER === 'sessionStorage'

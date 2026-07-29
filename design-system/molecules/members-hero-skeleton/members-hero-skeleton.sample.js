@@ -8,7 +8,7 @@ const html = htm.bind(h);
  * Showcase del skeleton de carga del MembersHero. Lo envolvemos con el mismo
  * contenedor (bg + padding + rounded) que pinta el organism `members-hero` en
  * su rama `data-state="loading"` — así el preview es 1:1 contra Figma
- * (518:24636 / 518:24717 / 518:24796, spec 2026-07-27).
+ * (518:23125 / 518:23193 / 518:23258).
  *
  * El barrido lateral SOLO corre si el `<style>` `.members-hero__sk` está
  * cargado. En `/design-system` el `<link rel="stylesheet" href=".../members-hero.css">`

@@ -6,7 +6,6 @@ import { Sidemenu } from '../../../molecules/sidemenu/sidemenu.js';
 import { MembersHeroHeader } from '../../../molecules/members-hero-header/members-hero-header.js';
 import { MembersMenuList } from '../../../molecules/members-menu-list/members-menu-list.js';
 import { logout } from '../../../../scripts/services/members/logout.service.js';
-import { getStoredLanguage } from '../../../../scripts/services/header/language-country-selector.js';
 import { useLoginButtonVariation } from '../use-login-button-variation.js';
 import { useMembersLabels } from '../use-members-labels.js';
 import { useMembersConfig } from '../use-members-config.js';
@@ -18,11 +17,10 @@ const html = htm.bind(h);
 // El átomo LoginButton espera la clave normalizada (kebab). Mapeamos por valor
 // normalizado (sin espacios/guiones); default a la base logueada 'lifemiles'
 // (nunca 'logged-out' acá, que es el estado anónimo).
-// Las keys de salida matchean `config.tiers` del CF (los *-cenit caen a su base
-// vía el fallback de color del botón). Los strings Cenit del servicio NO son
-// exactos: verificado en QA 2026-07-15 que LM manda "Diamond Cenit One Million"
-// (no "Diamond Cenit") → `diamondcenitonemillion`. Por eso el match exacto no
-// alcanza y hace falta el fallback por SUBSTRING abajo.
+// ⚠️ Las claves de Lifemiles para los tiers *-cenit NO están confirmadas por LM (2026-06-12):
+// asumimos que el string normalizado (lowercase, sin espacios/guiones) es `goldcenit` /
+// `diamondcenit`. Si LM usa otro string, esos tiers caen a su base (gold/diamond) — degradación
+// segura. Confirmar con Lifemiles y ajustar. Las keys de salida matchean `config.tiers` del CF.
 const TIER_MAP = {
   lifemiles: 'lifemiles',
   silver: 'silver',
@@ -35,28 +33,7 @@ const TIER_MAP = {
 };
 const normalizeTier = (raw) => {
   const key = String(raw || '').toLowerCase().replace(/[\s_-]+/g, '');
-  if (TIER_MAP[key]) return TIER_MAP[key];
-  // Fallback por SUBSTRING para strings de servicio no exactos (ej. Cenit
-  // "Diamond Cenit One Million" → "diamondcenitonemillion"). El color se resuelve
-  // por el tier base contenido; una variante Cenit comparte color con su base.
-  const cenit = key.includes('cenit');
-  if (key.includes('magno')) return 'magno';
-  if (key.includes('diamond')) return cenit ? 'diamond-cenit' : 'diamond';
-  if (key.includes('gold')) return cenit ? 'gold-cenit' : 'gold';
-  if (key.includes('silver')) return 'silver';
-  if (key.includes('redplus')) return 'red-plus';
-  return 'lifemiles';
-};
-
-// Millas del drawer con separador de miles por locale (refinamiento 2026-07-14
-// punto 2.8b) — mismo idiom que members-hero.js (la molecule pinta tal cual).
-const formatMilesByLocale = (n) => {
-  const lang = String(
-    getStoredLanguage()
-    || (typeof document !== 'undefined' && document.documentElement.lang)
-    || 'es',
-  ).toLowerCase().slice(0, 2);
-  try { return new Intl.NumberFormat(lang).format(n); } catch (e) { return String(n); }
+  return TIER_MAP[key] || 'lifemiles';
 };
 
 /**
@@ -97,14 +74,15 @@ export const Authenticated = ({ user }) => {
   // header del drawer → los lectores de pantalla anuncian "Ana Palomares",
   // no "AnaPalomares". No se muestra visualmente.
   const fullName = [user?.firstName, user?.lastName].filter(Boolean).join(' ') || labels.account;
-  // Display VISIBLE en el header: `firstName + lastName` CON espacio (F8, 2026-07-16,
-  // por decisión de diseño/PO). El código original los pegaba SIN espacio citando
-  // Figma 14:31447 ("MaximilianoBartolomé"), pero se confirmó que va con espacio
-  // ("Maximiliano Bartolomé"). Se trunca a `max-w-[136px]` con tooltip 76:12391.
+  // Display VISIBLE en el header (Figma 14:31447 / 14:31453 / 76:12391):
+  // `firstName + lastName` CONCATENADOS SIN ESPACIO. Ejemplo del design system:
+  // firstName "Maximiliano" + lastName "Bartolomé" → "MaximilianoBartolomé"
+  // (se trunca a "MaximilianoBartol…" cuando excede `max-w-[136px]`; en ese
+  // caso el tooltip 76:12391 muestra el texto completo, también sin espacio).
   // Si solo hay firstName caemos a firstName; si no hay nada, al fullName
   // (que a su vez cae a labels.account).
   let displayName;
-  if (user?.firstName && user?.lastName) displayName = `${user.firstName} ${user.lastName}`;
+  if (user?.firstName && user?.lastName) displayName = `${user.firstName}${user.lastName}`;
   else displayName = user?.firstName || fullName;
   const tier = normalizeTier(user?.tier);
   // Iniciales para el chip (≤767 y 1024–1149): 1ª letra de nombre + 1ª de apellido.
@@ -169,7 +147,7 @@ export const Authenticated = ({ user }) => {
       tierThemes=${cfg.tierThemes}
       tierLabel=${user?.tier || ''}
       membershipNumber=${user?.membershipNumber || null}
-      totalMiles=${user?.totalMiles ? formatMilesByLocale(user.totalMiles) : '— millas'}
+      totalMiles=${user?.totalMiles || '— millas'}
       expiryDate=${user?.expiryDate || '—'}
       totalLabel=${labels.balanceTotal || 'Total'}
       expiryLabel=${labels.balanceExpiry || 'Fecha de vencimiento'}

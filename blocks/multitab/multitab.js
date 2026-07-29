@@ -7,7 +7,6 @@ import { loadBlock } from '../../scripts/aem.js';
 import { Icon } from '../../design-system/atoms/icon/icon.js';
 import { shouldShowByTargeting, hideBlockWithSection, applySectionTargeting } from '../../scripts/utils/target-filter.js';
 import { sanitizeHTML } from '../../scripts/utils/sanitize.js';
-import { readDetailPagesRoot, isDarksiteStyleActive } from '../../scripts/services/darksite/darksite-detail.js';
 
 const html = htm.bind(h);
 
@@ -109,32 +108,6 @@ export default async function decorate(block) {
   const targetCountries = config['target-countries'] || '';
   const targetLanguages = config['target-languages'] || '';
   const show = config.show !== 'false';
-
-  // Estilo darksite (tabs estirados + indicador oscuro) SOLO en rutas de detail
-  // pages darksite, NO en cualquier página mientras hay un evento activo para el
-  // POS. `av-darksite-state.enabled` es un flag GLOBAL; se acota por la ruta
-  // contra el root de detail pages (env AV_DARKSITE_DETAIL_PAGES_ROOT, no quemado).
-  let isDarksiteMode = false;
-  try {
-    const darksiteRaw = localStorage.getItem('av-darksite-state');
-    const darksiteState = darksiteRaw ? JSON.parse(darksiteRaw) : null;
-    if (darksiteState?.enabled === true) {
-      // readDetailPagesRoot() solo se consulta cuando hay evento activo (no
-      // penaliza las páginas sin darksite); environment.json va cacheado.
-      isDarksiteMode = isDarksiteStyleActive(
-        window.location.pathname,
-        await readDetailPagesRoot(),
-        darksiteState,
-      );
-    }
-  } catch (e) {
-    // fail silently
-  }
-
-  // Active indicator color: green by default, dark when darksite mode
-  const indicatorColorClass = isDarksiteMode
-    ? 'bg-[var(--background-brand-primary-default,#1B1B1B)]'
-    : 'bg-[var(--border-accent-positive,#1ea93c)]';
 
   const now = new Date();
 
@@ -347,27 +320,18 @@ export default async function decorate(block) {
   liveRegion.setAttribute('role', 'status');
   multitabContainer.appendChild(liveRegion);
 
-  // Detect content-tab-light variant: if any tab section carries this class,
-  // chevrons are disabled and tab max-width is constrained per Figma spec.
-  const isContentTabLight = tabSections.some((t) => t.section.classList.contains('content-tab-light'));
-
   // Create tab navigation wrapper
   const tabNavWrapper = document.createElement('div');
   tabNavWrapper.className = 'relative flex items-center';
 
-  // Chevron text color: white in darksite mode, default otherwise
-  const chevronTextClass = isDarksiteMode
-    ? 'text-[var(--text-normal-lighter,#FFFFFF)] hover:text-[var(--text-normal-lighter,#FFFFFF)]'
-    : 'text-[var(--text-normal-primary)] hover:text-[var(--text-link-informative-default)]';
-
-  // Chevron before (left arrow) — skipped in content-tab-light variant
+  // Chevron before (left arrow)
   let chevronBefore = null;
-  if (showChevrons && !isContentTabLight) {
+  if (showChevrons) {
     chevronBefore = document.createElement('button');
     chevronBefore.setAttribute('type', 'button');
     chevronBefore.className = `
       hidden xl:flex items-center justify-center shrink-0 size-[24px]
-      ${chevronTextClass}
+      text-[var(--text-normal-primary)] hover:text-[var(--text-link-informative-default)]
       transition-colors duration-200 cursor-pointer 
       focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--border-stroke-focus,#1d9bf0)] focus-visible:rounded-[var(--x-tiny,2px)]
     `.trim().replace(/\s+/g, ' ');
@@ -392,14 +356,14 @@ export default async function decorate(block) {
   tabNav.style.msOverflowStyle = 'none'; // IE/Edge
   tabNavWrapper.appendChild(tabNav);
 
-  // Chevron after (right arrow) — skipped in content-tab-light variant
+  // Chevron after (right arrow)
   let chevronAfter = null;
-  if (showChevrons && !isContentTabLight) {
+  if (showChevrons) {
     chevronAfter = document.createElement('button');
     chevronAfter.setAttribute('type', 'button');
     chevronAfter.className = `
       hidden xl:flex items-center justify-center shrink-0 size-[24px]
-      ${chevronTextClass}
+      text-[var(--text-normal-primary)] hover:text-[var(--text-link-informative-default)]
       transition-colors duration-200 cursor-pointer 
       focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--border-stroke-focus,#1d9bf0)] focus-visible:rounded-[var(--x-tiny,2px)]
     `.trim().replace(/\s+/g, ' ');
@@ -421,24 +385,18 @@ export default async function decorate(block) {
     let tabHeight = size === 'large' ? 'h-[80px]' : 'h-[64px]';
     if (isPill && size === 'large') tabHeight = 'h-[83px]';
     else if (isPill && size === 'small') tabHeight = 'h-[60px]';
-    let tabPadding = isDarksiteMode ? 'px-4' : 'px-6 md:px-8';
+    let tabPadding = 'px-6 md:px-8';
     if (isPill) tabPadding = size === 'large' ? 'py-4 px-6' : 'py-2 px-5';
     let tabRadius = '';
     if (isPill) tabRadius = size === 'large' ? 'rounded-[12px]' : 'rounded-[8px]';
-    const primaryFontClamp = isDarksiteMode
-      ? '18px'
-      : size === 'large'
-        ? 'clamp(1rem, 0.3vw + 0.9rem, 1.125rem)'
-        : 'clamp(1rem, 0.3vw + 0.85rem, 1rem)';
+    const primaryFontClamp = size === 'large'
+      ? 'clamp(1rem, 0.3vw + 0.9rem, 1.125rem)'
+      : 'clamp(1rem, 0.3vw + 0.85rem, 1rem)';
     const secondaryFontClamp = 'clamp(0.8125rem, 0.15vw + 0.78rem, 0.875rem)';
 
     // Mobile width: active tab minimum 56% (≤480px)
     // Inactive tabs: no width restriction, content flows naturally
-    // Darksite mode: equal-width tabs with min-width 200px
-    // content-tab-light: max-width 222.75px per Figma spec (mobile + desktop)
-    let tabWidth = 'w-auto';
-    if (isContentTabLight) tabWidth = 'flex-1 min-w-[200px] max-w-[222.75px]';
-    else if (isDarksiteMode) tabWidth = 'flex-1 min-w-[200px]';
+    const tabWidth = 'w-auto';
 
     const tabButton = document.createElement('button');
     tabButton.setAttribute('type', 'button');
@@ -632,10 +590,10 @@ export default async function decorate(block) {
     tabButton.appendChild(contentContainer);
 
     if (!isPill) {
-      // Active indicator — default variant (green or dark in darksite mode)
+      // Green indicator (active only) — default variant
       if (isActive) {
         const indicator = document.createElement('div');
-        indicator.className = `absolute bottom-0 left-0 right-0 h-[2px] ${indicatorColorClass} z-[2] transition-opacity duration-200`;
+        indicator.className = 'absolute bottom-0 left-0 right-0 h-[2px] bg-[var(--border-accent-positive,#1ea93c)] z-[2] transition-opacity duration-200';
         indicator.setAttribute('data-name', 'indicator');
         tabButton.appendChild(indicator);
       }
@@ -647,13 +605,10 @@ export default async function decorate(block) {
       tabButton.appendChild(border);
 
       // Hover indicator (bottom border on hover for inactive tabs) — default variant
-      // Hidden in darksite mode (design shows no hover indicator)
-      if (!isDarksiteMode) {
-        const hoverIndicator = document.createElement('div');
-        hoverIndicator.className = 'absolute bottom-0 left-0 right-0 h-[2px] bg-[var(--border-stroke-darker,#1b1b1b)] z-[2] opacity-0 group-aria-[selected=false]:group-hover:opacity-100 transition-opacity duration-200';
-        hoverIndicator.setAttribute('data-name', 'hover-indicator');
-        tabButton.appendChild(hoverIndicator);
-      }
+      const hoverIndicator = document.createElement('div');
+      hoverIndicator.className = 'absolute bottom-0 left-0 right-0 h-[2px] bg-[var(--border-stroke-darker,#1b1b1b)] z-[2] opacity-0 group-aria-[selected=false]:group-hover:opacity-100 transition-opacity duration-200';
+      hoverIndicator.setAttribute('data-name', 'hover-indicator');
+      tabButton.appendChild(hoverIndicator);
     }
 
     tabButtons.push(tabButton);
@@ -686,7 +641,7 @@ export default async function decorate(block) {
     // and multitab-card / multitab-no-card so the rich-text card styling (which targets
     // .multitab-content.multitab-card) reaches the visible content wrapper instead of
     // staying on the hidden original section.
-    const CONTENT_WRAPPER_CLASSES = ['grid-', 'multitab-item-pill', 'multitab-card', 'multitab-no-card', 'content-tab-light'];
+    const CONTENT_WRAPPER_CLASSES = ['grid-', 'multitab-item-pill', 'multitab-card', 'multitab-no-card'];
     const transferClasses = [...tabData.section.classList].filter((cls) => CONTENT_WRAPPER_CLASSES.some((prefix) => cls.startsWith(prefix)));
     transferClasses.forEach((cls) => {
       tabData.section.classList.remove(cls);
@@ -717,18 +672,6 @@ export default async function decorate(block) {
         blocksToDecorate.push(directBlock);
       }
     });
-
-    // If content-tab-light, move cms-button-wrapper inside preceding cms-rich-text-wrapper
-    // so the button can be positioned in the header row alongside the h1 title (Figma design)
-    if (contentWrapper.classList.contains('content-tab-light')) {
-      const buttonWrappers = contentWrapper.querySelectorAll(':scope > .cms-button-wrapper');
-      buttonWrappers.forEach((btnWrapper) => {
-        const prevSibling = btnWrapper.previousElementSibling;
-        if (prevSibling && prevSibling.classList.contains('cms-rich-text-wrapper')) {
-          prevSibling.appendChild(btnWrapper);
-        }
-      });
-    }
 
     tabPanel.appendChild(contentWrapper);
 
@@ -798,9 +741,9 @@ export default async function decorate(block) {
           btn.classList.remove('bg-transparent', 'border-transparent');
           btn.classList.add('bg-white', 'border-[var(--border-accent-positive,#1ea93c)]');
         } else if (!btn.querySelector('[data-name="indicator"]')) {
-          // Default: Add bottom indicator if not present (green or dark in darksite mode)
+          // Default: Add green bottom indicator if not present
           const indicator = document.createElement('div');
-          indicator.className = `absolute bottom-0 left-0 right-0 h-[2px] ${indicatorColorClass} z-[2] transition-opacity duration-200`;
+          indicator.className = 'absolute bottom-0 left-0 right-0 h-[2px] bg-[var(--border-accent-positive,#1ea93c)] z-[2] transition-opacity duration-200';
           indicator.setAttribute('data-name', 'indicator');
           btn.appendChild(indicator);
         }

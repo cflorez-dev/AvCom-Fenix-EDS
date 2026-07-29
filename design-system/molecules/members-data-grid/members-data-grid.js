@@ -80,24 +80,22 @@ export const MembersDataGrid = ({
            para que el divisor central quede pegado al borde derecho de su contenido
            con el gap-6 limpio. Sin esto, ambas cols serían flex-1 (50/50) y
            col-left dejaría ˜80px vacíos antes del divisor (asimetría visual). -->
-      <div class="flex-1 min-w-0 flex flex-col gap-6 min-[640px]:flex-none min-[640px]:gap-[20px] md:max-w-[361px]" data-name="members-data-col-left">
+      <div class="flex-1 min-w-0 flex flex-col gap-5 min-[640px]:flex-none min-[640px]:gap-6" data-name="members-data-col-left">
         <!-- Fila balance: ver doc arriba.
-             - Mobile (Figma 617:44589 Balance Container): items-start, gap 32px,
+             - Mobile (Figma 518:24516 Balance Container): items-start, gap 32px,
                rounded-[16px], backdrop-blur-[10px], self-stretch. Los dos pairs
-               usan 'shrink-0 whitespace-nowrap' para hug INTRÍNSECO (Figma layout:
-               contenido alineado a la izquierda con espacio vacío a la derecha,
-               divider pegado a la col Tienes). NO usar 'flex-1' — estira las cols
-               y centra el divider, desviándose del Figma.
+               son flex-1 para REPARTIR el ancho disponible (sin esto, ambos
+               se apretujan a la izquierda y queda ~140px vacíos al lado derecho).
              - Desktop (Figma 518:24090): items-stretch, gap 24/32px, sin radius/blur;
-               los pairs mantienen ancho intrínseco (min-[640px]:flex-none). -->
+               los pairs vuelven a ancho intrínseco (min-[640px]:flex-none). -->
         <div
           class="flex items-start gap-8 self-stretch rounded-[16px] backdrop-blur-[10px] min-[640px]:items-stretch min-[640px]:gap-6 min-[640px]:rounded-none min-[640px]:backdrop-blur-none lg:gap-8"
           data-name="members-data-row"
         >
-          <div class="shrink-0 flex flex-col gap-0.5 min-[640px]:flex-none min-[640px]:gap-0 whitespace-nowrap">
+          <div class="flex-1 min-w-0 flex flex-col gap-1 min-[640px]:flex-none">
             <${MembersDataPair} tone=${tone} valueSize="lg" label=${milesLabel} value=${milesValue} />
             ${expiryValue && html`
-              <span class="block min-[640px]:hidden text-sm font-normal leading-[19px] text-[#d9d9d9] whitespace-nowrap">
+              <span class="hidden max-[639px]:block text-sm font-normal leading-[21px] text-[#d9d9d9] whitespace-nowrap">
                 Vence: ${expiryValue}
               </span>
             `}
@@ -106,11 +104,11 @@ export const MembersDataGrid = ({
           <!-- Mobile (<680): divisor + Estatus pair INLINE en el row (Figma 518:24516).
                Oculto en desktop (≥680), donde Estatus baja a la col derecha. -->
           <span
-            class=${`block min-[640px]:hidden w-px self-stretch rounded-[2px] shrink-0 ${dividerClass}`}
+            class=${`hidden max-[639px]:block w-px self-stretch rounded-[2px] shrink-0 ${dividerClass}`}
             style=${dividerStyle}
             aria-hidden="true"
           ></span>
-          <div class="shrink-0 flex min-[640px]:hidden whitespace-nowrap">
+          <div class="flex-1 min-w-0 flex min-[640px]:hidden">
             <${MembersDataPair}
               tone=${tone}
               valueSize="lg"
@@ -136,7 +134,7 @@ export const MembersDataGrid = ({
              min-[640px]:mt-auto empuja las quick-actions al borde inferior
              de col-left (que en desktop iguala su alto al de col-right por
              items-stretch). Sin esto, queda espacio en blanco al fondo. -->
-        <div class="min-[640px]:mt-auto min-[640px]:mr-[17px]">${quickActions}</div>
+        <div class="min-[640px]:mt-auto">${quickActions}</div>
       </div>
 
       <!-- Divisor vertical central (separa col izq | col der, SOLO desktop ≥680) -->
@@ -151,7 +149,7 @@ export const MembersDataGrid = ({
            y el Nº socio vive inline bajo el saludo (members-hero-expanded).
            Ocultamos el WRAPPER completo (no solo los hijos) para que el
            gap-5 del flex-col padre no genere espacio sobrante en mobile. -->
-      <div class="hidden min-[640px]:flex flex-1 min-w-0 flex-col gap-6 min-[640px]:justify-start min-[640px]:ml-[8px]" data-name="members-data-col-right">
+      <div class="hidden min-[640px]:flex flex-1 min-w-0 flex-col gap-6 min-[640px]:justify-start" data-name="members-data-col-right">
         <div class="hidden min-[640px]:flex">
           <${MembersDataPair}
             tone=${tone}

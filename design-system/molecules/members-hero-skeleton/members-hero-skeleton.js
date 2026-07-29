@@ -12,36 +12,16 @@ const html = htm.bind(h);
  * `.members-hero__sk` en members-hero.css). El barrido respeta
  * `prefers-reduced-motion` (la animación se desactiva sin tocar el layout).
  *
- * ## Alineación con el hero real (evita CLS al hidratar)
- * El organism `members-hero` renderiza este skeleton dentro de un wrapper
- * cuyo padding coincide EXACTAMENTE con el root de `MembersHeroExpanded`:
- *   - Mobile:  `px-[16px] pt-[24px] pb-[16px]`
- *   - Tablet:  `md:px-[24px] md:pt-[32px] md:pb-[24px]`
- *   - Desktop: `lg:p-[32px]`
- * Por eso este componente NO añade padding propio. Sí aplica
- * `max-w-[1248px] w-full mx-auto` en el root — el mismo cap que usan las
- * secciones internas del hero real (breadcrumb, greeting+toggle, grid) para
- * centrar el contenido horizontalmente en viewports >1248px. Con eso, al
- * hidratar, breadcrumb/greeting/balance quedan en la misma coordenada X e Y.
+ * ## Figma
+ *  - Desktop ≥ 1024px: 518:23125 — content section (greeting + balance/shortcuts
+ *    + status + tier card 289×170) + promo banner 1248×86.
+ *  - Tablet 768–1024px: 518:23193 — content section sin tier card; promo 704×186.
+ *  - Mobile < 768px: 518:23258 — vertical stack (name + status pill + balance +
+ *    shortcuts + promo 361×200). NO renderiza la columna status ni la tier card.
  *
- * ## Figma (spec vigente 2026-07-27, "Avianca Members 16072026")
- *  - Mobile < 640px: 518:24796 — greeting 174×18 + status pill 118×16 +
- *    balance container 361×64 (3 líneas por columna con divider `h-[64px]`) +
- *    shortcuts + promo 361×200. NO tier card ni columna status.
- *  - Tablet 640–1023px: 518:24717 — greeting 337×20; LEFT: balance + shortcuts,
- *    RIGHT: Lifemiles Status con divisor vertical. Sin tier card. Promo 704×186.
- *  - Desktop ≥ 1024px: 518:24636 — content section (greeting 309×23 + balance
- *    + shortcuts + status column + tier card 340×200) + promo banner 1248×86.
- *
- * ## Tamaños fijos por Figma (NO tokens DS)
- *  - Circle del shortcut: `w-[48px] h-[48px]`. Este proyecto tiene
- *    `--spacing-1: 6.4px` (no 4px), por lo que `w-12 h-12` renderiza 76.8px
- *    en vez de 48px (ver `.github` memory tailwind-v4-gotchas). SIEMPRE usar
- *    arbitrary values en el skeleton para respetar las proporciones del spec.
- *  - Padding shortcut item: `pt-[8px] pb-[4px] px-[4px] gap-[2px]`.
- *  - Balance divider: mobile `h-[64px]` (3 líneas por columna), tablet+desktop
- *    `h-[44px]` (2 líneas por columna).
- *  - Alturas de líneas de texto: `h-[12px]` (label) / `h-[16px]` (points).
+ * Los anchos/altos arbitrarios (`w-[174px]`, `h-[18px]`, etc.) vienen de los
+ * frames Figma y NO son tokens del DS porque son específicos del skeleton —
+ * estabilizar las proporciones evita el "salto" al hidratar con datos reales.
  *
  * ## A11y
  * El consumidor (organism `MembersHero`) envuelve el skeleton con
@@ -58,58 +38,52 @@ export const MembersHeroSkeleton = ({ customClassName = '' } = {}) => {
     <span class=${`members-hero__sk block ${extraClasses}`} aria-hidden="true"></span>
   `;
 
-  // 4 shortcuts (circle 48px + 2 label lines w-72 × 12). Mismo patrón en los
-  // 3 viewports. Padding/gap tomados del Shortcut_Item Figma (518:24863 etc.).
+  // 4 shortcuts (circle + 2 label lines). Mismo patrón en los 3 viewports.
   const shortcut = () => html`
-    <div class="flex flex-col items-center gap-[2px] px-[4px] pt-[8px] pb-[4px]">
-      ${sk('w-[48px] h-[48px] rounded-full')}
-      <div class="flex flex-col gap-[4px] w-[72px] pt-[4px]">
-        ${sk('h-[12px] rounded-[4px]')}
-        ${sk('h-[12px] rounded-[4px]')}
+    <div class="flex flex-col items-center gap-0.5 px-1 pt-2 pb-1">
+      ${sk('w-12 h-12 rounded-full')}
+      <div class="flex flex-col gap-1.5 w-[72px] pt-1">
+        ${sk('h-3 rounded-[4px]')}
+        ${sk('h-3 rounded-[4px]')}
       </div>
     </div>
   `;
 
   return html`
     <div
-      class=${`w-full max-w-[1248px] mx-auto flex flex-col gap-6 lg:gap-10 ${customClassName}`}
+      class=${`flex flex-col gap-6 lg:gap-10 ${customClassName}`}
       data-name="members-hero-skeleton"
     >
       ${/* Content section: mobile stack → tablet+ grid horizontal con divider. */ ''}
-      <div class="flex flex-col gap-6 lg:flex-row lg:items-start lg:gap-8">
+      <div class="flex flex-col gap-6 lg:flex-row lg:items-end lg:gap-8">
         <div class="flex flex-1 flex-col gap-6 min-w-0">
-          ${/* Greeting: mobile 174×18 (518:24817), tablet 337×20 (518:24737),
-              desktop 309×23 (518:24656). */ ''}
-          ${sk('h-[18px] w-[174px] md:h-[20px] md:w-[337px] lg:h-[23px] lg:w-[309px] rounded-[4px]')}
+          ${/* Greeting: mobile 174×18 (Figma 518:23262), tablet 251×20
+              (518:23197), desktop 285×23 (518:23129). */ ''}
+          ${sk('h-[18px] w-[174px] md:h-5 md:w-[251px] lg:h-[23px] lg:w-[285px] rounded-[4px]')}
 
-          ${/* Status pill EXCLUSIVA mobile (Figma 518:24840): 118×16 — sustituye
+          ${/* Status pill EXCLUSIVA mobile (Figma 518:23285): 118×16 — sustituye
               la columna "Lifemiles Status" que en tablet/desktop vive a la derecha. */ ''}
-          ${sk('h-[16px] w-[118px] rounded-[4px] md:hidden')}
+          ${sk('h-4 w-[118px] rounded-[4px] md:hidden')}
 
-          <div class="flex flex-col gap-6 md:flex-row md:items-start md:gap-6">
+          <div class="flex flex-col gap-5 md:flex-row md:items-start md:gap-6">
             ${/* IZQ (siempre visible): balance container + 4 shortcuts. */ ''}
             <div class="flex flex-col gap-5 w-full md:w-[361px] md:shrink-0">
-              ${/* Balance container. Mobile (518:24846): 3 líneas por columna
-                  + divider h-[64px]. Tablet/desktop (518:24740 / 24659):
-                  2 líneas por columna + divider h-[44px]. */ ''}
-              <div class="flex gap-[32px] items-start rounded-2xl">
-                <div class="flex flex-col">
-                  ${sk('h-[12px] w-[42px] rounded-[4px] mt-[4px]')}
-                  ${sk('h-[16px] w-[115px] rounded-[4px] mt-[5px]')}
-                  ${sk('h-[12px] w-[110px] rounded-[4px] mt-[4px] md:hidden')}
+              ${/* Balance container con 2 loyalty-points + divisor central
+                  (Figma 518:23132 / 23200 / 23291). */ ''}
+              <div class="flex gap-8 items-start rounded-2xl">
+                <div class="flex flex-col gap-1.5">
+                  ${sk('h-3 w-[42px] rounded-[4px]')}
+                  ${sk('h-4 w-[115px] rounded-[4px]')}
                 </div>
-                ${sk('w-px h-[64px] md:h-[44px] rounded-[2px]')}
-                <div class="flex flex-col">
-                  ${sk('h-[12px] w-[136px] rounded-[4px] mt-[5px]')}
-                  ${sk('h-[16px] w-[110px] rounded-[4px] mt-[5px]')}
-                  ${sk('h-[12px] w-[110px] rounded-[4px] mt-[4px] md:hidden')}
+                ${sk('w-px h-11 rounded-[2px]')}
+                <div class="flex flex-col gap-1.5">
+                  ${sk('h-3 w-[136px] rounded-[4px]')}
+                  ${sk('h-4 w-[110px] rounded-[4px]')}
                 </div>
               </div>
 
-              ${/* Shortcuts grid 4-cols (Figma 518:24862 / 24752 / 24671).
-                  El ancho fijo 344px viene del spec tablet/desktop; en mobile
-                  ocupa el 100% del contenedor (361px). */ ''}
-              <div class="grid grid-cols-4 gap-x-[8px] gap-y-[24px] w-full max-w-[344px]">
+              ${/* Shortcuts grid 4-cols (Figma 518:23144 / 23212 / 23307). */ ''}
+              <div class="grid grid-cols-4 gap-x-2 gap-y-6 w-full max-w-[344px]">
                 ${shortcut()}
                 ${shortcut()}
                 ${shortcut()}
@@ -118,37 +92,36 @@ export const MembersHeroSkeleton = ({ customClassName = '' } = {}) => {
             </div>
 
             ${/* DER (tablet+desktop): Lifemiles Status con divisor vertical
-                full-height (Figma 518:24777 / 518:24697). Mobile no muestra esta
-                columna — ya está representada por la "status pill" arriba. */ ''}
-            <div class="hidden md:flex md:items-stretch md:gap-[32px] md:flex-1 md:min-w-0 md:self-stretch">
+                (Figma 518:23237 / 518:23169). Mobile no muestra esta columna —
+                ya está representada por la "status pill" arriba. */ ''}
+            <div class="hidden md:flex md:items-stretch md:gap-8 md:flex-1 md:min-w-0">
               ${sk('w-px self-stretch rounded-[2px]')}
-              <div class="flex flex-col gap-[24px] justify-center">
-                <div class="flex flex-col gap-[4px]">
-                  ${sk('h-[12px] w-[105px] rounded-[4px]')}
-                  ${sk('h-[16px] w-[51px] rounded-[4px]')}
-                  ${sk('h-[12px] w-[131px] rounded-[4px]')}
+              <div class="flex flex-col gap-6">
+                <div class="flex flex-col gap-1.5">
+                  ${sk('h-3 w-[105px] rounded-[4px]')}
+                  ${sk('h-4 w-[51px] rounded-[4px]')}
+                  ${sk('h-3 w-[131px] rounded-[4px]')}
                 </div>
-                <div class="flex flex-col gap-[4px]">
-                  ${sk('h-[12px] w-[106px] rounded-[4px]')}
-                  ${sk('h-[16px] w-[124px] rounded-[4px]')}
+                <div class="flex flex-col gap-1.5">
+                  ${sk('h-3 w-[106px] rounded-[4px]')}
+                  ${sk('h-4 w-[124px] rounded-[4px]')}
                 </div>
               </div>
             </div>
           </div>
         </div>
 
-        ${/* Columna derecha EXCLUSIVA desktop (Figma 518:24714): tier card
-            340×200. El spec nuevo ya NO incluye pill de tier arriba de la card
-            (a diferencia del layout anterior 518:23187). En tablet la tier card
-            no existe; en mobile tampoco (la card real aparece embebida dentro
-            del compact). */ ''}
-        <div class="hidden lg:block lg:shrink-0">
-          ${sk('h-[200px] w-[340px] rounded-2xl')}
+        ${/* Columna derecha EXCLUSIVA desktop (Figma 518:23187): pill 160×23 +
+            tier card 289×170. En tablet la tier card no existe; en mobile
+            tampoco (la card real aparece embebida dentro del compact). */ ''}
+        <div class="hidden lg:flex lg:flex-col lg:gap-8 lg:items-end lg:shrink-0">
+          ${sk('h-[23px] w-[160px] rounded-[4px]')}
+          ${sk('h-[170px] w-[289px] rounded-2xl')}
         </div>
       </div>
 
       ${/* Promo banner full-width. Alturas por viewport (Figma): mobile 200
-          (518:24887), tablet 186 (518:24794), desktop 86 (518:24715). */ ''}
+          (518:23332), tablet 186 (518:23254), desktop 86 (518:23190). */ ''}
       ${sk('h-[200px] md:h-[186px] lg:h-[86px] w-full rounded-2xl')}
     </div>
   `;

@@ -264,14 +264,6 @@ function scheduleMarquesinaFinalize() {
   marquesinaFinalizeScheduled = true;
   setTimeout(() => {
     marquesinaFinalizeScheduled = false;
-    // Guard darksite: el gate (scripts/services/darksite/darksite-gate.js
-    // → mountHeaderAlert) toma control de `--marquee-height` y oculta
-    // `.marquesina-global-container` vía `body.darksite-active`. Si esta
-    // finalización corriera igual, el `container.remove()` + set a '0px'
-    // pisaría la reserva de layout de la alerta darksite. Salir aquí no
-    // cambia el comportamiento normal (99% de sesiones sin darksite
-    // activo): solo se blinda el caso de reemplazo.
-    if (document.body.classList.contains('darksite-active')) return;
     const container = document.querySelector('.marquesina-global-container');
     if (!container) return;
     if (!container.querySelector('[data-name="marquesina"]')) {
@@ -587,13 +579,6 @@ export default function decorate(block) {
   };
 
   const updateHeaderTop = () => {
-    // Guard darksite: cuando el gate montó su alerta (`body.darksite-active`),
-    // el `--marquee-height` lo posee darksite-gate y refleja la altura de la
-    // alerta darksite, no de esta marquesina (que además está `display:none`
-    // por regla CSS bajo `body.darksite-active`, por lo que su offsetHeight es
-    // 0 y este handler la resetearía a 0px, borrando la reserva de nuestra
-    // alerta). Salir preserva el comportamiento normal en 99% de sesiones.
-    if (document.body.classList.contains('darksite-active')) return;
     const marquesinaContainer = document.querySelector('.marquesina-global-container');
     const headerElement = document.querySelector('header.header-wrapper');
 

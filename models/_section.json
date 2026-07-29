@@ -33,26 +33,6 @@
             {
               "name": "Highlight",
               "value": "highlight"
-            },
-            {
-              "name": "Darksite: contactos iniciales",
-              "value": "darksite-contacts-initial"
-            },
-            {
-              "name": "Darksite: contactos actualizados",
-              "value": "darksite-contacts-updated"
-            },
-            {
-              "name": "Darksite: lista de vuelos",
-              "value": "darksite-flights"
-            },
-            {
-              "name": "Darksite: footer del interstitial",
-              "value": "darksite-footer"
-            },
-            {
-              "name": "Darksite: sección reemplazable del home",
-              "value": "darksite-swap"
             }
           ]
         }

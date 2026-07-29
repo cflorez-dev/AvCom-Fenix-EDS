@@ -1,4 +1,3 @@
-// @vitest-environment happy-dom
 import {
   describe, it, expect, beforeEach, afterEach, vi,
 } from 'vitest';
@@ -81,17 +80,6 @@ describe('apim-token.service', () => {
       const { getApimCredentials } = await import(servicePath);
 
       await expect(getApimCredentials('invalid')).rejects.toThrow(/Invalid service/);
-    });
-
-    it('accepts the upgrades service and POSTs { service: "upgrades" }', async () => {
-      mockEnv();
-      mockTokenFetch(makeTokenResponse({ service: 'upgrades' }));
-      const { getApimCredentials } = await import(servicePath);
-
-      await getApimCredentials('upgrades');
-
-      const [, init] = global.fetch.mock.calls.at(-1);
-      expect(JSON.parse(init.body)).toEqual({ service: 'upgrades' });
     });
 
     it('fetches token on cache miss and stores it in localStorage', async () => {

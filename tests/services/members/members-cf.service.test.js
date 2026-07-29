@@ -132,10 +132,8 @@ describe('members/members-cf.service', () => {
       tcText: '<p>T&C <a href="/es/legal">link</a></p>',
     });
 
-    // tiers → dict por key. Subset match (toMatchObject): el tier propaga además
-    // ~28 campos de color del Paso 2 (colorGradient*, colorOverlay, pill*, etc.),
-    // hoy undefined con este fixture. Se asertan solo los campos legacy mapeados.
-    expect(cfg.tiers.gold).toMatchObject({
+    // tiers → dict por key
+    expect(cfg.tiers.gold).toEqual({
       displayName: 'LifeMiles Gold', colorStart: '#D4AF37', colorEnd: '#A8841A', textColor: '#1A1A1A', icon: 'loyalty/gold',
     });
 
@@ -186,15 +184,27 @@ describe('members/members-cf.service', () => {
     expect(cfg.hero.quickActions[2].icon).toBe('');
   });
 
-  it('normalizeMembersCF: eliteGoals v1 ELIMINADO (T18) — ya no se proyecta', async () => {
+  it('normalizeMembersCF (1263924 — eliteGoals): proyecta el array top-level a dict por tierKey (lowercase)', async () => {
     vi.doMock(aemDataPath, () => ({ fetchAEMData: vi.fn() }));
     const { normalizeMembersCF } = await import(servicePath);
-    // Aunque el CF trajera el array v1, ya no se normaliza (el hero migró a v2).
-    const cfg = normalizeMembersCF({
+    const item = {
       ...sampleItem,
-      eliteGoals: [{ tierKey: 'gold', metaTotal: 40000, metaAvianca: 16000 }],
+      eliteGoals: [
+        {
+          tierKey: 'gold', metaTotal: 40000, metaAvianca: 16000, metricTotal: 'av-miles', metricAvianca: 'avstar',
+        },
+        {
+          tierKey: 'Silver', metaTotal: 20000, metaAvianca: 8000, metricTotal: 'av-miles', metricAvianca: 'avstar',
+        },
+      ],
+    };
+    const cfg = normalizeMembersCF(item);
+    expect(Object.keys(cfg.eliteGoals).sort()).toEqual(['gold', 'silver']);
+    expect(cfg.eliteGoals.gold).toEqual({
+      metaTotal: 40000, metaAvianca: 16000, metricTotal: 'av-miles', metricAvianca: 'avstar',
     });
-    expect(cfg.eliteGoals).toBeUndefined();
+    // tierKey 'Silver' → key lowercase 'silver'
+    expect(cfg.eliteGoals.silver.metaTotal).toBe(20000);
   });
 
   it('normalizeMembersCF (Paso 5 — logout): sale del menuItem isLogout → {show,icon,redirectTo}', async () => {
@@ -269,277 +279,5 @@ describe('members/members-cf.service', () => {
     const { normalizeMembersCF } = await import(servicePath);
     const cfg = normalizeMembersCF({ authConfig: {}, menuItems: [] });
     expect(cfg.cards).toBeUndefined();
-  });
-
-  // ---------- benefitsCatalog (1271693) ----------
-  it('normalizeMembersCF (1271693): benefitsCatalog acepta value ANIDADO y PLANO, pasa lmGroup y ordena por sortOrder', async () => {
-    vi.doMock(aemDataPath, () => ({ fetchAEMData: vi.fn() }));
-    const { normalizeMembersCF } = await import(servicePath);
-    const cfg = normalizeMembersCF({
-      authConfig: {},
-      benefitsCatalog: {
-        unlimitedThreshold: 50,
-        seeAllUrl: '/see',
-        termsUrl: '/terms',
-        categories: [
-          {
-            key: 'lounges',
-            eyebrow: 'Entrada a',
-            icon: 'members/quick-lounges',
-            sortOrder: 2,
-            ctaLabel: 'Conoce más',
-            // valor ANIDADO (s.value objeto)
-            subBenefits: [{ label: 'Salas VIP Avianca', value: { kind: 'unlimited' }, lmGroup: 'PNTGRP59' }],
-          },
-          {
-            key: 'upgrades',
-            eyebrow: 'Ascenso a',
-            sortOrder: 1,
-            // valor PLANO (kind/amount/total como hermanos de label)
-            subBenefits: [{
-              label: 'Business Doméstico', kind: 'count', amount: 1, total: 1, lmGroup: 'PNTGRP62',
-            }],
-          },
-        ],
-      },
-    });
-    const bc = cfg.benefitsCatalog;
-    expect(bc.unlimitedThreshold).toBe(50);
-    expect(bc.seeAllUrl).toBe('/see');
-    expect(bc.termsUrl).toBe('/terms');
-    // ordenadas por sortOrder
-    expect(bc.categories.map((c) => c.key)).toEqual(['upgrades', 'lounges']);
-    // PLANO leído bien + lmGroup pasado
-    const upg = bc.categories.find((c) => c.key === 'upgrades');
-    expect(upg.subBenefits[0]).toEqual({
-      label: 'Business Doméstico', value: { kind: 'count', amount: 1, total: 1 }, lmGroup: 'PNTGRP62',
-    });
-    // ANIDADO leído bien
-    const lng = bc.categories.find((c) => c.key === 'lounges');
-    expect(lng.subBenefits[0]).toEqual({ label: 'Salas VIP Avianca', value: { kind: 'unlimited' }, lmGroup: 'PNTGRP59' });
-  });
-
-  it('normalizeMembersCF (1271693 AC): benefitsCatalog resuelve seeAllIcon/termsIcon (asset DAM _publishUrl o key); ausente → undefined', async () => {
-    vi.doMock(aemDataPath, () => ({ fetchAEMData: vi.fn() }));
-    const { normalizeMembersCF } = await import(servicePath);
-    const cfg = normalizeMembersCF({
-      authConfig: {},
-      benefitsCatalog: {
-        seeAllUrl: '/see',
-        // eslint-disable-next-line no-underscore-dangle
-        seeAllIcon: { _publishUrl: 'https://pub/dam/see.svg' }, // asset DAM → _publishUrl
-        termsIcon: 'navigation/open-in-new', // key string
-        categories: [{
-          key: 'lounges',
-          sortOrder: 1,
-          subBenefits: [{ label: 'Salas VIP', value: { kind: 'unlimited' }, lmGroup: 'PNTGRP59' }],
-        }],
-      },
-    });
-    expect(cfg.benefitsCatalog.seeAllIcon).toBe('https://pub/dam/see.svg');
-    expect(cfg.benefitsCatalog.termsIcon).toBe('navigation/open-in-new');
-    // sin íconos → no se proyectan (el organism cae al default 'navigation/open-in-new')
-    const cfg2 = normalizeMembersCF({
-      authConfig: {},
-      benefitsCatalog: { categories: [{ key: 'x', sortOrder: 1, subBenefits: [{ label: 'a', value: { kind: 'na' } }] }] },
-    });
-    expect(cfg2.benefitsCatalog.seeAllIcon).toBeUndefined();
-    expect(cfg2.benefitsCatalog.termsIcon).toBeUndefined();
-  });
-
-  it('normalizeMembersCF (1271693 Plan B): benefitsCatalog pasa valuesByTier (tier lowercase, plano o anidado, descarta sin tier)', async () => {
-    vi.doMock(aemDataPath, () => ({ fetchAEMData: vi.fn() }));
-    const { normalizeMembersCF } = await import(servicePath);
-    const cfg = normalizeMembersCF({
-      authConfig: {},
-      benefitsCatalog: {
-        categories: [{
-          key: 'default',
-          sortOrder: 1,
-          subBenefits: [{
-            label: 'Millas bono',
-            kind: 'na',
-            valuesByTier: [
-              { tier: 'Gold', kind: 'discount', percent: 60 }, // plano
-              { tier: 'MAGNO', value: { kind: 'discount', percent: 100 } }, // anidado
-              { tier: '', kind: 'discount', percent: 1 }, // sin tier → se descarta
-            ],
-          }],
-        }],
-      },
-    });
-    const sub = cfg.benefitsCatalog.categories[0].subBenefits[0];
-    expect(sub.valuesByTier).toEqual([
-      { tier: 'gold', kind: 'discount', percent: 60 },
-      { tier: 'magno', kind: 'discount', percent: 100 },
-    ]);
-  });
-
-  it('normalizeMembersCF (1271693 Plan B): benefitsCatalog pasa maxByTier del contador (tier lowercase, descarta sin tier / max inválido)', async () => {
-    vi.doMock(aemDataPath, () => ({ fetchAEMData: vi.fn() }));
-    const { normalizeMembersCF } = await import(servicePath);
-    const cfg = normalizeMembersCF({
-      authConfig: {},
-      benefitsCatalog: {
-        categories: [{
-          key: 'upgrades',
-          sortOrder: 1,
-          subBenefits: [{
-            label: 'Upgrade doméstico',
-            kind: 'count',
-            lmGroup: 'PNTGRP62',
-            maxByTier: [
-              { tier: 'Gold', max: 8 },
-              { tier: 'MAGNO', max: '12' }, // string numérica → 12
-              { tier: 'diamond', max: 0 }, // max inválido (0) → se descarta
-              { tier: '', max: 5 }, // sin tier → se descarta
-            ],
-          }],
-        }],
-      },
-    });
-    const sub = cfg.benefitsCatalog.categories[0].subBenefits[0];
-    expect(sub.maxByTier).toEqual([
-      { tier: 'gold', max: 8 },
-      { tier: 'magno', max: 12 },
-    ]);
-  });
-
-  it('normalizeMembersCF (1271694 Tarea B): lmPlusBanner mapea campos + resuelve _publishUrl de imágenes; backgroundColor null se omite', async () => {
-    vi.doMock(aemDataPath, () => ({ fetchAEMData: vi.fn() }));
-    const { normalizeMembersCF } = await import(servicePath);
-    const cfg = normalizeMembersCF({
-      authConfig: {},
-      lmPlusBanner: {
-        enabled: true,
-        title: 'Suscríbete a Lifemiles Plus',
-        subtitle: 'Multiplica tus millas',
-        imageDesktop: { _publishUrl: 'https://pub/dam/lm-plus-banner/desktop.jpg', mimeType: 'image/jpeg' },
-        imageMobile: { _publishUrl: 'https://pub/dam/lm-plus-banner/mob.jpg' },
-        imageAlt: 'lm-plus',
-        imagePosition: 'left',
-        ctaText: 'Suscríbete ya',
-        ctaUrl: 'https://sub',
-        backgroundType: 'gradient',
-        backgroundColor: null,
-        gradientColorStart: '#5303B6',
-        gradientColorEnd: '#9810FA',
-        condorStrokeColor: '#FFFFFF',
-        showCondor: true,
-      },
-    });
-    expect(cfg.lmPlusBanner).toEqual({
-      enabled: true,
-      title: 'Suscríbete a Lifemiles Plus',
-      subtitle: 'Multiplica tus millas',
-      imageDesktop: 'https://pub/dam/lm-plus-banner/desktop.jpg',
-      imageMobile: 'https://pub/dam/lm-plus-banner/mob.jpg',
-      imageAlt: 'lm-plus',
-      imagePosition: 'left',
-      ctaText: 'Suscríbete ya',
-      ctaUrl: 'https://sub',
-      gradientColorStart: '#5303B6',
-      gradientColorEnd: '#9810FA',
-      condorStrokeColor: '#FFFFFF',
-      showCondor: true,
-    });
-    // sin lmPlusBanner en el CF → no se proyecta (el front cae al LmPlusBanner simple)
-    const cfg2 = normalizeMembersCF({ authConfig: {}, menuItems: [] });
-    expect(cfg2.lmPlusBanner).toBeUndefined();
-  });
-
-  it('normalizeMembersCF (1271694): lmPlusUrls lee manage/upgrade/activate del sub-fragmento account (con fallback plano); sin campos → undefined', async () => {
-    vi.doMock(aemDataPath, () => ({ fetchAEMData: vi.fn() }));
-    const { normalizeMembersCF } = await import(servicePath);
-    // Caso REAL: los 3 campos viven en item.account (sub-fragmento, PBI 1263921).
-    const cfg = normalizeMembersCF({
-      authConfig: {},
-      account: {
-        lmPlusManageUrl: 'https://lm/manage',
-        lmPlusUpgradeUrl: 'https://lm/upgrade',
-        lmPlusActivateUrl: 'https://lm/activate',
-      },
-    });
-    expect(cfg.lmPlusUrls).toEqual({
-      manage: 'https://lm/manage',
-      upgrade: 'https://lm/upgrade',
-      activate: 'https://lm/activate',
-    });
-    // solo un campo (en account) → solo esa clave (los demás links caen a '#')
-    const cfgPartial = normalizeMembersCF({ authConfig: {}, account: { lmPlusUpgradeUrl: 'https://lm/up' } });
-    expect(cfgPartial.lmPlusUrls).toEqual({ upgrade: 'https://lm/up' });
-    // fallback: si vinieran planos (sin account) también se leen
-    const cfgFlat = normalizeMembersCF({ authConfig: {}, lmPlusManageUrl: 'https://lm/m' });
-    expect(cfgFlat.lmPlusUrls).toEqual({ manage: 'https://lm/m' });
-    // campos null (CF no autorado) → no se proyecta → links caen a '#'
-    const cfgNone = normalizeMembersCF({ authConfig: {}, account: { lmPlusManageUrl: null } });
-    expect(cfgNone.lmPlusUrls).toBeUndefined();
-  });
-
-  // ---------- Sección `account` (Tandas 1+2, espec-cf-lote.md) ----------
-  it('normalizeMembersCF (account tandas 1+2): mapea campos FLAT → shape anidado account/wallet', async () => {
-    vi.doMock(aemDataPath, () => ({ fetchAEMData: vi.fn() }));
-    const { normalizeMembersCF } = await import(servicePath);
-    const cfg = normalizeMembersCF({
-      authConfig: {},
-      menuItems: [],
-      // Tanda 1 (blockXEnabled eliminados 2026-07-23 — compuerta por constante
-      // PANELS_ENABLED en members-account.js; si el CF los mandara, se ignoran)
-      accountEnabled: true,
-      headerCtaEnabled: true,
-      headerCtaUrl: '/es/members/mi-lifemiles',
-      blockDataEnabled: true,
-      blockPaymentsEnabled: false,
-      blockSettingsEnabled: true,
-      // Tanda 2 (wallet, 1279362)
-      walletPaymentMethodsEnabled: false,
-      walletAviancaCreditsEnabled: true,
-      walletLmPlusEnabled: true,
-      manageCardsUrl: 'https://lifemiles.com/cards',
-      requestCardUrl: 'https://lifemiles.com/request',
-      avCreditsMovementsUrl: '/es/members/avcredits',
-      walletMockFallback: false,
-      // Tanda 2 (tab Datos, 1279361)
-      maxCompanions: 6,
-      completenessThresholdWarning: 40,
-      completenessThresholdPositive: 75,
-      editMockEnabled: false,
-    });
-    expect(cfg.account).toEqual({
-      accountEnabled: true,
-      headerCtaEnabled: true,
-      headerCtaUrl: '/es/members/mi-lifemiles',
-      maxCompanions: 6,
-      completenessThresholdWarning: 40,
-      completenessThresholdPositive: 75,
-      editMockEnabled: false,
-      wallet: {
-        paymentMethodsEnabled: false,
-        aviancaCreditsEnabled: true,
-        lmPlusEnabled: true,
-        manageCardsUrl: 'https://lifemiles.com/cards',
-        requestCardUrl: 'https://lifemiles.com/request',
-        avCreditsMovementsUrl: '/es/members/avcredits',
-        mockFallback: false,
-      },
-    });
-  });
-
-  it('normalizeMembersCF (account): solo proyecta lo TIPADO; campos ausentes/mal tipados se omiten', async () => {
-    vi.doMock(aemDataPath, () => ({ fetchAEMData: vi.fn() }));
-    const { normalizeMembersCF } = await import(servicePath);
-    // Solo un flag wallet tipado + una URL vacía (ignorada) → account.wallet parcial.
-    const cfg = normalizeMembersCF({
-      authConfig: {},
-      menuItems: [],
-      walletAviancaCreditsEnabled: false,
-      manageCardsUrl: '',
-      accountEnabled: 'true', // string → NO booleano → omitido
-    });
-    expect(cfg.account).toEqual({ wallet: { aviancaCreditsEnabled: false } });
-    expect(cfg.account.accountEnabled).toBeUndefined();
-    // Sin ningún campo account → out.account ausente (caller usa defaults).
-    const cfg2 = normalizeMembersCF({ authConfig: {}, menuItems: [] });
-    expect(cfg2.account).toBeUndefined();
   });
 });

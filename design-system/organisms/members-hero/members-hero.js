@@ -12,7 +12,7 @@ import {
 } from '../../../scripts/services/members/members-i18n.js';
 import { getStoredLanguage } from '../../../scripts/services/header/language-country-selector.js';
 import { normalizeTierKey } from '../../helpers/members-tier-theme.js';
-import { resolveInitialExpanded, toTitleCaseName } from '../../helpers/members-hero-logic.js';
+import { resolveInitialExpanded } from '../../helpers/members-hero-logic.js';
 import { MembersHeroCompact } from '../../molecules/members-hero-compact/members-hero-compact.js';
 import { MembersHeroExpanded } from '../../molecules/members-hero-expanded/members-hero-expanded.js';
 import { MembersHeroSkeleton } from '../../molecules/members-hero-skeleton/members-hero-skeleton.js';
@@ -182,29 +182,16 @@ export const MembersHero = ({
   // Loading: autenticado pero el VM aún no resolvió (cold load, sin cache) O
   // el config aún no terminó de cargar (evita render con preset y posterior
   // re-render con CF → "flash" de gradiente). Skeleton matchea geometría del
-  // hero EXPANDIDO (Figma 518:24796 mobile / 518:24717 tablet / 518:24636
-  // desktop) con barrido lateral continuo, bg `#d5d5d5`.
-  //
-  // Padding: el skeleton reproduce EXACTAMENTE el padding que aplicará el
-  // molecule destino según el estado guardado (`expanded` viene de
-  // sessionStorage). Así, al hidratar el hero real, el contenido queda en la
-  // MISMA coordenada X/Y y no hay salto vertical/horizontal (CLS 0). Ver
-  // paddings de `MembersHeroCompact.js` y `MembersHeroExpanded.js`:
-  //   - Expanded → px-16 pt-24 pb-16 / md:px-24 md:pt-32 md:pb-24 / lg:p-32
-  //   - Compact  → pt-24 pb-16 px-16 (mobile+tablet) / lg:py-16 lg:px-32
-  // Nota: en mobile ambos coinciden (24/16/16/16); las diferencias aparecen
-  // en tablet (8px pt) y desktop (16px py). Sin este switch el skeleton pinta
-  // el layout de expanded aunque el usuario vaya a caer en compact.
-  const loadingPaddingClasses = expanded
-    ? 'px-[16px] pt-[24px] pb-[16px] md:px-[24px] md:pt-[32px] md:pb-[24px] lg:p-[32px]'
-    : 'pt-[24px] pb-[16px] px-[16px] lg:py-[16px] lg:px-[32px]';
+  // hero EXPANDIDO (Figma 518:23125 desktop / 518:23193 tablet / 518:23258
+  // mobile) con barrido lateral continuo. Bg `#d5d5d5` y padding 16/24/32
+  // vienen del Figma para minimizar el "salto" visual al hidratar — el bg del
+  // estado expandido es un gradient por tier que aún no conocemos en cold load.
   if (status === 'authenticated' && (!user || !cfgLoaded)) {
     return html`
       <div
-        class=${`members-hero rounded-2xl overflow-hidden bg-[#d5d5d5] ${loadingPaddingClasses}`}
+        class="members-hero rounded-2xl overflow-hidden bg-[#d5d5d5] p-4 md:p-6 lg:p-8"
         data-name="members-hero"
         data-state="loading"
-        data-target-state=${expanded ? 'expanded' : 'compact'}
         role="status"
         aria-live="polite"
         aria-busy="true"
@@ -271,13 +258,9 @@ export const MembersHero = ({
     expiryValue: user.milesExpiryDate ? formatDate(user.milesExpiryDate, lang) : placeholder,
     statusLabel: labels.statusLabel,
     statusValue: tierLabel,
-    // Vigencia del estatus: con el mismo criterio de "Fecha de vencimiento" de las
-    // millas, un socio SIN vigencia (tier base, que no tiene estatus elite) muestra el
-    // placeholder en vez de omitir la línea — si no, la sección Estatus queda sin el
-    // renglón que define el diseño y el bloque se ve incompleto (1284699).
-    statusExpiryText: `${labels.statusExpiryPrefix} ${
-      user.statusExpiry ? formatDate(user.statusExpiry, lang) : placeholder
-    }`,
+    statusExpiryText: user.statusExpiry
+      ? `${labels.statusExpiryPrefix} ${formatDate(user.statusExpiry, lang)}`
+      : '',
     membershipLabel: labels.membershipLabel,
     membershipNumber: user.membershipNumber,
     copyAriaLabel: labels.copyAriaLabel,
@@ -313,21 +296,17 @@ export const MembersHero = ({
     tooltipContent: labels.eliteTooltip,
     tooltipAriaLabel: labels.eliteTooltipAria,
     ctaLabel: labels.viewProgress,
-    // CTA "Ver progreso" (AVAEMF2P20-200): habilitado en TODAS las
-    // resoluciones. Apunta a la landing elite (`/{lang}/members/profile/elite`),
-    // mismo destino que la card "Mi estatus elite" (ver `members-config.js`).
-    // La molecule ya soporta doble render (mobile inline con el title / desktop
-    // a la derecha de las barras) con visibilidad por breakpoint.
-    ctaUrl: `/${lang}/members/profile/elite`,
+    // CTA "Ver progreso": en el hero 518:24090 NO se renderiza (el nodo
+    // `I518:24090;898:25916` solo expone title + 2 barras, sin tercer hijo).
+    // El comp standalone de `MembersEliteProgress` (Figma 518:25999/26144/26289)
+    // sí lleva CTA — por eso la molecule sigue soportándolo, pero en este
+    // contexto del hero lo pasamos como `null` para alinear con el spec y
+    // evitar el "doble gap" visual (gap-32 al CTA + barras estrechadas por
+    // flex-1 compitiendo con el CTA shrink-0).
+    ctaUrl: null,
   };
 
-  // `memberName` alimenta la tarjeta de membresía (bottom-left). El wrapper
-  // devuelve firstName/lastName en MAYÚSCULAS ("SEBASTIÁN RUIZ"); en la card
-  // los queremos en Title Case ("Sebastián Ruiz") — normalizamos acá (una sola
-  // vez, en el borde donde el VM del wrapper se convierte en props de UI).
-  const memberName = toTitleCaseName(
-    [user.firstName, user.lastName].filter(Boolean).join(' '),
-  );
+  const memberName = [user.firstName, user.lastName].filter(Boolean).join(' ');
 
   // Breadcrumb del hero (Figma 518:24516). Parent = portal Members landing.
   // EXCLUSIVO de `/members/profile`: si `showBreadcrumb === false` (Dashboard,

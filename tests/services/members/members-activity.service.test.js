@@ -25,42 +25,27 @@ describe('members/members-activity.service', () => {
   beforeEach(() => { vi.resetModules(); });
   afterEach(() => { vi.restoreAllMocks(); delete globalThis.window; });
 
-  it('getRecentTransactionsSync devuelve null sin data confirmada (NUNCA mock)', async () => {
+  it('getRecentTransactionsSync devuelve el mock (sin cache) con el shape del molecule', async () => {
     mockDeps();
     const { getRecentTransactionsSync } = await import(servicePath);
-    expect(getRecentTransactionsSync(3)).toBeNull();
+    const tx = getRecentTransactionsSync(3);
+    expect(tx).toHaveLength(3);
+    expect(tx[0]).toHaveProperty('date');
+    expect(tx[0]).toHaveProperty('description');
+    expect(typeof tx[0].amount).toBe('number');
+    expect(getRecentTransactionsSync(2)).toHaveLength(2);
   });
 
-  it('wrapper no deployado (string E.EON.12) → null, UNA sola llamada (sin poll)', async () => {
+  it('loadRecentTransactions cae al mock cuando el wrapper no está deployado (string E.EON.12)', async () => {
     mockDeps();
     setWrapper(() => Promise.resolve('E.EON.12 - WrapperId "lmLastThreeTransactions" invalido'));
     const { loadRecentTransactions } = await import(servicePath);
     const tx = await loadRecentTransactions(3);
-    expect(tx).toBeNull(); // sin data → la card degrada a nav card, sin lista
-    expect(globalThis.window.lmFetchWrapper.mock.calls.length).toBe(1);
+    expect(tx).toHaveLength(3);
+    expect(tx[0].description).toBe('Redención de tiquete'); // mock fallback
   });
 
-  it('refresh de token fallido (string E.EON.13) → null, UNA sola llamada', async () => {
-    mockDeps();
-    setWrapper(() => Promise.resolve('E.EON.13 - No se pudo actualizar token expirado.'));
-    const { loadRecentTransactions } = await import(servicePath);
-    const tx = await loadRecentTransactions(3);
-    expect(tx).toBeNull();
-    expect(globalThis.window.lmFetchWrapper.mock.calls.length).toBe(1);
-  });
-
-  it('wrapper devuelve null (cookies no listas) o lanza → null, sin reintentos', async () => {
-    mockDeps();
-    setWrapper(() => Promise.resolve(null));
-    const { loadRecentTransactions } = await import(servicePath);
-    expect(await loadRecentTransactions(3)).toBeNull();
-    expect(globalThis.window.lmFetchWrapper.mock.calls.length).toBe(1);
-
-    setWrapper(() => Promise.reject(new Error('boom')));
-    expect(await loadRecentTransactions(3)).toBeNull();
-  });
-
-  it('mapea la respuesta real del wrapper a {date,description,amount} y cachea', async () => {
+  it('loadRecentTransactions mapea la respuesta real del wrapper a {date,description,amount}', async () => {
     mockDeps();
     const wrapperJson = {
       title: 'Actividad Reciente',
@@ -74,63 +59,11 @@ describe('members/members-activity.service', () => {
       ],
     };
     setWrapper(() => Promise.resolve(mkResponse(wrapperJson)));
-    const { loadRecentTransactions, getRecentTransactionsSync } = await import(servicePath);
+    const { loadRecentTransactions } = await import(servicePath);
     const tx = await loadRecentTransactions(3);
     expect(tx).toHaveLength(2);
     expect(tx[0]).toEqual({ date: 'JUN 08', description: 'Lifemiles plus plan mensual', amount: 2000 });
     expect(tx[1].amount).toBe(500);
-    // data confirmada → el getter síncrono ahora la devuelve (cache)
-    expect(getRecentTransactionsSync(3)).toHaveLength(2);
-  });
-
-  it('mapea la forma real ANIDADA `activityHistory.transactions` (contrato de qa)', async () => {
-    mockDeps();
-    const wrapperJson = {
-      activityHistory: {
-        title: 'Actividad Reciente',
-        transactions: [{
-          activityType: 'STCOB', date: 'JUL 03', text: 'Acumulación con CREDOMATIC PANAMA', totalAmount: 150000,
-        }],
-      },
-      profileInfo: [{ type: 'lifetimeEarnings', value: '150000' }],
-    };
-    setWrapper(() => Promise.resolve(mkResponse(wrapperJson)));
-    const { loadRecentTransactions } = await import(servicePath);
-    const tx = await loadRecentTransactions(3);
-    expect(tx).toEqual([
-      { date: 'JUL 03', description: 'Acumulación con CREDOMATIC PANAMA', amount: 150000 },
-    ]);
-  });
-
-  it('saca la fecha duplicada del `text` de LM ("… - 03-Jul-2026") pero deja la fecha en `date`', async () => {
-    mockDeps();
-    const wrapperJson = {
-      activityHistory: {
-        transactions: [
-          {
-            activityType: 'STCOB', date: 'JUL 03', text: 'Acumulación con CREDOMATIC PANAMA - 03-Jul-2026', totalAmount: 150000,
-          },
-          // guion legítimo (no fecha) → NO se toca
-          {
-            activityType: 'STOTH', date: 'JUN 08', text: 'Transferencia - regalo', totalAmount: 500,
-          },
-        ],
-      },
-    };
-    setWrapper(() => Promise.resolve(mkResponse(wrapperJson)));
-    const { loadRecentTransactions } = await import(servicePath);
-    const tx = await loadRecentTransactions(3);
-    expect(tx[0]).toEqual({ date: 'JUL 03', description: 'Acumulación con CREDOMATIC PANAMA', amount: 150000 });
-    expect(tx[1].description).toBe('Transferencia - regalo'); // guion no-fecha intacto
-  });
-
-  it('data confirmada VACÍA ([]) se distingue de "sin data" (null) → emptyLabel', async () => {
-    mockDeps();
-    setWrapper(() => Promise.resolve(mkResponse({ activityHistory: { transactions: [] } })));
-    const { loadRecentTransactions, getRecentTransactionsSync } = await import(servicePath);
-    const tx = await loadRecentTransactions(3);
-    expect(tx).toEqual([]); // confirmado: el socio no tiene transacciones
-    expect(getRecentTransactionsSync(3)).toEqual([]);
   });
 
   it('usa `activityDate` (ISO) como fecha si viene', async () => {

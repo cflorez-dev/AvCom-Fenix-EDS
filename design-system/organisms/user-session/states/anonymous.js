@@ -33,14 +33,13 @@ export const Anonymous = ({ label, icon }) => {
   const labels = useMembersLabels();
   const [loading, setLoading] = useState(false);
 
-  // Click → guard anti-double-click mientras `login()` resuelve el servicio de LM.
-  // QA (2026-07-27) pidió NO mostrar spinner visible en el botón durante la carga
-  // de la sesión: el SSO de Lifemiles ya presenta su propio loading en la vista de
-  // destino y el spinner intermedio en el header se percibía como bug. Mantenemos
-  // el `loading` state SOLO para bloquear disparos repetidos (línea del `return` de
-  // abajo), pero NO se lo pasamos al átomo → el botón queda estático durante la
-  // navegación al SSO. Si LM CUELGA (config caído → login() nunca resuelve), un
-  // timeout corta la espera y muestra el modal "connection-error" via `showMembersModal`.
+  // Click → spinner en el botón mientras `login()` resuelve el servicio de LM (feedback, así
+  // el usuario no espera "en seco"). En éxito, `login()` redirige al SSO (la página se va con
+  // el spinner puesto). Capturamos el rechazo de login() (ej. lmLogin ausente / script no
+  // carga) para no dejar un uncaught rejection (criterio 7.3) → mostramos "Problema de
+  // conexión" vía el HOST de modales (`showMembersModal`, 1255601): un ÚNICO modal, el
+  // AUTOREADO EN EL CF. Si LM CUELGA (config caído → login() nunca resuelve), un timeout
+  // corta la espera: apaga el spinner + muestra el mismo modal.
   const onSignIn = () => {
     if (loading) return; // evita doble disparo mientras está en curso
     setLoading(true);
@@ -66,6 +65,7 @@ export const Anonymous = ({ label, icon }) => {
       variation=${variation}
       loginText=${label || labels.signIn}
       icon=${icon}
+      loading=${loading}
       onClick=${onSignIn}
     />
   `;

@@ -78,41 +78,16 @@
   --border-divider-subtle: #505050;
   --border-brand-secondary-default: #1b1b1b;
   --border-stroke-default: #d9d9d9;
-  --border-stroke-dark: #b6b6b6;   /* Figma border/stroke/dark — marcadores/líneas de hitos */
   --border-stroke-focus: #1d9bf0;
   
   /* Icon Colors */
   --icon-normal-primary: #1b1b1b;
   --icon-normal-light: #ffffff;
   --icon-accent-positive: #1ea93c;
-
-  /* Members account — warning accents (Figma tokens: text/icon/background accent warning) */
-  --text-accent-warning: #ef5b06;
-  --icon-accent-warning: #ef5b06;
-  --bg-accent-warning: #fff3e0;
   --icon-link-default: #177f8c;
   --icon-link-active: #0e4c54;
   --icon-brand-disable: #5a5a5a;
-
-  /* Members Wallet (1279362) — panel interno "Tarjetas guardadas"
-     (Figma token UI/av.sys.color.bg-cards-accent). */
-  --bg-cards-accent: #fafafa;
-
-  /* Franja verde AV Credits (Figma GreenAVCredits — gradiente, hex no expuesto).
-     PENDIENTE-DISEÑO: hex exacto Figma §I (nodos 1056:42893 / 1291:49611). */
-  --bg-avcredits-accent: #0b8a4b;
-  --text-avcredits-accent: #0b8a4b;
-
-  /* Indicador de estado AV Credits — x "Cancelado" (Figma error #c20000, §G). */
-  --icon-accent-negative: #c20000;
-
-  /* Morado de marca Lifemiles Plus — header de LmPlusSubscriptionCard (1279362,
-     tab Wallet, nodo 1056:42893). ORIGEN: color de texto morado ya en uso en el
-     lote 1271694 (lm-plus-plan-card.js franja upsell `text-[#7e40cf]`; gradiente
-     de marca #5303B6 → #9810FA en lm-plus-banner.js / lm-plus-plan-card.js). Se
-     tokeniza acá para no quemar hex en la molécula nueva. */
-  --text-lmplus-brand: #7e40cf;
-
+  
   /* Header Colors */
   --header-offers: #ff0000;
   --header-bg-light: #ffffff;

@@ -953,21 +953,6 @@ async function loadEager(doc) {
   // Start locale resolution early but don't block DOM work that doesn't need it
   const localeReady = initLocaleGlobals();
 
-  // Darksite gate: si el modo contingencia está activo, monta el interstitial
-  // ANTES de body.appear para evitar flash del sitio normal. Acotado a 900ms
-  // y fail-open: nunca bloquea el paint ni rompe la carga.
-  // Spec: docs/superpowers/specs/2026-07-07-darksite-design.md
-  try {
-    const { runDarksiteGate } = await import('./services/darksite/darksite-gate.js');
-    await Promise.race([
-      runDarksiteGate(),
-      new Promise((resolve) => { setTimeout(resolve, 900); }),
-    ]);
-  } catch (error) {
-    // eslint-disable-next-line no-console
-    console.warn('[scripts] Darksite gate failed (fail-open):', error);
-  }
-
   decorateTemplateAndTheme();
   const main = doc.querySelector('main');
   if (main) {
@@ -1144,32 +1129,14 @@ async function loadLazy(doc) {
 
   // Load header and footer without blocking content visibility.
   const headerElement = doc.querySelector('header');
-
-  // Darksite: en las landings de detalle (`/darksite/{lang}/...`, gated por
-  // AV_DARKSITE_DETAIL_PAGES_ROOT + enabled) se carga el chrome propio del
-  // darksite (HeaderDarksite light + FooterBottom darksite-light) en vez del
-  // header/footer general. Si lo toma, se salta el loadHeader/loadFooter normal
-  // y su espera de header-template-ready (el chrome darksite no emite ese evento
-  // ni crea `.header-wrapper`). Fail-open: cualquier error cae al chrome normal.
-  let darksiteChromeLoaded = false;
-  try {
-    const { maybeLoadDarksiteChrome } = await import('./services/darksite/darksite-chrome.js');
-    darksiteChromeLoaded = await maybeLoadDarksiteChrome(doc);
-  } catch (error) {
-    // eslint-disable-next-line no-console
-    console.warn('[scripts] Darksite chrome failed (fail-open):', error);
-  }
-
-  if (!darksiteChromeLoaded) {
-    await Promise.all([
-      headerElement ? loadHeader(headerElement) : Promise.resolve(),
-      loadFooter(doc.querySelector('footer')),
-    ]);
-  }
+  await Promise.all([
+    headerElement ? loadHeader(headerElement) : Promise.resolve(),
+    loadFooter(doc.querySelector('footer')),
+  ]);
 
   // If header exists, wait for header-template-ready event to ensure header structure is ready
   // This ensures the header containers exist and child blocks have rendered
-  if (headerElement && !darksiteChromeLoaded) {
+  if (headerElement) {
     await new Promise((resolve) => {
       // Check if event already fired (containers exist)
       const headerContainer = document.querySelector('.header-wrapper');
@@ -1315,10 +1282,11 @@ async function loadDelayed() {
         .then(({ loadLmScript }) => loadLmScript())
         .catch(() => { /* no-op: carga on-demand desde login.service */ });
 
-      // Members (P2 / CU-282): Google One Tap. El gate de ruta (Home + páginas corporativas) lo
-      // resuelve `initOneTap` desde el CF (`config.oneTap.corporatePaths`; default solo Home si el
-      // CF cae), junto con `enabled`, frecuencia y el guard de sesión anónima. Import incondicional:
-      // el servicio corta temprano (sesión/ruta/frecuencia) sin trabajo extra.
+      // Members (P2 / CU-282): Google One Tap. El gate de ruta (Home + páginas
+      // corporativas) lo resuelve `initOneTap` desde el CF
+      // (`config.oneTap.corporatePaths`; default solo Home si el CF cae), junto con
+      // `enabled`, frecuencia y el guard de sesión anónima. Import incondicional: el
+      // servicio corta temprano (sesión/ruta/frecuencia) sin trabajo extra.
       import('./services/members/google-one-tap.service.js')
         .then(({ initOneTap }) => initOneTap())
         .catch(() => { /* no-op */ });
@@ -1341,15 +1309,6 @@ async function loadDelayed() {
 function gateMembersPortalEarly() {
   try {
     const { pathname, hostname, search } = window.location;
-    // AEM author / Universal Editor: sin cortina — el editor debe ver el contenido
-    // (el guard de redirect también se salta el author; ver members-guard.js).
-    const isAuthorEnv = !!(
-      window.xwalk?.isAuthorEnv
-      || window.hlx?.aue
-      || document.querySelector('meta[name="urn:auecon:aemconnection"]')
-      || (hostname.includes('author-') && pathname.startsWith('/content/'))
-    );
-    if (isAuthorEnv) return;
     const isPortal = /(^|\/)members(\/|$)/.test(pathname) && !pathname.includes('/members/auth');
     if (!isPortal) return;
     const isLocalhost = hostname === 'localhost' || hostname === '127.0.0.1';
