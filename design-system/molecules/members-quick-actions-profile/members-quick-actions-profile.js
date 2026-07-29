@@ -1,6 +1,7 @@
 import { h } from '@dropins/tools/preact.js';
 import htm from 'htm';
 import { MembersQuickAction } from '../../atoms/members-quick-action/members-quick-action.js';
+import { getQuickActionTokens } from '../../helpers/members-tier-theme.js';
 
 const html = htm.bind(h);
 
@@ -28,8 +29,10 @@ const html = htm.bind(h);
  * - Si no hay acciones visibles → retorna `null` (no renderiza el contenedor).
  *
  * ## Layout
- * - ≤767 (mobile): grid de 4 columnas con `gap-x-2 gap-y-6`.
- * - ≥768 (sm+): fila a la izquierda con `gap-6` (sin distribución forzada).
+ * - <640 (mobile): grid de 4 columnas con `gap-x-2 gap-y-6`.
+ * - ≥640: fila a la izquierda con `gap-6` (sin distribución forzada). Se usa
+ *   `min-[640px]:` explícito (NO `sm:`) porque este repo redefine `sm=480px`
+ *   en `styles/variables/tailwind.css` — el breakpoint del hero es 640px.
  * - Pensado para fondos del dashboard (claros / neutros); el átomo trae su
  *   propio chip oscuro, así que no depende del background del contenedor.
  *
@@ -39,12 +42,18 @@ const html = htm.bind(h);
  * - `opensInNewWindowLabel`: string — sufijo aria para acciones `newTab`
  *   (i18n; lo provee el caller desde `cfg.labels`).
  * - `max`: number — máximo de acciones a mostrar. Default 4.
+ * - `tier`: string — tier crudo del VM. Se propaga al átomo para tintar el chip
+ *   circular con la paleta del tier (Figma 518:23646). Mismo contrato que
+ *   `MembersQuickActions` (hero) para que la migración futura sea plana.
+ * - `tierThemes`: object — map indexado del CF (`cfg.tierThemes`).
  * - `customClassName`: string — clases extra para el contenedor.
  */
 export const MembersQuickActionsProfile = ({
   actions = [],
   opensInNewWindowLabel = '',
   max = 4,
+  tier = '',
+  tierThemes = null,
   customClassName = '',
   ...rest
 }) => {
@@ -64,9 +73,13 @@ export const MembersQuickActionsProfile = ({
     ? `${a.label}, ${opensInNewWindowLabel}`
     : a.label);
 
+  // Tokens del chip por tier (Figma 518:23646). Ver comentario paralelo en
+  // `members-quick-actions.js` (hero).
+  const chipTokens = tier ? getQuickActionTokens(tier, tierThemes || {}) : null;
+
   return html`
     <div
-      class=${`grid grid-cols-4 gap-x-2 gap-y-6 sm:flex sm:items-start sm:justify-start sm:gap-6 ${customClassName}`}
+      class=${`grid grid-cols-4 gap-x-2 gap-y-6 min-[640px]:flex min-[640px]:items-start min-[640px]:justify-start min-[640px]:gap-6 ${customClassName}`}
       data-name="members-quick-actions-profile"
       ...${rest}
     >
@@ -79,6 +92,7 @@ export const MembersQuickActionsProfile = ({
           newTab=${!!a.newTab}
           ariaLabel=${ariaFor(a)}
           labelTheme="light"
+          chipTokens=${chipTokens}
         />
       `)}
     </div>

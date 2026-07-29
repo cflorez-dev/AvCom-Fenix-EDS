@@ -11,6 +11,7 @@ import {
   getMockMemberMetrics,
   getEmptyMemberMetrics,
   isDevSessionMockEnabled,
+  getMockUserVM,
 } from './members-data.mock.js';
 import { guardPortalSession } from './members-guard.js';
 import { normalizeTierKey } from '../../../design-system/helpers/members-tier-theme.js';
@@ -51,6 +52,48 @@ const clearCache = () => {
 
 const sentenceCase = (s) => (s || '').toLowerCase().replace(/(^|\s)\S/g, (m) => m.toUpperCase());
 
+/**
+ * Deriva el nivel Cenit del socio de forma tolerante (1271692, decisión 5).
+ * Fuentes: (a) `eliteProgram.status.cenitStatus` (ej. 'ONE_MILLION'/'TWO_MILLION';
+ * acepta variantes de case/underscore/espacios y numéricas), y (b) la string
+ * `tier` cuando contiene "cenit"/"million" (el AC dice que el status cenit llega
+ * en `tier`). La fuente (a) gana sobre (b); "cenit" sin nivel explícito → 1
+ * (One Million es el nivel base). Devuelve `{ level: 1|2|null }`.
+ * // TODO(captura shapes _progelite-ben/capturas/): afinar valores exactos por tier.
+ * @param {{tierRaw?:string|null, cenitStatusRaw?:string|null}} [args]
+ * @returns {{level: (1|2|null)}}
+ */
+export const deriveCenit = ({ tierRaw = null, cenitStatusRaw = null } = {}) => {
+  const norm = (v) => String(v ?? '').toLowerCase();
+  // Sufijo de nivel PEGADO al tier base en las keys compuestas del servicio
+  // ('diamondone', 'goldone', 'magnotwo'… — shape real de `status.current`,
+  // captura 2026-07-03 §5.5): sin separador no lo cubren los \b de levelOf.
+  const suffixLevelOf = (s) => {
+    if (/(lifemiles|red[\s_-]?plus|redplus|silver|gold|diamond|magno)two$/.test(s)) return 2;
+    if (/(lifemiles|red[\s_-]?plus|redplus|silver|gold|diamond|magno)one$/.test(s)) return 1;
+    return null;
+  };
+  const levelOf = (s) => {
+    if (/\btwo\b|two[\s_-]*million|(^|[^0-9])2([^0-9]|$)/.test(s)) return 2;
+    if (/\bone\b|one[\s_-]*million|(^|[^0-9])1([^0-9]|$)/.test(s)) return 1;
+    return suffixLevelOf(s);
+  };
+  const status = norm(cenitStatusRaw);
+  if (status) {
+    const l = levelOf(status);
+    if (l) return { level: l };
+  }
+  const tier = norm(tierRaw);
+  if (tier.includes('cenit') || tier.includes('million')) {
+    return { level: levelOf(tier) || 1 };
+  }
+  // Key compuesta sin 'cenit'/'million' literal (ej. tierRaw = status.current
+  // = 'diamondone'): el sufijo del tier base define el nivel.
+  const suffix = suffixLevelOf(tier);
+  if (suffix) return { level: suffix };
+  return { level: null };
+};
+
 /** Mapea la respuesta del wrapper a un VM mínimo de display (sin datos sensibles). */
 function toUserVM(raw) {
   const acc = raw?.memberProfileDetails?.memberAccount;
@@ -59,6 +102,10 @@ function toUserVM(raw) {
   return {
     membershipNumber: acc.memberProfile?.membershipNumber || null,
     tier: acc.tier || null,
+    // Nivel Cenit (1271692). El AC dice que el status cenit llega en `tier`, así
+    // que lo derivamos de ahí en el perfil; `fetchMemberMetrics` lo refina si
+    // `eliteProgram.status.cenitStatus` trae el dato.
+    cenit: deriveCenit({ tierRaw: acc.tier }),
     firstName: sentenceCase(ind.displayName || ind.givenName) || null,
     lastName: sentenceCase(ind.familyName) || null,
     language: ind.preferredLanguage || null,
@@ -113,18 +160,86 @@ function toBalanceVM(raw) {
   };
 }
 
-/** Resuelve las metas del progreso elite para el tier del socio desde el CF.
- * `eliteGoals` es el dict por tierKey (lowercase) que arma `normalizeMembersCF`.
- * Devuelve la entrada normalizada para el tier crudo, o `undefined` si no hay metas
- * para ese tier (ej. lifemiles/magno o CF sin `eliteGoals`) → el hero no pinta barras. */
-const resolveEliteGoals = (eliteGoals, rawTier) => {
-  if (!eliteGoals || !rawTier) return undefined;
-  return eliteGoals[normalizeTierKey(rawTier)];
+/** Región de residencia (COL vs EXCOL) desde el profile crudo. Mirror de
+ * `resolveRegion` de elite-detail.service — se replica acá (no se importa) para
+ * evitar la dependencia circular session↔elite-detail (elite-detail ya importa
+ * `deriveCenit` de este módulo). */
+export const resolveRegionFromProfile = (profileRaw, countryRegionMap = {}) => {
+  const details = profileRaw?.memberProfileDetails || profileRaw || {};
+  const rawRegion = details?.applicableRegion?.value
+    || details?.memberAccount?.memberProfile?.applicableRegion?.value
+    || profileRaw?.applicableRegion?.value
+    || null;
+  const norm = (v) => (String(v || '').trim().toUpperCase() === 'COL' ? 'COL' : 'EXCOL');
+  if (rawRegion) return norm(rawRegion);
+  const country = details?.memberAccount?.memberProfile?.individualInfo?.countryOfResidence;
+  if (country != null && countryRegionMap[String(country)]) {
+    return norm(countryRegionMap[String(country)]);
+  }
+  return 'EXCOL';
 };
 
-/** Tier-objetivo del progreso elite (primer campo plausible del crudo). */
-const pickTierTarget = (e) => e?.tierTarget || e?.targetTier || e?.nextTier
-  || e?.status?.next || e?.tier || null;
+/** Metas del progreso elite del hero desde `eliteGoalsV2` (T18): elige col/row por
+ * región y toma el mapeo de métrica de `eliteMetrics` → consistente con la tab elite.
+ * Avianca confirmó que las metas reales son las de v2 (las de v1 eran un supuesto).
+ * Devuelve el shape que ya consume `toEliteVM` ({metaTotal, metaAvianca, metricTotal,
+ * metricAvianca}), o `undefined` si no hay metas para el tier (lifemiles/magno-total
+ * → sin barra). NOTA métrica avianca: se alinea a `av-miles` (año) como la tab; si el
+ * PO define que el hero cuente vitalicias (`avstar`), es cambio de 1 línea en el CF. */
+export const resolveEliteGoalsV2 = (eliteGoalsV2, rawTier, region, eliteMetrics = {}) => {
+  if (!eliteGoalsV2 || !rawTier) return undefined;
+  const e = eliteGoalsV2[normalizeTierKey(rawTier)];
+  if (!e) return undefined;
+  const pick = (dim) => {
+    if (!dim) return null;
+    return region === 'COL' ? dim.col : dim.row;
+  };
+  return {
+    metaTotal: pick(e.totales),
+    metaAvianca: pick(e.avianca),
+    metricTotal: eliteMetrics.total,
+    metricAvianca: eliteMetrics.avianca,
+  };
+};
+
+/** Escalera de tiers. Duplicada de `elite-detail.service.js` (que ya importa
+ * `deriveCenit` de este módulo) para no crear la dependencia circular
+ * session↔elite-detail — mismo criterio que `resolveRegionFromProfile`. */
+const TIER_LADDER_HERO = ['lifemiles', 'red-plus', 'silver', 'gold', 'diamond', 'magno'];
+
+/**
+ * Tier cuyas metas debe mostrar la tira elite del hero (1284716).
+ *
+ * La tabla `eliteGoalsV2`/`DEFAULT_ELITE_GOALS` está indexada por tier **DESTINO**
+ * (los montos son "lo que hay que hacer para LLEGAR a ese tier"), y el AC de la tab
+ * Progreso (1271699, bloque 6) define la meta inmediata como el **siguiente** peldaño:
+ * Lifemiles→Red Plus, Red Plus→Silver, Silver→Gold, Gold→Diamond. Antes se consultaba
+ * la tabla con el tier ACTUAL del socio: al tier base (sin fila propia) le quedaba
+ * `undefined` ⇒ hero SIN tira, y a los demás les mostraba las metas que ya cumplieron.
+ *
+ * Las variantes Cenit operan sobre el tier base puro (las metas no las distinguen).
+ * Magno es el último peldaño: se queda en su propia fila (meta única "mantener", AC
+ * bloque 6 variante Magno). Un tier desconocido ya lo colapsa `normalizeTierKey` a
+ * base lifemiles (mismo criterio que la tab elite) ⇒ persigue Red Plus.
+ *
+ * @param {string} rawTier tier del socio (crudo, sin normalizar)
+ * @returns {string} tier key con el que consultar `eliteGoalsV2`
+ */
+export const resolveHeroGoalTier = (rawTier) => {
+  const key = normalizeTierKey(rawTier);
+  const pure = String(key || '').replace(/-cenit$/, '');
+  const idx = TIER_LADDER_HERO.indexOf(pure);
+  if (idx < 0) return key;
+  if (idx === TIER_LADDER_HERO.length - 1) return pure; // magno: mantener
+  return TIER_LADDER_HERO[idx + 1];
+};
+
+/** Tier-objetivo del progreso elite (primer campo plausible del crudo). El
+ * `fallbackTarget` (meta calculada por la escalera) va ANTES de `e.tier` para que
+ * el título no anuncie el tier actual cuando el servicio no manda objetivo — si
+ * las barras muestran las metas de Gold, el copy debe decir Gold. */
+const pickTierTarget = (e, fallbackTarget = null) => e?.tierTarget || e?.targetTier
+  || e?.nextTier || e?.status?.next || fallbackTarget || e?.tier || null;
 
 /**
  * Mapea la respuesta CRUDA de `eliteProgram` → `EliteProgressVM` (o `null`).
@@ -139,10 +254,12 @@ const pickTierTarget = (e) => e?.tierTarget || e?.targetTier || e?.nextTier
  * (conditions/requirements con goal embebido, p.ej. el mock); si tampoco → `null`.
  * @param {object|null} raw
  * @param {{metaTotal:number,metaAvianca:number,metricTotal:string,metricAvianca:string}}
- *   [goalsForTier] - metas del CF para el tier del socio.
+ *   [goalsForTier] - metas del CF para el tier META del socio (ver `resolveHeroGoalTier`).
+ * @param {string|null} [targetTier] - tier meta calculado por la escalera; se usa como
+ *   objetivo del título cuando el servicio no manda uno explícito.
  * @returns {{year:number, tierTarget:string|null, conditions:object[]}|null}
  */
-function toEliteVM(raw, goalsForTier) {
+function toEliteVM(raw, goalsForTier, targetTier = null) {
   if (!raw) return null;
   const e = raw.eliteProgram || raw.elite || raw.data || raw;
   // Camino CF (1263924): combinar los VALORES de `qualified` (por type) con las metas
@@ -170,7 +287,7 @@ function toEliteVM(raw, goalsForTier) {
     if (cfConditions.length) {
       return {
         year: Number(e?.year ?? e?.targetYear) || (new Date().getFullYear() + 1),
-        tierTarget: pickTierTarget(e),
+        tierTarget: pickTierTarget(e, targetTier),
         conditions: cfConditions,
       };
     }
@@ -190,7 +307,7 @@ function toEliteVM(raw, goalsForTier) {
   if (!conditions.length) return null;
   return {
     year: Number(e?.year ?? e?.targetYear) || (new Date().getFullYear() + 1),
-    tierTarget: pickTierTarget(e),
+    tierTarget: pickTierTarget(e, targetTier),
     conditions,
   };
 }
@@ -216,7 +333,7 @@ async function readWrapperJson(settled) {
 /** Trae millas + progreso elite vía `lmBalance`/`eliteProgram` EN PARALELO.
  * Best-effort y NO-ROMPEDOR: cualquier fallo de estos wrappers degrada a campos
  * `null` (empty) y NUNCA afecta al perfil ni al estado de sesión. */
-async function fetchMemberMetrics(goalsForTier) {
+async function fetchMemberMetrics(goalsForTier, targetTier = null) {
   try {
     const [balanceRes, eliteRes] = await Promise.allSettled([
       window.lmFetchWrapper('lmBalance', {}, false),
@@ -225,11 +342,16 @@ async function fetchMemberMetrics(goalsForTier) {
     const balanceRaw = await readWrapperJson(balanceRes);
     const eliteRaw = await readWrapperJson(eliteRes);
     const balance = toBalanceVM(balanceRaw);
+    // Refina el nivel Cenit desde `eliteProgram.status.cenitStatus` si el wrapper
+    // lo trae (el perfil ya lo derivó del `tier`). Solo sobrescribe cuando resuelve
+    // un nivel — si es null, se preserva el del VM del perfil.
+    const cenit = deriveCenit({ cenitStatusRaw: eliteRaw?.status?.cenitStatus });
     return {
       totalMiles: balance.totalMiles,
       milesExpiryDate: balance.milesExpiryDate,
       statusExpiry: extractStatusExpiry(balanceRaw, eliteRaw),
-      elite: toEliteVM(eliteRaw, goalsForTier),
+      elite: toEliteVM(eliteRaw, goalsForTier, targetTier),
+      ...(cenit.level != null ? { cenit } : {}),
     };
   } catch (e) {
     return getEmptyMemberMetrics();
@@ -243,15 +365,23 @@ async function fetchMemberMetrics(goalsForTier) {
  * los estados del hero (empty/error/por-tier) sin datos reales. SOLO en non-prod
  * (`env !== 'prd'`); en producción se IGNORA por completo y siempre va al wrapper real.
  * Ver `qa/guia-prueba-estados-modales.md`. */
-async function enrichUserWithMetrics(user) {
+async function enrichUserWithMetrics(user, profileRaw = null) {
   if (!user) return user;
   try {
     const conf = await loadMembersConfig();
     const useMock = conf.env !== 'prd' && isMembersDataMockEnabled();
-    // Metas elite del CF para el tier del socio (umbrales + mapeo métrica→barra). Sin
-    // entrada para ese tier (lifemiles/magno o CF sin metas) → undefined → sin barras.
-    const goalsForTier = resolveEliteGoals(conf.eliteGoals, user.tier);
-    const metrics = useMock ? getMockMemberMetrics() : await fetchMemberMetrics(goalsForTier);
+    // Metas elite del hero desde `eliteGoalsV2` (T18, región-aware + mapeo de
+    // `eliteMetrics`) — consistente con la tab elite y con los valores reales de
+    // Avianca. La tabla se indexa por tier DESTINO, así que se consulta con la meta
+    // inmediata del socio (siguiente peldaño de la escalera, `resolveHeroGoalTier`),
+    // no con su tier actual (1284716). Magno se queda en su fila (meta "mantener").
+    const { eliteGoalsV2, eliteMetrics, countryRegionMap } = conf;
+    const region = resolveRegionFromProfile(profileRaw, countryRegionMap);
+    const goalTier = resolveHeroGoalTier(user.tier);
+    const goalsForTier = resolveEliteGoalsV2(eliteGoalsV2, goalTier, region, eliteMetrics);
+    const metrics = useMock
+      ? getMockMemberMetrics()
+      : await fetchMemberMetrics(goalsForTier, goalTier);
     return { ...user, ...metrics };
   } catch (e) {
     return user; // el perfil sigue válido; las métricas quedan null (empty)
@@ -324,7 +454,8 @@ async function fetchProfile() {
     const resp = await window.lmFetchWrapper('memberProfile', {}, false);
     // Camino feliz: Response ok → perfil. Ante refresh agotado: string `E.EON.xx` → expirada.
     if (resp && resp.ok && typeof resp.json === 'function') {
-      const user = await enrichUserWithMetrics(toUserVM(await resp.json()));
+      const raw = await resp.json();
+      const user = await enrichUserWithMetrics(toUserVM(raw), raw);
       return { user, expired: false, error: null };
     }
     if (typeof resp === 'string' && resp.startsWith('E.EON')) {
@@ -338,7 +469,7 @@ async function fetchProfile() {
   // Sin perfil + status HTTP de fallo → error de servicio clasificable (400/500). 1255601.
   const errStatus = status || wrapperStatus;
   const error = !user && errStatus ? { status: errStatus } : null;
-  return { user: await enrichUserWithMetrics(user), expired: false, error };
+  return { user: await enrichUserWithMetrics(user, profile), expired: false, error };
 }
 
 /** Trae el perfil y actualiza el signal. Muestra el cache YA (sin flash) pero SIEMPRE revalida
@@ -381,6 +512,17 @@ async function loadProfile() {
  * redirige. (Antes había un lmRefreshSession() proactivo acá, pero ese helper es arity-0 y SIEMPRE
  * redirige al SSO en fallo → rompía la transición a expired; verificado en vivo QA 2026-06-11.) */
 async function rehydrate() {
+  // Dev-only short-circuit (localhost + `?mockMembers=1` + `?membersMock=<state>`):
+  // salta el flujo real de LM y monta un user mock listo para pintar el hero. Con
+  // esto se revisa en localhost sin cookie/token de LM. En qa/prod el gate por
+  // hostname en `isDevSessionMockEnabled()` lo ignora por completo.
+  if (isDevSessionMockEnabled() && isMembersDataMockEnabled()) {
+    const mockUser = getMockUserVM();
+    if (mockUser) {
+      setSession({ status: 'authenticated', user: mockUser, error: null });
+      return;
+    }
+  }
   if (!isLoggedIn()) {
     clearCache();
     setSession({ status: 'anonymous', user: null, error: null });
@@ -423,15 +565,6 @@ function wireCrossTab() {
  */
 // eslint-disable-next-line import/prefer-default-export
 export function initSession() {
-  // MOCK-CLEANUP-1263924: andamiaje DEV-ONLY (localhost + ?mockMembers=1) — salta
-  // cookie + wrappers, pinta sesión mock y auto-monta el hero. ELIMINAR este bloque
-  // (y members-dev-mock.js) antes de cerrar el PBI. Import dinámico → no entra a prod.
-  if (isDevSessionMockEnabled()) {
-    import('./members-dev-mock.js')
-      .then(({ startDevMock }) => startDevMock())
-      .catch(() => { /* no romper la página si el mock falla */ });
-    return;
-  }
   rehydrate();
   wireCrossTab();
 }

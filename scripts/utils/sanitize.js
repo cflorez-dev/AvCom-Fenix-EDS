@@ -7,7 +7,7 @@ let domPurifyLoaded = false;
  * Ensures DOMPurify is loaded and available on window.DOMPurify
  * @returns {Promise<void>}
  */
-async function ensureDOMPurify() {
+export async function ensureDOMPurify() {
   if (domPurifyLoaded && window.DOMPurify) return;
   await loadScript(DOMPURIFY_CDN);
   domPurifyLoaded = true;

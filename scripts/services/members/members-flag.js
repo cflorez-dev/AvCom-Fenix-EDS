@@ -22,9 +22,21 @@ let enabledCache = null;
  * @returns {Promise<boolean>}
  */
 export const isMembersEnabled = async () => {
-  const { search = '' } = window.location;
+  const { search = '', hostname = '' } = window.location;
   if (search.includes('members=off')) return false;
   if (search.includes('members=on')) return true;
+  // MOCK-CLEANUP-1263924: en localhost, `?mockMembers=1` (dev-only, gate del
+  // mock de sesión sin login) implica `members=on` automáticamente. Sin esto,
+  // en entornos donde `AV_MEMBERS_ENABLED` no está seteado (p.ej. UAT vía el
+  // proxy `aem up`), `initSession()` nunca corre y el mock queda anulado
+  // (session store en `anonymous` → hero/rails no pintan). Solo aplica a
+  // localhost/127.0.0.1; en qa/prod el flag mock se ignora aquí también.
+  if (
+    (hostname === 'localhost' || hostname === '127.0.0.1')
+    && new URLSearchParams(search).get('mockMembers') === '1'
+  ) {
+    return true;
+  }
   if (enabledCache !== null) return enabledCache;
   const config = await fetchAEMData('environment');
   const rows = Array.isArray(config?.data) ? config.data : [];

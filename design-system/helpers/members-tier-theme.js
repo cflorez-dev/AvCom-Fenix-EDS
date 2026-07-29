@@ -102,16 +102,37 @@ const TIER_PRESETS = {
     condorTo: '#7C0005',
   },
   // Silver (Figma 518:23840 — card; 169:12237 — drawer)
-  // Gradient REAL Figma export: angle -52.14°, gray500 (LIGHT) 85.98% →
-  // gray1100 (DARK) 68.29%. Stops invertidos respecto a CF/preset clásico
-  // (LIGHT → DARK). CSS clamp del end-stop al start-stop → la mayoría queda
-  // en el color de inicio con transición al final.
+  //
+  // HERO / drawer / hero-header / hero-expanded / hero-compact (namespace CF
+  // `color*`, ángulo hardcoded 90deg en cada componente):
+  //   linear-gradient(90deg, #393838 0%, #6C6C6C 100%)
+  //
+  // CARD (members-membership-card, namespace CF `cardColor*`, angle desde CF
+  // `gradientAngle`). Valores exactos del panel "Dev Mode → CSS" de Figma:
+  //   linear-gradient(295deg, #C4C8C5 -85.98%, #393838 68.29%)
+  // Puntos críticos que suelen exportarse mal:
+  //   • Ángulo `295deg` (no `-52.137deg` del panel de rotación Figma; ése es
+  //     el ángulo del handle, no la convención CSS).
+  //   • Stop de LIGHT en `-85.98%` NEGATIVO: posiciona el color base fuera del
+  //     canvas, dejando solo la parte final del degradado visible. Sin el signo,
+  //     domina el silver y se pierde el look oscuro del tier.
   silver: {
-    gradientFrom: '#c4c8c5', // neutral/opaque/gray500 (LIGHT)
-    gradientFromStop: '85.982%',
-    gradientTo: '#393838', // neutral/opaque/gray1100 (DARK)
-    gradientToStop: '68.291%',
-    gradientAngle: '-52.137deg',
+    // Fallback del HERO (CF `colorStart/End/StartStop/Stop`).
+    gradientFrom: '#393838',
+    gradientFromStop: '0%',
+    gradientTo: '#6c6c6c',
+    gradientToStop: '100%',
+    gradientAngle: '90deg',
+    // Fallback del CARD (CF `cardColorStart/End/StartStop/EndStop/gradientAngle`).
+    // Consumido por `getMembersCardTheme`. Separado del hero porque la paleta
+    // y el ángulo son distintos por completo — el card usa una versión "clara
+    // con toque oscuro" en diagonal, no la variante "oscuro a gris" horizontal
+    // del hero.
+    cardGradientFrom: '#c4c8c5', // neutral/opaque/gray500 (LIGHT)
+    cardGradientFromStop: '-85.98%',
+    cardGradientTo: '#393838', // neutral/opaque/gray1100 (DARK)
+    cardGradientToStop: '68.29%',
+    cardGradientAngle: '295deg',
     balanceCardBg: '#393838',
     pillBg: '#262626',
     pillBorder: '#777777',
@@ -136,11 +157,18 @@ const TIER_PRESETS = {
   // Silver para el pill "Ver perfil" (bg/border/hover), con diferenciación
   // de sub-status fuera del botón.
   'silver-cenit': {
-    gradientFrom: '#c4c8c5',
-    gradientFromStop: '85.982%',
-    gradientTo: '#393838',
-    gradientToStop: '68.291%',
-    gradientAngle: '-52.137deg',
+    // Fallback del HERO (mismo look que silver base).
+    gradientFrom: '#393838',
+    gradientFromStop: '0%',
+    gradientTo: '#6c6c6c',
+    gradientToStop: '100%',
+    gradientAngle: '90deg',
+    // Fallback del CARD — ver nota completa en preset `silver`.
+    cardGradientFrom: '#c4c8c5',
+    cardGradientFromStop: '-85.98%',
+    cardGradientTo: '#393838',
+    cardGradientToStop: '68.29%',
+    cardGradientAngle: '295deg',
     balanceCardBg: '#393838',
     pillBg: '#262626',
     pillBorder: '#777777',
@@ -298,6 +326,19 @@ export const normalizeTierKey = (raw) => {
   if (k === 'silvercenit') return 'silver-cenit';
   if (k === 'goldcenit') return 'gold-cenit';
   if (k === 'diamondcenit') return 'diamond-cenit';
+  // Magno no distingue Cenit en theming (1271699): cualquier variante colapsa.
+  if (k === 'magnocenit' || k === 'magno-cenit') return 'magno';
+  // Keys compuestas del SERVICIO (1271699): `status.current` llega con sufijo de
+  // nivel pegado ('diamondone', 'goldone', 'magnotwo'…) y `tier`/`cenitStatus`
+  // como display armado ('Diamond Cenit One Million' → 'diamond-cenit-one-million'
+  // tras el replace de arriba). Por sufijo, no lista cerrada: ambos formatos
+  // colapsan al preset `-cenit` del tier base; si no existe (magno), al base.
+  const composite = k.match(/^(redplus|red-plus|lifemiles|silver|gold|diamond|magno)(?:-?cenit)?-?(?:one|two)(?:-million)?$/);
+  if (composite) {
+    const base = composite[1] === 'redplus' ? 'red-plus' : composite[1];
+    const cenitKey = `${base}-cenit`;
+    return TIER_PRESETS[cenitKey] ? cenitKey : base;
+  }
   return TIER_PRESETS[k] ? k : 'lifemiles';
 };
 
@@ -581,12 +622,242 @@ export const getMembersCardTheme = (rawTier, cfTierThemes = {}) => {
     // Gradiente del card: `cardColor*` del CF (cuando esté autorado) gana
     // sobre el preset. Permite al autor tweakear el card sin tocar código,
     // SIN afectar el drawer/hero (que siguen leyendo `colorStart/End`).
-    gradientFrom: base.cardColorStart || preset.gradientFrom,
-    gradientFromStop: base.cardColorStartStop || preset.gradientFromStop,
-    gradientTo: base.cardColorEnd || preset.gradientTo,
-    gradientToStop: base.cardColorEndStop || preset.gradientToStop,
-    // `gradientAngle`, `cardBackground`, `cardShadow` se preservan del `base`
-    // (que ya implementa CF || preset || default).
+    //
+    // NOTA de autoring: el CF debe usar los valores del panel "Dev Mode →
+    // CSS" de Figma (angle en convención CSS: 0° = arriba, positivo
+    // clockwise), NO los del panel de rotación (convención matemática). Ver
+    // preset `silver` para el patrón de referencia (angle 295°, stop light
+    // -85.98% para "sacar" el color base fuera del canvas). Un fix defensivo
+    // en `members-membership-card.js` ordena los stops ascendentes antes de
+    // armar el string CSS, así el render no se rompe si el autor pone stops
+    // en orden inverso.
+    //
+    // Fallback: `preset.cardGradient*` (namespace card-específico, ej.
+    // silver) → `preset.gradient*` (legacy compartido con hero, para tiers
+    // que aún no fueron separados). Así el default del card NO contamina
+    // el default del hero cuando la paleta difiere (caso silver).
+    gradientFrom: base.cardColorStart || preset.cardGradientFrom || preset.gradientFrom,
+    gradientFromStop: base.cardColorStartStop || preset.cardGradientFromStop || preset.gradientFromStop,
+    gradientTo: base.cardColorEnd || preset.cardGradientTo || preset.gradientTo,
+    gradientToStop: base.cardColorEndStop || preset.cardGradientToStop || preset.gradientToStop,
+    // Angle: CF `gradientAngle` → preset `cardGradientAngle` (card-específico)
+    // → preset `gradientAngle` (legacy). El resolver de `base.gradientAngle`
+    // ya cae del CF al `preset.gradientAngle`; acá preferimos primero el
+    // `cardGradientAngle` cuando existe.
+    gradientAngle: base.gradientAngle && base.gradientAngle !== preset.gradientAngle
+      ? base.gradientAngle
+      : (preset.cardGradientAngle || preset.gradientAngle || base.gradientAngle),
+    // `cardBackground`, `cardShadow` se preservan del `base` (que ya
+    // implementa CF || preset || default).
+  };
+};
+
+// ---------------------------------------------------------------------------
+// Tokens de la sección "Progreso Elite y beneficios" (1271692, Bloque 2 header).
+// APPEND-ONLY: no toca `TIER_PRESETS`/`getTierTheme`/`cfTierToTheme` (superficie
+// viva del hero de Mi Lifemiles — regresión crítica). Namespace propio de tokens
+// del AC (`colorGradientStrong/Subtle/Decor`, `colorOverlay`, `colorText`,
+// `colorBorderAccent`) con resolución CF nuevo → legacy → preset.
+//
+// Hex de `contexto-figma.md` §A (gradiente strong + overlay) y §B (gradiente
+// sutil de alertas, listo para 1271699). Decisión D1: Lifemiles strong end
+// `#D50013` (variable aplicada; Juan lo levanta con diseño). Variantes CENIT
+// comparten los colores de su tier base (así lo documenta el sheet) → los
+// presets van por los 6 tiers base y `getEliteTierTokens` colapsa cenit → base.
+// ---------------------------------------------------------------------------
+export const ELITE_TIER_PRESETS = {
+  lifemiles: {
+    gradientStrongFrom: '#B50080',
+    gradientStrongTo: '#D50013', // D1: variable aplicada (panel dice #D5013B)
+    gradientDecorFrom: '#B50080',
+    gradientDecorTo: '#D50013',
+    overlay: '#970346',
+    text: '#FAFAFA',
+    borderAccent: '#970346',
+  },
+  'red-plus': {
+    gradientStrongFrom: '#930004',
+    gradientStrongTo: '#C90102',
+    gradientDecorFrom: '#930004',
+    gradientDecorTo: '#C90102',
+    gradientSubtleFrom: '#FFF1F2',
+    gradientSubtleTo: '#FFFCFC',
+    overlay: '#7D0106',
+    text: '#FAFAFA',
+    borderAccent: '#7D0106',
+  },
+  silver: {
+    gradientStrongFrom: '#393838',
+    gradientStrongTo: '#6C6C6C',
+    gradientDecorFrom: '#393838',
+    gradientDecorTo: '#6C6C6C',
+    gradientSubtleFrom: '#F2F2F2',
+    gradientSubtleTo: '#FFFFFF',
+    overlay: '#393838',
+    text: '#FAFAFA',
+    borderAccent: '#393838',
+  },
+  gold: {
+    gradientStrongFrom: '#AE5E29',
+    gradientStrongFromStop: '42%',
+    gradientStrongTo: '#C37D1D',
+    gradientStrongToStop: '91%',
+    gradientDecorFrom: '#AE5E29',
+    gradientDecorTo: '#C37D1D',
+    gradientSubtleFrom: '#FFF6E9',
+    gradientSubtleTo: '#FFFAF4',
+    overlay: '#A55B1F',
+    text: '#FAFAFA',
+    borderAccent: '#A55B1F',
+  },
+  diamond: {
+    gradientStrongFrom: '#232021',
+    gradientStrongTo: '#585F5E',
+    gradientDecorFrom: '#232021',
+    gradientDecorTo: '#585F5E',
+    gradientSubtleFrom: '#F2F2F2',
+    gradientSubtleTo: '#D5D5D5',
+    overlay: '#0F0F0F',
+    text: '#FAFAFA',
+    borderAccent: '#0F0F0F',
+  },
+  magno: {
+    gradientStrongFrom: '#000000',
+    gradientStrongTo: '#1F0B00',
+    gradientDecorFrom: '#000000',
+    gradientDecorTo: '#1F0B00',
+    gradientSubtleFrom: '#F3EEEB',
+    gradientSubtleTo: '#FDFBF9',
+    overlay: '#1B0900',
+    text: '#FAFAFA',
+    borderAccent: '#1B0900',
+  },
+};
+
+/**
+ * Colapsa un tier crudo del VM (incl. variantes Cenit) a una de las 6 keys base
+ * de `ELITE_TIER_PRESETS` (decisión 5: "las variantes CENIT comparten los
+ * colores de su tier base"). Reusa `normalizeTierKey` para los casos conocidos
+ * (gold-cenit → gold, etc.) y rescata por substring las variantes que
+ * `normalizeTierKey` no reconoce (ej. "Magno Cenit One Million", que caería a
+ * lifemiles). Default seguro: lifemiles.
+ * @param {string} rawTier
+ * @returns {'lifemiles'|'red-plus'|'silver'|'gold'|'diamond'|'magno'}
+ */
+export const eliteBaseTierKey = (rawTier) => {
+  // Substring PRIMERO: `normalizeTierKey('Gold Cenit One Million')` no reconoce
+  // esa string (cae a 'lifemiles'), así que el match por nombre de tier es la
+  // fuente autoritativa para las variantes Cenit. Cubre los 5 tiers coloreados.
+  const s = String(rawTier || '').toLowerCase();
+  if (s.includes('magno')) return 'magno';
+  if (s.includes('diamond')) return 'diamond';
+  if (s.includes('gold')) return 'gold';
+  if (s.includes('silver')) return 'silver';
+  if (/red[\s_-]*plus|redplus/.test(s)) return 'red-plus';
+  // lifemiles y variantes de naming/casing → normalizeTierKey, colapsando -cenit.
+  const base = normalizeTierKey(rawTier).replace(/-cenit$/, '');
+  return ELITE_TIER_PRESETS[base] ? base : 'lifemiles';
+};
+
+/**
+ * Tokens visuales del header elite para un tier crudo del VM. Resuelve
+ * campo-a-campo con la cadena **CF nuevo → legacy → preset** (decisión T4-A):
+ *   colorGradientStrongStart → colorStart/gradientFrom → preset.gradientStrongFrom
+ *   colorOverlay             → balanceCardBg           → preset.overlay
+ *   colorText                → textColor               → preset.text
+ *   colorBorderAccent        → (sin legacy)            → preset.borderAccent
+ * `cfTierMap` es un dict de tiers del CF por key (típicamente `cfg.tiers`, que
+ * Paso 2 extiende con los campos nuevos; también tolera `cfg.tierThemes`, que
+ * trae los legacy `gradientFrom/To`/`balanceCardBg`). El hero NO se ve afectado
+ * (esta función es nueva; `getTierTheme` queda intacto).
+ * @param {string} rawTier
+ * @param {Object<string, object>} [cfTierMap={}]
+ * @returns {{key, gradientStrongFrom, gradientStrongTo, gradientStrongFromStop,
+ *   gradientStrongToStop, gradientDecorFrom, gradientDecorTo, gradientSubtleFrom,
+ *   gradientSubtleTo, overlay, text, borderAccent}}
+ */
+export const getEliteTierTokens = (rawTier, cfTierMap = {}) => {
+  const key = eliteBaseTierKey(rawTier);
+  const preset = ELITE_TIER_PRESETS[key] || ELITE_TIER_PRESETS.lifemiles;
+  // Entrada del CF para este tier: probamos la key base, la key normalizada
+  // completa (por si el CF autora "gold-cenit" aparte) y la cruda.
+  const cf = (cfTierMap && (cfTierMap[key]
+    || cfTierMap[normalizeTierKey(rawTier)]
+    || cfTierMap[rawTier])) || {};
+  const pick = (cfNew, cfLegacy, presetVal) => cfNew || cfLegacy || presetVal;
+  // Legacy del strong: `colorStart/End` (shape `cfg.tiers`) o `gradientFrom/To`
+  // (shape `cfg.tierThemes`). Se resuelve antes para no pasar los `100`.
+  const legacyStart = cf.colorStart || cf.gradientFrom;
+  const legacyEnd = cf.colorEnd || cf.gradientTo;
+  return {
+    key,
+    gradientStrongFrom: pick(cf.colorGradientStrongStart, legacyStart, preset.gradientStrongFrom),
+    gradientStrongTo: pick(cf.colorGradientStrongEnd, legacyEnd, preset.gradientStrongTo),
+    gradientStrongFromStop: cf.colorGradientStrongStartStop || preset.gradientStrongFromStop || '0%',
+    gradientStrongToStop: cf.colorGradientStrongEndStop || preset.gradientStrongToStop || '100%',
+    gradientDecorFrom: pick(cf.colorGradientDecorStart, null, preset.gradientDecorFrom),
+    gradientDecorTo: pick(cf.colorGradientDecorEnd, null, preset.gradientDecorTo),
+    gradientSubtleFrom: pick(cf.colorGradientSubtleStart, null, preset.gradientSubtleFrom),
+    gradientSubtleTo: pick(cf.colorGradientSubtleEnd, null, preset.gradientSubtleTo),
+    overlay: pick(cf.colorOverlay, cf.balanceCardBg, preset.overlay),
+    text: pick(cf.colorText, cf.textColor, preset.text),
+    borderAccent: pick(cf.colorBorderAccent, null, preset.borderAccent),
+  };
+};
+
+/**
+ * Tokens del chip circular de `MembersQuickAction` por tier — SPEC 2026-07-27:
+ *   • Lifemiles → Figma 518:23646 (bg #970346 / border #D7ACBF).
+ *   • Red Plus  → Figma 518:23481 (bg #7D0106 / border #C88F91).
+ *   • Silver    → Figma 518:23522 (bg #262626 / border #9A9A9A).
+ *   • Gold      → Figma 518:23440 (bg #703B16 / border #CEB19C).
+ *   • Diamond   → Figma 518:23564 (bg #0F0F0F / border #808080).
+ *   • Magno     → Figma 518:23605 (bg #1B0900 / border #6E615B).
+ * Ícono blanco en todos (contraste ícono/fill ≥ 8.6). Los ratios de accesibilidad
+ * (stroke/fondo oscuro, stroke/fill) están validados en las láminas.
+ *
+ * La tabla vive acá — NO se derivan de `pillBg/pillBorder` — porque los tokens
+ * del chip pueden divergir de la píldora "Ver perfil" (mismo por-tier, pero
+ * distinto propósito y potenciales cambios futuros de hover/pressed).
+ *
+ * Estados hover/pressed: el Figma sí los define — chip completo BLANCO (bg y
+ * border) con el ícono en el color del tier. En pressed el chip pasa a `#E9E9E9`
+ * manteniendo el borde acompañando. La inversión mantiene el foco del CTA
+ * cuando el usuario interactúa (consistente con `pillTextHover` de la píldora
+ * "Ver perfil"). Ver Figma 518:23397.
+ *
+ * @param {string} rawTier
+ * @param {Object<string, object>} [cfTierThemes={}] - reservado para override
+ *   futuro del CF; hoy la tabla es hardcoded (el Figma es la fuente).
+ * @returns {{key,bg,border,icon,bgHover,borderHover,iconHover,bgActive,borderActive,iconActive}|null}
+ *   `null` si el tier no matchea ninguna key normalizada ⇒ el átomo cae a su
+ *   look oscuro genérico.
+ */
+const QUICK_ACTION_TOKENS_BY_TIER = Object.freeze({
+  lifemiles: { bg: '#970346', border: '#D7ACBF' },
+  'red-plus': { bg: '#7D0106', border: '#C88F91' },
+  silver: { bg: '#262626', border: '#9A9A9A' },
+  gold: { bg: '#703B16', border: '#CEB19C' },
+  diamond: { bg: '#0F0F0F', border: '#808080' },
+  magno: { bg: '#1B0900', border: '#6E615B' },
+});
+
+export const getQuickActionTokens = (rawTier, cfTierThemes = {}) => {
+  const key = normalizeTierKey(rawTier);
+  const spec = QUICK_ACTION_TOKENS_BY_TIER[key];
+  if (!spec) return null;
+  const { bg, border } = spec;
+  return {
+    key,
+    bg,
+    border,
+    icon: '#FFFFFF',
+    bgHover: '#FFFFFF',
+    borderHover: '#FFFFFF',
+    iconHover: bg,
+    bgActive: '#E9E9E9',
+    borderActive: '#E9E9E9',
+    iconActive: bg,
   };
 };
 

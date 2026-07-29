@@ -1,0 +1,19 @@
+/* Members Elite block (1271689, "ProgElite+Ben | Bloque 1"). Bloque-puente de la
+ * página "Progreso Elite y beneficios": monta el organism Preact `MembersElite`
+ * (header + tabs + contenido). EDS auto-carga este .css. El layout interno lo
+ * aporta el organism vía Tailwind; acá sólo el contenedor y el indicador de modo
+ * autor (espejo de members-cards.css). */
+
+.members-elite-container {
+  width: 100%;
+}
+
+/* Modo autor (UE): indicador visible, sin montar el organism (igual que members-cards). */
+.members-elite-author-indicator {
+  margin-bottom: 8px;
+  padding: 8px;
+  border: 1px dashed #06c;
+  background: #f0f0f0;
+  color: #666;
+  font-size: 12px;
+}

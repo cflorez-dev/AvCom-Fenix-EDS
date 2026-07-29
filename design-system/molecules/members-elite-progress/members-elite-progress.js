@@ -101,9 +101,11 @@ export const MembersEliteProgress = ({
 
   // Tooltip de info: va sobre la etiqueta de la 1ª condición (comp). Trigger
   // focusable (botón) para que el tooltip aparezca también por teclado.
-  // Tamaño responsive: 12px en mobile (Figma 518:26233) / 16px en desktop
-  // (Figma 518:26160). Se usa `size="sm"` (w-3 h-3) + `customClassName`
-  // con `md:w-4 md:h-4` para sobrescribir el ancho/alto en el breakpoint md.
+  // Tamaño responsive: 12px hasta 1023px (Figma 518:26233 mobile/tablet) /
+  // 16px en desktop ≥1024 (Figma 518:26160). Se usa `size="sm"` (w-3 h-3) +
+  // `customClassName` con `lg:w-4 lg:h-4` para sobrescribir el ancho/alto
+  // en el breakpoint `lg`. Nota: `md:` (768) NO aplica porque el switch
+  // completo del componente vive en `lg` (1024) — ver AVAEMF2P20-200.
   const infoTooltip = tooltipContent ? html`
     <${Tooltip}
       variant="hint"
@@ -114,12 +116,12 @@ export const MembersEliteProgress = ({
       <button
         type="button"
         aria-label=${tooltipAriaLabel}
-        class="inline-flex items-center justify-center w-3 h-3 md:w-4 md:h-4 rounded-full bg-transparent border-0 p-0 cursor-pointer outline-none focus-visible:[box-shadow:0_0_0_1.5px_#28a8ff,0_0_0_3px_#ffffff]"
+        class="inline-flex items-center justify-center w-3 h-3 lg:w-4 lg:h-4 rounded-full bg-transparent border-0 p-0 cursor-pointer outline-none focus-visible:[box-shadow:0_0_0_1.5px_#28a8ff,0_0_0_3px_#ffffff]"
       >
         <${Icon}
           icon="alert/info"
           size="sm"
-          customClassName="md:w-4 md:h-4"
+          customClassName="lg:w-4 lg:h-4"
           ariaLabel=${tooltipAriaLabel}
         />
       </button>
@@ -148,33 +150,52 @@ export const MembersEliteProgress = ({
   const ctaEl = showCta ? html`
     <a
       href=${ctaUrl}
-      class="inline-flex items-center gap-1 text-[#1b1b1b] font-normal text-sm md:text-base leading-[14px] md:leading-[16px] no-underline whitespace-nowrap shrink-0 rounded-sm outline-none focus-visible:[box-shadow:0_0_0_1.5px_#28a8ff,0_0_0_3px_#ffffff]"
+      class="group relative inline-flex items-center gap-[4px] text-[#1b1b1b] font-normal text-[14px] leading-[19px] lg:text-[16px] lg:leading-[21px] no-underline whitespace-nowrap shrink-0 rounded-[4px] outline-none"
       data-name="members-elite-cta"
     >
-      <span>${ctaLabel}</span>
-      <${Icon} icon="navigation/arrow-right" customSize=${24} ariaLabel="" />
+      ${/* Focus ring (Figma 518:22271): `-inset-1` = 4px de respiro entre texto e
+           icono y el ring azul+blanco. Mismo patrón que `members-hero-toggle` y
+           `MembersCopyMembership` — un span aparte para que el box-shadow no quede
+           pegado al bounding box. */ ''}
+      <span
+        aria-hidden="true"
+        class="absolute -inset-1 rounded-[4px] pointer-events-none opacity-0 group-focus-visible:opacity-100 [box-shadow:0_0_0_1.5px_#28a8ff,0_0_0_3px_#ffffff]"
+      ></span>
+      ${/* hover = underline; active/pressed = SemiBold (Figma 518:22253 / 518:22262).
+           Grid-stack: el cambio 400→600 en pressed ensancha el texto y empujaría
+           la flecha; un sibling invisible con `font-semibold` reserva el ancho
+           bold para que el visible pueda cambiar weight sin correr el layout. */ ''}
+      <span class="relative inline-grid">
+        <span aria-hidden="true" class="col-start-1 row-start-1 invisible font-semibold pointer-events-none select-none">${ctaLabel}</span>
+        <span class="col-start-1 row-start-1 group-hover:underline group-hover:decoration-solid group-active:no-underline group-active:font-semibold">${ctaLabel}</span>
+      </span>
+      <span class="relative inline-flex"><${Icon} icon="navigation/arrow-right" customSize=${24} ariaLabel="" /></span>
     </a>
   ` : null;
 
   return html`
     <div
-      class=${`bg-white rounded-2xl p-4 md:p-6 flex flex-col gap-6 md:flex-row md:items-center md:gap-8 ${customClassName}`}
+      class=${`bg-white rounded-2xl p-4 pb-6 lg:p-6 flex flex-col gap-6 lg:flex-row lg:items-center lg:gap-8 ${customClassName}`}
       data-name="members-elite-progress"
       data-conditions=${conditions.length}
       ...${rest}
     >
-      ${/* Header: en mobile title + CTA inline (justify-between, Figma 518:26072);
-          en desktop solo title con ancho fijo Figma 134px (la w del nodo 518:26000)
-          y los hijos se reorganizan a row v\u00eda md:block + el CTA mobile se oculta. */ ''}
-      <div class="flex items-center justify-between gap-4 md:block md:w-[134px] md:shrink-0">
+      ${/* Header: hasta 1023 title + CTA inline (justify-between, Figma
+          617:44593 mantiene el layout mobile hasta tablet); desde 1024 solo
+          title con ancho fijo Figma 134px (la w del nodo 518:26000) y los
+          hijos se reorganizan a row v\u00eda lg:block + el CTA mobile se oculta.
+          El switch al layout horizontal ocurre en `lg` (1024), no en `md`
+          (768): el spec 617:44593 confirma que el estado tablet reusa el
+          layout mobile stacked (AVAEMF2P20-200). */ ''}
+      <div class="flex items-center justify-between gap-4 lg:block lg:w-[134px] lg:shrink-0">
         <h3
-          class="!m-0 text-sm! font-bold! leading-[19px]! text-[#1b1b1b]!"
+          class="!m-0 max-w-[152px] min-[640px]:max-w-full text-sm! font-bold! leading-[19px]! text-[#1b1b1b]!"
           data-name="members-elite-title"
         >${title}</h3>
-        ${ctaEl && html`<div class="md:hidden shrink-0">${ctaEl}</div>`}
+        ${ctaEl && html`<div class="lg:hidden shrink-0">${ctaEl}</div>`}
       </div>
 
-      <div class="flex-1 w-full flex flex-col gap-6 md:flex-row md:gap-6 min-w-0">
+      <div class="flex-1 w-full flex flex-col gap-6 lg:flex-row lg:gap-6 min-w-0">
         ${conditions.map((c, i) => html`
           <${MembersProgressBar}
             key=${c.key}
@@ -193,7 +214,7 @@ export const MembersEliteProgress = ({
         `)}
       </div>
 
-      ${ctaEl && html`<div class="hidden md:flex shrink-0">${ctaEl}</div>`}
+      ${ctaEl && html`<div class="hidden lg:flex shrink-0">${ctaEl}</div>`}
     </div>
   `;
 };

@@ -26,7 +26,7 @@ export const MembersCardSample = () => html`
         icon="action/assessment"
         title="Progreso Elite y beneficios"
         description="Consulta tu nivel actual, tus beneficios y tu progreso hacia el siguiente estatus."
-        href="#/es/members/elite"
+        href="#/es/members/profile/elite"
       />
     </div>
 
