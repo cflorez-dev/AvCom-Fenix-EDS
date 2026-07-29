@@ -8,6 +8,19 @@ import { sanitizeHTML } from '../../../scripts/utils/sanitize.js';
 
 const html = htm.bind(h);
 
+/**
+ * La prop `icon` acepta dos formas: un nombre de sprite (`alert/success`, que el
+ * atom Icon inlinea desde `/icons/<name>.svg`) o una fuente de imagen. Se trata
+ * como imagen cuando es URL absoluta, protocol-relative, ruta del sitio
+ * (`/media_xxx.svg` — el caso de un valor autorado en el diccionario o del
+ * `_publishUrl` de un Content Fragment) o data URI.
+ *
+ * @param {string} value - Valor recibido en la prop `icon`
+ * @returns {boolean} true si debe renderizarse como <img> y no como sprite
+ */
+export const isImageSource = (value) => typeof value === 'string'
+  && (/^(https?:)?\/\//.test(value) || value.startsWith('/') || value.startsWith('data:'));
+
 export const ModalAviancaLayout = ({
   isOpen,
   onClose,
@@ -98,7 +111,7 @@ export const ModalAviancaLayout = ({
           />
         `}
         ${!coverImage && !image && icon && html`
-          ${icon.startsWith('http') ? html`
+          ${isImageSource(icon) ? html`
             <img
               src=${icon}
               alt=${imageAlt || title || ''}

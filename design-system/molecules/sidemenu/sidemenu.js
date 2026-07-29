@@ -1,5 +1,6 @@
 import { h } from '@dropins/tools/preact.js';
 import { useEffect, useRef, useState } from '@dropins/tools/preact-hooks.js';
+import { createPortal, Fragment } from '@dropins/tools/preact-compat.js';
 import htm from 'htm';
 import { Button } from '../../atoms/button/button.js';
 import { Icon } from '../../atoms/icon/icon.js';
@@ -155,6 +156,12 @@ export const SidemenuItem = ({
  *  - Color #1B1B1B 70%.
  *  - Backdrop-blur 4px (se desactiva si `prefers-reduced-motion: reduce`).
  *  - Click sobre overlay → onClose.
+ *  - Se portala a `document.body` con `z-[9998]` para cubrir TODO el viewport:
+ *    dimea header sticky (`.header-wrapper` z-100), marquesina darksite
+ *    (`.darksite-header-alert` z-2000) y el resto del contenido de la página.
+ *    Patrón modal estándar — el chrome del site queda visible detrás del 70%
+ *    oscuro, no oculto. El panel del drawer se pinta una capa por encima
+ *    (`z-[9999]`).
  *
  * Animación:
  *  - Apertura: slide-in desde derecha + fade-in overlay (300ms ease-out).
@@ -293,12 +300,15 @@ export const Sidemenu = ({
 
     prevActiveElementRef.current = document.activeElement;
 
-    // focus the preferred element: membership copy button, otherwise first focusable
+    // focus the preferred element: membership copy button, otherwise first focusable.
+    // `preventScroll: true` es CRÍTICO: sin él el navegador puede scrollear la
+    // página al enfocar el elemento (aunque esté dentro de un panel position:fixed),
+    // rompiendo la promesa de "conservar el scrollY del usuario al abrir el drawer".
     const focusables = getFocusableElements(panel);
     focusablesRef.current = focusables;
     const preferred = panel?.querySelector('[data-name="members-copy"]') || focusables[0] || panel;
     try {
-      if (preferred && typeof preferred.focus === 'function') preferred.focus();
+      if (preferred && typeof preferred.focus === 'function') preferred.focus({ preventScroll: true });
     } catch (err) { /* ignore */ }
 
     const onKeyDown = (e) => {
@@ -306,19 +316,22 @@ export const Sidemenu = ({
       const f = focusablesRef.current.length ? focusablesRef.current : getFocusableElements(panel);
       if (!f.length) {
         e.preventDefault();
-        if (panel && typeof panel.focus === 'function') panel.focus();
+        if (panel && typeof panel.focus === 'function') panel.focus({ preventScroll: true });
         return;
       }
       const first = f[0];
       const last = f[f.length - 1];
+      // `preventScroll:true` en el ciclo Tab del trap: si el user rota hasta un
+      // elemento que quedó fuera del área visible del panel, el foco lo trae al
+      // primero/último sin arrastrar el scroll de la página detrás del drawer.
       if (e.shiftKey) {
         if (document.activeElement === first) {
           e.preventDefault();
-          last.focus();
+          last.focus({ preventScroll: true });
         }
       } else if (document.activeElement === last) {
         e.preventDefault();
-        first.focus();
+        first.focus({ preventScroll: true });
       }
     };
 
@@ -329,18 +342,65 @@ export const Sidemenu = ({
     return () => {
       document.removeEventListener('keydown', onEsc);
       panel?.removeEventListener('keydown', onKeyDown);
-      // restore focus to the element that opened the dialog
+      // restore focus to the element that opened the dialog.
+      // `preventScroll: true` evita que el navegador scrollee la página para
+      // hacer "visible" el trigger (ej. si el header no está sticky o si por
+      // sub-pixel piensa que necesita ajuste). Sin esto, al cerrar el drawer el
+      // viewport saltaba a la parte superior de la página (ticket QA).
       try {
         const prev = prevActiveElementRef.current;
-        if (prev && typeof prev.focus === 'function') prev.focus();
+        if (prev && typeof prev.focus === 'function') prev.focus({ preventScroll: true });
       } catch (err) { /* ignore */ }
     };
   }, [shouldRender, isClosing, onClose]);
 
+  // Body scroll-lock: bloquea scroll de la página mientras el drawer está abierto
+  // y GARANTIZA que al cerrar el viewport vuelva al mismo scrollY que tenía cuando
+  // se abrió (spec QA: "preservar la continuidad de la navegación").
+  //
+  // Estrategia:
+  //  1. Al abrir: guardamos `window.scrollY` y aplicamos `overflow-hidden` al
+  //     `<html>` (documentElement), NO al `<body>`.
+  //  2. Al cerrar: quitamos la clase y, si por cualquier motivo el navegador
+  //     movió el scroll (focus restore residual, Safari iOS, gestos, extensiones,
+  //     etc.), restauramos con `scrollTo(0, savedY)` de forma síncrona (`instant`).
+  //
+  // IMPORTANTE — POR QUÉ `<html>` Y NO `<body>`:
+  //   `body { overflow: hidden }` convierte al body en su propio scroll container.
+  //   Cuando eso pasa, TODOS los elementos `position:sticky` descendientes del
+  //   body dejan de tener el viewport como contenedor de scroll — recalculan
+  //   contra el body que ya no scrollea. Como resultado, el header sticky
+  //   (`.header-wrapper` z:1000), la marquesina (`.sticky top-0 z-[1000]`) y la
+  //   darksite alert (`.darksite-header-alert` z:2000) PIERDEN el sticky-clamp
+  //   y se van a su posición de flow natural (top ≈ -scrollY), quedando fuera
+  //   del viewport. Aplicando la regla al `<html>` en cambio, la propiedad
+  //   afecta al ICB (initial containing block) sin cambiar el scroll container
+  //   de los descendientes → los sticky del site siguen funcionando y el
+  //   scroll queda igualmente bloqueado.
+  //
+  //   Comprobado con Chrome DevTools MCP el 2026-07-28:
+  //     - `body.overflow-hidden` + scrollY=474 → alert top:-474, marquesina
+  //       top:-430, header top:-390 (todos fuera del viewport).
+  //     - `html.overflow-hidden` + scrollY=474 → alert/marquesina/header top:0
+  //       (sticky funciona correctamente).
+  //
+  // Nota: NO usamos el patrón `position:fixed + top:-scrollY` porque introduce
+  // un salto perceptible en la propia apertura y también rompe sticky en el
+  // trayecto. `html.overflow-hidden` + restore explícito es suficiente cuando
+  // eliminamos también los focus-induced scrolls (ver `preventScroll:true`
+  // arriba).
   useEffect(() => {
-    if (shouldRender) document.body.classList.add('overflow-hidden');
-    else document.body.classList.remove('overflow-hidden');
-    return () => document.body.classList.remove('overflow-hidden');
+    if (!shouldRender) return undefined;
+    const savedY = window.scrollY || window.pageYOffset || 0;
+    document.documentElement.classList.add('overflow-hidden');
+    return () => {
+      document.documentElement.classList.remove('overflow-hidden');
+      // Restaurar sólo si el scroll efectivamente cambió (evita micro-jitter).
+      const currentY = window.scrollY || window.pageYOffset || 0;
+      if (currentY !== savedY) {
+        window.scrollTo({ top: savedY, left: 0, behavior: 'instant' });
+      }
+    };
   }, [shouldRender]);
 
   const handleOverlayClick = (e) => {
@@ -355,25 +415,41 @@ export const Sidemenu = ({
 
   if (!shouldRender) return null;
 
-  // Overlay: #1B1B1B 70% + blur 4px (sin blur si reduced-motion).
-  const overlayBase = 'fixed inset-0 z-[9999] flex justify-end '
+  // Overlay: #1B1B1B 70% + blur 4px (sin blur si reduced-motion). Se portala a
+  // <body> con z-[9998] para cubrir TODO el viewport — header sticky
+  // (`.header-wrapper` z-100), booking-box sticky, marquesina darksite
+  // (`.darksite-header-alert` z-2000), etc. Patrón modal estándar: el overlay
+  // dimea (no oculta) el chrome del site atrás del 70% oscuro; el panel
+  // (z-9999) queda una capa por encima.
+  //
+  // NOTA: antes vivía adentro de `.header-user-actions` con z-[9999], pero
+  // quedaba atrapado en el stacking context del `.header-wrapper` (sticky
+  // z-100) → NO podía subir sobre hermanos externos como el darksite alert.
+  // El portal a <body> desacopla overlay y panel del contexto del header.
+  const overlayBase = 'fixed inset-0 z-[9998] '
     + 'bg-[rgba(27,27,27,0.7)] motion-safe:backdrop-blur-[4px] '
     + 'transition-opacity duration-300 motion-reduce:transition-none';
   const overlayState = entered ? 'opacity-100 ease-out' : 'opacity-0 ease-in';
   const overlayClasses = `${overlayBase} ${overlayState} ${customClassName}`;
 
-  // Panel: full screen <768px, drawer ≥768px.
+  // Panel: full screen <768px, drawer ≥768px. z-[9999] (una capa por encima
+  // del overlay z-9998). El contenedor `fixed inset-0 flex justify-end` se
+  // mantiene `pointer-events-none` para que los clicks en la zona libre
+  // (fuera del panel) atraviesen al overlay debajo — el overlay resuelve el
+  // cierre por click.
   // IMPORTANTE: el panel NO scrollea — `overflow-hidden`. El header queda
   // sticky/shrink-0 al tope y un wrapper interno (`scroll-area`) absorbe el
   // scroll cuando el body excede el viewport. Esto cumple con el spec del
   // drawer Members (Figma 115:8485 / 115:8907): el HeroHeader gradient debe
   // permanecer visible mientras el listado de items scrollea.
+  const panelWrapperBase = 'fixed inset-0 z-[9999] flex justify-end pointer-events-none';
   const panelBase = 'relative flex flex-col h-full w-full '
     + 'md:w-[500px] md:max-w-[580px] '
     + 'bg-white overflow-hidden '
     + 'shadow-[0_2px_20px_2px_rgba(73,73,73,0.25)] '
     + 'transform-gpu will-change-transform '
-    + 'transition-transform duration-300 motion-reduce:transition-none';
+    + 'transition-transform duration-300 motion-reduce:transition-none '
+    + 'pointer-events-auto';
   const panelState = entered ? 'translate-x-0 ease-out' : 'translate-x-full ease-in';
   const panelInteractive = isClosing ? 'pointer-events-none' : 'pointer-events-auto';
   const panelClasses = `${panelBase} ${panelState} ${panelInteractive} ${panelClassName}`;
@@ -382,29 +458,58 @@ export const Sidemenu = ({
     ? 'text-white'
     : 'text-[var(--color-text-normal-primary)]';
 
-  return html`
-    <div
-      ref=${overlayRef}
-      class=${overlayClasses}
-      data-name="sidemenu-overlay"
-      onClick=${handleOverlayClick}
-      role="presentation"
-    >
-      <div
-        ref=${panelRef}
-        class=${panelClasses}
-        role="dialog"
-        aria-modal="true"
-        aria-label=${ariaLabel}
-        onClick=${(e) => e.stopPropagation()}
-        ...${rest}
-      >
-        ${/* Header: shrink-0 + relative para anclar el close button. NUNCA
-            scrollea junto al body — patrón sticky por flex (Figma 115:8907). */ ''}
-        ${header && html`
-          <div class="shrink-0 relative">
-            ${header}
-            ${showCloseButton && html`
+  // Portal a <body> para escapar el stacking context de `.header-wrapper`
+  // (sticky z-100). Sin esto, ni el backdrop puede quedar por debajo del
+  // header ni el panel puede subir sobre la marquesina darksite (z-2000).
+  const portalTarget = typeof document !== 'undefined' ? document.body : null;
+  if (!portalTarget) return null;
+
+  return createPortal(
+    html`
+      <${Fragment}>
+        <div
+          ref=${overlayRef}
+          class=${overlayClasses}
+          data-name="sidemenu-overlay"
+          onClick=${handleOverlayClick}
+          role="presentation"
+        ></div>
+        <div
+          class=${panelWrapperBase}
+          data-name="sidemenu-panel-wrapper"
+        >
+          <div
+            ref=${panelRef}
+            class=${panelClasses}
+            role="dialog"
+            aria-modal="true"
+            aria-label=${ariaLabel}
+            onClick=${(e) => e.stopPropagation()}
+            ...${rest}
+          >
+            ${/* Header: shrink-0 + relative para anclar el close button. NUNCA
+                scrollea junto al body — patrón sticky por flex (Figma 115:8907). */ ''}
+            ${header && html`
+              <div class="shrink-0 relative">
+                ${header}
+                ${showCloseButton && html`
+                  <div class=${`absolute top-[50px] right-4 z-10 ${closeIconColorClass}`}>
+                    <${Button}
+                      variant="transparent"
+                      size="xxs"
+                      iconOnly=${true}
+                      onClick=${handleCloseClick}
+                      aria-label="Cerrar menú"
+                    >
+                      <${Icon} icon="navigation/close-24" size="xl" color="currentColor" />
+                    </${Button}>
+                  </div>
+                `}
+              </div>
+            `}
+            ${/* Si NO hay header, el close-button vive flotante sobre el panel
+                (caso legacy: header pasado vía children). */ ''}
+            ${!header && showCloseButton && html`
               <div class=${`absolute top-[50px] right-4 z-10 ${closeIconColorClass}`}>
                 <${Button}
                   variant="transparent"
@@ -417,52 +522,38 @@ export const Sidemenu = ({
                 </${Button}>
               </div>
             `}
-          </div>
-        `}
-        ${/* Si NO hay header, el close-button vive flotante sobre el panel
-            (caso legacy: header pasado vía children). */ ''}
-        ${!header && showCloseButton && html`
-          <div class=${`absolute top-[50px] right-4 z-10 ${closeIconColorClass}`}>
-            <${Button}
-              variant="transparent"
-              size="xxs"
-              iconOnly=${true}
-              onClick=${handleCloseClick}
-              aria-label="Cerrar menú"
-            >
-              <${Icon} icon="navigation/close-24" size="xl" color="currentColor" />
-            </${Button}>
-          </div>
-        `}
-        ${/* Scroll area: flex-1 + overflow-y-auto. Children + footer viven
-            adentro. Si el contenido cabe en el viewport, el footer queda al
-            fondo gracias a `mt-auto` dentro del flex column.
+            ${/* Scroll area: flex-1 + overflow-y-auto. Children + footer viven
+                adentro. Si el contenido cabe en el viewport, el footer queda al
+                fondo gracias a `mt-auto` dentro del flex column.
 
-            Reserva derecha = 16px constantes (Figma 115:8903 spec) compuesta por:
-              - 12px del scrollbar custom global (`custom-scrollbar.css`):
-                container 12px = thumb 4px gris #d9d9d9 con border 4px transparente
-                a cada lado y bg-clip:padding-box, rounded como pill (visualmente
-                idéntico al rounded-4px que pide Figma sobre un thumb de 4px).
-              - 4px de gap entre el contenido y el scrollbar (`pr-1`).
-            `[scrollbar-gutter:stable]` reserva esos 12px del scrollbar también
-            cuando NO hay overflow, así el contenido nunca salta horizontalmente
-            al aparecer/ocultarse el scroll. */ ''}
-        ${(children || footer) && html`
-          <div
-            class="sidemenu-scroll-area flex-1 min-h-0 overflow-y-auto overflow-x-hidden flex flex-col pr-1 [scrollbar-gutter:stable]"
-            data-name="sidemenu-scroll-area"
-          >
-            ${children && html`
-              <div class="flex flex-col items-start w-full flex-1 min-h-0">${children}</div>
-            `}
-            ${footer && html`
-              <div class="flex flex-col items-start w-full mt-auto">${footer}</div>
+                Reserva derecha = 16px constantes (Figma 115:8903 spec) compuesta por:
+                  - 12px del scrollbar custom global (`custom-scrollbar.css`):
+                    container 12px = thumb 4px gris #d9d9d9 con border 4px transparente
+                    a cada lado y bg-clip:padding-box, rounded como pill (visualmente
+                    idéntico al rounded-4px que pide Figma sobre un thumb de 4px).
+                  - 4px de gap entre el contenido y el scrollbar (`pr-1`).
+                `[scrollbar-gutter:stable]` reserva esos 12px del scrollbar también
+                cuando NO hay overflow, así el contenido nunca salta horizontalmente
+                al aparecer/ocultarse el scroll. */ ''}
+            ${(children || footer) && html`
+              <div
+                class="sidemenu-scroll-area flex-1 min-h-0 overflow-y-auto overflow-x-hidden flex flex-col pr-1 [scrollbar-gutter:stable]"
+                data-name="sidemenu-scroll-area"
+              >
+                ${children && html`
+                  <div class="flex flex-col items-start w-full flex-1 min-h-0">${children}</div>
+                `}
+                ${footer && html`
+                  <div class="flex flex-col items-start w-full mt-auto">${footer}</div>
+                `}
+              </div>
             `}
           </div>
-        `}
-      </div>
-    </div>
-  `;
+        </div>
+      </${Fragment}>
+    `,
+    portalTarget,
+  );
 };
 
 export default Sidemenu;

@@ -6,6 +6,7 @@ indices:
       - '/**'
     exclude:
       - '/**.json'
+      - '/darksite/**'
     target: /query-index.json
     properties:
       lastModified:

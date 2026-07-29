@@ -329,3 +329,83 @@ describe('members/session.service', () => {
     expect(setSession).toHaveBeenLastCalledWith({ status: 'expired', user: null });
   });
 });
+
+describe('session.service · metas del hero desde eliteGoalsV2 (T18)', () => {
+  beforeEach(() => { vi.resetModules(); });
+  afterEach(() => {
+    vi.restoreAllMocks();
+    delete globalThis.window;
+    delete globalThis.document;
+    delete globalThis.sessionStorage;
+  });
+
+  const V2 = {
+    gold: { totales: { col: 20000, row: 24000 }, avianca: { col: 8000, row: 12000 } },
+    magno: { totales: null, avianca: { col: 110000, row: 110000 } },
+  };
+  const METRICS = { total: 'historic', avianca: 'av-miles' };
+
+  it('resolveEliteGoalsV2: elige col/row por región + métricas de eliteMetrics (shape v1)', async () => {
+    setupDom(); mockDeps();
+    const { resolveEliteGoalsV2 } = await import(servicePath);
+    expect(resolveEliteGoalsV2(V2, 'gold', 'COL', METRICS)).toEqual({
+      metaTotal: 20000, metaAvianca: 8000, metricTotal: 'historic', metricAvianca: 'av-miles',
+    });
+    expect(resolveEliteGoalsV2(V2, 'gold', 'EXCOL', METRICS)).toEqual({
+      metaTotal: 24000, metaAvianca: 12000, metricTotal: 'historic', metricAvianca: 'av-miles',
+    });
+    // magno: sin totales → metaTotal null (hero no pinta barra total) pero sí avianca
+    const magno = resolveEliteGoalsV2(V2, 'magno', 'COL', METRICS);
+    expect(magno.metaTotal).toBeNull();
+    expect(magno.metaAvianca).toBe(110000);
+    // tier sin metas (lifemiles) → undefined (sin barras)
+    expect(resolveEliteGoalsV2(V2, 'lifemiles', 'COL', METRICS)).toBeUndefined();
+  });
+
+  it('resolveHeroGoalTier: meta inmediata = siguiente peldaño de la escalera (1284716)', async () => {
+    setupDom(); mockDeps();
+    const { resolveHeroGoalTier } = await import(servicePath);
+    // AC 1271699 bloque 6: Lifemiles→Red Plus, Red Plus→Silver, Silver→Gold, Gold→Diamond.
+    expect(resolveHeroGoalTier('Lifemiles')).toBe('red-plus');
+    expect(resolveHeroGoalTier('red-plus')).toBe('silver');
+    expect(resolveHeroGoalTier('silver')).toBe('gold');
+    expect(resolveHeroGoalTier('gold')).toBe('diamond');
+    expect(resolveHeroGoalTier('diamond')).toBe('magno');
+    // Las variantes Cenit operan sobre el tier base puro (las metas no las distinguen).
+    expect(resolveHeroGoalTier('gold-cenit')).toBe('diamond');
+    // Magno es el último peldaño: se queda en su fila (meta única "mantener").
+    expect(resolveHeroGoalTier('magno')).toBe('magno');
+    expect(resolveHeroGoalTier('magno-cenit')).toBe('magno');
+    // Tier desconocido: `normalizeTierKey` ya lo colapsa a base lifemiles (igual que
+    // la tab elite) → persigue Red Plus. Degrada, no rompe.
+    expect(resolveHeroGoalTier('platino')).toBe('red-plus');
+  });
+
+  it('el socio de tier base SÍ obtiene metas (las de Red Plus) — antes quedaba sin barra', async () => {
+    setupDom(); mockDeps();
+    const { resolveEliteGoalsV2, resolveHeroGoalTier } = await import(servicePath);
+    const GOALS = {
+      'red-plus': { totales: { col: 4000, row: 6000 }, avianca: { col: 1000, row: 1000 } },
+      ...V2,
+    };
+    expect(resolveEliteGoalsV2(GOALS, resolveHeroGoalTier('lifemiles'), 'COL', METRICS)).toEqual({
+      metaTotal: 4000, metaAvianca: 1000, metricTotal: 'historic', metricAvianca: 'av-miles',
+    });
+    // Y un Silver persigue Gold (20.000/8.000 COL), no sus propias metas ya cumplidas.
+    expect(resolveEliteGoalsV2(GOALS, resolveHeroGoalTier('silver'), 'COL', METRICS)).toEqual({
+      metaTotal: 20000, metaAvianca: 8000, metricTotal: 'historic', metricAvianca: 'av-miles',
+    });
+  });
+
+  it('resolveRegionFromProfile: applicableRegion o countryOfResidence+map → COL/EXCOL', async () => {
+    setupDom(); mockDeps();
+    const { resolveRegionFromProfile } = await import(servicePath);
+    expect(resolveRegionFromProfile({ memberProfileDetails: { applicableRegion: { value: 'COL' } } })).toBe('COL');
+    expect(resolveRegionFromProfile({ memberProfileDetails: { applicableRegion: { value: 'PER' } } })).toBe('EXCOL');
+    const raw = {
+      memberProfileDetails: { memberAccount: { memberProfile: { individualInfo: { countryOfResidence: 'CO' } } } },
+    };
+    expect(resolveRegionFromProfile(raw, { CO: 'COL' })).toBe('COL');
+    expect(resolveRegionFromProfile(null)).toBe('EXCOL'); // conservador
+  });
+});

@@ -12,14 +12,24 @@ const html = htm.bind(h);
  * @param {'h1'|'h2'|'h3'|'h4'|'h5'|'h6'|'p'} [props.titleLevel='p'] - Semantic heading level
  * @param {boolean} props.defaultOpen - Whether accordion starts open
  * @param {string} props.customClassName - Additional CSS classes
+ * @param {string} [props.chevronColor='var(--icon-normal-light)'] - Color del chevron;
+ *   el default blanco lo necesita footer-columns (fondo oscuro) — consumidores sobre
+ *   fondo claro deben pasar var(--icon-normal-primary)
  * @param {*} props.children - Accordion content
  * @param {Function} props.onToggle - Callback when accordion toggles
+ * @param {number} [props.forceOpen=0] - Token opt-in (ej. timestamp): cada vez que
+ *   cambia a un valor truthy el panel se ABRE (nunca cierra). Lo usa un caller que
+ *   necesita revelar un panel colapsado manualmente (ej. chip del banner de
+ *   completitud → sección dentro de un accordion cerrado).
  */
 export const Accordion = ({
   title = 'Title',
   titleLevel = 'p',
   defaultOpen = false,
   customClassName = '',
+  chevronColor = 'var(--icon-normal-light)',
+  overflowVisibleWhenOpen = false,
+  forceOpen = 0,
   children,
   onToggle,
   ...rest
@@ -27,6 +37,11 @@ export const Accordion = ({
   const [isOpen, setIsOpen] = useState(defaultOpen);
   const contentRef = useRef(null);
   const [height, setHeight] = useState(defaultOpen ? 'auto' : '0px');
+  // overflow-visible sólo DESPUÉS de que termina la animación de apertura (el
+  // accordion no llega de forma fiable a height 'auto', así que se usa un flag
+  // por timeout en vez de onTransitionEnd). Permite que popovers internos (ej.
+  // AcceleratorTooltip del FAB Cenit) no queden recortados. Opt-in por prop.
+  const [overflowVisible, setOverflowVisible] = useState(defaultOpen && overflowVisibleWhenOpen);
 
   const handleToggle = (e) => {
     e.preventDefault();
@@ -70,6 +85,24 @@ export const Accordion = ({
     }
   }, [isOpen]);
 
+  // Flag de overflow: al abrir, esperar ~la duración de la transición (300ms)
+  // antes de permitir overflow-visible (durante la animación debe seguir
+  // hidden para que el reveal recorte); al cerrar, hidden de inmediato.
+  useEffect(() => {
+    if (!overflowVisibleWhenOpen) return undefined;
+    if (!isOpen) { setOverflowVisible(false); return undefined; }
+    const t = setTimeout(() => setOverflowVisible(true), 320);
+    return () => clearTimeout(t);
+  }, [isOpen, overflowVisibleWhenOpen]);
+
+  // Force-open externo (opt-in): cuando `forceOpen` cambia a un valor truthy
+  // (token/timestamp) el panel se abre. Nunca cierra. El valor 0/undefined
+  // (default) es no-op, así que no altera el comportamiento de los consumidores
+  // que no pasan la prop.
+  useEffect(() => {
+    if (forceOpen) setIsOpen(true);
+  }, [forceOpen]);
+
   const onTransitionEnd = () => {
     if (isOpen) {
       // When opening finishes, return to 'auto' to adapt to content changes
@@ -79,10 +112,15 @@ export const Accordion = ({
 
   // Tailwind classes for structure and layout
   const containerClasses = `inline-flex flex-col gap-6 items-start w-full ${customClassName}`;
-  const headerClasses = 'self-stretch h-14 inline-flex items-start justify-between cursor-pointer py-4 focus-visible:outline-none';
-  const titleClasses = 'flex-1 h-6 !m-0 font-sans font-bold text-text-normal-lighter';
+  const headerClasses = 'self-stretch inline-flex items-center justify-between cursor-pointer pt-4 focus-visible:outline-none';
+  const titleClasses = 'flex-1 !m-0 font-sans font-bold text-text-normal-lighter flex items-center !text-base !leading-[21px] lg:!text-xl lg:!leading-[26px]';
   const iconContainerClasses = `transition-transform duration-300 ease-in-out ${isOpen ? 'rotate-180' : 'rotate-0'}`;
-  const contentClasses = `flex flex-col gap-3 items-start w-full overflow-hidden transition-[max-height] duration-300 ease-in-out ${!isOpen && height === '0px' ? 'hidden' : 'flex'}`;
+  // overflow-hidden durante la animación (clip del max-height). Cuando el
+  // accordion está abierto y ASENTADO (height 'auto', fin de transición) y el
+  // caller lo pide, overflow-visible → popovers/tooltips internos (ej.
+  // AcceleratorTooltip del FAB en el panel Cenit) no quedan recortados.
+  const overflowCls = overflowVisible ? 'overflow-visible' : 'overflow-hidden';
+  const contentClasses = `flex flex-col gap-3 items-start w-full ${overflowCls} transition-[max-height] duration-300 ease-in-out ${!isOpen && height === '0px' ? 'hidden' : 'flex'}`;
 
   // Inline styles only for truly dynamic values that can't be classes
   const contentStyles = {
@@ -111,10 +149,10 @@ export const Accordion = ({
           ${title}
         </${TitleTag}>
         <div class=${`${iconContainerClasses} h-6 w-6 flex items-center justify-center`}>
-          <${Icon} 
-            icon="navigation/expand-more" 
-            size="sm" 
-            color="var(--icon-normal-light)"
+          <${Icon}
+            icon="navigation/expand-more"
+            size="sm"
+            color=${chevronColor}
           />
         </div>
       </div>

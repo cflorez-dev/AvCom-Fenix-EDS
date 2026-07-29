@@ -1,20 +1,19 @@
 // members-activity.service.js — fuente de transacciones recientes para la card
 // "Actividad de millas" del Dashboard (PBI 1263921, "Bloque 4", CA10).
 //
-// FUENTE REAL: wrapper Lifemiles `lmLastThreeTransactions` (Login Script v1.1.0,
-// "Script Login Gestión de cambios V1.1.0 ES.pdf"). Params: { country (ISO2),
-// language (2 letras), currency (3 letras) }. Devuelve las últimas 3
-// transacciones del socio.
+// FUENTE: wrapper Lifemiles `lmLastThreeTransactions` (Login Script v1.1.0).
+// Params: { country (ISO2), language (2 letras), currency (3 letras) }.
 //
-// ⚠️ El wrapper está DOCUMENTADO pero puede NO estar deployado todavía en el env
-// (uat trae `lmRefreshSession` de v1.1.0 pero aún NO `lmLastThreeTransactions` →
-// devuelve el string de error `E.EON.12`). Por eso el servicio es fail-soft: si el
-// wrapper no responde un `Response` OK, cae a `MOCK_TRANSACTIONS`. En cuanto LM lo
-// deploye, la card muestra data real sin tocar nada (solo confirmar el mapeo).
-//
-// Idiom (igual que members-config): getter SÍNCRONO para el first-paint
-// (`getRecentTransactionsSync`, cache-or-mock) + loader ASYNC que puebla la cache
-// desde el wrapper (`loadRecentTransactions`); el organism re-renderiza al resolver.
+// DISEÑO "petición primero": UNA sola petición al montar (sin poll ni mock).
+// El wrapper resuelve su propio ciclo de auth internamente (token expirado →
+// auto-refresh → retry, verificado en vivo: con sesión coherente devuelve
+// `REAL(200)` incluso con el access_token vencido — vive 300s). Estados:
+//   - data válida → se cachea y la card muestra la lista REAL.
+//   - sin data (wrapper no deployado `E.EON.12`, refresh fallido `E.EON.13`,
+//     cookies no listas `null`, throw) → `null` → la card degrada a nav card
+//     estándar (SIN lista). Nunca se muestran transacciones falsas.
+// Verificado contra el bundle de LM (92.8KB): no emite eventos ni expone flag de
+// readiness — no hay nada a qué suscribirse, por eso el gate es por request.
 //
 // Shape de una transacción (contrato del molecule `members-activity-card`):
 //   - `date`: ISO string / Date / string pre-formateado — el molecule lo formatea.
@@ -29,13 +28,6 @@ import {
   normalizeToIsoCountry,
 } from '../header/language-country-selector.js';
 
-// Fallback cuando el wrapper no está disponible (data del Figma 518:25319).
-const MOCK_TRANSACTIONS = [
-  { date: '2026-12-30', description: 'Redención de tiquete', amount: -123090 },
-  { date: '2026-12-30', description: 'Bono millas extra', amount: 400 },
-  { date: '2026-12-30', description: 'Lifemiles Plus mensual', amount: 600 },
-];
-
 // `activityType` que representan REDENCIONES (monto negativo → rojo). LM devuelve
 // `totalAmount` positivo + un `activityType`; acá marcamos cuáles RESTAN millas.
 // ⚠️ PENDIENTE: confirmar con Lifemiles el catálogo completo de `activityType`
@@ -46,6 +38,7 @@ const REDEMPTION_ACTIVITY_TYPES = new Set([
 ]);
 
 // Cache de las transacciones REALES una vez cargadas (por sesión de página).
+// `null` = aún no hay data confirmada (cargando o falló) — NUNCA data inventada.
 let cache = null;
 
 /** Resuelve los params del wrapper desde el POS/locale del sitio. */
@@ -65,51 +58,86 @@ const signedAmount = (t) => {
   return REDEMPTION_ACTIVITY_TYPES.has(type) ? -n : n;
 };
 
-/** Mapea la respuesta de `lmLastThreeTransactions` al shape del molecule. */
-const mapTransactions = (raw) => {
-  const list = Array.isArray(raw?.transactions) ? raw.transactions : [];
-  return list.map((t) => ({
-    // `activityDate` (ISO) si viene → el molecule formatea "Dic 30, 2026";
-    // si solo hay `date` pre-formateado ("JUN 08"), se muestra tal cual.
-    date: t.activityDate || t.date || '',
-    description: t.text || '',
-    amount: signedAmount(t),
-  }));
+// Extrae la lista de transacciones. El wrapper la anida en
+// `activityHistory.transactions` (contrato real verificado en qa); se acepta
+// también `transactions` plano por compatibilidad con versiones previas.
+const pickTransactions = (raw) => {
+  if (Array.isArray(raw?.activityHistory?.transactions)) return raw.activityHistory.transactions;
+  if (Array.isArray(raw?.transactions)) return raw.transactions;
+  return [];
 };
 
+// LM incrusta la fecha al final del `text` ("… - 03-Jul-2026"). Como la card ya
+// muestra la fecha en su propia línea (campo `date`), la sacamos del texto para no
+// duplicarla. Solo quita un sufijo con forma de fecha `- DD-Mmm-YYYY`; si el texto
+// no la trae, lo deja igual (no toca guiones legítimos como "Transferencia - regalo").
+const stripTrailingDate = (text) => String(text || '')
+  .replace(/\s*-\s*\d{1,2}-[A-Za-zÀ-ÿ]{3,}-\d{4}\s*$/, '')
+  .trim();
+
+/** Mapea la respuesta de `lmLastThreeTransactions` al shape del molecule. */
+const mapTransactions = (raw) => pickTransactions(raw).map((t) => ({
+  // `activityDate` (ISO) si viene → el molecule formatea "Dic 30, 2026";
+  // si solo hay `date` pre-formateado ("JUN 08"), se muestra tal cual.
+  date: t.activityDate || t.date || '',
+  description: stripTrailingDate(t.text),
+  amount: signedAmount(t),
+}));
+
 /**
- * Devuelve las últimas N transacciones del socio (síncrono, first-paint).
- * Retorna la cache real si ya se cargó; si no, el mock.
+ * Devuelve las últimas N transacciones REALES del socio (síncrono) o `null` si
+ * todavía no hay data confirmada. `[]` = data confirmada pero sin transacciones
+ * (socio nuevo) → la card muestra el `emptyLabel`.
  * @param {number} [limit=3]
- * @returns {Array<{date:string, description:string, amount:number}>}
+ * @returns {Array<{date:string, description:string, amount:number}>|null}
  */
 export function getRecentTransactionsSync(limit = 3) {
-  const source = Array.isArray(cache) ? cache : MOCK_TRANSACTIONS;
-  return source.slice(0, Math.max(0, Number(limit) || 0));
+  if (!Array.isArray(cache)) return null;
+  return cache.slice(0, Math.max(0, Number(limit) || 0));
 }
 
 /**
- * Carga async las transacciones reales vía el wrapper Lifemiles
- * `lmLastThreeTransactions`. Fail-soft: si el wrapper no está deployado (string
- * de error) o falla, cae al mock. Puebla la cache para el getter síncrono.
+ * UNA invocación de `lmLastThreeTransactions`. `ready` solo con data válida
+ * (`Response.ok` u objeto plano — aunque venga sin transacciones). Cualquier
+ * error (string `E.EON.*`, `null`, `Response` non-ok, throw) → `{ready:false}`.
+ * @returns {Promise<{ready: boolean, json?: object}>}
+ */
+const fetchWrapperOnce = async () => {
+  if (typeof window === 'undefined' || typeof window.lmFetchWrapper !== 'function') {
+    return { ready: false };
+  }
+  try {
+    const res = await window.lmFetchWrapper('lmLastThreeTransactions', resolveParams(), false);
+    if (res instanceof Response) {
+      return res.ok ? { ready: true, json: await res.json() } : { ready: false };
+    }
+    // Objeto plano = JSON ya resuelto (caso real en qa). String `E.EON.*` /
+    // `null` / otro = sin data.
+    if (res && typeof res === 'object') return { ready: true, json: res };
+    return { ready: false };
+  } catch (e) {
+    return { ready: false };
+  }
+};
+
+/**
+ * Carga las transacciones reales vía el wrapper Lifemiles: UNA petición al
+ * resolverse `lmFetchWrapper` (evento-driven, sin poll). El wrapper maneja su
+ * auth internamente (auto-refresh). Resultado:
+ *   - `Array` (puede ser `[]`) → data CONFIRMADA, cacheada para el getter síncrono.
+ *   - `null` → sin data (no deployado / auth rota / LM caído) → la card NO
+ *     muestra lista (nav card estándar). Nunca mock.
  * @param {number} [limit=3]
- * @returns {Promise<Array<{date:string, description:string, amount:number}>>}
+ * @returns {Promise<Array<{date:string, description:string, amount:number}>|null>}
  */
 export async function loadRecentTransactions(limit = 3) {
   try {
     await whenLmReady('lmFetchWrapper');
-    if (typeof window === 'undefined' || typeof window.lmFetchWrapper !== 'function') {
-      return getRecentTransactionsSync(limit);
-    }
-    const res = await window.lmFetchWrapper('lmLastThreeTransactions', resolveParams(), false);
-    // Wrapper NO deployado → devuelve string `E.EON.12` (no Response) → fallback.
-    if (!(res instanceof Response) || !res.ok) return getRecentTransactionsSync(limit);
-    const json = await res.json();
-    const mapped = mapTransactions(json);
-    if (mapped.length) cache = mapped;
+    const { ready, json } = await fetchWrapperOnce();
+    if (ready) cache = mapTransactions(json);
     return getRecentTransactionsSync(limit);
   } catch (e) {
-    return getRecentTransactionsSync(limit); // fail-soft → mock
+    return getRecentTransactionsSync(limit); // fail-soft → null (sin lista)
   }
 }
 

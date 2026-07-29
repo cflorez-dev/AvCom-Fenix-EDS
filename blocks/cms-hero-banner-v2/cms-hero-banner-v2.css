@@ -1,0 +1,35 @@
+/* ===============================
+   HERO BANNER v2 CONTAINER
+   Renders the LCP image as a real <picture>/<img> background layer instead
+   of a JS-set CSS background, so the browser can discover and fetch it early
+   (fetchpriority=high, eager) and serve the authored WebP.
+================================ */
+.cms-hero-banner-v2 {
+    background-color: var(--surface-neutral-lighter, #f2f2f2);
+}
+
+/* Full-bleed image layer sitting behind the promotional card (z-10). */
+.cms-hero-banner-v2 .cms-hero-banner-v2__bg {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    display: block;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+}
+
+.cms-hero-banner-v2 .cms-hero-banner-v2__bg img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+    display: block;
+}
+
+/* Desktop (≥1248px) — parity with v1's title tweak. */
+@media (width >= 1248px) {
+    .cms-hero-banner-v2 .promotional-countdown-card-title {
+        line-height: normal;
+    }
+}
