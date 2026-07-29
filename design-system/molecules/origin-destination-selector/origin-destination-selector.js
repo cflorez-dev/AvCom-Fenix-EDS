@@ -8,6 +8,8 @@ import {
   fetchCities,
   getDefaultOriginAiata,
   findDefaultOriginCity,
+  promoteToMetroAggregate,
+  applyMetroPriorityOrder,
   resolveNextDestination,
 } from './origin-destination-selector.service.js';
 import {
@@ -136,10 +138,10 @@ export const OriginDestinationSelector = ({
       setCitiesError(null);
 
       try {
-        const cities = await fetchCities({
+        const cities = applyMetroPriorityOrder(await fetchCities({
           originCode: '',
           destinationCode: '',
-        });
+        }));
 
         setFetchedCities(cities);
 
@@ -205,7 +207,7 @@ export const OriginDestinationSelector = ({
           useCache: false,
         });
 
-        setFilteredDestinations(destinationOptions);
+        setFilteredDestinations(applyMetroPriorityOrder(destinationOptions));
       } catch (error) {
         console.error('Error filtering destinations:', error);
         setFilteredDestinations([]);
@@ -303,7 +305,13 @@ export const OriginDestinationSelector = ({
       // row (BUE/AEP) the backend returns first instead of the "all airports"
       // aggregate. Catalog codes are uppercase and `target` is already
       // uppercased, so exact-match comparison holds.
-      const matched = findDefaultOriginCity(pool, target);
+      //
+      // `promoteToMetroAggregate` then covers the reverse case, which is the
+      // one live content actually produces: the offers brief ships Buenos Aires
+      // as `EZE`, and PBI 1294884 requires the card click to fill the Booking
+      // Box with the "all airports" option regardless of which of the three
+      // codes (BUE/EZE/AEP) the author loaded. Only Buenos Aires is promoted.
+      const matched = promoteToMetroAggregate(pool, findDefaultOriginCity(pool, target));
       if (!matched) return;
 
       handleDestinationSelect(matched);
