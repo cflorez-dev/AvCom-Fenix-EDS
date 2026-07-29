@@ -14,6 +14,7 @@ import {
   extractCmsPromotionalCardsRailProps,
   buildIataImageUrl,
   filterOfertasByConfig,
+  resolveCityEquivalentCodes,
   buildOffersLandingUrl,
 } from './cms-promotional-cards-rail-helper.js';
 import { getStoredCountry } from '../../scripts/services/header/language-country-selector.js';
@@ -298,7 +299,9 @@ function setupOriginChangeListener(container, currentOrigin, blockConfig) {
       currentOrigin.originIataCode = originIataCode;
       currentOrigin.originName = originName;
 
-      const newOfertas = filterOfertasByConfig(briefofertasCache, originIataCode);
+      const newOfertas = filterOfertasByConfig(briefofertasCache, originIataCode, {
+        equivalentOriginCodes: resolveCityEquivalentCodes(iataCache, originIataCode),
+      });
       await renderCards(container, newOfertas, blockConfig);
     }
   });
@@ -362,9 +365,14 @@ export default async function decorate(block) {
   buttonContainer.className = 'flex justify-end mt-4 md:mt-8';
 
   // Render initial offers
+  // The POS default origin is a metropolitan code for multi-airport cities
+  // (Argentina now preloads BUE), while the brief may key its offers by a
+  // terminal (`Origin: AEP`). Passing the city equivalences keeps the rail from
+  // rendering empty in that case; it never changes an already non-empty result.
   const initialOfertas = filterOfertasByConfig(
     briefofertasCache,
     currentOrigin.originIataCode,
+    { equivalentOriginCodes: resolveCityEquivalentCodes(iataCache, currentOrigin.originIataCode) },
   );
   await renderCards(container, initialOfertas, blockConfig);
 
