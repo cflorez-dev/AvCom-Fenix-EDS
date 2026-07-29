@@ -4,7 +4,7 @@ import htm from 'htm';
 import { resolveLocale } from '../../../scripts/utils/locale.js';
 import { fetchAEMData } from '../../../scripts/utils/aem-data.js';
 import { BookingBox } from '../booking-box/booking-box.js';
-import { fetchCities } from '../../molecules/origin-destination-selector/origin-destination-selector.service.js';
+import { fetchCities, promoteToMetroAggregate } from '../../molecules/origin-destination-selector/origin-destination-selector.service.js';
 import { sanitizeHTML, sanitizeSpreadProps } from '../../../scripts/utils/sanitize.js';
 
 const html = htm.bind(h);
@@ -489,11 +489,19 @@ export const Destinations = ({
       // airport — preserving the existing "use the first airport" behaviour.
       // Resolved BEFORE setLoading(false) so the Booking Box (which only reads
       // its defaultDestination once, on mount) starts with the right terminal.
+      //
+      // Buenos Aires is the exception (PBI 1294884): the destination landing
+      // reached from the destinations hub was prefilling "Buenos Aires (AEP)"
+      // because `find` returns whatever row the catalog lists first, and that
+      // order is not stable. `promoteToMetroAggregate` pins the BUE/BUE
+      // aggregate for the allowlisted city only; every other metro keeps the
+      // first-airport behaviour untouched.
       const destIata = data?.data?.data?.destinationList?.items?.[0]?.iata;
       const cityCode = destIata ? String(destIata).toUpperCase() : '';
-      const terminalMatch = cityCode && Array.isArray(cityCatalog)
+      const firstMatch = cityCode && Array.isArray(cityCatalog)
         ? cityCatalog.find((c) => String(c.iataCityCode || '').toUpperCase() === cityCode)
         : null;
+      const terminalMatch = promoteToMetroAggregate(cityCatalog, firstMatch);
       setResolvedTerminal(
         terminalMatch?.iataTerminal ? String(terminalMatch.iataTerminal).toUpperCase() : null,
       );
