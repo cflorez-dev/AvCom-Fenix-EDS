@@ -34,14 +34,6 @@ describe('members-guard · guardPortalSession (zona privada)', () => {
     expect(login).toHaveBeenCalledTimes(1);
   });
 
-  it('AEM author (xwalk.isAuthorEnv) → no redirige aunque sea ruta del Portal', () => {
-    window.location.pathname = '/es/members/profile/account';
-    window.xwalk = { isAuthorEnv: true };
-    guardPortalSession();
-    expect(login).not.toHaveBeenCalled();
-    delete window.xwalk;
-  });
-
   it('fuera del Portal (Home) → no redirige', () => {
     globalThis.window.location.pathname = '/es/';
     guardPortalSession();

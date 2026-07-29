@@ -205,46 +205,12 @@ export function buildOffersLandingUrl(lang, pos, slug, fallbackUrl = '') {
 }
 
 /**
- * Resolve every IATA code that designates the same city as `iataCode`, using
- * the `iata` spreadsheet the rail already downloads (columns `codigo_iata` and
- * `codigo_iata_ciudad`, e.g. AEP→BUE, EZE→BUE, BUE→'').
- *
- * Exists so the rail survives the Booking Box preloading a metropolitan code:
- * the Argentinian offers are keyed `Origin: AEP` while the POS default origin
- * is now `BUE`, and an exact match returns zero rows — i.e. an empty rail. No
- * hardcoded city map is needed; the equivalence is derived from content.
- *
- * @param {Array<{codigo_iata?: string, codigo_iata_ciudad?: string}>|null} iataCatalog
- * @param {string} iataCode City or terminal code.
- * @returns {string[]} Equivalent codes (always includes `iataCode` itself), or [] when unknown.
- */
-export function resolveCityEquivalentCodes(iataCatalog, iataCode) {
-  const normalize = (value) => String(value ?? '').trim().toUpperCase();
-  const code = normalize(iataCode);
-  if (!code || !Array.isArray(iataCatalog) || iataCatalog.length === 0) return [];
-
-  const own = iataCatalog.find((row) => normalize(row?.codigo_iata) === code);
-  const cityCode = normalize(own?.codigo_iata_ciudad) || code;
-
-  const siblings = iataCatalog
-    .filter((row) => normalize(row?.codigo_iata_ciudad) === cityCode
-      || normalize(row?.codigo_iata) === cityCode)
-    .map((row) => normalize(row?.codigo_iata));
-
-  return [...new Set([code, cityCode, ...siblings])].filter(Boolean);
-}
-
-/**
  * Filters offers based on origin IATA code.
  * Always returns exactly 3 cards sorted by lowest price.
  *
  * @param {Array} ofertas - Array of offers from briefofertas
  * @param {string} originIataCode - Origin IATA code
- * @param {Object} config - Optional configuration
- * @param {string[]} [config.equivalentOriginCodes] - Codes of the same city (see
- *   `resolveCityEquivalentCodes`). Used ONLY as a fallback when the exact match
- *   yields no offers, so it can never remove or reorder an existing result —
- *   it only prevents an empty rail.
+ * @param {Object} config - Optional configuration (kept for backwards compatibility)
  * @returns {Array} Filtered and sorted offers (always 3 cards with lowest price)
  */
 export function filterOfertasByConfig(ofertas, originIataCode, config = {}) {
@@ -253,21 +219,12 @@ export function filterOfertasByConfig(ofertas, originIataCode, config = {}) {
   }
 
   const normalizedOriginCode = originIataCode.trim().toUpperCase();
-  const readOrigin = (oferta) => (oferta.Origin || oferta.originIataCode || oferta.origin || '')
-    .trim()
-    .toUpperCase();
 
   // Filtrar por origen
-  let filtered = ofertas.filter((oferta) => readOrigin(oferta) === normalizedOriginCode);
-
-  if (filtered.length === 0) {
-    const equivalents = (config.equivalentOriginCodes || [])
-      .map((code) => String(code ?? '').trim().toUpperCase())
-      .filter(Boolean);
-    if (equivalents.length > 1) {
-      filtered = ofertas.filter((oferta) => equivalents.includes(readOrigin(oferta)));
-    }
-  }
+  const filtered = ofertas.filter((oferta) => {
+    const origin = (oferta.Origin || oferta.originIataCode || oferta.origin || '').trim().toUpperCase();
+    return origin === normalizedOriginCode;
+  });
 
   if (filtered.length === 0) {
     return [];

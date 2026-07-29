@@ -44,10 +44,6 @@ const html = htm.bind(h);
  * @param {boolean} [props.lineClamp2=false] - Trunca `label` y `description` a
  *   máximo 2 líneas con ellipsis (Figma Members menu 131:9830). Internamente
  *   usa `-webkit-line-clamp` (soportado por todos los browsers actuales).
- * @param {('default'|'darksite')} [props.theme='default'] - Visual theme.
- *   - `default`: light theme (existing brand secondary tokens).
- *   - `darksite`: dark theme variant (Figma language dropdown spec), used by
- *     the darksite Select variant.
  */
 export const ListItem = ({
   label = 'label',
@@ -70,9 +66,7 @@ export const ListItem = ({
   ariaLabel = null,
   ariaCurrent = null,
   lineClamp2 = false,
-  theme = 'default',
 }) => {
-  const isDarksite = theme === 'darksite';
   const handleClick = (e) => {
     if (disabled) {
       // Si es un <a>, evitar la navegación cuando está disabled.
@@ -108,32 +102,17 @@ export const ListItem = ({
   const verticalPadding = size === 'sidemenu' ? 'py-6' : 'py-3';
   const baseClasses = `group w-full min-h-12 px-4 ${verticalPadding} relative inline-flex justify-start items-center gap-4 transition-[background-color]`;
 
-  const getInteractiveClasses = () => {
-    if (disabled) return 'opacity-60';
-    if (isDarksite) {
-      return 'cursor-pointer bg-[var(--color-language-dark-item-bg)] hover:bg-[var(--color-language-dark-item-hover-bg)] active:bg-[var(--color-language-dark-item-active-bg)] focus:outline-none focus-visible:[box-shadow:inset_0_0_0_2px_var(--color-language-dark-focus-border)]';
-    }
-    return 'cursor-pointer bg-background-brand-secondary-default hover:bg-background-brand-secondary-hover active:bg-background-brand-primary-active focus:outline-none focus-visible:[box-shadow:inset_0_0_0_2px_var(--color-border-stroke-focus)]';
-  };
-  const interactiveClasses = getInteractiveClasses();
+  const interactiveClasses = disabled
+    ? 'opacity-60'
+    : 'cursor-pointer bg-background-brand-secondary-default hover:bg-background-brand-secondary-hover active:bg-background-brand-primary-active focus:outline-none focus-visible:[box-shadow:inset_0_0_0_2px_var(--color-border-stroke-focus)]';
 
-  const getTextClasses = () => {
-    if (disabled) return 'text-[var(--color-neutral-400)]';
-    if (isDarksite) {
-      return 'text-[var(--color-language-dark-text)] group-active:text-[var(--color-language-dark-text-active)]';
-    }
-    return 'text-[var(--color-text-normal-primary)] group-active:text-[var(--color-text-normal-lighter)]';
-  };
-  const textClasses = getTextClasses();
+  const textClasses = disabled
+    ? 'text-[var(--color-neutral-400)]'
+    : 'text-[var(--color-text-normal-primary)] group-active:text-[var(--color-text-normal-lighter)]';
 
-  const getDescriptionClasses = () => {
-    if (disabled) return 'text-[var(--color-neutral-400)]';
-    if (isDarksite) {
-      return 'text-[var(--color-language-dark-text)] group-active:text-[var(--color-language-dark-text-active)]';
-    }
-    return 'text-[var(--color-text-normal-secondary)] group-active:text-[var(--color-text-normal-lighter)]';
-  };
-  const descriptionClasses = getDescriptionClasses();
+  const descriptionClasses = disabled
+    ? 'text-[var(--color-neutral-400)]'
+    : 'text-[var(--color-text-normal-secondary)] group-active:text-[var(--color-text-normal-lighter)]';
 
   const fontWeight = selected ? 'font-bold' : 'font-normal';
 
@@ -174,11 +153,6 @@ export const ListItem = ({
     if (disabled) {
       return selectedIconBase;
     }
-    if (isDarksite) {
-      return `${selectedIconBase} [&_svg_path]:fill-[currentColor] `
-        + 'text-[var(--color-language-dark-accent)] '
-        + 'group-active:text-[var(--color-language-dark-icon-active)]';
-    }
     return `${selectedIconBase} [&_svg_path]:fill-[currentColor] `
       + 'text-[var(--color-alert-success-border)] '
       + 'group-active:text-[var(--color-icon-brand-primary)]';
@@ -188,12 +162,9 @@ export const ListItem = ({
   const iconAfterWrapperClasses = getIconAfterWrapperClasses();
   const selectedIconWrapperClasses = getSelectedIconWrapperClasses();
 
-  const getBarColor = () => {
-    if (disabled) return 'bg-[var(--color-neutral-400)]';
-    if (isDarksite) return 'bg-[var(--color-language-dark-accent)]';
-    return 'bg-[var(--color-alert-success-border)]';
-  };
-  const barColor = getBarColor();
+  const barColor = disabled
+    ? 'bg-[var(--color-neutral-400)]'
+    : 'bg-[var(--color-alert-success-border)]';
 
   // Aria-label final: si llega override explícito, lo usamos; si no, cae a
   // `label`. Útil para sufijos contextuales (ej. "abre en nueva ventana").

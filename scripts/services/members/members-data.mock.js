@@ -47,8 +47,6 @@ export const MEMBERS_DATA_STATES = Object.freeze({
   GOLD: 'gold', // happy path desktop del Figma 518:27631 (2 condiciones, persigue Gold 2027)
   SILVER: 'silver', // tier intermedio
   LIFEMILES: 'lifemiles', // tier base
-  RED_PLUS: 'red-plus', // tier bajo (2nd) — usado por mock de la pág. Elite 765:42466
-  DIAMOND: 'diamond', // tier alto (5º) — usado por mock de la pág. Elite 765:42724
   MAGNO: 'magno', // tier máximo → 1 sola condición (nota Figma 518:26721)
   EMPTY: 'empty', // wrapper sin datos → todos los campos null (placeholder por campo)
   PARTIAL: 'partial', // wrapper parcial → millas sí, elite ausente
@@ -93,36 +91,6 @@ const FIXTURES = {
       conditions: [
         { key: 'qualifying-miles', value: 0, goal: 10000 },
         { key: 'avianca-miles', value: 0, goal: 3000 },
-      ],
-    },
-  },
-  // Red Plus (Figma pág. Elite mobile 765:42466): tier 2 → persigue Silver.
-  // Millas coherentes con la escala (lifemiles 4.8k < red-plus < silver 232k).
-  [MEMBERS_DATA_STATES.RED_PLUS]: {
-    totalMiles: 24500,
-    milesExpiryDate: '2026-12-31',
-    statusExpiry: '2026-01-30',
-    elite: {
-      year: 2026,
-      tierTarget: 'silver',
-      conditions: [
-        { key: 'qualifying-miles', value: 4400, goal: 8000 },
-        { key: 'avianca-miles', value: 1150, goal: 2000 },
-      ],
-    },
-  },
-  // Diamond (Figma pág. Elite mobile 765:42724): tier 5 → persigue Magno.
-  // Millas coherentes con la escala (silver 232k < diamond < magno 540k).
-  [MEMBERS_DATA_STATES.DIAMOND]: {
-    totalMiles: 385000,
-    milesExpiryDate: '2026-12-31',
-    statusExpiry: '2026-01-30',
-    elite: {
-      year: 2026,
-      tierTarget: 'magno',
-      conditions: [
-        { key: 'qualifying-miles', value: 55000, goal: 45000 },
-        { key: 'avianca-miles', value: 65000, goal: 110000 },
       ],
     },
   },
@@ -191,15 +159,13 @@ export function getMembersDataMockState() {
 export const isMembersDataMockEnabled = () => getMembersDataMockState() !== null;
 
 /**
- * ¿Está el flag DEV-ONLY `?mockMembers=1` activo? — distinto del data-mock
- * (`?membersMock=`, que cambia las métricas en el camino REAL). Gate DURO a
- * localhost: en qa/prod se IGNORA por completo.
- *
- * OJO (MOCK-CLEANUP-1263924): el módulo que pintaba la sesión mock y montaba el hero
- * (`members-dev-mock.js`) se eliminó en `e0011f4f`, así que este flag YA NO monta nada.
- * Hoy solo lo consume `members-guard.js` para no redirigir al login en localhost.
- * Para ver el hero en local hay que montar el componente en un harness, o usar
- * `?membersMock=<estado>` en un entorno non-prod con sesión real.
+ * ¿Está activo el MODO MOCK DE SESIÓN (dev-only)? — distinto del data-mock
+ * (`?membersMock=`, que solo cambia las métricas en el camino REAL). Éste
+ * (`?mockMembers=1`) SALTA cookie + wrappers y pinta una sesión mock completa para
+ * ver el hero sin login. Gate DURO a localhost: en qa/prod el flag se IGNORA por
+ * completo. La lógica pesada (VM mock + montaje del hero) vive en
+ * `members-dev-mock.js` y se importa dinámicamente solo cuando esto devuelve true,
+ * para no inflar el bundle de producción.
  * @returns {boolean}
  */
 export function isDevSessionMockEnabled() {
@@ -229,72 +195,5 @@ export function getMockMemberMetrics(state = getMembersDataMockState()) {
 /** Fragmento vacío (todos los campos null) — usado como fallback no-rompedor
  * cuando el wrapper real falla o no está disponible. */
 export const getEmptyMemberMetrics = () => ({ ...EMPTY_METRICS });
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Mock de SESIÓN (dev-only, localhost). Re-introduce lo que hacía el módulo
-// `members-dev-mock.js` eliminado en `e0011f4f`, pero gateado bien fuerte:
-// solo se activa cuando `isDevSessionMockEnabled()` es true (localhost + flag
-// `?mockMembers=1`) Y hay un estado de mock de datos (`?membersMock=<state>`).
-// Sin ambas condiciones esto NO corre. En qa/prod se ignora por hostname.
-// Uso: `?mockMembers=1&membersMock=lifemiles` → hero pintado con tier Lifemiles.
-// ─────────────────────────────────────────────────────────────────────────────
-
-/** Nombres/tier raw por estado — se usan para poblar el VM de sesión. Los tiers
- * ya coinciden con las keys normalizadas del theme helper, así que se pasan tal
- * cual como `user.tier` (equivalente a `acc.tier` del wrapper real). */
-const MOCK_USER_BY_STATE = {
-  [MEMBERS_DATA_STATES.LIFEMILES]: { firstName: 'Ana', lastName: 'Ruiz', tier: 'lifemiles' },
-  [MEMBERS_DATA_STATES.RED_PLUS]: { firstName: 'Luis', lastName: 'Pérez', tier: 'redPlus' },
-  [MEMBERS_DATA_STATES.SILVER]: { firstName: 'María', lastName: 'Gómez', tier: 'silver' },
-  [MEMBERS_DATA_STATES.GOLD]: { firstName: 'Carlos', lastName: 'Rojas', tier: 'gold' },
-  [MEMBERS_DATA_STATES.DIAMOND]: { firstName: 'Sofía', lastName: 'Vargas', tier: 'diamond' },
-  [MEMBERS_DATA_STATES.MAGNO]: { firstName: 'Andrés', lastName: 'Silva', tier: 'magno' },
-  [MEMBERS_DATA_STATES.EMPTY]: { firstName: 'Sin', lastName: 'Datos', tier: 'lifemiles' },
-  [MEMBERS_DATA_STATES.PARTIAL]: { firstName: 'Parcial', lastName: 'Data', tier: 'silver' },
-};
-
-/** Mapa de PRESENCIA de perfil "todo completo" — evita que aparezcan CTAs de
- * completitud molestando la revisión visual del hero/quick-actions. Se calcula
- * inline (sin depender de `profile-completeness`) para evitar acoplamiento del
- * mock a la lista de checks. */
-const MOCK_PROFILE_FIELDS_COMPLETE = Object.freeze({
-  firstName: true,
-  lastName: true,
-  dateOfBirth: true,
-  nationality: true,
-  gender: true,
-  email: true,
-  phone: true,
-  phonePrefix: true,
-  address: true,
-  emergencyContact: true,
-  documentId: true,
-  travelDocument: true,
-});
-
-/**
- * Devuelve un VM de sesión (`user`) completo para el estado indicado, listo para
- * meter en el store con `setSession({ status: 'authenticated', user })`. Incluye
- * las métricas del fixture correspondiente para que el hero no dispare fetch al
- * wrapper real. Solo se usa desde `session.service.rehydrate()` bajo el gate
- * dev-only.
- * @param {string} [state] - key de `MEMBERS_DATA_STATES`. Default = estado activo.
- * @returns {object|null} user VM, o `null` si el estado no tiene mapping.
- */
-export function getMockUserVM(state = getMembersDataMockState()) {
-  const meta = MOCK_USER_BY_STATE[state];
-  if (!meta) return null;
-  const metrics = getMockMemberMetrics(state);
-  return {
-    membershipNumber: '000000000',
-    tier: meta.tier,
-    cenit: { level: null },
-    firstName: meta.firstName,
-    lastName: meta.lastName,
-    language: 'es',
-    profileFields: { ...MOCK_PROFILE_FIELDS_COMPLETE },
-    ...metrics,
-  };
-}
 
 export default getMockMemberMetrics;

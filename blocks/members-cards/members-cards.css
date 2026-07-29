@@ -19,16 +19,11 @@
   width: 100%;
 }
 
-.section.members-cards-container {
-  padding-top: 24px;
-  padding-bottom: 16px;
-}
-
 /* Mobile (<768): 1 columna, cards full-width apiladas. */
 .members-cards-grid {
   display: grid;
   grid-template-columns: 1fr;
-  gap: 24px;
+  gap: 16px;
   align-items: stretch;
   margin: 0;
   padding: 0;
@@ -51,7 +46,7 @@
 @media (width >= 768px) {
   .members-cards-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 24px;
+    gap: 20px;
   }
 }
 

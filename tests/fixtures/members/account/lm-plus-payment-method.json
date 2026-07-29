@@ -1,7 +1,0 @@
-{
-  "networkKey": "mastercard",
-  "networkLabel": "MasterCard",
-  "maskedNumber": "•••• 5890",
-  "isCobrand": true,
-  "mock": true
-}

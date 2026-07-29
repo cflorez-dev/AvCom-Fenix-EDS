@@ -41,20 +41,6 @@ function homeForPos() {
 // eslint-disable-next-line import/prefer-default-export
 export function guardPortalSession() {
   if (guarding || typeof window === 'undefined') return;
-  // AEM author / Universal Editor: NUNCA redirigir dentro del editor (rompía la
-  // autoría de páginas del Portal). Mismo idiom de detección que scripts.js
-  // (markUniversalEditor). El guard real solo aplica en páginas publicadas.
-  try {
-    const isAuthorEnv = !!(
-      window.xwalk?.isAuthorEnv
-      || window.hlx?.aue
-      || (typeof document !== 'undefined'
-        && document.querySelector('meta[name="urn:auecon:aemconnection"]'))
-      || (window.location.hostname.includes('author-')
-        && window.location.pathname.startsWith('/content/'))
-    );
-    if (isAuthorEnv) return;
-  } catch (e) { /* señales de author no disponibles → seguir con el guard normal */ }
   // MOCK-CLEANUP-1263924: modo mock dev (localhost + ?mockMembers=1) → NUNCA
   // redirigir. Quitar junto con el resto del andamiaje mock al cerrar el PBI.
   if (isDevSessionMockEnabled()) return;

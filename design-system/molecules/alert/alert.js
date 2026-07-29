@@ -32,11 +32,8 @@ export const LINK_STATE_CLASSES = 'group/link hover:font-bold active:font-bold';
  * Prepared for multiple placements and contexts
  *
  * @param {Object} props - Component properties
- * @param {string} [props.variant='informative'] Alert visual variant.
- *   Options: informative | promotional | caution | warning | success | error |
- *   neutral | darksite. `warning` maps to `caution`. `darksite` is the sticky
- *   header banner used post-bypass (Figma 9611:7929): black bg, white text,
- *   16px Red Hat Display, no rounded corners.
+ * @param {'informative'|'promotional'|'caution'|'warning'|'success'|'error'|'neutral'}
+ *   [props.variant='informative'] Alert visual variant (warning maps to caution)
  * @param {string} [props.contentHTML=''] - Rich text HTML content
  * @param {string} [props.icon='auto'] - Icon name or 'auto' for variant default, 'none' to hide
  * @param {boolean} [props.dismissible=true] - Show dismiss button
@@ -256,60 +253,6 @@ export const Alert = ({
       iconBg: null,
       iconFg: null,
     },
-    // Darksite sticky header banner (Figma 9611:7929):
-    // black bg, white text, Red Hat Display 16px/1.5, no rounded corners.
-    // `extraContainer` fuerza tipografía 16px + padding 24px horizontal (el
-    // molecule aplica `px-4` en modo fullWidth+wrap; el spec pide `px-6`).
-    // `extraInner` alinea al centro y usa gap 12px sobre el flex-row interno
-    // (el molecule usa `items-start gap-2` en modo wrap; el spec pide
-    // `items-center gap-[12px]`).
-    // `contentOptions` encapsula el procesamiento del rich text para este
-    // variant: los <p> reciben `!text-base leading-6 pt-0 pb-0 !m-0` (los dos
-    // primeros vienen de `pClassName`; los tres últimos los agrega
-    // `processContentHTML` por defecto). Los <a> se procesan con `LinkButton`
-    // (underline opt-in ON + estados hover/active) pero con color forzado a
-    // blanco (`!text-alert-darksite-text`) para no heredar los tokens teal de
-    // `informative`; hover/active usan opacidad como feedback visual sobre
-    // dark bg.
-    darksite: {
-      bg: 'bg-alert-darksite-bg',
-      text: 'text-alert-darksite-text',
-      border: 'border-alert-darksite-border',
-      iconBg: null,
-      iconFg: null,
-      extraContainer: "!text-[16px] !leading-[1.5] font-['Red_Hat_Display'] !px-6",
-      extraInner: '!items-center !gap-[12px]',
-      // `!text-alert-darksite-text` mantiene el color de texto del botón en
-      // blanco por semántica (aunque el SVG ya trae fill explícito), y los
-      // estados hover/active usan los tokens del variant. Scoped al variant:
-      // no toca la clase por defecto del Button en otras variantes.
-      extraDismiss: '!text-alert-darksite-text hover:!bg-alert-darksite-dismiss-hover active:!bg-alert-darksite-dismiss-active',
-      // SVG X de dismiss según Figma 9611:7929: 16x16, aspect-ratio 1/1,
-      // flex-shrink 0 y fill=white explícito (no `currentColor`), para
-      // desacoplarse del color heredado del <span> interno del Button que
-      // hardcodea `text-text-brand-secondary`. El path (9.333x9.333) sale
-      // naturalmente de las coordenadas dentro del viewBox 16.
-      dismissIconHTML: '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" fill="none" class="block shrink-0 aspect-square"><path fill-rule="evenodd" clip-rule="evenodd" d="M12.6668 4.27337L11.7268 3.33337L8.00016 7.06004L4.2735 3.33337L3.3335 4.27337L7.06016 8.00004L3.3335 11.7267L4.2735 12.6667L8.00016 8.94004L11.7268 12.6667L12.6668 11.7267L8.94016 8.00004L12.6668 4.27337Z" fill="white"/></svg>',
-      contentOptions: {
-        // `!text-base` = 16px forzado (override sobre cualquier text-sm
-        // heredado del molecule); `!leading-6` = 24px forzado. Spec Figma:
-        // párrafo del marquee = 16px / 24px, no 14px.
-        pClassName: '!text-base !leading-6',
-        strongClassName: 'font-bold',
-        // LinkButton procesa los <a> del rich text con: `size='inline'` para
-        // heredar font-size del <p>, `underline=true` para el underline por
-        // defecto del spec Figma, y `customClassName` con `!text-alert-
-        // darksite-text` (blanco) + `hover:!opacity-80` / `active:!opacity-60`
-        // como feedback de estados sobre bg dark. `transition-opacity` suaviza
-        // el cambio (la base del LinkButton solo trae `transition-colors`).
-        linkButtonOptions: {
-          variant: 'link',
-          size: 'inline',
-          underline: true,
-          customClassName: '!text-alert-darksite-text hover:!opacity-80 active:!opacity-60 transition-opacity',
-        },
-      },
-    },
   };
 
   const currentVariantClasses = variantClasses[normalizedVariant] || variantClasses.informative;
@@ -360,7 +303,6 @@ export const Alert = ({
     ${getOutlineClasses()}
     ${heightClasses ? `${heightClasses} overflow-y-auto` : ''}
     ${!fullWidth ? `${currentVariantClasses.bg} ${currentVariantClasses.text} ${currentVariantClasses.border}` : ''}
-    ${currentVariantClasses.extraContainer || ''}
     ${customClassName}
   `.trim().replace(/\s+/g, ' ');
 
@@ -404,10 +346,6 @@ export const Alert = ({
         icon: 'alert/info',
         color: 'currentColor',
       },
-      darksite: {
-        icon: 'alert/warning-triangle',
-        color: '#FFFFFF',
-      },
     };
     return iconMap[mappedVariant] || iconMap.informative;
   };
@@ -442,31 +380,10 @@ export const Alert = ({
 
   // Process HTML to add text-sm class to <p> elements and font-bold to <strong> elements
   // Also process links to add appropriate rel attributes for SEO
-  // If preserveRawHTML is true, use original HTML without processing.
-  //
-  // Variant override: if the variant declares `contentOptions`, it drives the
-  // processing (pClassName / strongClassName / skipLinkProcessing) regardless
-  // of `preserveRawHTML`. Enables per-variant rich-text theming that stays
-  // encapsulated inside the DS (e.g. `darksite` needs `<p>` = `!text-sm
-  // leading-6 pt-0 pb-0 !m-0` + raw `<a>` tags).
-  let processedContentHTML;
-  if (currentVariantClasses.contentOptions) {
-    const variantOptions = currentVariantClasses.contentOptions;
-    processedContentHTML = processContentHTML(contentHTML, normalizedVariant, {
-      pClassName: variantOptions.pClassName ?? '',
-      strongClassName: variantOptions.strongClassName ?? 'font-bold',
-      skipLinkProcessing: variantOptions.skipLinkProcessing ?? false,
-      // Reenvía `linkButtonOptions` del variant (p.ej. darksite) al helper
-      // para que los <a> del rich text hereden estilos/underline/estados
-      // desde LinkButton en vez de ir raw. Cuando el variant no declara
-      // linkButtonOptions, el helper aplica sus defaults (informative teal).
-      linkButtonOptions: variantOptions.linkButtonOptions,
-      processRelAttributes: variantOptions.processRelAttributes ?? false,
-    });
-  } else if (preserveRawHTML) {
-    processedContentHTML = contentHTML;
-  } else {
-    processedContentHTML = processContentHTML(contentHTML, normalizedVariant, {
+  // If preserveRawHTML is true, use original HTML without processing
+  const processedContentHTML = preserveRawHTML
+    ? contentHTML
+    : processContentHTML(contentHTML, normalizedVariant, {
       pClassName: `!text-sm ${marqueeMode ? 'leading-6' : 'leading-[21px]'}`,
       strongClassName: 'font-bold',
       processRelAttributes: true,
@@ -486,7 +403,6 @@ export const Alert = ({
         underline: true
       },
     });
-  }
 
   const innerContent = html`
     <aside
@@ -497,7 +413,7 @@ export const Alert = ({
       data-name="alert"
       ...${fullWidth ? {} : rest}
     >
-    <div class="max-w-[var(--max-width-content,1248px)] flex flex-row ${currentVariantClasses.extraInner ? '' : '!items-start'} w-full  mx-auto ${marqueeMode ? 'gap-[12px]' : 'gap-2'} px-0 md:px-0 !m-0 ${marqueeMode ? 'items-center' : 'items-start'} ${currentVariantClasses.extraInner || ''}">
+    <div class="max-w-[var(--max-width-content,1248px)] flex flex-row !items-start w-full  mx-auto ${marqueeMode ? 'gap-[12px]' : 'gap-2'} px-0 md:px-0 !m-0 ${marqueeMode ? 'items-center' : 'items-start'}">
         ${showIcon && iconData.icon && iconData.icon !== 'none' && html`
           <div class="${iconContainerClasses}${currentVariantClasses.iconBg ? ' rounded-full w-5 h-5 flex items-center justify-items-start' : ''} ${marqueeMode ? 'self-center' : ''}" aria-hidden="true">
             <${Icon} icon=${customIcon || iconData.icon} size="m" color=${customIconColor || iconData.color} />
@@ -515,29 +431,22 @@ export const Alert = ({
             <div dangerouslySetInnerHTML=${{ __html: sanitizeHTML(processedContentHTML) }} />
           `}
         </div>
-        ${dismissible && (() => {
-          // Fallback chain: prop del call site (override puntual) → variant
-          // (per-variant default como darksite) → SVG genérico currentColor.
-          const resolvedDismissIconHTML = dismissIconHTML
-            || currentVariantClasses.dismissIconHTML
-            || '';
-          return html`
-            <${Button}
-              onClick=${handleDismiss}
-              variant="transparent"
-              size="xxs"
-              iconOnly=${true}
-              aria-label=${resolvedDismissButtonAriaLabel}
-              customClassName="${marqueeMode ? 'self-center' : ''} !h-5 !w-5 !min-h-5 !min-w-5 !p-0 !gap-0 !rounded-full flex items-center justify-center hover:!bg-alert-dismiss-hover active:!bg-alert-dismiss-active ${currentVariantClasses.extraDismiss || ''} ${dismissButtonClassName}"
-            >
-              ${resolvedDismissIconHTML ? html`<span dangerouslySetInnerHTML=${{ __html: sanitizeSVG(resolvedDismissIconHTML) }} />` : html`
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" fill="none" class="block">
-                  <path fill-rule="evenodd" clip-rule="evenodd" d="M12.6663 4.27398L11.7263 3.33398L7.99967 7.06065L4.27301 3.33398L3.33301 4.27398L7.05967 8.00065L3.33301 11.7273L4.27301 12.6673L7.99967 8.94065L11.7263 12.6673L12.6663 11.7273L8.93967 8.00065L12.6663 4.27398Z" fill="currentColor"/>
-                </svg>
-              `}
-            </${Button}>
-          `;
-        })()}
+        ${dismissible && html`
+          <${Button} 
+            onClick=${handleDismiss} 
+            variant="transparent" 
+            size="xxs" 
+            iconOnly=${true}
+            aria-label=${resolvedDismissButtonAriaLabel}
+            customClassName="${marqueeMode ? 'self-center' : ''} !h-5 !w-5 !min-h-5 !min-w-5 !p-0 !gap-0 !rounded-full flex items-center justify-center hover:!bg-alert-dismiss-hover active:!bg-alert-dismiss-active ${dismissButtonClassName}"
+          >
+            ${dismissIconHTML ? html`<span dangerouslySetInnerHTML=${{ __html: sanitizeSVG(dismissIconHTML) }} />` : html`
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" fill="none" class="block">
+                <path fill-rule="evenodd" clip-rule="evenodd" d="M12.6663 4.27398L11.7263 3.33398L7.99967 7.06065L4.27301 3.33398L3.33301 4.27398L7.05967 8.00065L3.33301 11.7273L4.27301 12.6673L7.99967 8.94065L11.7263 12.6673L12.6663 11.7273L8.93967 8.00065L12.6663 4.27398Z" fill="currentColor"/>
+              </svg>
+            `}
+          </${Button}>
+        `}
       </div>
     </aside>
   `;

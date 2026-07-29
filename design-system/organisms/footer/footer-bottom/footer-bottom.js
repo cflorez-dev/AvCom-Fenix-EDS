@@ -9,10 +9,6 @@ const html = htm.bind(h);
  * app stores y copyright
  *
  * ## Props
- * - `variant`: `('default'|'darksite-dark'|'darksite-light')` – Variante de página.
- *   `darksite-dark` → footer minimal sobre fondo oscuro (solo copyright, texto blanco).
- *   `darksite-light` → footer minimal sobre fondo claro/white (solo copyright, texto blanco sobre bg #1B1B1B).
- *   `default` → comportamiento original con redes sociales, app stores y copyright.
  * - `theme`: `"light" | "dark" | "white"` – Tema del footer (por defecto: `"light"`).
  *   `"white"` es igual a `"light"` pero con fondo `--color-background-brand-primary-lighter` (#FFFFFF)
  * - `showAppStoreButtons`: `boolean` – Mostrar botones de app stores
@@ -35,7 +31,6 @@ const html = htm.bind(h);
  */
 export const FooterBottom = ({
   theme = 'light',
-  variant = 'default',
   showAppStoreButtons = false,
   appStoreUrl = '',
   appStoreImage = '',
@@ -47,10 +42,6 @@ export const FooterBottom = ({
   i18n = {},
   ...rest
 }) => {
-  const isDarksiteDark = variant === 'darksite-dark';
-  const isDarksiteLight = variant === 'darksite-light';
-  const isDarksite = isDarksiteDark || isDarksiteLight;
-
   // Filtrar social links que tienen URL válida
   const validSocialLinks = socialLinks.filter((social) => social.url && social.url.trim() !== '');
 
@@ -177,52 +168,6 @@ export const FooterBottom = ({
   // Si no hay contenido, no renderizar
   // Nota: Siempre mostramos el copyright (con texto por defecto si no viene uno)
 
-  // ── Darksite minimal variants ──────────────────────────────────────────────
-  // Solo copyright centrado, sin iconos sociales ni app stores.
-  // Mobile-first: layout vertical → desktop (>760px) layout horizontal.
-  // darksite-light: bg var(--brand-primary) + gradiente en mobile;
-  // darksite-dark: bg = token global `--color-darksite-bg` (Tailwind
-  // v4 `@theme` → clase `bg-darksite-bg`). Mismo fondo que HeaderDarksite
-  // y el interstitial. Definido en styles/variables/tailwind.css.
-  if (isDarksite) {
-    const darksiteBgClass = isDarksiteLight
-      ? 'bg-[var(--brand-primary)]'
-      : 'bg-darksite-bg';
-    const darksiteMobileBgClass = isDarksiteLight
-      ? 'bg-[linear-gradient(90deg,#323438_0%,#1B1B1B_100%)]'
-      : 'bg-darksite-bg';
-    const copyrightClasses = 'm-0 text-[14px] font-normal leading-[21px] text-[var(--logo-avianca-light)] font-[family-name:var(--font-family-primary)]';
-
-    return html`
-      <div
-        class=${`footer-bottom-container w-full flex flex-col justify-start items-start ${darksiteMobileBgClass} ${customClassName}`}
-        data-variant=${variant}
-        ...${rest}
-      >
-        <!-- Mobile (<= 760px): vertical, centered -->
-        <div
-          class=${`self-stretch flex flex-col justify-center items-center gap-[32px] py-[16px] px-[24px] ${darksiteBgClass} min-[761px]:hidden`}
-        >
-          <div class="self-stretch flex flex-col justify-center items-center gap-[12px]">
-            <p class=${`text-center ${copyrightClasses}`}>
-              ${getCopyrightText()}
-            </p>
-          </div>
-        </div>
-
-        <!-- Desktop (> 760px): horizontal, centered -->
-        <div
-          class=${`hidden min-[761px]:inline-flex self-stretch justify-center items-center gap-[32px] py-[16px] px-[24px] ${darksiteBgClass}`}
-        >
-          <div class="flex-1 flex justify-center items-center gap-[16px]">
-            <p class=${copyrightClasses}>
-              ${getCopyrightText()}
-            </p>
-          </div>
-        </div>
-      </div>
-    `;
-  }
 
   return html`
     <div

@@ -348,9 +348,6 @@ const processLinkTags = (htmlString, linkButtonOptions = {}) => {
  * @param {boolean} [options.linkButtonOptions.disabled=false] - Disabled state
  * @param {string} [options.linkButtonOptions.customClassName=''] - Additional CSS classes
  * @param {boolean} [options.processRelAttributes=false] - Process rel attributes for SEO
- * @param {boolean} [options.skipLinkProcessing=false] - If true, `<a>` tags are left untouched
- *   (no LinkButton classes, no rel/target processing). Use for variants where links must render
- *   as plain browser-styled anchors (e.g. darksite marquee: white text + browser underline).
  * @returns {string} Processed HTML string
  */
 export const processContentHTML = (htmlString, variant, options = {}) => {
@@ -360,7 +357,6 @@ export const processContentHTML = (htmlString, variant, options = {}) => {
     linkButtonOptions,
     processRelAttributes = false,
     customLinkColor = null,
-    skipLinkProcessing = false,
   } = options;
 
   if (!htmlString) return '';
@@ -408,11 +404,7 @@ export const processContentHTML = (htmlString, variant, options = {}) => {
     customLinkColor: options.customLinkColor || linkButtonOptions?.customLinkColor || null,
   };
 
-  // `skipLinkProcessing` short-circuits the LinkButton wrapping so `<a>` tags stay raw.
-  // Kept opt-in (default false) to preserve backward compatibility with all existing callers.
-  if (!skipLinkProcessing) {
-    processedHTML = processLinkTags(processedHTML, finalLinkButtonOptions);
-  }
+  processedHTML = processLinkTags(processedHTML, finalLinkButtonOptions);
 
   return processedHTML;
 };

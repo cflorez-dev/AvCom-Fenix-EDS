@@ -25,29 +25,6 @@ const html = htm.bind(h);
  * @param {Function} [props.onSuffixIconClick] - Callback when suffix icon is clicked
  * @param {boolean} [props.showPasswordToggle=false] - Show password visibility toggle (only for type='password')
  * @param {boolean} [props.truncateOption=false] - Truncate input value and show tooltip on hover when not focused
- * @param {('default'|'members')} [props.variant='default'] - Layout variant.
- *   'members' implements the Members "Reglas de uso" spec:
- *   - Textos desbordados: when the (unselected) label doesn't fit the field's
- *     width, the field widens to fit it instead of wrapping to a second line
- *     or being truncated/hidden. Intended for use inside a formGrid column,
- *     where the field should never shrink below the column width but may
- *     grow past it when the label is long. The value truncates horizontally
- *     (single line, ellipsis) via `truncateOption` while unfocused, revealing
- *     the full text on hover/keyboard focus through a `Tooltip`.
- *   - Input obligatorio: when `required` is true and the field is left empty
- *     after being touched (blurred), it switches to the `error` state and
- *     shows a default "Este campo es obligatorio." helper text (unless a
- *     custom `helperText` is provided).
- *   Note: unlike Select, the "Diferencia entre deshabilitado y solo lectura"
- *   rule does not apply to Input — the Figma spec only illustrates it for
- *   dropdownInput, so `readonly` here keeps the native input behavior
- *   (already focusable, content selectable/copyable) without extra styling.
- * @param {string} [props.tooltipContent] - Contextual help text. When set, renders an
- *   info icon (Figma `<tooltipIcon>`) to the right of, and outside, the
- *   field's border, that reveals a `Tooltip` (variant="hint") above the field
- *   on hover/keyboard focus. Per the "Reglas de uso" spec: not every field
- *   needs this — reserve it for content that complements (not repeats) the
- *   label/placeholder.
  * @param {string} [props.customClassName=''] - Additional CSS classes
  * @param {string} [props.id] - HTML id attribute
  * @param {string} [props.name] - HTML name attribute for forms
@@ -70,8 +47,6 @@ export const Input = ({
   onSuffixIconClick,
   showPasswordToggle = false,
   truncateOption = false,
-  variant = 'default',
-  tooltipContent,
   customClassName = '',
   id,
   name,
@@ -81,34 +56,15 @@ export const Input = ({
   const [isFocused, setIsFocused] = useState(false);
   const [isKeyboardFocused, setIsKeyboardFocused] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-  const [touched, setTouched] = useState(false);
   const inputRef = useRef(null);
   const tabKeyPressedRef = useRef(false);
 
-  const isMembers = variant === 'members';
-  const isInteractive = !disabled && !readonly;
-  // members variant: per "Reglas de uso" (Input obligatorio), a required
-  // field left empty after being touched (blurred) must switch to the error
-  // state and show a default required-field message.
-  const showRequiredError = isMembers && required && touched && !inputValue && isInteractive;
   // Determine actual state
-  let actualState = state;
-  if (disabled) actualState = 'disabled';
-  else if (readonly) actualState = 'readonly';
-  else if (showRequiredError) actualState = 'error';
-  const resolvedHelperText = showRequiredError && !helperText ? 'Este campo es obligatorio.' : helperText;
+  const actualState = disabled ? 'disabled' : readonly ? 'readonly' : state;
+  const isInteractive = !disabled && !readonly;
 
   // Determine if label should float (when has value or is focused)
   const shouldFloat = inputValue || isFocused;
-
-  // members variant: while unfloated, the label stands in for the value and
-  // must be rendered in-flow (not absolutely positioned) so its intrinsic
-  // width can drive the field's `w-fit` growth (see "Label corto y claro").
-  const showInlineMembersLabel = isMembers && !!label && !shouldFloat;
-  // Unlike Select, Input does not get special readonly focus-ring handling
-  // under the members variant (see JSDoc note above) — always gate on
-  // isInteractive, matching the default (non-members) behavior.
-  const showsFocusRing = isInteractive;
 
   // Determine actual input type (toggle password visibility)
   const actualInputType = type === 'password' && showPassword ? 'text' : type;
@@ -169,9 +125,6 @@ export const Input = ({
   const handleBlur = () => {
     setIsFocused(false);
     setIsKeyboardFocused(false);
-    if (isMembers && required) {
-      setTouched(true);
-    }
   };
 
   // Handle input change
@@ -213,18 +166,15 @@ export const Input = ({
 
   return html`
     <div
-      class="relative ${customClassName}"
+      class="relative w-full ${customClassName}"
       data-name="input"
-      data-variant=${variant}
       ...${rest}
     >
-      <div class="flex items-center gap-2">
-        <div class="relative ${isMembers ? 'w-fit min-w-full' : 'w-full'} min-w-0">
       <!-- Input Container -->
       <div
         onClick=${handleContainerClick}
         class=${`
-          relative flex items-center gap-2 ${isMembers ? 'w-fit min-w-full' : 'w-full'} h-[64px]
+          relative flex items-center gap-2 w-full h-[64px]
           px-[var(--padding-16)] pt-3 pb-3
           ${actualState === 'disabled' ? 'bg-background-input-disabled' : actualState === 'readonly' ? 'bg-background-input-disabled' : 'bg-background-input-default'}
           rounded-[8px]
@@ -236,7 +186,7 @@ export const Input = ({
         `}
       >
         <!-- Focus Ring (keyboard navigation only) -->
-        ${isKeyboardFocused && showsFocusRing && html`
+        ${isKeyboardFocused && isInteractive && html`
           <div
             class="absolute -inset-[2px] rounded-[9px] outline outline-border-stroke-focus pointer-events-none"
             aria-hidden="true"
@@ -250,7 +200,7 @@ export const Input = ({
         `}
 
         <!-- Floating Label -->
-        ${label && !showInlineMembersLabel && html`
+        ${label && html`
           <label
             for=${id}
             class=${`
@@ -269,21 +219,8 @@ export const Input = ({
           </label>
         `}
 
-        <!-- members variant: unfloated label, in-flow so it can widen the field -->
-        ${showInlineMembersLabel && html`
-          <span
-            class=${`
-              whitespace-nowrap
-              font-['Red_Hat_Display'] font-normal text-sm leading-[21px] tracking-[0px]
-              ${labelStateClasses[actualState]}
-            `}
-          >
-            ${label}${required ? '*' : ''}
-          </span>
-        `}
-
         <!-- Content (Input) -->
-        <div class="${showInlineMembersLabel ? 'flex flex-col justify-center min-w-0' : 'flex-1 flex flex-col justify-center min-w-0'}">
+        <div class="flex-1 flex flex-col justify-center min-w-0">
 
           <!-- Input Field -->
           ${shouldFloat && html`
@@ -309,7 +246,7 @@ export const Input = ({
                 class=${`
                   bg-white
                   w-full bg-transparent border-0 outline-none p-0
-                  !text-base !font-bold font-['Red_Hat_Display'] leading-normal
+                  !text-base font-bold font-['Red_Hat_Display'] leading-normal
                   ${truncateOption && !isFocused ? 'truncate' : ''}
                   ${actualState === 'disabled' ? 'text-[#C4C8C5] cursor-not-allowed' : actualState === 'readonly' ? 'text-text-normal-secondary cursor-default' : 'text-text-normal-primary'}
                   placeholder:text-text-normal-secondary placeholder:font-normal
@@ -320,7 +257,7 @@ export const Input = ({
 
           <!-- Cursor placeholder when active but empty -->
           ${!shouldFloat && isFocused && !inputValue && html`
-            <div class="!text-base !font-bold font-['Red_Hat_Display'] text-text-normal-primary">|</div>
+            <div class="!text-base font-bold font-['Red_Hat_Display'] text-text-normal-primary">|</div>
           `}
 
           <!-- Hidden input for when not floating -->
@@ -367,34 +304,23 @@ export const Input = ({
             />
           </button>
         `}
-
-      </div>
-        </div>
-
-        <!-- Info Tooltip Icon: rendered OUTSIDE the field's border, to its
-             right, per Figma "Reglas de uso" (Tooltip) -->
-        ${tooltipContent && html`
-          <${Tooltip} variant="hint" content=${tooltipContent} position="top" customClassName="flex-shrink-0">
-            <button
-              type="button"
-              aria-label="Más información"
-              class="flex items-center justify-center w-4 h-4 flex-shrink-0"
-            >
-              <${Icon} icon="alert/info" size="s" />
-            </button>
-          </${Tooltip}>
-        `}
       </div>
 
       <!-- Helper Text -->
-      ${resolvedHelperText && html`
-        <div class="flex items-start gap-1 mt-[var(--spacing-x-small)] font-['Red_Hat_Display'] font-normal text-sm leading-5 tracking-[0px] ${helperStateClasses[actualState]}">
+      ${helperText && html`
+        <div class="flex items-start mt-[var(--spacing-x-small)] font-['Red_Hat_Display'] font-normal text-sm leading-5 tracking-[0px] ${helperStateClasses[actualState]}">
           ${actualState === 'error' && html`
-            <span class="w-4 h-4 flex-shrink-0 mt-0.5" aria-hidden="true">
-              <${Icon} icon="alert/Error" size="s" color="currentColor" />
-            </span>
+            <svg
+              class="w-4 h-4 mr-1 flex-shrink-0 mt-0.5"
+              fill="currentColor"
+              viewBox="0 0 20 20"
+              aria-hidden="true"
+            >
+              <circle cx="10" cy="10" r="9" fill="currentColor" />
+              <text x="10" y="14" text-anchor="middle" fill="white" font-size="12" font-weight="bold">i</text>
+            </svg>
           `}
-          <span>${resolvedHelperText}</span>
+          <span>${helperText}</span>
         </div>
       `}
     </div>

@@ -28,21 +28,15 @@ const html = htm.bind(h);
  * - `copiedLabel`: string — texto del tooltip tras copiar. Default 'Copiado'.
  * - `onCopy`: function(membershipNumber) — callback opcional; si se pasa, reemplaza
  *   el `navigator.clipboard.writeText` por defecto (ej. para disparar un toast).
- * - `size`: 'base'|'lg' — tamaño del número. 'base' (16/21 Bold, drawer) o 'lg'
- *   (16/21 SemiBold + antialiased, grid del hero — comp 518:27631). Default 'base'.
+ * - `size`: 'base'|'lg' — tamaño del número. 'base' (16px, drawer) o 'lg' (20px
+ *   SemiBold, grid del hero — comp 518:27631). Default 'base'.
  * - `customClassName`: string — clases extra para el root.
  */
 const NUMBER_SIZE = {
   base: 'font-bold text-base leading-[21px]',
-  // Grid del hero "Mi Lifemiles" (members dashboard, Figma 518:27631):
-  // responsive SemiBold + `antialiased` para suavizar el trazo sobre el
-  // gradient oscuro del tier.
-  //  - `<640px`  → 16/21 (Figma mobile).
-  //  - `≥640px`  → 18/24 (tablet, escala intermedia).
-  //  - `≥1024px` → 20/26 (desktop lg, Figma 518:23344).
-  // `!` en el font-size para blindar del `clamp()` global del sitio que
-  // pisaría `text-[16px]` con valores fluidos.
-  lg: 'font-semibold antialiased !text-[16px] !leading-[21px] min-[640px]:!text-[18px] min-[640px]:!leading-[24px] lg:!text-[20px] lg:!leading-[26px]',
+  // h5 (20px) SemiBold con `leading-[normal]` en Figma 518:24090 (token h5
+  // line-height = 100% → 20px). Antes 26px; ahora respeta el spec.
+  lg: 'font-semibold text-xl leading-[20px]',
 };
 
 export const MembersCopyMembership = ({
@@ -100,73 +94,45 @@ export const MembersCopyMembership = ({
         type="button"
         onClick=${handleCopy}
         aria-label=${copyAriaLabel}
-        class="group relative inline-flex items-center gap-2 p-0 bg-transparent border-0 cursor-pointer outline-none rounded-[4px]"
+        class="group relative inline-flex items-center gap-1 p-0 bg-transparent border-0 cursor-pointer outline-none rounded-[4px]"
         data-name="members-copy"
         data-copied=${copied}
       >
-        ${/* Halo HOVER (Figma 518:23701 / rect 518:22213): #6d6d6d 40% con
-            mix-blend-multiply oscurece sobre el card gradient. La medida
-            EXACTA del rect en Figma es 164×31 alrededor de un texto 127×26
-            → bleed VERTICAL = 2.5px por lado (31-26)/2, bleed horizontal ~4px.
-            NO usamos -inset-1 porque este proyecto redefine --spacing-1: .4rem
-            (=6.4px), lo que dispara un halo visualmente 5px más alto que el
-            comp (QA report: "al hover el contenedor crece 5px"). Solo activo
-            en :hover, NO en :focus-visible (focus usa otro halo plano por
-            especificación Figma 518:23719). */ ''}
-        ${/* Mientras el tooltip "Copiado" está visible el halo de hover se APAGA:
-             el exhibit "Pressed / Copy" (Figma 518:22224) muestra el número SIN
-             halo, a diferencia del exhibit "Hover" (518:22211). Como el puntero
-             sigue sobre el botón después de hacer clic, sin este gate los dos
-             estados se pisaban (1284784). */ ''}
+        ${/* Halo HOVER (Figma 518:23701): #6d6d6d 40% con mix-blend-multiply
+            oscurece sobre el card gradient. -inset-1 = 4px de respiro
+            (Figma 169:12888). Solo activo en :hover, NO en :focus-visible
+            (focus usa otro halo plano por especificación Figma 518:23719). */ ''}
         <span
           aria-hidden="true"
-          class=${`absolute -inset-y-[2.5px] -inset-x-[4px] rounded-[4px] bg-[#6d6d6d] mix-blend-multiply opacity-0 motion-safe:transition-opacity motion-safe:duration-150 ${copied ? '' : 'group-hover:opacity-40'}`}
+          class="absolute -inset-1 rounded-[4px] bg-[#6d6d6d] mix-blend-multiply opacity-0 motion-safe:transition-opacity motion-safe:duration-150 group-hover:opacity-40"
         ></span>
         ${/* Halo FOCUS (Figma 518:23719): rgba(109,109,109,0.4) PLANO (sin
             mix-blend). Figma diferencia explícitamente hover (multiply) y
-            focus (rgba sólido). Mismo footprint que el hover (bleed 2.5px
-            vertical / 4px horizontal) para que el halo sea idéntico entre
-            estados y evitar el jump visual reportado en QA. Se APAGA cuando
-            copied=true por la misma razón que el halo de hover: el exhibit
-            "Pressed / Copy" (Figma 518:22224) no lleva fondo. Si el usuario
-            hace hover + tab al mismo tiempo (raro: focus-visible es teclado
-            only), los dos halos se superponen — aceptable porque ambos son
-            grises translúcidos. */ ''}
+            focus (rgba sólido). Si el usuario hace hover + tab al mismo
+            tiempo (raro: focus-visible es teclado-only), los dos halos se
+            superponen — efecto aceptable porque ambos son grises translúcidos. */ ''}
         <span
           aria-hidden="true"
-          class=${`absolute -inset-y-[2.5px] -inset-x-[4px] rounded-[4px] bg-[rgba(109,109,109,0.4)] opacity-0 motion-safe:transition-opacity motion-safe:duration-150 ${copied ? '' : 'group-focus-visible:opacity-100'}`}
+          class="absolute -inset-1 rounded-[4px] bg-[rgba(109,109,109,0.4)] opacity-0 motion-safe:transition-opacity motion-safe:duration-150 group-focus-visible:opacity-100"
         ></span>
         ${/* Focus ring (Figma 518:23719 / 341:13938): 1.5px #28a8ff + 3px white.
             Span aparte del halo (el halo de hover usa mix-blend y no debe
-            afectar el anillo; mantenerlo separado garantiza render limpio).
-            Mismo footprint (2.5/4) que los halos para coincidir con Figma spec.
-            También se APAGA cuando copied=true — el estado "Pressed / Copy"
-            (518:22224) muestra solo el tooltip, sin anillo ni halo. */ ''}
+            afectar el anillo; mantenerlo separado garantiza render limpio). */ ''}
         <span
           aria-hidden="true"
-          class=${`absolute -inset-y-[2.5px] -inset-x-[4px] rounded-[4px] pointer-events-none opacity-0 [box-shadow:0_0_0_1.5px_#28a8ff,0_0_0_3px_#ffffff] ${copied ? '' : 'group-focus-visible:opacity-100'}`}
+          class="absolute -inset-1 rounded-[4px] pointer-events-none opacity-0 group-focus-visible:opacity-100 [box-shadow:0_0_0_1.5px_#28a8ff,0_0_0_3px_#ffffff]"
         ></span>
         <span class=${`relative text-white whitespace-nowrap ${NUMBER_SIZE[size] || NUMBER_SIZE.base}`}>
           ${membershipNumber}
         </span>
-        ${/* El tooltip vive DENTRO del wrapper del ícono para quedar centrado sobre
-             ÉL, no sobre el botón completo (número + ícono). En el comp
-             (Figma 518:22222) el bubble de 90px se ancla en left:98 dentro de un
-             contenedor de 151.35 → su centro (143) cae sobre el centro del ícono
-             (141.7), no sobre el del bloque (75.7). Antes se centraba sobre el
-             botón entero y quedaba desplazado a la izquierda (1284784). */ ''}
         <span class="relative inline-flex items-center justify-center w-5 h-5 shrink-0">
           <img src=${copyIcon} alt="" class="block w-[12.75px] h-[15px]" />
+        </span>
         ${copied && html`
           <span
             role="status"
             aria-live="polite"
-            ${/* Medidas EXACTAS del comp (Figma 518:13564): ancho 90, padding 8/4,
-                radius 8, gap 4. Van en valores arbitrarios porque la escala del
-                repo no es la de Tailwind por defecto: `py-1` renderiza 6.4px,
-                `gap-1` 6.4px y `rounded-lg` 12.8px (mismo motivo que el padding de
-                los shortcuts en 1284645). */ ''}
-            class="absolute left-1/2 -translate-x-1/2 bottom-full mb-[2px] inline-flex items-center gap-[4px] w-[90px] px-[8px] py-[4px] bg-[var(--color-brand-primary,#1b1b1b)] rounded-[8px] text-white text-sm font-normal leading-normal whitespace-nowrap pointer-events-none z-10"
+            class="absolute left-1/2 -translate-x-1/2 bottom-full mb-1 inline-flex items-center gap-1 px-2 py-1 bg-[var(--color-brand-primary,#1b1b1b)] rounded-lg text-white text-sm font-normal leading-normal whitespace-nowrap pointer-events-none z-10"
           >
             <span>${copiedLabel}</span>
             ${/* Check icon (Figma 518:23712 / I518:13566): check blanco simple
@@ -183,7 +149,6 @@ export const MembersCopyMembership = ({
             </span>
           </span>
         `}
-        </span>
       </button>
     </div>
   `;
