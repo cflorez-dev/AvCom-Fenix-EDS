@@ -3,8 +3,9 @@ import { useState, useEffect } from '@dropins/tools/preact-hooks.js';
 import htm from 'htm';
 import { Input } from '../../../atoms/inputs/input/input.js';
 import { Button } from '../../../atoms/button/button.js';
-import { ModalAviancaLayout } from '../../../molecules/modal/modal-avianca-layout.js';
-import { FullPageLoader } from '../../../molecules/full-page-loader/full-page-loader.js';
+import { ModalAviancaLayout, isImageSource } from '../../../molecules/modal/modal-avianca-layout.js';
+import { preloadIcons } from '../../../atoms/icon/icon.js';
+import { FullPageLoader, CONDOR_LOADER_ASSET } from '../../../molecules/full-page-loader/full-page-loader.js';
 import { fetchAEMData } from '../../../../scripts/utils/aem-data.js';
 import { getStoredLanguage } from '../../../../scripts/services/header/language-country-selector.js';
 import { validateUpgrade, getUpgradesConfig } from '../../../../scripts/services/upgrades/upgrades.service.js';
@@ -15,6 +16,15 @@ const html = htm.bind(h);
 
 let i18Cache = null;
 let i18FallbackCache = null;
+
+// Los catálogos se cachean a nivel de módulo (se piden una vez por sesión). Los
+// tests necesitan variar el diccionario entre casos sin recargar el módulo, porque
+// resetear módulos desempareja la instancia de Preact de la de sus hooks.
+// Mismo patrón que resetUpgradesConfigCacheForTests en upgrades.service.js.
+export const resetI18nCachesForTests = () => {
+  i18Cache = null;
+  i18FallbackCache = null;
+};
 
 export const sanitizePnr = (value) => String(value ?? '')
   .replace(/[^a-zA-Z0-9]/g, '')
@@ -47,6 +57,24 @@ export const MODAL_IMAGE_KEYS = {
 };
 
 /**
+ * 1299705: la descripción de los modales de upgrades NO se capa.
+ *
+ * El default de ModalAviancaLayout es `max-h-[81px] overflow-y-auto pr-[20px]`, que
+ * capa la descripción a ~3 líneas: en cuanto el texto autorado pasa de ahí aparece una
+ * barra de scroll al costado derecho y la card NO crece (medido en el modal de error
+ * técnico: 108px de contenido en 81px de caja, con la card en 394px contra un límite de
+ * 810px = 90vh). Además el `pr-[20px]`, que existe solo para dejar sitio a esa barra,
+ * deja el texto 10px a la izquierda del centro incluso sin scroll.
+ *
+ * Se apaga con un override desde aquí en vez de cambiar el default de la molecule: el
+ * default lo comparten cms-modal, geo-conflict-modal y members-modal, y este ticket es
+ * solo del formulario de upgrades. El límite ante textos enormes lo sigue poniendo la
+ * card (max-h-[90vh] + overflow-auto en modal.js), así que el scroll lo asume el wrapper
+ * completo y el botón queda alcanzable.
+ */
+export const MODAL_DESCRIPTION_CLASS = '';
+
+/**
  * Resuelve la ilustración de un modal. Precedencia: diccionario > override del
  * bloque > ilustración de Figma embebida en el repo.
  *
@@ -67,16 +95,111 @@ export const resolveModalIcon = (result, cmsValue, overrideSrc) => {
     || MODAL_ICON_FALLBACK;
 };
 
+/**
+ * Reúne las ilustraciones de los 3 modales, separadas por cómo se cargan: los
+ * nombres de sprite los trae el atom Icon con fetch a `/icons/<name>.svg`, y las
+ * rutas/URLs las pinta el navegador como `<img>`.
+ *
+ * @param {Object} [labels] - Labels ya resueltos del diccionario
+ * @param {string} [overrideSrc] - Override de autor del bloque form-header-banner
+ * @returns {{ sprites: string[], images: string[] }} Sin duplicados
+ */
+export const collectModalIllustrations = (labels, overrideSrc) => {
+  const l = labels || {};
+  const resueltas = [
+    resolveModalIcon(UPGRADE_RESULT.NO_AVAILABILITY, l.highDemandImage, overrideSrc),
+    resolveModalIcon(UPGRADE_RESULT.NOT_FOUND, l.notFoundImage, overrideSrc),
+    resolveModalIcon(UPGRADE_RESULT.ERROR, l.errorImage, overrideSrc),
+  ].filter((v) => typeof v === 'string' && v.trim());
+  const unicas = [...new Set(resueltas)];
+  return {
+    sprites: unicas.filter((v) => !isImageSource(v)),
+    images: unicas.filter((v) => isImageSource(v)),
+  };
+};
+
+/**
+ * Calienta esas ilustraciones. Sin esto, cada una se descarga en el instante en
+ * que su modal se abre — y para el modal de error técnico ese instante es
+ * precisamente cuando la red puede estar caída. Peor aún: si el fetch de un
+ * sprite falla, el atom Icon lo anota en su cache de fallos y NO lo reintenta en
+ * el resto de la sesión, así que el modal queda sin ilustración incluso después
+ * de que la red vuelva (comprobado en avqa: el asset respondía 200 y el icono
+ * seguía vacío, sin un solo reintento).
+ *
+ * Precargar al montar el formulario mueve esas descargas al momento en que la
+ * página acaba de cargar, con la red presumiblemente sana. Es best-effort: si
+ * falla, el comportamiento es el de antes, no peor.
+ *
+ * @param {{ sprites: string[], images: string[] }} ilustraciones
+ */
+const warmModalIllustrations = ({ sprites, images }) => {
+  if (typeof window === 'undefined') return;
+  preloadIcons(sprites);
+  images.forEach((src) => {
+    const img = new Image();
+    img.decoding = 'async';
+    img.src = src;
+  });
+};
+
+/**
+ * Calienta el GIF del cóndor del loader de fallback, por la misma razón que las
+ * ilustraciones de los modales: el `<img>` del FullPageLoader no existe hasta que
+ * el loader se abre, o sea hasta que se envía el formulario, que es justo cuando
+ * la red puede estar degradada.
+ *
+ * Solo aplica cuando la página **no** tiene el bloque `cms-loader` autorado, que
+ * es el único caso en que se usa el fallback. El camino del bloque no lo necesita:
+ * su `<img>` vive en el HTML de la página con `loading="eager"` y el navegador ya
+ * lo trae en la carga, aunque la sección esté en `display:none` (verificado en
+ * `/es` de avqa: `complete: true`, `naturalWidth: 2000`).
+ *
+ * Se usa `rel="prefetch"` y no `preload` a propósito: son 224 KB que solo se
+ * necesitan al enviar, así que se piden con prioridad baja y en tiempo libre, sin
+ * competir con los recursos de la página.
+ */
+const prefetchFallbackLoaderAsset = () => {
+  if (typeof document === 'undefined') return;
+  // Mismos selectores que getLoaderSection() en loader.service.js.
+  const tieneBloque = !!document.querySelector('.section.cms-loader-container')
+    || !!document.querySelector('.cms-loader.block');
+  if (tieneBloque) return;
+  const yaDeclarado = document.head
+    .querySelector(`link[rel="prefetch"][href="${CONDOR_LOADER_ASSET}"]`);
+  if (yaDeclarado) return;
+  const link = document.createElement('link');
+  link.rel = 'prefetch';
+  link.as = 'image';
+  link.href = CONDOR_LOADER_ASSET;
+  document.head.appendChild(link);
+};
+
+/**
+ * Resuelve un texto del diccionario recorriendo los catálogos en orden (idioma
+ * activo, luego el de respaldo en es).
+ *
+ * Una llave **autorada en blanco** se respeta como tal: es la forma que tiene el
+ * autor de apagar un texto opcional (p. ej. el helper del apellido) sin deploy.
+ * Antes se trataba como ausente — `if (labelData?.Text)` con `''` es falsy — y
+ * caía al fallback hardcodeado, así que vaciar la llave no surtía efecto.
+ * Solo se usa el fallback cuando la llave no existe en ningún catálogo.
+ *
+ * @param {Array<Array<{Key: string, Text: string}>>} catalogs - Catálogos por prioridad
+ * @param {string} key - Llave del diccionario
+ * @param {string} [fallback] - Texto a usar si la llave no está autorada en ningún catálogo
+ * @returns {string}
+ */
+export const pickI18nText = (catalogs, key, fallback = '') => {
+  const found = (catalogs || [])
+    .filter(Array.isArray)
+    .map((catalog) => catalog.find((item) => item?.Key === key))
+    .find((entry) => typeof entry?.Text === 'string');
+  return found ? found.Text : fallback;
+};
+
 function getI18nLabel(key, fallback = '') {
-  if (i18Cache) {
-    const labelData = i18Cache.find((item) => item.Key === key);
-    if (labelData?.Text) return labelData.Text;
-  }
-  if (i18FallbackCache) {
-    const labelData = i18FallbackCache.find((item) => item.Key === key);
-    if (labelData?.Text) return labelData.Text;
-  }
-  return fallback;
+  return pickI18nText([i18Cache, i18FallbackCache], key, fallback);
 }
 
 /**
@@ -115,6 +238,10 @@ export const CabinUpgradeForm = ({
   const [labels, setLabels] = useState({});
 
   useEffect(() => {
+    // Los sprites del repo son el fallback garantizado de los 3 modales: se
+    // calientan ya, sin esperar el diccionario.
+    warmModalIllustrations(collectModalIllustrations());
+    prefetchFallbackLoaderAsset();
     const loadLabels = async () => {
       if (!i18Cache) {
         const cookieLanguage = getStoredLanguage() || 'es';
@@ -154,6 +281,14 @@ export const CabinUpgradeForm = ({
         formAriaLabel: getI18nLabel('cabinUpgradeForm.aria.form', 'Formulario de upgrade de cabina'),
         submitAriaLabel: getI18nLabel('cabinUpgradeForm.aria.submitButton', 'Solicitar ascenso a Business Class'),
       });
+      // Y ahora las que decidió el autor, que pueden ser otro sprite o una URL
+      // del DAM. Se leen del diccionario ya cargado, no del estado (que aún no
+      // se ha aplicado en este tick).
+      warmModalIllustrations(collectModalIllustrations({
+        highDemandImage: getI18nLabel(MODAL_IMAGE_KEYS[UPGRADE_RESULT.NO_AVAILABILITY], ''),
+        notFoundImage: getI18nLabel(MODAL_IMAGE_KEYS[UPGRADE_RESULT.NOT_FOUND], ''),
+        errorImage: getI18nLabel(MODAL_IMAGE_KEYS[UPGRADE_RESULT.ERROR], ''),
+      }, modalImageData?.src));
     };
     loadLabels();
   }, []);
@@ -210,8 +345,11 @@ export const CabinUpgradeForm = ({
     // producto (bloque cms-loader autorado en la página, GIF del cóndor).
     // Si la página no lo tiene, cae a la molecule full-page-loader.
     const hasCmsLoader = showLoader(true);
-    if (hasCmsLoader) {
-      updateLoaderText(labels.loaderLabel || 'Cargando...');
+    // Se pasa el valor autorado tal cual, incluido el vacío: vaciar
+    // `cabinUpgradeForm.loader.label` apaga el texto y deja solo el cóndor. Si los
+    // labels aún no cargaron (`undefined`) no se toca el texto autorado del bloque.
+    if (hasCmsLoader && typeof labels.loaderLabel === 'string') {
+      updateLoaderText(labels.loaderLabel);
     }
     setUseFallbackLoader(!hasCmsLoader);
     try {
@@ -330,6 +468,7 @@ export const CabinUpgradeForm = ({
       description=${modalDescription || labels.highDemandDescription}
       icon=${resolveModalIcon(UPGRADE_RESULT.NO_AVAILABILITY, labels.highDemandImage, modalIconOverride)}
       imageAlt=${labels.highDemandImageAlt || modalImageAlt}
+      descriptionClassName=${MODAL_DESCRIPTION_CLASS}
       primaryButtonLabel=${labels.highDemandButton}
       onPrimaryClick=${handleHighDemandClose}
     />
@@ -341,6 +480,7 @@ export const CabinUpgradeForm = ({
       description=${labels.notFoundDescription}
       icon=${resolveModalIcon(UPGRADE_RESULT.NOT_FOUND, labels.notFoundImage, modalIconOverride)}
       imageAlt=${labels.notFoundImageAlt || modalImageAlt}
+      descriptionClassName=${MODAL_DESCRIPTION_CLASS}
       primaryButtonLabel=${labels.notFoundButton}
       onPrimaryClick=${handleNotFoundClose}
     />
@@ -352,6 +492,7 @@ export const CabinUpgradeForm = ({
       description=${labels.errorDescription}
       icon=${resolveModalIcon(UPGRADE_RESULT.ERROR, labels.errorImage, modalIconOverride)}
       imageAlt=${labels.errorImageAlt || modalImageAlt}
+      descriptionClassName=${MODAL_DESCRIPTION_CLASS}
       primaryButtonLabel=${labels.errorButton}
       onPrimaryClick=${closeModal}
     />
