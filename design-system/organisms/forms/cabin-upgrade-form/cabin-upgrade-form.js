@@ -3,8 +3,9 @@ import { useState, useEffect } from '@dropins/tools/preact-hooks.js';
 import htm from 'htm';
 import { Input } from '../../../atoms/inputs/input/input.js';
 import { Button } from '../../../atoms/button/button.js';
-import { ModalAviancaLayout } from '../../../molecules/modal/modal-avianca-layout.js';
-import { FullPageLoader } from '../../../molecules/full-page-loader/full-page-loader.js';
+import { ModalAviancaLayout, isImageSource } from '../../../molecules/modal/modal-avianca-layout.js';
+import { preloadIcons } from '../../../atoms/icon/icon.js';
+import { FullPageLoader, CONDOR_LOADER_ASSET } from '../../../molecules/full-page-loader/full-page-loader.js';
 import { fetchAEMData } from '../../../../scripts/utils/aem-data.js';
 import { getStoredLanguage } from '../../../../scripts/services/header/language-country-selector.js';
 import { validateUpgrade, getUpgradesConfig } from '../../../../scripts/services/upgrades/upgrades.service.js';
@@ -95,6 +96,86 @@ export const resolveModalIcon = (result, cmsValue, overrideSrc) => {
 };
 
 /**
+ * Reúne las ilustraciones de los 3 modales, separadas por cómo se cargan: los
+ * nombres de sprite los trae el atom Icon con fetch a `/icons/<name>.svg`, y las
+ * rutas/URLs las pinta el navegador como `<img>`.
+ *
+ * @param {Object} [labels] - Labels ya resueltos del diccionario
+ * @param {string} [overrideSrc] - Override de autor del bloque form-header-banner
+ * @returns {{ sprites: string[], images: string[] }} Sin duplicados
+ */
+export const collectModalIllustrations = (labels, overrideSrc) => {
+  const l = labels || {};
+  const resueltas = [
+    resolveModalIcon(UPGRADE_RESULT.NO_AVAILABILITY, l.highDemandImage, overrideSrc),
+    resolveModalIcon(UPGRADE_RESULT.NOT_FOUND, l.notFoundImage, overrideSrc),
+    resolveModalIcon(UPGRADE_RESULT.ERROR, l.errorImage, overrideSrc),
+  ].filter((v) => typeof v === 'string' && v.trim());
+  const unicas = [...new Set(resueltas)];
+  return {
+    sprites: unicas.filter((v) => !isImageSource(v)),
+    images: unicas.filter((v) => isImageSource(v)),
+  };
+};
+
+/**
+ * Calienta esas ilustraciones. Sin esto, cada una se descarga en el instante en
+ * que su modal se abre — y para el modal de error técnico ese instante es
+ * precisamente cuando la red puede estar caída. Peor aún: si el fetch de un
+ * sprite falla, el atom Icon lo anota en su cache de fallos y NO lo reintenta en
+ * el resto de la sesión, así que el modal queda sin ilustración incluso después
+ * de que la red vuelva (comprobado en avqa: el asset respondía 200 y el icono
+ * seguía vacío, sin un solo reintento).
+ *
+ * Precargar al montar el formulario mueve esas descargas al momento en que la
+ * página acaba de cargar, con la red presumiblemente sana. Es best-effort: si
+ * falla, el comportamiento es el de antes, no peor.
+ *
+ * @param {{ sprites: string[], images: string[] }} ilustraciones
+ */
+const warmModalIllustrations = ({ sprites, images }) => {
+  if (typeof window === 'undefined') return;
+  preloadIcons(sprites);
+  images.forEach((src) => {
+    const img = new Image();
+    img.decoding = 'async';
+    img.src = src;
+  });
+};
+
+/**
+ * Calienta el GIF del cóndor del loader de fallback, por la misma razón que las
+ * ilustraciones de los modales: el `<img>` del FullPageLoader no existe hasta que
+ * el loader se abre, o sea hasta que se envía el formulario, que es justo cuando
+ * la red puede estar degradada.
+ *
+ * Solo aplica cuando la página **no** tiene el bloque `cms-loader` autorado, que
+ * es el único caso en que se usa el fallback. El camino del bloque no lo necesita:
+ * su `<img>` vive en el HTML de la página con `loading="eager"` y el navegador ya
+ * lo trae en la carga, aunque la sección esté en `display:none` (verificado en
+ * `/es` de avqa: `complete: true`, `naturalWidth: 2000`).
+ *
+ * Se usa `rel="prefetch"` y no `preload` a propósito: son 224 KB que solo se
+ * necesitan al enviar, así que se piden con prioridad baja y en tiempo libre, sin
+ * competir con los recursos de la página.
+ */
+const prefetchFallbackLoaderAsset = () => {
+  if (typeof document === 'undefined') return;
+  // Mismos selectores que getLoaderSection() en loader.service.js.
+  const tieneBloque = !!document.querySelector('.section.cms-loader-container')
+    || !!document.querySelector('.cms-loader.block');
+  if (tieneBloque) return;
+  const yaDeclarado = document.head
+    .querySelector(`link[rel="prefetch"][href="${CONDOR_LOADER_ASSET}"]`);
+  if (yaDeclarado) return;
+  const link = document.createElement('link');
+  link.rel = 'prefetch';
+  link.as = 'image';
+  link.href = CONDOR_LOADER_ASSET;
+  document.head.appendChild(link);
+};
+
+/**
  * Resuelve un texto del diccionario recorriendo los catálogos en orden (idioma
  * activo, luego el de respaldo en es).
  *
@@ -157,6 +238,10 @@ export const CabinUpgradeForm = ({
   const [labels, setLabels] = useState({});
 
   useEffect(() => {
+    // Los sprites del repo son el fallback garantizado de los 3 modales: se
+    // calientan ya, sin esperar el diccionario.
+    warmModalIllustrations(collectModalIllustrations());
+    prefetchFallbackLoaderAsset();
     const loadLabels = async () => {
       if (!i18Cache) {
         const cookieLanguage = getStoredLanguage() || 'es';
@@ -196,6 +281,14 @@ export const CabinUpgradeForm = ({
         formAriaLabel: getI18nLabel('cabinUpgradeForm.aria.form', 'Formulario de upgrade de cabina'),
         submitAriaLabel: getI18nLabel('cabinUpgradeForm.aria.submitButton', 'Solicitar ascenso a Business Class'),
       });
+      // Y ahora las que decidió el autor, que pueden ser otro sprite o una URL
+      // del DAM. Se leen del diccionario ya cargado, no del estado (que aún no
+      // se ha aplicado en este tick).
+      warmModalIllustrations(collectModalIllustrations({
+        highDemandImage: getI18nLabel(MODAL_IMAGE_KEYS[UPGRADE_RESULT.NO_AVAILABILITY], ''),
+        notFoundImage: getI18nLabel(MODAL_IMAGE_KEYS[UPGRADE_RESULT.NOT_FOUND], ''),
+        errorImage: getI18nLabel(MODAL_IMAGE_KEYS[UPGRADE_RESULT.ERROR], ''),
+      }, modalImageData?.src));
     };
     loadLabels();
   }, []);
