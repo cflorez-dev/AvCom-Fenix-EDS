@@ -252,8 +252,11 @@ export const CabinUpgradeForm = ({
     // producto (bloque cms-loader autorado en la página, GIF del cóndor).
     // Si la página no lo tiene, cae a la molecule full-page-loader.
     const hasCmsLoader = showLoader(true);
-    if (hasCmsLoader) {
-      updateLoaderText(labels.loaderLabel || 'Cargando...');
+    // Se pasa el valor autorado tal cual, incluido el vacío: vaciar
+    // `cabinUpgradeForm.loader.label` apaga el texto y deja solo el cóndor. Si los
+    // labels aún no cargaron (`undefined`) no se toca el texto autorado del bloque.
+    if (hasCmsLoader && typeof labels.loaderLabel === 'string') {
+      updateLoaderText(labels.loaderLabel);
     }
     setUseFallbackLoader(!hasCmsLoader);
     try {

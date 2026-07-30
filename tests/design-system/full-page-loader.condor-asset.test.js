@@ -83,3 +83,35 @@ describe('design-system · FullPageLoader — usa el asset del cóndor del produ
     expect(c.querySelector('[data-name="fullPageLoader"]')).toBeNull();
   });
 });
+
+describe('design-system · FullPageLoader — el label se puede apagar desde el diccionario', () => {
+  afterEach(() => { document.body.innerHTML = ''; });
+
+  it('con label vacío no pinta el párrafo: queda solo el cóndor', () => {
+    const c = mount({ label: '' });
+
+    // Vaciar `cabinUpgradeForm.loader.label` debe quitar el texto de verdad, no
+    // dejar un <p> vacío ocupando sitio bajo el cóndor.
+    expect(c.querySelector('[data-name="fullPageLoader"] p')).toBeNull();
+    expect(c.querySelector('[data-name="fullPageLoader"] img')).toBeTruthy();
+  });
+
+  it('con label vacío el overlay sigue anunciándose a lectores de pantalla', () => {
+    const root = mount({ label: '' }).querySelector('[data-name="fullPageLoader"]');
+
+    expect(root.getAttribute('role')).toBe('status');
+    expect(root.getAttribute('aria-live')).toBe('polite');
+  });
+
+  it('con label con texto sí pinta el párrafo', () => {
+    const c = mount({ label: 'Cargando...' });
+
+    expect(c.querySelector('[data-name="fullPageLoader"] p').textContent).toBe('Cargando...');
+  });
+
+  it('sin prop label usa el default del molecule (uso standalone)', () => {
+    const c = mount();
+
+    expect(c.querySelector('[data-name="fullPageLoader"] p').textContent).toBe('Cargando...');
+  });
+});

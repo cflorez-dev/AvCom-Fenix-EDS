@@ -32,9 +32,13 @@ export const CONDOR_LOADER_ASSET = '/assets/loader/condor-loader.gif';
  * implementado para las demás transiciones del producto"). El gap de 32px y el label en
  * 18px / Red Hat Display Medium sobre `#1b1b1b` se mantienen del nodo `77:9621`.
  *
+ * El label es opcional: con string vacío no se pinta el párrafo y queda solo el cóndor,
+ * que es la forma de apagar el texto desde el diccionario (`cabinUpgradeForm.loader.label`
+ * en blanco) sin tocar código ni arrastrar traducciones.
+ *
  * @param {Object} props
  * @param {boolean} props.isOpen - Visible mientras sea true
- * @param {string} [props.label='Cargando...'] - Texto bajo el cóndor (i18n)
+ * @param {string} [props.label='Cargando...'] - Texto bajo el cóndor (i18n). Vacío = sin texto
  * @returns {import('preact').VNode|null}
  */
 export const FullPageLoader = ({ isOpen, label = 'Cargando...' }) => {
@@ -67,7 +71,9 @@ export const FullPageLoader = ({ isOpen, label = 'Cargando...' }) => {
         decoding="async"
         fetchpriority="high"
       />
-      <p class="text-text-normal-primary text-lg font-medium !m-0">${label}</p>
+      ${label && html`
+        <p class="text-text-normal-primary text-lg font-medium !m-0">${label}</p>
+      `}
     </div>
   `;
 };
