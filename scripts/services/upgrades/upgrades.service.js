@@ -27,9 +27,17 @@ export const resetUpgradesConfigCacheForTests = () => {
   configCache = null;
 };
 
+// El endpoint devuelve 503/500 de forma intermitente (típicamente en la primera
+// llamada de una ráfaga). Sin retry eso pinta el pop-up de error técnico sobre una
+// reserva válida, así que se reintenta una vez con un backoff corto.
+export const RETRY_5XX_DELAY_MS = 400;
+const sleep = (ms) => new Promise((resolve) => { setTimeout(resolve, ms); });
+
 // No lanza por status de negocio: el mapeo a ELIGIBLE/NOT_FOUND/etc. lo hace
 // mapValidateResult (upgrades-result.js) con { ok, status, body }.
-export const validateUpgrade = async ({ pnr }, isRetry = false) => {
+// `retries` lleva los dos reintentos por separado: el de auth (401, que además
+// invalida los tokens) y el de servidor (5xx, donde el token sigue siendo bueno).
+export const validateUpgrade = async ({ pnr }, retries = { auth: 0, server: 0 }) => {
   const [digital, upgrades, { channel }] = await Promise.all([
     getApimCredentials('digital'),
     getApimCredentials('upgrades'),
@@ -46,10 +54,15 @@ export const validateUpgrade = async ({ pnr }, isRetry = false) => {
     },
   });
 
-  if (res.status === 401 && !isRetry) {
+  if (res.status === 401 && retries.auth < 1) {
     clearApimTokenCache('digital');
     clearApimTokenCache('upgrades');
-    return validateUpgrade({ pnr }, true);
+    return validateUpgrade({ pnr }, { ...retries, auth: retries.auth + 1 });
+  }
+
+  if (res.status >= 500 && retries.server < 1) {
+    await sleep(RETRY_5XX_DELAY_MS);
+    return validateUpgrade({ pnr }, { ...retries, server: retries.server + 1 });
   }
 
   let body = null;

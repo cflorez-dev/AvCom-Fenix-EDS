@@ -4,28 +4,33 @@ import htm from 'htm';
 
 const html = htm.bind(h);
 
-// Trazos del isotipo (cóndor) de marca — misma silueta que
-// assets/logos/members/decorative-vector.svg, pero SVG inline con trazo
-// oscuro visible sobre fondo blanco (el asset de members es blanco con
-// opacidad 0.4, pensado como watermark sobre fondos oscuros) y con
-// pathLength=1 para poder animar el dibujo del trazo en loop.
-const CONDOR_PATHS = [
-  'M83.3035 103.302C88.3137 103.302 90.5348 103.717 91.9326 104.348C89.7881 97.6967 83.0291 92.5118 59.2098 90.7324C63.0137 95.1329 67.0092 99.3484 71.2216 103.302H83.3035Z',
-  'M59.2099 90.7388C36.0927 63.8959 20.5196 29.5531 14.2776 0.937283C14.2776 0.937283 1.5702 12.1362 0.561776 35.6883C-0.55515 61.4279 13.2628 87.3779 58.7695 90.6878C58.9163 90.7133 59.0695 90.7133 59.2099 90.7325V90.7388Z',
-  'M71.2209 103.302C53.2799 103.302 22.306 103.302 22.306 103.302C22.957 104.82 25.1972 105.885 30.2968 106.185C60.8303 107.996 65.1513 131.937 108.852 131.937C112.688 131.937 115.081 131.708 117.5 131.255C100.229 125.949 84.7198 115.974 71.2209 103.296V103.302Z',
-];
+/**
+ * Asset del cóndor del producto: el MISMO GIF que está autorado en el bloque
+ * `cms-loader` de `/es`, `/es/mi-reserva` y `/es/experiencia-avianca/clases-y-tarifas`
+ * (allí como `media_11c98585adf4b41ed19632e16fc75f8d110279640.gif`), copiado al repo
+ * para que el fallback no se vea distinto al loader oficial.
+ *
+ * Se commitea la variante de 400×400 (224 KB) y no el original de 2000×2000 (2,5 MB):
+ * a los 100px a los que se pinta es indistinguible del original, incluido DPR 2
+ * — comparadas las tres variantes en navegador. La de 200×200 (82 KB) sí se degrada,
+ * se le rompe el trazo. Ojo: los assets del repo se sirven tal cual, sin pasar por el
+ * pipeline de imágenes de Helix, así que estos bytes son los que viajan.
+ */
+export const CONDOR_LOADER_ASSET = '/assets/loader/condor-loader.gif';
 
 /**
  * FullPageLoader - Loader de página completa para transiciones de producto
- * (Figma Formulario UpGrade 77-9620). Overlay blanco que cubre el viewport
- * con el cóndor de marca dibujándose en loop continuo y un label, hasta que
- * el flujo lo cierre.
+ * (Figma Formulario UpGrade 77-9620). Overlay blanco que cubre el viewport con el
+ * cóndor de marca animándose en loop y un label, hasta que el flujo lo cierre.
  *
- * Medidas verificadas contra el nodo de Figma `77:9621` (frame desktop, y el
- * de mobile `77:9626` usa exactamente las mismas): isotipo 110x124.3, gap de
- * 32px entre isotipo y label, y label en 18px / Red Hat Display Medium sobre
- * `#1b1b1b`. El SVG lleva `h-auto`: con viewBox 118x132.937 a 110px de ancho
- * la altura queda en 123.92px, 0.4px por debajo del diseño.
+ * Es el **fallback**: cuando la página tiene autorado el bloque `cms-loader`, el flujo
+ * usa ese (`showLoader()` de `loader.service.js`) y esta molecule no se monta. El bloque
+ * autorado siempre gana; esto solo cubre las páginas que no lo tienen.
+ *
+ * El isotipo va a 100px para igualar `.cms-loader-image-wrapper` del bloque oficial, que
+ * es lo que pide la nota de Figma 77:9633 ("debe utilizarse el mismo componente de Loader
+ * implementado para las demás transiciones del producto"). El gap de 32px y el label en
+ * 18px / Red Hat Display Medium sobre `#1b1b1b` se mantienen del nodo `77:9621`.
  *
  * @param {Object} props
  * @param {boolean} props.isOpen - Visible mientras sea true
@@ -51,30 +56,17 @@ export const FullPageLoader = ({ isOpen, label = 'Cargando...' }) => {
       aria-live="polite"
       data-name="fullPageLoader"
     >
-      <style>
-        @keyframes fplCondorDraw {
-          0% { stroke-dashoffset: 1; opacity: 1; }
-          65% { stroke-dashoffset: 0; opacity: 1; }
-          85% { stroke-dashoffset: 0; opacity: 1; }
-          100% { stroke-dashoffset: 0; opacity: 0; }
-        }
-        [data-name='fullPageLoader'] svg path {
-          stroke-dasharray: 1;
-          stroke-dashoffset: 1;
-          animation: fplCondorDraw 2.4s ease-in-out infinite;
-        }
-      </style>
-      <svg
-        viewBox="0 0 118 132.937"
-        fill="none"
-        xmlns="http://www.w3.org/2000/svg"
-        class="w-[110px] h-auto pointer-events-none select-none"
+      <img
+        src=${CONDOR_LOADER_ASSET}
+        alt=""
         aria-hidden="true"
-      >
-        ${CONDOR_PATHS.map((d) => html`
-          <path d=${d} pathLength="1" stroke="#1B1B1B" stroke-width="1" fill="none" />
-        `)}
-      </svg>
+        width="400"
+        height="400"
+        class="w-[100px] h-auto pointer-events-none select-none"
+        loading="eager"
+        decoding="async"
+        fetchpriority="high"
+      />
       <p class="text-text-normal-primary text-lg font-medium !m-0">${label}</p>
     </div>
   `;

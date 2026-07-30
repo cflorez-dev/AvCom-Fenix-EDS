@@ -16,6 +16,15 @@ const html = htm.bind(h);
 let i18Cache = null;
 let i18FallbackCache = null;
 
+// Los catálogos se cachean a nivel de módulo (se piden una vez por sesión). Los
+// tests necesitan variar el diccionario entre casos sin recargar el módulo, porque
+// resetear módulos desempareja la instancia de Preact de la de sus hooks.
+// Mismo patrón que resetUpgradesConfigCacheForTests en upgrades.service.js.
+export const resetI18nCachesForTests = () => {
+  i18Cache = null;
+  i18FallbackCache = null;
+};
+
 export const sanitizePnr = (value) => String(value ?? '')
   .replace(/[^a-zA-Z0-9]/g, '')
   .toUpperCase()
@@ -47,6 +56,24 @@ export const MODAL_IMAGE_KEYS = {
 };
 
 /**
+ * 1299705: la descripción de los modales de upgrades NO se capa.
+ *
+ * El default de ModalAviancaLayout es `max-h-[81px] overflow-y-auto pr-[20px]`, que
+ * capa la descripción a ~3 líneas: en cuanto el texto autorado pasa de ahí aparece una
+ * barra de scroll al costado derecho y la card NO crece (medido en el modal de error
+ * técnico: 108px de contenido en 81px de caja, con la card en 394px contra un límite de
+ * 810px = 90vh). Además el `pr-[20px]`, que existe solo para dejar sitio a esa barra,
+ * deja el texto 10px a la izquierda del centro incluso sin scroll.
+ *
+ * Se apaga con un override desde aquí en vez de cambiar el default de la molecule: el
+ * default lo comparten cms-modal, geo-conflict-modal y members-modal, y este ticket es
+ * solo del formulario de upgrades. El límite ante textos enormes lo sigue poniendo la
+ * card (max-h-[90vh] + overflow-auto en modal.js), así que el scroll lo asume el wrapper
+ * completo y el botón queda alcanzable.
+ */
+export const MODAL_DESCRIPTION_CLASS = '';
+
+/**
  * Resuelve la ilustración de un modal. Precedencia: diccionario > override del
  * bloque > ilustración de Figma embebida en el repo.
  *
@@ -67,16 +94,31 @@ export const resolveModalIcon = (result, cmsValue, overrideSrc) => {
     || MODAL_ICON_FALLBACK;
 };
 
+/**
+ * Resuelve un texto del diccionario recorriendo los catálogos en orden (idioma
+ * activo, luego el de respaldo en es).
+ *
+ * Una llave **autorada en blanco** se respeta como tal: es la forma que tiene el
+ * autor de apagar un texto opcional (p. ej. el helper del apellido) sin deploy.
+ * Antes se trataba como ausente — `if (labelData?.Text)` con `''` es falsy — y
+ * caía al fallback hardcodeado, así que vaciar la llave no surtía efecto.
+ * Solo se usa el fallback cuando la llave no existe en ningún catálogo.
+ *
+ * @param {Array<Array<{Key: string, Text: string}>>} catalogs - Catálogos por prioridad
+ * @param {string} key - Llave del diccionario
+ * @param {string} [fallback] - Texto a usar si la llave no está autorada en ningún catálogo
+ * @returns {string}
+ */
+export const pickI18nText = (catalogs, key, fallback = '') => {
+  const found = (catalogs || [])
+    .filter(Array.isArray)
+    .map((catalog) => catalog.find((item) => item?.Key === key))
+    .find((entry) => typeof entry?.Text === 'string');
+  return found ? found.Text : fallback;
+};
+
 function getI18nLabel(key, fallback = '') {
-  if (i18Cache) {
-    const labelData = i18Cache.find((item) => item.Key === key);
-    if (labelData?.Text) return labelData.Text;
-  }
-  if (i18FallbackCache) {
-    const labelData = i18FallbackCache.find((item) => item.Key === key);
-    if (labelData?.Text) return labelData.Text;
-  }
-  return fallback;
+  return pickI18nText([i18Cache, i18FallbackCache], key, fallback);
 }
 
 /**
@@ -330,6 +372,7 @@ export const CabinUpgradeForm = ({
       description=${modalDescription || labels.highDemandDescription}
       icon=${resolveModalIcon(UPGRADE_RESULT.NO_AVAILABILITY, labels.highDemandImage, modalIconOverride)}
       imageAlt=${labels.highDemandImageAlt || modalImageAlt}
+      descriptionClassName=${MODAL_DESCRIPTION_CLASS}
       primaryButtonLabel=${labels.highDemandButton}
       onPrimaryClick=${handleHighDemandClose}
     />
@@ -341,6 +384,7 @@ export const CabinUpgradeForm = ({
       description=${labels.notFoundDescription}
       icon=${resolveModalIcon(UPGRADE_RESULT.NOT_FOUND, labels.notFoundImage, modalIconOverride)}
       imageAlt=${labels.notFoundImageAlt || modalImageAlt}
+      descriptionClassName=${MODAL_DESCRIPTION_CLASS}
       primaryButtonLabel=${labels.notFoundButton}
       onPrimaryClick=${handleNotFoundClose}
     />
@@ -352,6 +396,7 @@ export const CabinUpgradeForm = ({
       description=${labels.errorDescription}
       icon=${resolveModalIcon(UPGRADE_RESULT.ERROR, labels.errorImage, modalIconOverride)}
       imageAlt=${labels.errorImageAlt || modalImageAlt}
+      descriptionClassName=${MODAL_DESCRIPTION_CLASS}
       primaryButtonLabel=${labels.errorButton}
       onPrimaryClick=${closeModal}
     />
