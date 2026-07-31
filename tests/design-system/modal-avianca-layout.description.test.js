@@ -38,10 +38,10 @@ const getDescription = (container) => container.querySelector('.leading-\\[27px\
 describe('design-system · ModalAviancaLayout — contrato de la descripción', () => {
   afterEach(() => { document.body.innerHTML = ''; });
 
-  // El default lo comparten cms-modal, geo-conflict-modal y members-modal. El fix de
-  // 1299705 se aplica con un override desde cabin-upgrade-form, NO tocando este
-  // default, así que el resto de los modales del sitio no cambia de render.
-  it('mantiene el cap por default: los demás consumidores no cambian', () => {
+  // El default lo comparten cms-modal, geo-conflict-modal, members-modal y (desde la
+  // reversión de 1299705, 2026-07-30) cabin-upgrade-form: ninguno pasa un
+  // descriptionClassName propio, todos heredan este cap.
+  it('mantiene el cap por default: los consumidores no cambian', () => {
     const desc = getDescription(mount({ description: LONG_DESCRIPTION }));
 
     expect(desc).toBeTruthy();
@@ -50,7 +50,8 @@ describe('design-system · ModalAviancaLayout — contrato de la descripción', 
     expect(desc.className).toContain('pr-[20px]');
   });
 
-  // Este es el override que pasa cabin-upgrade-form (MODAL_DESCRIPTION_CLASS).
+  // Ningún consumidor actual pasa este override, pero el mecanismo se mantiene
+  // disponible (p. ej. members-modal ya lo usó antes por su propio motivo).
   it('con descriptionClassName="" no capa la altura ni reserva gutter derecho', () => {
     const desc = getDescription(mount({
       description: LONG_DESCRIPTION,

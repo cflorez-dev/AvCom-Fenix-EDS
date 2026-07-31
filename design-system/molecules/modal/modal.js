@@ -113,20 +113,25 @@ export const Modal = ({
 
   useEffect(() => {
     const { documentElement: rootEl, body } = document;
-    // Lock the page behind the modal. The document scrolls via <html> (the
-    // viewport scroller): per the CSS overflow-propagation rule, only the root
-    // element's overflow reaches the viewport, so `overflow:hidden` on <body>
-    // alone leaves the page scrollable behind the fixed overlay (the bug). Lock
-    // <html> too, and pad it by the now-removed scrollbar width so the page
-    // behind doesn't shift sideways when the scrollbar disappears.
+    // Lock the page behind the modal. The document scrolls via <html> (styles.css
+    // sets `overflow-x: clip` on it, which breaks the body→viewport overflow
+    // propagation), so `overflow:hidden` on <body> alone leaves the page
+    // scrollable behind the fixed overlay. Lock <html> too.
+    //
+    // No manual scrollbar-width padding here: `html` already carries
+    // `scrollbar-gutter: stable` (styles.css) sitewide, which reserves the
+    // scrollbar's column at all times, lock or not. Adding a second,
+    // JS-computed `padding-right` on top of that reservation double-counts
+    // it — the content area shrinks by an extra scrollbar-width while locked,
+    // then snaps back 12px the instant it's cleared on unlock. Verified with
+    // `document.body.clientWidth` across lock/unlock with no padding: it's
+    // identical (1022px) in both states; `scrollbar-gutter: stable` alone is
+    // sufficient. 1299705.
     const unlock = () => {
       rootEl.classList.remove('overflow-hidden');
       body.classList.remove('overflow-hidden');
-      rootEl.style.paddingRight = '';
     };
     if (shouldRender) {
-      const scrollbarWidth = window.innerWidth - rootEl.clientWidth;
-      if (scrollbarWidth > 0) rootEl.style.paddingRight = `${scrollbarWidth}px`;
       rootEl.classList.add('overflow-hidden');
       body.classList.add('overflow-hidden');
     } else {
@@ -216,9 +221,20 @@ export const Modal = ({
     px-[var(--spacing-medium)] py-[var(--spacing-medium)]
     ${closeButtonClassName}
   `;
-  const childrenContainerClasses = size === 'full'
-    ? 'flex-1 overflow-auto'
-    : 'flex-1 overflow-auto';
+  // No own overflow-auto here: the card (`base`, above) already carries
+  // `overflow-auto` as the real safety net for pathological content. A second,
+  // independent overflow-auto on this exact-fit wrapper is redundant AND
+  // fragile — its `scrollHeight` vs `clientHeight` sit exactly equal at rest
+  // (the card auto-grows to match), so any Chromium sub-pixel flex-layout
+  // rounding difference from a style recalc (e.g. a button's `:active`
+  // pseudo-class matching) can tip it by ~1px and flash a scrollbar. 1299705:
+  // reproduced by holding mousedown on the primary button — verified with
+  // `wrapper.scrollHeight`/`clientHeight` (276 vs 276 at rest, 277 vs 276
+  // while `:active`, with the button's own transform confirmed `none` via
+  // getComputedStyle, ruling out `active:translate-y-px`/`scale` as the
+  // cause). The card's own overflow-auto has ~90vh of headroom, so it isn't
+  // exposed to this same razor's-edge rounding.
+  const childrenContainerClasses = 'flex-1';
 
   return html`
     <div

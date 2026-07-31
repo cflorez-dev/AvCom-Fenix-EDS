@@ -57,24 +57,6 @@ export const MODAL_IMAGE_KEYS = {
 };
 
 /**
- * 1299705: la descripción de los modales de upgrades NO se capa.
- *
- * El default de ModalAviancaLayout es `max-h-[81px] overflow-y-auto pr-[20px]`, que
- * capa la descripción a ~3 líneas: en cuanto el texto autorado pasa de ahí aparece una
- * barra de scroll al costado derecho y la card NO crece (medido en el modal de error
- * técnico: 108px de contenido en 81px de caja, con la card en 394px contra un límite de
- * 810px = 90vh). Además el `pr-[20px]`, que existe solo para dejar sitio a esa barra,
- * deja el texto 10px a la izquierda del centro incluso sin scroll.
- *
- * Se apaga con un override desde aquí en vez de cambiar el default de la molecule: el
- * default lo comparten cms-modal, geo-conflict-modal y members-modal, y este ticket es
- * solo del formulario de upgrades. El límite ante textos enormes lo sigue poniendo la
- * card (max-h-[90vh] + overflow-auto en modal.js), así que el scroll lo asume el wrapper
- * completo y el botón queda alcanzable.
- */
-export const MODAL_DESCRIPTION_CLASS = '';
-
-/**
  * Resuelve la ilustración de un modal. Precedencia: diccionario > override del
  * bloque > ilustración de Figma embebida en el repo.
  *
@@ -468,7 +450,6 @@ export const CabinUpgradeForm = ({
       description=${modalDescription || labels.highDemandDescription}
       icon=${resolveModalIcon(UPGRADE_RESULT.NO_AVAILABILITY, labels.highDemandImage, modalIconOverride)}
       imageAlt=${labels.highDemandImageAlt || modalImageAlt}
-      descriptionClassName=${MODAL_DESCRIPTION_CLASS}
       primaryButtonLabel=${labels.highDemandButton}
       onPrimaryClick=${handleHighDemandClose}
     />
@@ -480,7 +461,6 @@ export const CabinUpgradeForm = ({
       description=${labels.notFoundDescription}
       icon=${resolveModalIcon(UPGRADE_RESULT.NOT_FOUND, labels.notFoundImage, modalIconOverride)}
       imageAlt=${labels.notFoundImageAlt || modalImageAlt}
-      descriptionClassName=${MODAL_DESCRIPTION_CLASS}
       primaryButtonLabel=${labels.notFoundButton}
       onPrimaryClick=${handleNotFoundClose}
     />
@@ -492,7 +472,6 @@ export const CabinUpgradeForm = ({
       description=${labels.errorDescription}
       icon=${resolveModalIcon(UPGRADE_RESULT.ERROR, labels.errorImage, modalIconOverride)}
       imageAlt=${labels.errorImageAlt || modalImageAlt}
-      descriptionClassName=${MODAL_DESCRIPTION_CLASS}
       primaryButtonLabel=${labels.errorButton}
       onPrimaryClick=${closeModal}
     />

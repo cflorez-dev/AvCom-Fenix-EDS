@@ -25,7 +25,6 @@ const DICCIONARIO = [
 ];
 
 let CabinUpgradeForm;
-let MODAL_DESCRIPTION_CLASS;
 let resetI18nCachesForTests;
 let fetchAEMData;
 let validateUpgrade;
@@ -69,7 +68,7 @@ beforeAll(async () => {
   }));
   ({ fetchAEMData } = await import(aemDataPath));
   ({ validateUpgrade } = await import(servicePath));
-  ({ CabinUpgradeForm, MODAL_DESCRIPTION_CLASS, resetI18nCachesForTests } = await import(
+  ({ CabinUpgradeForm, resetI18nCachesForTests } = await import(
     '../../../design-system/organisms/forms/cabin-upgrade-form/cabin-upgrade-form.js'
   ));
 });
@@ -109,31 +108,32 @@ const abrirModalDeError = async (container) => {
 const getDescripcionDelModal = (container) => container
   .querySelector('[data-name="modal"] .leading-\\[27px\\]');
 
-describe('CabinUpgradeForm — la descripción de sus modales no se capa (1299705)', () => {
+describe('CabinUpgradeForm — la descripción de sus modales hereda el cap compartido (1299705)', () => {
   afterEach(() => { document.body.innerHTML = ''; vi.clearAllMocks(); });
 
-  it('el override que se pasa a los modales apaga el cap del default', () => {
-    expect(MODAL_DESCRIPTION_CLASS).toBe('');
-  });
-
-  it('el modal de error renderiza la descripción sin cap ni scroll interno', async () => {
+  // 1299705 (revisión Figma 2026-07-30, nodo 3790:107152 "Ejemplos modal con scroll"):
+  // el scroll SÍ es del diseño, pero acotado solo al párrafo (~81px/3 líneas), nunca de
+  // la card completa. cabin-upgrade-form ya no pasa un override propio: los 3 modales
+  // (alta demanda, no encontrada, error técnico) heredan el default de
+  // ModalAviancaLayout, igual que cms-modal/geo-conflict-modal/members-modal.
+  it('el modal de error renderiza la descripción con el cap y el scroll del default', async () => {
     const container = await montar();
     await abrirModalDeError(container);
 
     const desc = getDescripcionDelModal(container);
     expect(desc).toBeTruthy();
     expect(desc.textContent).toContain('no está disponible el ascenso a Business');
-    expect(desc.className).not.toMatch(/max-h-/);
-    expect(desc.className).not.toMatch(/overflow-y-auto/);
+    expect(desc.className).toContain('max-h-[81px]');
+    expect(desc.className).toContain('overflow-y-auto');
   });
 
-  it('el modal de error no reserva gutter derecho: el texto queda centrado', async () => {
+  it('el modal de error no pasa un descriptionClassName propio', async () => {
     const container = await montar();
     await abrirModalDeError(container);
 
     const desc = getDescripcionDelModal(container);
-    expect(desc.className).not.toMatch(/\bpr-\[/);
-    expect(desc.className).toContain('text-center');
+    // El gutter de 20px existe para dejar sitio al <scrollbar> del párrafo (Figma).
+    expect(desc.className).toContain('pr-[20px]');
   });
 
   it('la card del modal conserva su límite de viewport como red de seguridad', async () => {
