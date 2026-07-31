@@ -115,3 +115,138 @@ describe('upgrades.service', () => {
     expect(DEFAULT_MMB_URL).toBe('https://gestiona.avianca.com/{lang}/manage/upgrade-business-class');
   });
 });
+
+describe('parseLangMap', () => {
+  beforeEach(() => vi.resetModules());
+
+  it('parsea un par y varios pares, con , o ;', async () => {
+    const { parseLangMap } = await import(servicePath);
+
+    expect(parseLangMap('fr:en')).toEqual({ fr: 'en' });
+    expect(parseLangMap('fr:en,it:en')).toEqual({ fr: 'en', it: 'en' });
+    expect(parseLangMap('fr:en;it:pt')).toEqual({ fr: 'en', it: 'pt' });
+  });
+
+  it('normaliza espacios y mayúsculas', async () => {
+    const { parseLangMap } = await import(servicePath);
+
+    expect(parseLangMap('  FR : EN , It:En ')).toEqual({ fr: 'en', it: 'en' });
+  });
+
+  it('ignora entradas malformadas sin descartar las válidas', async () => {
+    const { parseLangMap } = await import(servicePath);
+
+    // `de:es:xx` se descarta entero en vez de quedarse con `de:es`: un valor
+    // ambiguo es un typo del autor, y aceptarlo a medias lo escondería.
+    expect(parseLangMap('fr:en,basura,:en,it:,de:es:xx')).toEqual({ fr: 'en' });
+  });
+
+  it('devuelve {} ante vacío, nulo o texto sin ningún par válido', async () => {
+    const { parseLangMap } = await import(servicePath);
+
+    expect(parseLangMap('')).toEqual({});
+    expect(parseLangMap(undefined)).toEqual({});
+    expect(parseLangMap(null)).toEqual({});
+    expect(parseLangMap('lo que sea')).toEqual({});
+  });
+});
+
+describe('getUpgradesConfig — langMap', () => {
+  beforeEach(() => vi.resetModules());
+  afterEach(() => {
+    vi.doUnmock(tokenServicePath);
+    vi.doUnmock(aemDataPath);
+    vi.restoreAllMocks();
+  });
+
+  it('sin la key AV_UPGRADES_MMB_LANG_MAP usa el default fr→en', async () => {
+    mockDeps();
+    const { getUpgradesConfig, DEFAULT_MMB_LANG_MAP } = await import(servicePath);
+
+    const cfg = await getUpgradesConfig();
+
+    expect(cfg.langMap).toEqual({ fr: 'en' });
+    expect(DEFAULT_MMB_LANG_MAP).toEqual({ fr: 'en' });
+  });
+
+  it('la key autorada REEMPLAZA el default por completo', async () => {
+    mockDeps({ envRows: [{ Key: 'AV_UPGRADES_MMB_LANG_MAP', Text: 'it:en' }] });
+    const { getUpgradesConfig } = await import(servicePath);
+
+    const cfg = await getUpgradesConfig();
+
+    expect(cfg.langMap).toEqual({ it: 'en' });
+  });
+
+  it('la key autorada en blanco o con basura cae al default', async () => {
+    mockDeps({ envRows: [{ Key: 'AV_UPGRADES_MMB_LANG_MAP', Text: '   ' }] });
+    const { getUpgradesConfig } = await import(servicePath);
+
+    expect((await getUpgradesConfig()).langMap).toEqual({ fr: 'en' });
+  });
+
+  it('el negocio puede apagar el mapeo autorando fr:fr', async () => {
+    mockDeps({ envRows: [{ Key: 'AV_UPGRADES_MMB_LANG_MAP', Text: 'fr:fr' }] });
+    const { getUpgradesConfig } = await import(servicePath);
+
+    expect((await getUpgradesConfig()).langMap).toEqual({ fr: 'fr' });
+  });
+});
+
+describe('getUpgradesConfig — urlByLang (URL propia por idioma)', () => {
+  beforeEach(() => vi.resetModules());
+  afterEach(() => {
+    vi.doUnmock(tokenServicePath);
+    vi.doUnmock(aemDataPath);
+    vi.restoreAllMocks();
+  });
+
+  it('recoge AV_UPGRADES_MMB_URL_<IDIOMA> y lo indexa en minúsculas', async () => {
+    mockDeps({
+      envRows: [
+        { Key: 'AV_UPGRADES_MMB_URL_FR', Text: 'https://otrositio.com/fr-upgrades' },
+        { Key: 'AV_UPGRADES_MMB_URL_PT', Text: 'https://otro.com/pt' },
+      ],
+    });
+    const { getUpgradesConfig } = await import(servicePath);
+
+    expect((await getUpgradesConfig()).urlByLang).toEqual({
+      fr: 'https://otrositio.com/fr-upgrades',
+      pt: 'https://otro.com/pt',
+    });
+  });
+
+  it('NO confunde la URL base ni el mapa de idiomas con un override', async () => {
+    mockDeps({
+      envRows: [
+        { Key: 'AV_UPGRADES_MMB_URL', Text: 'https://base.com/{lang}/x' },
+        { Key: 'AV_UPGRADES_MMB_LANG_MAP', Text: 'fr:en' },
+        { Key: 'AV_UPGRADES_CHANNEL', Text: 'WEB' },
+      ],
+    });
+    const { getUpgradesConfig } = await import(servicePath);
+    const cfg = await getUpgradesConfig();
+
+    expect(cfg.urlByLang).toEqual({});
+    expect(cfg.mmbUrl).toBe('https://base.com/{lang}/x');
+  });
+
+  it('ignora overrides con valor vacío y recorta espacios', async () => {
+    mockDeps({
+      envRows: [
+        { Key: '  AV_UPGRADES_MMB_URL_FR  ', Text: '  https://otrositio.com/fr  ' },
+        { Key: 'AV_UPGRADES_MMB_URL_EN', Text: '   ' },
+      ],
+    });
+    const { getUpgradesConfig } = await import(servicePath);
+
+    expect((await getUpgradesConfig()).urlByLang).toEqual({ fr: 'https://otrositio.com/fr' });
+  });
+
+  it('sin ninguna key devuelve {} (nadie tiene URL propia)', async () => {
+    mockDeps();
+    const { getUpgradesConfig } = await import(servicePath);
+
+    expect((await getUpgradesConfig()).urlByLang).toEqual({});
+  });
+});
