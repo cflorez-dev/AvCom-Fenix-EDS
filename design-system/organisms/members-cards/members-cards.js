@@ -36,11 +36,12 @@ const html = htm.bind(h);
  *
  * **Variante "Actividad de millas" (CA10):** la card con `type:'activity'` (o
  * `key === 'activity'`) renderiza `<MembersActivityCard>` (card navegable con
- * lista inline de las últimas N transacciones, data MOCK desde
- * `members-activity.service.js` mientras no exista el wrapper Lifemiles real)
- * **sólo cuando hay ≤5 cards visibles**. Con 6 cards (Figma 518:25367) el grid
- * no tiene altura para el listado, así que Activity degrada automáticamente a
- * `<MembersCard>` simple (nav card estándar).
+ * lista inline de las últimas N transacciones REALES del wrapper Lifemiles
+ * `lmLastThreeTransactions`) **sólo cuando hay ≤5 cards visibles Y la data está
+ * CONFIRMADA** (petición primero → mostrar cuando la data llegue; nunca data
+ * inventada). Mientras carga o si el wrapper falla → degrada a `<MembersCard>`
+ * simple (nav card estándar) — el mismo render que con 6 cards (Figma
+ * 518:25367), donde el grid no tiene altura para el listado.
  *
  * El layout columnar (desktop 3col / mobile 1col) lo aporta el CSS del bloque
  * (`blocks/members-cards/members-cards.css`) sobre `.members-cards-grid`; este
@@ -59,9 +60,9 @@ export const MembersCards = ({ cards: cardsProp = null } = {}) => {
   // navegación NO dependen de sesión). El store es signals-core sin integración
   // preact → suscripción manual (idiom de MembersHero).
   const [session, setSessionState] = useState(() => sessionStore.value);
-  // Transacciones de la card "Actividad de millas": first-paint síncrono
-  // (cache-or-mock) + override async desde el wrapper `lmLastThreeTransactions`
-  // (Login Script v1.1.0). Fail-soft al mock si el wrapper no está deployado.
+  // Transacciones de la card "Actividad de millas": `null` = sin data confirmada
+  // (cargando o falló) → nav card estándar; `Array` = data REAL del wrapper
+  // `lmLastThreeTransactions` → variante con lista. Petición primero, sin mock.
   const [activityTx, setActivityTx] = useState(() => getRecentTransactionsSync(3));
 
   // members-config / members-i18n usan signals-core / cache sin integración
@@ -134,20 +135,19 @@ export const MembersCards = ({ cards: cardsProp = null } = {}) => {
     const ariaLabel = isExternal && opensInNewWindow
       ? `${title}, ${opensInNewWindow}`
       : null;
-    // CA10: card "Actividad de millas" usa molecule propio (lista de las
-    // últimas N transacciones inline). Data MOCK por ahora (wrapper Lifemiles
-    // pendiente — ver `members-activity.service.js`). Cuando exista el wrapper,
-    // se intercambia `getRecentTransactionsSync` por el load async sin tocar el
-    // organism.
+    // CA10: card "Actividad de millas" usa molecule propio (lista de las últimas
+    // N transacciones REALES del wrapper LM) SOLO cuando la data está confirmada
+    // (`Array.isArray(activityTx)`; `[]` válido → emptyLabel). Mientras carga o
+    // si el wrapper falla (`null`) cae al render estándar de `<MembersCard>` —
+    // nunca se muestran transacciones inventadas.
     //
-    // Con 6 cards la lista se desactiva (`useActivityList=false`) y la card de
-    // Activity cae al render estándar de `<MembersCard>` — ver Figma 518:25367.
-    // Por eso el guard incluye `useActivityList`.
-    if ((card.type === 'activity' || card.key === 'activity') && useActivityList) {
+    // Con 6 cards la lista también se desactiva (`useActivityList=false`) — ver
+    // Figma 518:25367. Por eso el guard incluye ambos.
+    if ((card.type === 'activity' || card.key === 'activity') && useActivityList
+      && Array.isArray(activityTx)) {
       const i18nCard = (labels && labels[card.key]) || {};
       const previewCount = card?.activity?.previewCount ?? 3;
-      // `activityTx` = data real del wrapper (o mock si no está deployado), cargada
-      // async en el effect. Se corta a `previewCount` (reducible desde el CF).
+      // Se corta a `previewCount` (reducible desde el CF).
       const transactions = activityTx.slice(0, previewCount);
       return html`
         <li class="members-cards-item" data-key=${card.key} role="listitem">

@@ -34,10 +34,17 @@ const TONE = {
 };
 
 const VALUE_SIZE = {
-  base: 'text-base font-bold leading-[21px]',
-  // h5 (20px) SemiBold con `leading-[normal]` en Figma (token h5 line-height
-  // = 100% → 20px). Antes 26px (Tailwind default); ahora respeta el spec.
-  lg: 'text-xl font-semibold leading-[20px]',
+  // Static1 Bold: 16px / 21px FIJOS (spec Figma 518:22530). Se usa notación
+  // arbitraria con `!` para blindar contra el `clamp()` global del sitio que
+  // podría pisar `text-base`/`leading-*` con valores fluidos.
+  base: '!text-[16px] !leading-[21px] font-bold',
+  // Responsive:
+  //  - `<640px`  → Static1 Bold 16/21 (balance mobile, Figma 617:44589).
+  //  - `≥640px`  → 18/24 SemiBold (tablet, Figma 518:24090 escala intermedia).
+  //  - `≥1024px` → h5 20/26 SemiBold (desktop lg, Figma 518:23344).
+  // `!` para blindar del `clamp()` global. Los callers de `members-data-grid`
+  // pasan `lg` fijo porque el switch por breakpoint lo resuelve este átomo.
+  lg: '!text-[16px] !leading-[21px] font-bold min-[640px]:!text-[18px] min-[640px]:!leading-[24px] min-[640px]:font-semibold lg:!text-[20px] lg:!leading-[26px]',
 };
 
 export const MembersDataPair = ({
@@ -59,14 +66,14 @@ export const MembersDataPair = ({
       ...${rest}
     >
       ${label && html`
-        <span class=${`text-sm font-normal leading-[21px] ${t.label}`}>${label}</span>
+        <span class=${`text-sm font-normal leading-[19px] antialiased ${t.label}`}>${label}</span>
       `}
       <span
         id=${valueId || undefined}
         class=${`${valueClass} ${t.value}`}
       >${value}</span>
       ${sublabel && html`
-        <span class=${`text-sm font-normal leading-[21px] ${t.sub}`}>${sublabel}</span>
+        <span class=${`text-sm font-normal leading-[19px] antialiased ${t.sub}`}>${sublabel}</span>
       `}
     </div>
   `;

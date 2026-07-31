@@ -134,15 +134,15 @@ export const MembersEliteProgressSample = () => html`
     padding: '24px', display: 'flex', flexDirection: 'column', gap: '24px',
   }}>
     <h2>MembersEliteProgress (molécula · tira blanca full-width)</h2>
-    ${card('En progreso (parcial) + CTA — Figma 518:26144/26216', GOLD, 'Gold', '/es/members/elite')}
-    ${card('C1 completed + C2 en progreso — Figma 518:26289/26506', PARTIAL_COMPLETED, 'Gold', '/es/members/elite')}
-    ${card('C2 completed + C1 en progreso — Figma 518:26361/26576', PARTIAL_COMPLETED_2, 'Gold', '/es/members/elite')}
-    ${card('Empty (0/meta) + CTA — Figma 518:25999/26071', EMPTY, 'Gold', '/es/members/elite')}
-    ${card('Tier completed (pending update) — Figma 518:26433/26648 · ambas verdes, título sigue siendo "Tu progreso…"', BOTH_COMPLETED, 'Gold', '/es/members/elite')}
-    ${card('Tier achieved (entrega posterior) — mismo data + tierAchieved=true → switch a "Disfruta…"', BOTH_COMPLETED, 'Gold', '/es/members/elite', true)}
-    ${card('Magno empty (0/110k) — Figma 518:27096 mobile · título "Mantener…"', MAGNO_EMPTY, 'Magno', '/es/members/elite', false, 'Mantener tu estatus elite {tier} en {year}')}
-    ${card('Magno en progreso (45k/110k) — Figma 518:26794 desktop · título "Mantener…"', MAGNO, 'Magno', '/es/members/elite', false, 'Mantener tu estatus elite {tier} en {year}')}
-    ${card('Magno completed (110k/110k) — Figma 518:26936/27134 · switch automático a "Disfruta…"', MAGNO_COMPLETED, 'Magno', '/es/members/elite', false, 'Mantener tu estatus elite {tier} en {year}')}
+    ${card('En progreso (parcial) + CTA — Figma 518:26144/26216', GOLD, 'Gold', '/es/members/profile/elite')}
+    ${card('C1 completed + C2 en progreso — Figma 518:26289/26506', PARTIAL_COMPLETED, 'Gold', '/es/members/profile/elite')}
+    ${card('C2 completed + C1 en progreso — Figma 518:26361/26576', PARTIAL_COMPLETED_2, 'Gold', '/es/members/profile/elite')}
+    ${card('Empty (0/meta) + CTA — Figma 518:25999/26071', EMPTY, 'Gold', '/es/members/profile/elite')}
+    ${card('Tier completed (pending update) — Figma 518:26433/26648 · ambas verdes, título sigue siendo "Tu progreso…"', BOTH_COMPLETED, 'Gold', '/es/members/profile/elite')}
+    ${card('Tier achieved (entrega posterior) — mismo data + tierAchieved=true → switch a "Disfruta…"', BOTH_COMPLETED, 'Gold', '/es/members/profile/elite', true)}
+    ${card('Magno empty (0/110k) — Figma 518:27096 mobile · título "Mantener…"', MAGNO_EMPTY, 'Magno', '/es/members/profile/elite', false, 'Mantener tu estatus elite {tier} en {year}')}
+    ${card('Magno en progreso (45k/110k) — Figma 518:26794 desktop · título "Mantener…"', MAGNO, 'Magno', '/es/members/profile/elite', false, 'Mantener tu estatus elite {tier} en {year}')}
+    ${card('Magno completed (110k/110k) — Figma 518:26936/27134 · switch automático a "Disfruta…"', MAGNO_COMPLETED, 'Magno', '/es/members/profile/elite', false, 'Mantener tu estatus elite {tier} en {year}')}
   </section>
 `;
 

@@ -1,13 +1,14 @@
 /**
  * OriginDestinationSelector Service
  *
- * Servicio para consultar ciudades disponibles desde el API de combinabilidad.
- * Maneja cache en sessionStorage y filtrado de opciones.
+ * Service to query the available cities from the combinability API.
+ * Handles sessionStorage caching and option filtering.
  *
- * `fetchCities` opera como router: lee el feature flag `AV_APIM_DIRECT_MODE`
- * y delega a uno de dos paths — APIM directo (nuevo) o proxy App Builder
- * (extraído a `origin-destination-selector.proxy.service.js`). Ambos paths
- * conviven indefinidamente: el flag se cambia desde AEM Author sin redeploy.
+ * `fetchCities` acts as a router: it reads the `AV_APIM_DIRECT_MODE` feature
+ * flag and delegates to one of two paths — direct APIM (new) or the App Builder
+ * proxy (extracted to `origin-destination-selector.proxy.service.js`). Both
+ * paths coexist indefinitely: the flag is toggled from AEM Author without a
+ * redeploy.
  */
 
 import { getStoredLanguage, getStoredCountry } from '../../../scripts/services/header/language-country-selector.js';
@@ -23,10 +24,10 @@ const DEFAULT_LANGUAGE = 'es';
 const USE_CACHE = false;
 
 /**
- * Resolver el destino al cambiar el origen (PBI CU-189 CA4 regla 3):
- * si el usuario modifica un origen distinto al actual y ya tenía un destino
- * elegido, el destino se limpia para recalcularse con los destinos
- * disponibles desde el nuevo origen.
+ * Resolve the destination when the origin changes (PBI CU-189 CA4 rule 3):
+ * if the user picks an origin different from the current one and a destination
+ * was already selected, the destination is cleared so it can be recomputed
+ * against the destinations available from the new origin.
  * @param {{iataCityCode?: string} | null} currentOrigin
  * @param {{iataCityCode?: string} | null} nextOrigin
  * @param {object | null} destination
@@ -68,22 +69,122 @@ const getNearestAirportHint = (pos) => {
  * Find the city entry in the Booking Box catalog that corresponds to the POS
  * default ATO. The catalog returned by `consultaCombinabilidad` splits each
  * record into `iataCityCode` (metropolitan code, e.g. BUE, PAR, NYC) and
- * `iataTerminal` (the physical airport, e.g. EZE, CDG, JFK). We match city
- * code first — the conventional contract — and fall back to terminal so that
- * authors may pin the default to a specific airport in multi-terminal cities
- * (e.g. `ato=EZE` for Argentina to force Ezeiza over Aeroparque). Same logic
- * also makes the code tolerant when the `countireslist` row accidentally
- * stores a terminal code: we still resolve a valid origin instead of leaving
- * the Booking Box empty.
+ * `iataTerminal` (the physical airport, e.g. EZE, CDG, JFK). A multi-airport
+ * city exposes several rows sharing the same `iataCityCode` — one per physical
+ * terminal (BUE/AEP, BUE/EZE) plus, when the backend publishes it, a
+ * metropolitan aggregate row whose terminal equals the city code (BUE/BUE =
+ * "all Buenos Aires airports").
+ *
+ * Resolution order (first match wins), deliberately independent of the
+ * backend array order:
+ *   1. Metropolitan aggregate / single-airport city: a row where both
+ *      `iataCityCode` and `iataTerminal` equal `ato`. This makes `ato=BUE`
+ *      resolve to the BUE/BUE aggregate instead of whichever terminal row
+ *      (AEP/EZE) happens to come first in the response. Single-airport cities
+ *      (BOG/BOG) also match here, so they stay deterministic.
+ *   2. Any row whose city code equals `ato` — used when `ato` is a metro code
+ *      but no aggregate row exists (falls back to backend order, unavoidable).
+ *   3. Terminal pin: a row whose terminal equals `ato`, so authors may still
+ *      force a specific airport (e.g. `ato=EZE` → Ezeiza over Aeroparque) and
+ *      the code stays tolerant of a `countireslist` row that stores a terminal
+ *      code instead of leaving the Booking Box empty.
  * @param {Array<{iataCityCode?: string, iataTerminal?: string}>|null} cities
  * @param {string|null} ato IATA code (city or terminal)
  * @returns {object|null} The matched city entry, or null.
  */
 export const findDefaultOriginCity = (cities, ato) => {
   if (!ato || !Array.isArray(cities) || cities.length === 0) return null;
-  return cities.find((city) => city.iataCityCode === ato)
+  return cities.find((city) => city.iataCityCode === ato && city.iataTerminal === ato)
+    || cities.find((city) => city.iataCityCode === ato)
     || cities.find((city) => city.iataTerminal === ato)
     || null;
+};
+
+/**
+ * Cities whose several airports must be presented as one metropolitan unit
+ * (PBI 1294884). The array is the exact order the options have to appear in,
+ * aggregate first; any terminal not listed keeps its relative position after
+ * the listed ones.
+ *
+ * Scoped on purpose: the PBI states the rule applies to Buenos Aires ONLY and
+ * must not alter the behaviour of any other multi-airport city (PAR, NYC, SAO,
+ * CHI…), so adding a city here is an explicit product decision, never a
+ * side effect.
+ * @constant {Record<string, string[]>}
+ */
+export const METRO_CITY_TERMINAL_ORDER = {
+  BUE: ['BUE', 'EZE', 'AEP'],
+};
+
+/**
+ * Promote a resolved city row to its metropolitan aggregate ("all airports").
+ *
+ * Needed because the IATA code we receive from the outside (an offer card's
+ * `Destination`, a POS `ato`) may be a physical terminal — the offers brief
+ * ships `EZE` today — while the PBI requires the Booking Box to be filled with
+ * "Buenos Aires (todos los aeropuertos)". Verified on nuxqa2: a card carrying
+ * EZE landed on "Buenos Aires (EZE)".
+ *
+ * Fail-safe by construction: any city outside `METRO_CITY_TERMINAL_ORDER`, a
+ * missing aggregate row or a malformed pool returns `matched` untouched, so
+ * this can never empty a field that would otherwise have been filled.
+ *
+ * @param {Array<{iataCityCode?: string, iataTerminal?: string}>|null} cities Pool of the match.
+ * @param {object|null} matched Row resolved by `findDefaultOriginCity`.
+ * @returns {object|null} The aggregate row when it exists, otherwise `matched`.
+ */
+export const promoteToMetroAggregate = (cities, matched) => {
+  const cityCode = matched?.iataCityCode;
+  if (!cityCode || !METRO_CITY_TERMINAL_ORDER[cityCode]) return matched;
+  if (!Array.isArray(cities)) return matched;
+  return cities.find(
+    (city) => city.iataCityCode === cityCode && city.iataTerminal === cityCode,
+  ) || matched;
+};
+
+/**
+ * Reorder the airports of a metropolitan city so they are listed aggregate
+ * first (PBI 1294884: BUE → EZE → AEP).
+ *
+ * The catalog order cannot be trusted: the same `consultaCombinabilidad` query
+ * returned AEP/EZE/BUE on the Spanish page and BUE/EZE/AEP on the English one,
+ * so the required order has to be imposed client-side.
+ *
+ * Rows are swapped **in place within the positions the city already occupied**
+ * instead of being sorted globally: every other city keeps its exact index, and
+ * the returned array always has the same length and the same members as the
+ * input — the dropdown can never lose an option because of this function.
+ *
+ * @param {Array<{iataCityCode?: string, iataTerminal?: string}>|null} cities
+ * @returns {Array} Same array reference when nothing changes, a reordered copy otherwise.
+ */
+export const applyMetroPriorityOrder = (cities) => {
+  if (!Array.isArray(cities) || cities.length === 0) return cities || [];
+
+  let result = cities;
+
+  Object.entries(METRO_CITY_TERMINAL_ORDER).forEach(([cityCode, terminalOrder]) => {
+    const positions = [];
+    result.forEach((city, index) => {
+      if (city?.iataCityCode === cityCode) positions.push(index);
+    });
+    if (positions.length < 2) return;
+
+    const rank = (city) => {
+      const position = terminalOrder.indexOf(city?.iataTerminal);
+      return position === -1 ? terminalOrder.length : position;
+    };
+    const ordered = positions
+      .map((index) => result[index])
+      .sort((a, b) => rank(a) - rank(b));
+
+    if (result === cities) result = [...cities];
+    positions.forEach((index, slot) => {
+      result[index] = ordered[slot];
+    });
+  });
+
+  return result;
 };
 
 export const getDefaultOriginAiata = async () => {
@@ -112,7 +213,7 @@ export const getDefaultOriginAiata = async () => {
  * Direct APIM path: call APIM and normalize the response shape so the
  * consumer receives the same array that the proxy returns.
  * APIM returns the raw cities array (or { data: [...] } in some shapes);
- * App Builder wrappea con { data: { data: [...] } }.
+ * App Builder wraps it as { data: { data: [...] } }.
  */
 const fetchCitiesDirect = async ({ originCode = '', destinationCode = '', useCache = false }) => {
   if (useCache && typeof sessionStorage !== 'undefined') {
@@ -160,14 +261,14 @@ const fetchCitiesDirect = async ({ originCode = '', destinationCode = '', useCac
 };
 
 /**
- * Consultar ciudades disponibles desde el API.
- * Router: delega a APIM directo o al proxy según el flag AV_APIM_DIRECT_MODE.
+ * Query the available cities from the API.
+ * Router: delegates to direct APIM or the proxy based on the AV_APIM_DIRECT_MODE flag.
  *
- * @param {Object} params - Parámetros de consulta
- * @param {string} params.originCode - Código IATA de origen (ej: 'BOG')
- * @param {string} params.destinationCode - Código IATA de destino (ej: 'MAD')
- * @param {boolean} params.useCache - Usar cache de sessionStorage si existe
- * @returns {Promise<Array>} - Lista de ciudades disponibles
+ * @param {Object} params - Query parameters
+ * @param {string} params.originCode - Origin IATA code (e.g. 'BOG')
+ * @param {string} params.destinationCode - Destination IATA code (e.g. 'MAD')
+ * @param {boolean} params.useCache - Use the sessionStorage cache if present
+ * @returns {Promise<Array>} - List of available cities
  */
 export const fetchCities = async (params = {}) => {
   const args = { useCache: USE_CACHE, ...params };
@@ -176,11 +277,11 @@ export const fetchCities = async (params = {}) => {
 };
 
 /**
- * Filtrar opciones de origen excluyendo la ciudad de destino
+ * Filter the origin options by excluding the destination city
  *
- * @param {Array} cities - Lista completa de ciudades
- * @param {Object | null} destinationCity - Ciudad de destino seleccionada
- * @returns {Array} - Lista de ciudades sin la ciudad de destino
+ * @param {Array} cities - Full list of cities
+ * @param {Object | null} destinationCity - Selected destination city
+ * @returns {Array} - List of cities without the destination city
  *
  * @example
  * ```javascript
@@ -196,8 +297,8 @@ export const filterOriginOptions = (cities, destinationCity) => {
 };
 
 /**
- * Limpiar cache de ciudades
- * Útil para forzar recarga de datos
+ * Clear the cities cache
+ * Useful to force a data reload
  */
 export const clearCitiesCache = () => {
   if (typeof sessionStorage !== 'undefined') {
@@ -206,8 +307,8 @@ export const clearCitiesCache = () => {
 };
 
 /**
- * Verificar si existe cache de ciudades
- * @returns {boolean} - true si existe cache, false en caso contrario
+ * Check whether a cities cache exists
+ * @returns {boolean} - true if a cache exists, false otherwise
  */
 export const hasCitiesCache = () => {
   if (typeof sessionStorage === 'undefined') return false;

@@ -1,0 +1,22 @@
+/* Members Account block (1279360, "Gestión de mi cuenta | shell"). Bloque-puente
+ * de la página: monta el organism Preact `MembersAccount` (header + tabs +
+ * contenido). EDS auto-carga este .css. El layout interno lo aporta el organism
+ * vía Tailwind; el full-bleed del header y el sheet gris reusan las reglas ya
+ * definidas en styles.css (`.members-elite-header` / `.members-elite-sheet`) — NO
+ * se duplican acá. Espejo de members-elite.css. */
+
+.section.members-account-container {
+    padding-top: 0;
+    padding-bottom: 0;
+    width: 100%;
+}
+
+/* Modo autor (UE): indicador visible, sin montar el organism (igual que members-elite). */
+.members-account-author-indicator {
+    margin-bottom: 8px;
+    padding: 8px;
+    border: 1px dashed #06c;
+    background: #f0f0f0;
+    color: #666;
+    font-size: 12px;
+}

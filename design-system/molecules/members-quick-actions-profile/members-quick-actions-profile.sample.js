@@ -57,6 +57,15 @@ export const MembersQuickActionsProfileSample = () => html`
   }}>
       <${MembersQuickActionsProfile} actions=${THREE} opensInNewWindowLabel="abre en nueva ventana" />
     </div>
+    <p style=${{ color: '#666' }}>Tier Lifemiles (chip magenta — Figma 518:23646):</p>
+    <div style=${{
+    background: '#f4f4f4',
+    padding: '24px',
+    borderRadius: '16px',
+    maxWidth: '520px',
+  }}>
+      <${MembersQuickActionsProfile} actions=${FOUR} opensInNewWindowLabel="abre en nueva ventana" tier="lifemiles" />
+    </div>
   </section>
 `;
 

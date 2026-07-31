@@ -700,7 +700,7 @@ export const BookingBox = ({
           </div>
         `}
 
-        <div ref=${bookingBoxRef} class="w-full rounded-4xl md:rounded-3xl bg-white z-[800] ${finalClasses} ${isSticky ? 'booking-box-sticky-enter' : ''}">
+        <div ref=${bookingBoxRef} class="w-full rounded-2xl bg-white z-[800] ${finalClasses} ${isSticky ? 'booking-box-sticky-enter' : ''}">
         <div class="grid w-full gap-4 md:gap-4 lg2:gap-3 md:col-span-full md:grid-cols-[auto_160px_minmax(117px,max-content)] lg2:grid-cols-[252px_auto_328px_160px_minmax(116px,max-content)] ${stickyGrid}">
             ${!isSticky && html`
                 <div class="md:mb-2 lg2:mb-0 flex justify-center md:justify-start lg2:row-start-1 lg2:row-end-2 lg2:col-start-1 lg2:col-end-2">

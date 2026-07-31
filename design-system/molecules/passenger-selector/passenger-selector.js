@@ -466,7 +466,10 @@ export const PassengerSelector = ({
       ...${rest}
     >
       <!-- Trigger Input (flex-col: content row + green line) -->
-      <div class="w-full rounded-[8px] outline-1 outline-[var(--color-border-default)] inline-flex justify-start items-start overflow-hidden">
+      <!-- outline-offset-[-1px]: el trazo va HACIA ADENTRO. Sin el offset el outline se
+           dibuja por fuera y el trigger se ve 2px más alto que Origen/Destino, que sí lo
+           lleva (igual que el átomo input y la fila interna de este mismo componente). -->
+      <div class="w-full rounded-[8px] outline-1 outline-offset-[-1px] outline-[var(--color-border-default)] inline-flex justify-start items-start overflow-hidden">
         <button
           ref=${triggerRef}
           type="button"
