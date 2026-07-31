@@ -8,17 +8,80 @@ import { fetchAEMData } from '../../utils/aem-data.js';
 export const DEFAULT_MMB_URL = 'https://gestiona.avianca.com/{lang}/manage/upgrade-business-class';
 const DEFAULT_CHANNEL = 'MMB';
 
+/**
+ * Idiomas del producto que el sitio de MMB no tiene publicados, y a cuál se
+ * redirige en su lugar (VSTS 1301186). Hoy solo el francés: `/fr/` no existe en
+ * gestiona.avianca.com, así que un usuario con la cookie en `fr` aterrizaba en
+ * una URL inexistente.
+ *
+ * Es el default de código; el negocio lo sobreescribe sin deploy con la key
+ * AV_UPGRADES_MMB_LANG_MAP (ver parseLangMap), por si mañana habilitan el sitio
+ * en francés o cambian el destino.
+ */
+export const DEFAULT_MMB_LANG_MAP = { fr: 'en' };
+
 let configCache = null;
 
 const findEnvKey = (config, key) => config?.data
   ?.find((item) => item?.Key?.trim?.() === key)?.Text?.trim?.();
 
+/**
+ * Parsea el valor autorado de AV_UPGRADES_MMB_LANG_MAP: pares `origen:destino`
+ * separados por coma o punto y coma, p. ej. `fr:en` o `fr:en,it:en`. Se normaliza
+ * a minúsculas y se ignoran los espacios.
+ *
+ * Las entradas malformadas (sin `:`, con lado vacío o con `:` de más) se
+ * descartan una por una, sin tumbar a las válidas: es una hoja que edita un
+ * autor, no un archivo de configuración, así que un typo en un renglón no debe
+ * dejar sin mapeo a los demás.
+ *
+ * @param {string} [text] - Valor crudo de la hoja
+ * @returns {Object<string, string>} Mapa origen → destino ({} si no hay pares válidos)
+ */
+export const parseLangMap = (text) => String(text ?? '')
+  .split(/[,;]/)
+  .map((pair) => pair.split(':').map((part) => part.trim().toLowerCase()))
+  .filter((parts) => parts.length === 2 && parts[0] && parts[1])
+  .reduce((map, [from, to]) => ({ ...map, [from]: to }), {});
+
+/**
+ * Prefijo de las keys que le dan a un idioma su propia URL de MMB, p. ej.
+ * `AV_UPGRADES_MMB_URL_FR`. Es para el caso en que el destino de ese idioma no se
+ * pueda armar desde la URL compartida cambiando el segmento de idioma: otro host
+ * u otra ruta. El guion bajo final es lo que evita que la propia
+ * `AV_UPGRADES_MMB_URL` se lea como override.
+ */
+const MMB_URL_OVERRIDE_PREFIX = 'AV_UPGRADES_MMB_URL_';
+
+/**
+ * Recoge todas las keys `AV_UPGRADES_MMB_URL_<IDIOMA>` de la hoja y las indexa por
+ * idioma en minúsculas. Se hace por prefijo, y no key por key, para que agregar un
+ * idioma sea autorar una fila y no un deploy.
+ *
+ * @param {Object} config - Respuesta de fetchAEMData('environment')
+ * @returns {Object<string, string>} idioma → URL ({} si no hay ninguna)
+ */
+export const collectMmbUrlOverrides = (config) => (config?.data || [])
+  .reduce((acc, item) => {
+    const key = item?.Key?.trim?.() || '';
+    const url = item?.Text?.trim?.() || '';
+    if (!url || !key.toUpperCase().startsWith(MMB_URL_OVERRIDE_PREFIX)) return acc;
+    const lang = key.slice(MMB_URL_OVERRIDE_PREFIX.length).toLowerCase();
+    return lang ? { ...acc, [lang]: url } : acc;
+  }, {});
+
 export const getUpgradesConfig = async () => {
   if (configCache) return configCache;
   const config = await fetchAEMData('environment');
+  const langMap = parseLangMap(findEnvKey(config, 'AV_UPGRADES_MMB_LANG_MAP'));
   configCache = {
     channel: findEnvKey(config, 'AV_UPGRADES_CHANNEL') || DEFAULT_CHANNEL,
     mmbUrl: findEnvKey(config, 'AV_UPGRADES_MMB_URL') || DEFAULT_MMB_URL,
+    // La key autorada REEMPLAZA el default, no se mezcla con él: lo que está en
+    // la hoja es lo que aplica. Así el negocio también puede apagar el mapeo
+    // (autorando `fr:fr`) sin tener que tocar código.
+    langMap: Object.keys(langMap).length ? langMap : DEFAULT_MMB_LANG_MAP,
+    urlByLang: collectMmbUrlOverrides(config),
   };
   return configCache;
 };
