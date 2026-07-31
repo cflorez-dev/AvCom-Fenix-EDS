@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import {
-  UPGRADE_RESULT, mapValidateResult, buildMmbRedirectUrl, normalizeName,
+  UPGRADE_RESULT, mapValidateResult, buildMmbRedirectUrl, normalizeName, resolveMmbLang,
 } from '../../../scripts/services/upgrades/upgrades-result.js';
 
 const BODY_OK = {
@@ -93,5 +93,52 @@ describe('buildMmbRedirectUrl', () => {
       baseUrl: 'https://x.example/es/p', lang: 'en', pnr: 'ABC123', lastName: 'Perez',
     });
     expect(url.startsWith('https://x.example/es/p?')).toBe(true);
+  });
+  it('aplica el langMap: fr redirige al sitio en en (VSTS 1301186)', () => {
+    const url = buildMmbRedirectUrl({
+      baseUrl: 'https://gestiona.avianca.com/{lang}/manage/upgrade-business-class',
+      lang: 'fr',
+      pnr: 'AYQQQS',
+      lastName: 'Morales',
+      langMap: { fr: 'en' },
+    });
+    expect(url).toBe('https://gestiona.avianca.com/en/manage/upgrade-business-class?pnr=AYQQQS&lastname=Morales&flow=mmb');
+  });
+  it('sin langMap se comporta igual que antes (fr queda fr)', () => {
+    const url = buildMmbRedirectUrl({
+      baseUrl: 'https://x.example/{lang}/p', lang: 'fr', pnr: 'ABC123', lastName: 'Perez',
+    });
+    expect(url).toContain('/fr/p?');
+  });
+});
+
+describe('resolveMmbLang', () => {
+  const MAP = { fr: 'en' };
+
+  it('traduce el idioma que está en el mapa', () => {
+    expect(resolveMmbLang('fr', MAP)).toBe('en');
+  });
+  it('deja pasar los idiomas que no están en el mapa', () => {
+    expect(resolveMmbLang('es', MAP)).toBe('es');
+    expect(resolveMmbLang('en', MAP)).toBe('en');
+    expect(resolveMmbLang('pt', MAP)).toBe('pt');
+    expect(resolveMmbLang('it', MAP)).toBe('it');
+  });
+  it('normaliza espacios y mayúsculas antes de buscar', () => {
+    expect(resolveMmbLang(' FR ', MAP)).toBe('en');
+  });
+  it('no cae en Object.prototype con cookies hostiles', () => {
+    // El idioma sale de la cookie `selected-language`, que el usuario controla.
+    // Sin guarda, langMap['constructor'] devolvía una función y terminaba
+    // interpolada en la URL.
+    expect(resolveMmbLang('constructor', MAP)).toBe('constructor');
+    expect(resolveMmbLang('toString', MAP)).toBe('toString');
+    expect(resolveMmbLang('__proto__', MAP)).toBe('__proto__');
+  });
+  it('sin mapa o con entrada vacía devuelve lo que recibió', () => {
+    expect(resolveMmbLang('fr')).toBe('fr');
+    expect(resolveMmbLang('fr', {})).toBe('fr');
+    expect(resolveMmbLang('', MAP)).toBe('');
+    expect(resolveMmbLang(undefined, MAP)).toBe(undefined);
   });
 });

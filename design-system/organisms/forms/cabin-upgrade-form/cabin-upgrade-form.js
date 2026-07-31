@@ -339,10 +339,14 @@ export const CabinUpgradeForm = ({
       const result = mapValidateResult({ ...response, lastName });
 
       if (result === UPGRADE_RESULT.ELIGIBLE) {
-        const { mmbUrl } = await getUpgradesConfig();
+        const { mmbUrl, langMap } = await getUpgradesConfig();
         const url = buildMmbRedirectUrl({
           baseUrl: mmbUrl,
           lang: getStoredLanguage() || 'es',
+          // El sitio de MMB no está publicado en todos los idiomas del producto:
+          // langMap manda el francés a /en/ (VSTS 1301186). Los textos de ESTA
+          // página siguen en francés; solo cambia el idioma del destino.
+          langMap,
           pnr: sanitizePnr(pnrCode),
           lastName: lastName.trim(),
         });

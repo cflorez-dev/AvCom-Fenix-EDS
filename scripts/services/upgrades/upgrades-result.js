@@ -38,10 +38,35 @@ export const mapValidateResult = ({
   return hasEligible ? UPGRADE_RESULT.ELIGIBLE : UPGRADE_RESULT.NO_AVAILABILITY;
 };
 
+/**
+ * Traduce el idioma del usuario al idioma con que se arma la URL de MMB
+ * (VSTS 1301186). Existe porque el sitio de destino no está publicado en todos
+ * los idiomas del producto: el francés no tiene `/fr/`, así que se manda a `/en/`.
+ *
+ * Solo traduce lo que esté en el mapa; cualquier otro idioma pasa tal cual, y sin
+ * idioma se devuelve lo recibido. Es a propósito: no hay whitelist estricta, para
+ * no alterar el comportamiento de los casos que hoy funcionan.
+ *
+ * @param {string} lang - Idioma del usuario (cookie), p. ej. 'fr'
+ * @param {Object<string, string>} [langMap] - Mapa origen → destino de getUpgradesConfig()
+ * @returns {string} Idioma con que se resuelve el placeholder {lang}
+ */
+export const resolveMmbLang = (lang, langMap) => {
+  const normalized = String(lang ?? '').trim().toLowerCase();
+  // Se exige propiedad propia y valor string: el idioma viene de una cookie que
+  // el usuario controla, y un `langMap[lang]` a secas caería en Object.prototype
+  // con cookies como `constructor` o `toString`, devolviendo una función que
+  // terminaría interpolada en la URL.
+  const found = Object.prototype.hasOwnProperty.call(langMap || {}, normalized)
+    ? langMap[normalized]
+    : null;
+  return typeof found === 'string' && found ? found : lang;
+};
+
 export const buildMmbRedirectUrl = ({
-  baseUrl, lang, pnr, lastName,
+  baseUrl, lang, pnr, lastName, langMap,
 }) => {
-  const resolvedBase = baseUrl.replace('{lang}', lang);
+  const resolvedBase = baseUrl.replace('{lang}', resolveMmbLang(lang, langMap));
   const params = new URLSearchParams({ pnr, lastname: lastName, flow: 'mmb' });
   return `${resolvedBase}?${params.toString()}`;
 };
