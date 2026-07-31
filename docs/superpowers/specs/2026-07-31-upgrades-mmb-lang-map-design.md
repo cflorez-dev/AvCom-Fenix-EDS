@@ -63,9 +63,29 @@ export const buildMmbRedirectUrl = ({ baseUrl, lang, pnr, lastName, langMap }) =
 `langMap` es opcional: sin él la función se comporta exactamente como hoy, y los tests existentes de
 `buildMmbRedirectUrl` siguen verdes sin tocarlos.
 
+### 2.bis URL propia por idioma
+
+El mapa de idiomas solo alcanza cuando el destino se arma desde la URL compartida cambiando el
+segmento de idioma. Si un idioma tiene **otro host u otra ruta**, se le da su propia URL con una key
+opcional por idioma:
+
+**Key nueva:** `AV_UPGRADES_MMB_URL_<IDIOMA>` en el sheet `environment`, p. ej.
+`AV_UPGRADES_MMB_URL_FR = https://otrositio.com/fr-upgrades`.
+
+- `collectMmbUrlOverrides()` en `upgrades.service.js` las recoge **por prefijo**, así agregar un
+  idioma es autorar una fila y no un deploy. `getUpgradesConfig()` las expone como `urlByLang`.
+- El guion bajo final del prefijo es lo que evita que la propia `AV_UPGRADES_MMB_URL` se lea como
+  override.
+- `resolveMmbBaseUrl(lang, { baseUrl, urlByLang })` en `upgrades-result.js` elige la URL. La búsqueda
+  es **por el idioma del usuario, no por el ya traducido con el langMap**: la key se llama `_FR`
+  porque significa "para un usuario en francés", y buscar después de traducir caería en la de inglés.
+- Si la URL propia trae `{lang}`, se resuelve con el mismo `langMap` que la compartida.
+
+**Precedencia final:** URL propia del idioma → URL compartida + mapa de idioma → default de código.
+
 ### 3. `design-system/organisms/forms/cabin-upgrade-form/cabin-upgrade-form.js`
 
-Pasar `langMap` junto a `mmbUrl`, ambos de `getUpgradesConfig()`.
+Pasar `langMap` y `urlByLang` junto a `mmbUrl`, los tres de `getUpgradesConfig()`.
 
 ### Comportamiento resultante
 
@@ -75,6 +95,8 @@ Pasar `langMap` junto a `mmbUrl`, ambos de `getUpgradesConfig()`.
 | `es` / `en` / `pt` | igual |
 | ausente | `es` (comportamiento actual, sin cambios) |
 | cualquier otro | pasa tal cual |
+
+Y si el idioma tiene autorada su `AV_UPGRADES_MMB_URL_<IDIOMA>`, esa URL gana sobre todo lo anterior.
 
 Sin whitelist estricta: solo se traduce lo que esté en el mapa. Decisión deliberada — evita cambiar
 el comportamiento de casos que hoy funcionan.
@@ -88,6 +110,10 @@ Vitest, patrón `tests/services/upgrades/` existente:
   entrada vacía o `undefined`.
 - `buildMmbRedirectUrl`: con `langMap` (FR resuelve a `/en/`), sin `langMap` (idéntico a hoy).
 - `getUpgradesConfig`: lee `AV_UPGRADES_MMB_LANG_MAP` del sheet; cae al default cuando falta.
+- `collectMmbUrlOverrides`: recoge `AV_UPGRADES_MMB_URL_FR`/`_PT`, indexa en minúsculas, ignora
+  valores vacíos, y **no** confunde `AV_UPGRADES_MMB_URL` ni `AV_UPGRADES_MMB_LANG_MAP` con overrides.
+- `resolveMmbBaseUrl`: la URL propia gana; los demás idiomas usan la compartida; la búsqueda es por
+  el idioma del usuario y no por el traducido; cookies hostiles no caen en `Object.prototype`.
 - `cabin-upgrade-form`: con cookie `fr` y resultado `ELIGIBLE`, la URL de `window.location.assign`
   contiene `/en/`.
 

@@ -38,6 +38,24 @@ export const mapValidateResult = ({
   return hasEligible ? UPGRADE_RESULT.ELIGIBLE : UPGRADE_RESULT.NO_AVAILABILITY;
 };
 
+const normalizeLang = (lang) => String(lang ?? '').trim().toLowerCase();
+
+/**
+ * Lee una entrada de un mapa de configuración usando como llave el idioma del
+ * usuario. Exige propiedad propia y valor string no vacío porque ese idioma sale
+ * de una cookie que el usuario controla: un `map[lang]` a secas caería en
+ * Object.prototype con cookies como `constructor` o `toString`, devolviendo una
+ * función que terminaría interpolada en la URL.
+ *
+ * @param {Object<string, string>} [map]
+ * @param {string} key - Idioma ya normalizado
+ * @returns {string} El valor, o '' si no hay uno usable
+ */
+const pickOwnString = (map, key) => {
+  const found = Object.prototype.hasOwnProperty.call(map || {}, key) ? map[key] : null;
+  return typeof found === 'string' && found.trim() ? found.trim() : '';
+};
+
 /**
  * Traduce el idioma del usuario al idioma con que se arma la URL de MMB
  * (VSTS 1301186). Existe porque el sitio de destino no está publicado en todos
@@ -51,22 +69,35 @@ export const mapValidateResult = ({
  * @param {Object<string, string>} [langMap] - Mapa origen → destino de getUpgradesConfig()
  * @returns {string} Idioma con que se resuelve el placeholder {lang}
  */
-export const resolveMmbLang = (lang, langMap) => {
-  const normalized = String(lang ?? '').trim().toLowerCase();
-  // Se exige propiedad propia y valor string: el idioma viene de una cookie que
-  // el usuario controla, y un `langMap[lang]` a secas caería en Object.prototype
-  // con cookies como `constructor` o `toString`, devolviendo una función que
-  // terminaría interpolada en la URL.
-  const found = Object.prototype.hasOwnProperty.call(langMap || {}, normalized)
-    ? langMap[normalized]
-    : null;
-  return typeof found === 'string' && found ? found : lang;
-};
+export const resolveMmbLang = (lang, langMap) => pickOwnString(langMap, normalizeLang(lang))
+  || lang;
+
+/**
+ * Elige la URL base de MMB para un idioma. Un idioma puede tener URL propia
+ * (key AV_UPGRADES_MMB_URL_<IDIOMA>) cuando su destino no se puede armar a partir
+ * de la URL compartida cambiando el segmento de idioma — otro host u otra ruta.
+ * Si no la tiene, se usa la URL compartida de siempre.
+ *
+ * La búsqueda es por el idioma **del usuario**, no por el ya traducido con el
+ * langMap: la key se llama `_FR` porque significa "para un usuario en francés",
+ * y buscar después de traducir la haría caer en la de inglés.
+ *
+ * @param {string} lang - Idioma del usuario (cookie)
+ * @param {{ baseUrl: string, urlByLang?: Object<string, string> }} config
+ * @returns {string} URL base a usar (aún puede traer el placeholder {lang})
+ */
+export const resolveMmbBaseUrl = (lang, { baseUrl, urlByLang }) => pickOwnString(
+  urlByLang,
+  normalizeLang(lang),
+) || baseUrl;
 
 export const buildMmbRedirectUrl = ({
-  baseUrl, lang, pnr, lastName, langMap,
+  baseUrl, lang, pnr, lastName, langMap, urlByLang,
 }) => {
-  const resolvedBase = baseUrl.replace('{lang}', resolveMmbLang(lang, langMap));
+  // Primero qué URL, después con qué idioma: si la URL propia de un idioma trae
+  // {lang}, se resuelve con el mismo mapa que la compartida.
+  const base = resolveMmbBaseUrl(lang, { baseUrl, urlByLang });
+  const resolvedBase = base.replace('{lang}', resolveMmbLang(lang, langMap));
   const params = new URLSearchParams({ pnr, lastname: lastName, flow: 'mmb' });
   return `${resolvedBase}?${params.toString()}`;
 };

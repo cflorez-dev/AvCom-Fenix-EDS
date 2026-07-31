@@ -57,10 +57,12 @@ const setInputValue = (el, value) => {
  * Monta el formulario con el idioma y el langMap dados, lo llena con una reserva
  * elegible y lo envía. Devuelve la URL a la que se redirigió.
  */
-const submitAndGetRedirectUrl = async ({ language, langMap }) => {
+const submitAndGetRedirectUrl = async ({ language, langMap, urlByLang = {} }) => {
   getStoredLanguage.mockReturnValue(language);
   validateUpgrade.mockResolvedValue({ ok: true, status: 200, body: BODY_ELIGIBLE });
-  getUpgradesConfig.mockResolvedValue({ channel: 'MMB', mmbUrl: MMB_URL, langMap });
+  getUpgradesConfig.mockResolvedValue({
+    channel: 'MMB', mmbUrl: MMB_URL, langMap, urlByLang,
+  });
   resetI18nCachesForTests();
 
   const container = document.createElement('div');
@@ -126,5 +128,25 @@ describe('CabinUpgradeForm — idioma de la redirección a MMB', () => {
     const url = await submitAndGetRedirectUrl({ language: 'fr', langMap: { fr: 'fr' } });
 
     expect(url).toContain('/fr/manage/upgrade-business-class?');
+  });
+
+  it('la URL propia del francés gana sobre la URL compartida', async () => {
+    const url = await submitAndGetRedirectUrl({
+      language: 'fr',
+      langMap: { fr: 'en' },
+      urlByLang: { fr: 'https://otrositio.com/fr-upgrades' },
+    });
+
+    expect(url).toBe('https://otrositio.com/fr-upgrades?pnr=AYQQQS&lastname=Morales&flow=mmb');
+  });
+
+  it('esa URL propia no afecta a los demás idiomas', async () => {
+    const url = await submitAndGetRedirectUrl({
+      language: 'es',
+      langMap: { fr: 'en' },
+      urlByLang: { fr: 'https://otrositio.com/fr-upgrades' },
+    });
+
+    expect(url).toContain('https://gestiona.avianca.com/es/manage/upgrade-business-class?');
   });
 });

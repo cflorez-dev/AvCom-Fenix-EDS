@@ -192,3 +192,61 @@ describe('getUpgradesConfig — langMap', () => {
     expect((await getUpgradesConfig()).langMap).toEqual({ fr: 'fr' });
   });
 });
+
+describe('getUpgradesConfig — urlByLang (URL propia por idioma)', () => {
+  beforeEach(() => vi.resetModules());
+  afterEach(() => {
+    vi.doUnmock(tokenServicePath);
+    vi.doUnmock(aemDataPath);
+    vi.restoreAllMocks();
+  });
+
+  it('recoge AV_UPGRADES_MMB_URL_<IDIOMA> y lo indexa en minúsculas', async () => {
+    mockDeps({
+      envRows: [
+        { Key: 'AV_UPGRADES_MMB_URL_FR', Text: 'https://otrositio.com/fr-upgrades' },
+        { Key: 'AV_UPGRADES_MMB_URL_PT', Text: 'https://otro.com/pt' },
+      ],
+    });
+    const { getUpgradesConfig } = await import(servicePath);
+
+    expect((await getUpgradesConfig()).urlByLang).toEqual({
+      fr: 'https://otrositio.com/fr-upgrades',
+      pt: 'https://otro.com/pt',
+    });
+  });
+
+  it('NO confunde la URL base ni el mapa de idiomas con un override', async () => {
+    mockDeps({
+      envRows: [
+        { Key: 'AV_UPGRADES_MMB_URL', Text: 'https://base.com/{lang}/x' },
+        { Key: 'AV_UPGRADES_MMB_LANG_MAP', Text: 'fr:en' },
+        { Key: 'AV_UPGRADES_CHANNEL', Text: 'WEB' },
+      ],
+    });
+    const { getUpgradesConfig } = await import(servicePath);
+    const cfg = await getUpgradesConfig();
+
+    expect(cfg.urlByLang).toEqual({});
+    expect(cfg.mmbUrl).toBe('https://base.com/{lang}/x');
+  });
+
+  it('ignora overrides con valor vacío y recorta espacios', async () => {
+    mockDeps({
+      envRows: [
+        { Key: '  AV_UPGRADES_MMB_URL_FR  ', Text: '  https://otrositio.com/fr  ' },
+        { Key: 'AV_UPGRADES_MMB_URL_EN', Text: '   ' },
+      ],
+    });
+    const { getUpgradesConfig } = await import(servicePath);
+
+    expect((await getUpgradesConfig()).urlByLang).toEqual({ fr: 'https://otrositio.com/fr' });
+  });
+
+  it('sin ninguna key devuelve {} (nadie tiene URL propia)', async () => {
+    mockDeps();
+    const { getUpgradesConfig } = await import(servicePath);
+
+    expect((await getUpgradesConfig()).urlByLang).toEqual({});
+  });
+});

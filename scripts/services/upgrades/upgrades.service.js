@@ -44,6 +44,32 @@ export const parseLangMap = (text) => String(text ?? '')
   .filter((parts) => parts.length === 2 && parts[0] && parts[1])
   .reduce((map, [from, to]) => ({ ...map, [from]: to }), {});
 
+/**
+ * Prefijo de las keys que le dan a un idioma su propia URL de MMB, p. ej.
+ * `AV_UPGRADES_MMB_URL_FR`. Es para el caso en que el destino de ese idioma no se
+ * pueda armar desde la URL compartida cambiando el segmento de idioma: otro host
+ * u otra ruta. El guion bajo final es lo que evita que la propia
+ * `AV_UPGRADES_MMB_URL` se lea como override.
+ */
+const MMB_URL_OVERRIDE_PREFIX = 'AV_UPGRADES_MMB_URL_';
+
+/**
+ * Recoge todas las keys `AV_UPGRADES_MMB_URL_<IDIOMA>` de la hoja y las indexa por
+ * idioma en minúsculas. Se hace por prefijo, y no key por key, para que agregar un
+ * idioma sea autorar una fila y no un deploy.
+ *
+ * @param {Object} config - Respuesta de fetchAEMData('environment')
+ * @returns {Object<string, string>} idioma → URL ({} si no hay ninguna)
+ */
+export const collectMmbUrlOverrides = (config) => (config?.data || [])
+  .reduce((acc, item) => {
+    const key = item?.Key?.trim?.() || '';
+    const url = item?.Text?.trim?.() || '';
+    if (!url || !key.toUpperCase().startsWith(MMB_URL_OVERRIDE_PREFIX)) return acc;
+    const lang = key.slice(MMB_URL_OVERRIDE_PREFIX.length).toLowerCase();
+    return lang ? { ...acc, [lang]: url } : acc;
+  }, {});
+
 export const getUpgradesConfig = async () => {
   if (configCache) return configCache;
   const config = await fetchAEMData('environment');
@@ -55,6 +81,7 @@ export const getUpgradesConfig = async () => {
     // la hoja es lo que aplica. Así el negocio también puede apagar el mapeo
     // (autorando `fr:fr`) sin tener que tocar código.
     langMap: Object.keys(langMap).length ? langMap : DEFAULT_MMB_LANG_MAP,
+    urlByLang: collectMmbUrlOverrides(config),
   };
   return configCache;
 };

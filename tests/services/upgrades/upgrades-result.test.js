@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import {
   UPGRADE_RESULT, mapValidateResult, buildMmbRedirectUrl, normalizeName, resolveMmbLang,
+  resolveMmbBaseUrl,
 } from '../../../scripts/services/upgrades/upgrades-result.js';
 
 const BODY_OK = {
@@ -109,6 +110,62 @@ describe('buildMmbRedirectUrl', () => {
       baseUrl: 'https://x.example/{lang}/p', lang: 'fr', pnr: 'ABC123', lastName: 'Perez',
     });
     expect(url).toContain('/fr/p?');
+  });
+  it('usa la URL propia del idioma cuando existe, con la query de siempre', () => {
+    const url = buildMmbRedirectUrl({
+      baseUrl: 'https://gestiona.avianca.com/{lang}/manage/upgrade-business-class',
+      lang: 'fr',
+      pnr: 'AYQQQS',
+      lastName: 'Morales',
+      langMap: { fr: 'en' },
+      urlByLang: { fr: 'https://otrositio.com/fr-upgrades' },
+    });
+    expect(url).toBe('https://otrositio.com/fr-upgrades?pnr=AYQQQS&lastname=Morales&flow=mmb');
+  });
+  it('la URL propia también admite {lang}, que se resuelve con el mapa', () => {
+    const url = buildMmbRedirectUrl({
+      baseUrl: 'https://gestiona.avianca.com/{lang}/manage/upgrade-business-class',
+      lang: 'fr',
+      pnr: 'ABC123',
+      lastName: 'Perez',
+      langMap: { fr: 'en' },
+      urlByLang: { fr: 'https://otrositio.com/{lang}/upgrades' },
+    });
+    expect(url).toContain('https://otrositio.com/en/upgrades?');
+  });
+});
+
+describe('resolveMmbBaseUrl', () => {
+  const BASE = 'https://gestiona.avianca.com/{lang}/manage/upgrade-business-class';
+  const URL_BY_LANG = { fr: 'https://otrositio.com/fr-upgrades' };
+
+  it('el idioma con URL propia gana sobre la URL base', () => {
+    expect(resolveMmbBaseUrl('fr', { baseUrl: BASE, urlByLang: URL_BY_LANG }))
+      .toBe('https://otrositio.com/fr-upgrades');
+  });
+  it('los idiomas sin URL propia usan la base', () => {
+    expect(resolveMmbBaseUrl('es', { baseUrl: BASE, urlByLang: URL_BY_LANG })).toBe(BASE);
+    expect(resolveMmbBaseUrl('en', { baseUrl: BASE, urlByLang: URL_BY_LANG })).toBe(BASE);
+  });
+  it('busca por el idioma del USUARIO, no por el ya mapeado', () => {
+    // Con langMap fr→en, si buscara el override después de mapear iría a parar a
+    // la key de inglés, que es justo lo contrario de "para francés usá esta URL".
+    expect(resolveMmbBaseUrl('fr', {
+      baseUrl: BASE,
+      urlByLang: { en: 'https://no-deberia.com/en' },
+    })).toBe(BASE);
+  });
+  it('normaliza espacios y mayúsculas del idioma', () => {
+    expect(resolveMmbBaseUrl(' FR ', { baseUrl: BASE, urlByLang: URL_BY_LANG }))
+      .toBe('https://otrositio.com/fr-upgrades');
+  });
+  it('sin overrides devuelve la base', () => {
+    expect(resolveMmbBaseUrl('fr', { baseUrl: BASE })).toBe(BASE);
+    expect(resolveMmbBaseUrl('fr', { baseUrl: BASE, urlByLang: {} })).toBe(BASE);
+  });
+  it('no cae en Object.prototype con cookies hostiles', () => {
+    expect(resolveMmbBaseUrl('constructor', { baseUrl: BASE, urlByLang: URL_BY_LANG })).toBe(BASE);
+    expect(resolveMmbBaseUrl('toString', { baseUrl: BASE, urlByLang: URL_BY_LANG })).toBe(BASE);
   });
 });
 
