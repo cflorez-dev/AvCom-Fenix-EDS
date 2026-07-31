@@ -328,7 +328,15 @@ export const SecondaryBanner = ({
         <div class="relative w-full h-[170px] overflow-hidden">
           ${buildMobilePicture()}
           ${showCondor ? html`
-            <div class="absolute top-0 right-0 w-[140px] h-[140px] pointer-events-none z-10 overflow-hidden [&_svg]:absolute [&_svg]:top-0 [&_svg]:right-0 [&_svg]:h-full [&_svg]:w-auto">
+            <!-- Condor mobile (<=767): caja fija 141x157 anclada arriba-derecha y
+                 SANGRANDO fuera de la imagen (top -31 / right -30), tal cual Figma
+                 9012:160528 (frame 311) y 40000003:706 (frame 735): en ambos anchos el
+                 vector mide 141x157 y su borde derecho cae 30px pasado el de la imagen.
+                 El recorte lo hace el overflow-hidden del contenedor de la imagen, asi
+                 que solo se ven las lineas barriendo la esquina; el cuerpo del ave queda
+                 fuera. Antes la caja era 140x140 en top-0/right-0, lo que metia el ave
+                 COMPLETA dentro de la foto (bug: condor sobrepuesto). -->
+            <div class="absolute top-[-31px] right-[-30px] w-[141px] h-[157px] pointer-events-none z-10 [&_svg]:absolute [&_svg]:inset-0 [&_svg]:w-full [&_svg]:h-full">
               ${renderSVG(condorVectorSVG)}
             </div>
           ` : ''}
