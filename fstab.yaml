@@ -1,5 +1,5 @@
 mountpoints:
   /:
-    url: "https://author-p176854-e1867254.adobeaemcloud.com/bin/franklin.delivery/aviancavsts/localhost-front/localhost-front/main"
+    url: "https://author-p176854-e1867254.adobeaemcloud.com/bin/franklin.delivery/aviancavsts/localhost-front/main"
     type: "markup"
     suffix: ".html"
